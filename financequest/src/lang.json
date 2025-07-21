@@ -1,0 +1,38 @@
+{
+    "en": {
+      "welcome": "Welcome to FinanceQuest",
+      "tagline": "Level up your money skills!",
+      "startLearning": "Start Learning",
+      "login": "Login",
+      "register": "Register",
+      "email": "Email",
+      "password": "Password",
+      "dashboard": "Dashboard",
+      "level": "Level",
+      "points": "Points",
+      "novice": "Novice",
+      "quests": "Quests",
+      "noQuests": "No quests available yet",
+      "questDetail": "Quest Detail",
+      "back": "Back",
+      "language": "Language"
+    },
+    "fr": {
+      "welcome": "Bienvenue sur FinanceQuest",
+      "tagline": "Améliorez vos compétences financières !",
+      "startLearning": "Commencer",
+      "login": "Connexion",
+      "register": "S'inscrire",
+      "email": "Email",
+      "password": "Mot de passe",
+      "dashboard": "Tableau de bord",
+      "level": "Niveau",
+      "points": "Points",
+      "novice": "Débutant",
+      "quests": "Quêtes",
+      "noQuests": "Aucune quête disponible",
+      "questDetail": "Détail de la quête",
+      "back": "Retour",
+      "language": "Langue"
+    }
+  }
