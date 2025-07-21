@@ -9,15 +9,19 @@ function Login({ t }) {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
       setError('Login failed: ' + err.message);
+      setIsSubmitting(false);
     }
+    setIsSubmitting(false); // Reset même si erreur
   };
 
   return (
@@ -64,7 +68,7 @@ function Login({ t }) {
           
           <button
             type="submit"
-            className="w-full bg-gold-500 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gold-400 transition-colors animate-pulse" // Animation simple
+            className={`w-full bg-gold-500 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gold-400 transition-colors ${isSubmitting ? 'animate-pulse' : ''}`}
           >
             {t('login')}
           </button>

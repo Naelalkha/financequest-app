@@ -1,0 +1,410 @@
+[
+    {
+      "id": 1,
+      "titleEN": "Budget Basics",
+      "titleFR": "Bases du Budget",
+      "premium": false,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is a budget?",
+          "questionFR": "Qu'est-ce qu'un budget ?",
+          "optionsEN": ["A plan for money", "A type of food", "A game"],
+          "optionsFR": ["Un plan pour l'argent", "Un type de nourriture", "Un jeu"],
+          "correct": 0
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["Track expenses", "Set savings goal"],
+          "itemsFR": ["Suivre les dépenses", "Fixer un objectif d'épargne"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "titleEN": "Savings Starter",
+      "titleFR": "Début d'Épargne",
+      "premium": false,
+      "steps": [
+        {
+          "type": "challenge",
+          "descriptionEN": "Save $10 this week",
+          "descriptionFR": "Épargnez 10€ cette semaine"
+        },
+        {
+          "type": "quiz",
+          "questionEN": "Why save money?",
+          "questionFR": "Pourquoi épargner ?",
+          "optionsEN": ["For emergencies", "To buy toys", "To eat out"],
+          "optionsFR": ["Pour les urgences", "Pour acheter des jouets", "Pour manger dehors"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "titleEN": "Debt Management 101",
+      "titleFR": "Gestion des Dettes 101",
+      "premium": false,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is debt?",
+          "questionFR": "Qu'est-ce qu'une dette ?",
+          "optionsEN": ["Borrowed money", "Free money", "Savings"],
+          "optionsFR": ["Argent emprunté", "Argent gratuit", "Épargne"],
+          "correct": 0
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["List your debts", "Prioritize high-interest"],
+          "itemsFR": ["Lister vos dettes", "Prioriser les intérêts hauts"]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "titleEN": "Income Tracking",
+      "titleFR": "Suivi des Revenus",
+      "premium": false,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Record monthly income", "Categorize sources"],
+          "itemsFR": ["Enregistrer les revenus mensuels", "Catégoriser les sources"]
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Track income for one week",
+          "descriptionFR": "Suivre les revenus pour une semaine"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "titleEN": "Expense Categories",
+      "titleFR": "Catégories de Dépenses",
+      "premium": false,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is a fixed expense?",
+          "questionFR": "Qu'est-ce qu'une dépense fixe ?",
+          "optionsEN": ["Rent or mortgage", "Movie tickets", "Groceries"],
+          "optionsFR": ["Loyer ou hypothèque", "Billets de cinéma", "Courses"],
+          "correct": 0
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["List fixed expenses", "List variable expenses"],
+          "itemsFR": ["Lister les dépenses fixes", "Lister les dépenses variables"]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "titleEN": "Emergency Fund",
+      "titleFR": "Fonds d'Urgence",
+      "premium": false,
+      "steps": [
+        {
+          "type": "challenge",
+          "descriptionEN": "Start an emergency fund with $50",
+          "descriptionFR": "Commencer un fonds d'urgence avec 50€"
+        },
+        {
+          "type": "quiz",
+          "questionEN": "How much for an emergency fund?",
+          "questionFR": "Combien pour un fonds d'urgence ?",
+          "optionsEN": ["3-6 months expenses", "1 week", "All savings"],
+          "optionsFR": ["3-6 mois de dépenses", "1 semaine", "Toute l'épargne"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "titleEN": "Credit Score Basics",
+      "titleFR": "Bases du Score de Crédit",
+      "premium": false,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What affects credit score?",
+          "questionFR": "Qu'est-ce qui affecte le score de crédit ?",
+          "optionsEN": ["Payment history", "Favorite color", "Shoe size"],
+          "optionsFR": ["Historique de paiements", "Couleur préférée", "Taille de chaussure"],
+          "correct": 0
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["Pay bills on time", "Keep utilization low"],
+          "itemsFR": ["Payer les factures à temps", "Garder l'utilisation basse"]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "titleEN": "Simple Investing",
+      "titleFR": "Investissement Simple",
+      "premium": false,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Understand stocks", "Understand bonds"],
+          "itemsFR": ["Comprendre les actions", "Comprendre les obligations"]
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Research one stock",
+          "descriptionFR": "Rechercher une action"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "titleEN": "Retirement Planning",
+      "titleFR": "Planification de la Retraite",
+      "premium": false,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is a 401k?",
+          "questionFR": "Qu'est-ce qu'un 401k ?",
+          "optionsEN": ["Retirement account", "Car model", "Phone number"],
+          "optionsFR": ["Compte de retraite", "Modèle de voiture", "Numéro de téléphone"],
+          "correct": 0
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Calculate retirement needs",
+          "descriptionFR": "Calculer les besoins de retraite"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "titleEN": "Tax Basics",
+      "titleFR": "Bases des Impôts",
+      "premium": false,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Understand deductions", "File on time"],
+          "itemsFR": ["Comprendre les déductions", "Déclarer à temps"]
+        },
+        {
+          "type": "quiz",
+          "questionEN": "What is a tax deduction?",
+          "questionFR": "Qu'est-ce qu'une déduction fiscale ?",
+          "optionsEN": ["Reduces taxable income", "Increases taxes", "A gift"],
+          "optionsFR": ["Réduit le revenu imposable", "Augmente les impôts", "Un cadeau"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "titleEN": "Advanced Budgeting",
+      "titleFR": "Budget Avancé",
+      "premium": true,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is zero-based budgeting?",
+          "questionFR": "Qu'est-ce que le budget base zéro ?",
+          "optionsEN": ["Every dollar assigned", "No budget", "Random spending"],
+          "optionsFR": ["Chaque dollar assigné", "Pas de budget", "Dépenses aléatoires"],
+          "correct": 0
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Create a zero-based budget",
+          "descriptionFR": "Créer un budget base zéro"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "titleEN": "Stock Market Fundamentals",
+      "titleFR": "Fondamentaux du Marché Boursier",
+      "premium": true,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Learn about indexes", "Understand diversification"],
+          "itemsFR": ["Apprendre les indices", "Comprendre la diversification"]
+        },
+        {
+          "type": "quiz",
+          "questionEN": "What is the S&P 500?",
+          "questionFR": "Qu'est-ce que le S&P 500 ?",
+          "optionsEN": ["Market index", "Sports team", "Food brand"],
+          "optionsFR": ["Indice de marché", "Équipe sportive", "Marque alimentaire"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "titleEN": "Crypto Introduction",
+      "titleFR": "Introduction à la Crypto",
+      "premium": true,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is Bitcoin?",
+          "questionFR": "Qu'est-ce que le Bitcoin ?",
+          "optionsEN": ["Digital currency", "Physical coin", "Stock"],
+          "optionsFR": ["Monnaie numérique", "Pièce physique", "Action"],
+          "correct": 0
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Research a crypto wallet",
+          "descriptionFR": "Rechercher un portefeuille crypto"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "titleEN": "Real Estate Investing",
+      "titleFR": "Investissement Immobilier",
+      "premium": true,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Understand mortgages", "Calculate ROI"],
+          "itemsFR": ["Comprendre les hypothèques", "Calculer le ROI"]
+        },
+        {
+          "type": "quiz",
+          "questionEN": "What is ROI?",
+          "questionFR": "Qu'est-ce que le ROI ?",
+          "optionsEN": ["Return on Investment", "Risk of Investment", "Rate of Interest"],
+          "optionsFR": ["Retour sur Investissement", "Risque d'Investissement", "Taux d'Intérêt"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "titleEN": "Side Hustle Ideas",
+      "titleFR": "Idées de Side Hustle",
+      "premium": true,
+      "steps": [
+        {
+          "type": "challenge",
+          "descriptionEN": "Brainstorm 3 side hustles",
+          "descriptionFR": "Brainstorm 3 side hustles"
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["Evaluate profitability", "Plan time management"],
+          "itemsFR": ["Évaluer la rentabilité", "Planifier la gestion du temps"]
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "titleEN": "Financial Goal Setting",
+      "titleFR": "Définition d'Objectifs Financiers",
+      "premium": true,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is a SMART goal?",
+          "questionFR": "Qu'est-ce qu'un objectif SMART ?",
+          "optionsEN": ["Specific, Measurable, Achievable, Relevant, Time-bound", "Simple, Fun, Easy", "Short, Medium, Long"],
+          "optionsFR": ["Spécifique, Mesurable, Atteignable, Pertinent, Temporel", "Simple, Amusant, Facile", "Court, Moyen, Long"],
+          "correct": 0
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Set a SMART financial goal",
+          "descriptionFR": "Fixer un objectif financier SMART"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "titleEN": "Insurance Essentials",
+      "titleFR": "Essentiels d'Assurance",
+      "premium": true,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Understand health insurance", "Understand auto insurance"],
+          "itemsFR": ["Comprendre l'assurance santé", "Comprendre l'assurance auto"]
+        },
+        {
+          "type": "quiz",
+          "questionEN": "What is deductible?",
+          "questionFR": "Qu'est-ce qu'une franchise ?",
+          "optionsEN": ["Amount you pay before insurance", "Total coverage", "Premium payment"],
+          "optionsFR": ["Montant payé avant assurance", "Couverture totale", "Paiement prime"],
+          "correct": 0
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "titleEN": "Estate Planning",
+      "titleFR": "Planification Successorale",
+      "premium": true,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is a will?",
+          "questionFR": "Qu'est-ce qu'un testament ?",
+          "optionsEN": ["Legal document for assets", "Type of bill", "Investment plan"],
+          "optionsFR": ["Document légal pour actifs", "Type de facture", "Plan d'investissement"],
+          "correct": 0
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Draft a simple will outline",
+          "descriptionFR": "Rédiger un contour de testament simple"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "titleEN": "Passive Income Streams",
+      "titleFR": "Flux de Revenus Passifs",
+      "premium": true,
+      "steps": [
+        {
+          "type": "checklist",
+          "itemsEN": ["Learn dividends", "Learn rental income"],
+          "itemsFR": ["Apprendre les dividendes", "Apprendre les revenus locatifs"]
+        },
+        {
+          "type": "challenge",
+          "descriptionEN": "Identify one passive income idea",
+          "descriptionFR": "Identifier une idée de revenu passif"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "titleEN": "Advanced Investing Strategies",
+      "titleFR": "Stratégies d'Investissement Avancées",
+      "premium": true,
+      "steps": [
+        {
+          "type": "quiz",
+          "questionEN": "What is diversification?",
+          "questionFR": "Qu'est-ce que la diversification ?",
+          "optionsEN": ["Spreading risks", "Putting all in one", "Selling stocks"],
+          "optionsFR": ["Répartir les risques", "Tout mettre dans un", "Vendre des actions"],
+          "correct": 0
+        },
+        {
+          "type": "checklist",
+          "itemsEN": ["Balance portfolio", "Rebalance annually"],
+          "itemsFR": ["Équilibrer le portefeuille", "Rééquilibrer annuellement"]
+        }
+      ]
+    }
+  ]
