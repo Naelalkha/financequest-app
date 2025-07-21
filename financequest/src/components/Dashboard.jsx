@@ -1,38 +1,48 @@
-import { Link } from 'react-router-dom'
-import { FaTrophy, FaCoins, FaFire, FaChartLine } from 'react-icons/fa'
+import { Link } from 'react-router-dom';
+import { FaTrophy, FaCoins, FaFire, FaChartLine, FaSignOutAlt } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 function Dashboard({ t }) {
+  const { user, logout } = useAuth();
+
+  if (!user) return null;
+
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gold-500 mb-8">
-          {t('dashboard')}
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gold-500">
+            {t('dashboard')}
+          </h1>
+          <button onClick={logout} className="text-gold-500 hover:text-gold-400 flex items-center gap-2">
+            <FaSignOutAlt /> Logout
+          </button>
+        </div>
         
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaTrophy className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">{t('level')}</p>
-            <p className="text-xl font-bold text-white">{t('novice')}</p>
+            <p className="text-xl font-bold text-white">{user.level}</p>
           </div>
           
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaCoins className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">{t('points')}</p>
-            <p className="text-xl font-bold text-white">0</p>
+            <p className="text-xl font-bold text-white">{user.points}</p>
           </div>
           
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaFire className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Streak</p>
-            <p className="text-xl font-bold text-white">0 days</p>
+            <p className="text-xl font-bold text-white">{user.streaks} days</p>
           </div>
           
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaChartLine className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Progress</p>
-            <p className="text-xl font-bold text-white">0%</p>
+            <p className="text-xl font-bold text-white">0%</p> {/* À updater plus tard */}
           </div>
         </div>
         
@@ -53,7 +63,7 @@ function Dashboard({ t }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Dashboard
+export default Dashboard;
