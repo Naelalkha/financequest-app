@@ -1,9 +1,79 @@
 import { Link } from 'react-router-dom';
 import { FaTrophy, FaCoins, FaFire, FaChartLine, FaSignOutAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
 function Dashboard({ t }) {
   const { user, logout } = useAuth();
+  const [progress, setProgress] = useState(0);
+  const [streaks, setStreaks] = useState(0);
+  const [badges, setBadges] = useState([]);
+  const levelThresholds = [0, 100, 300, 600]; // Points pour Novice, Intermediate, Expert, Master
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Real-time listener for user data
+    const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        setStreaks(userData.streaks || 0);
+        const points = userData.points || 0;
+        setProgress((points / levelThresholds[levelThresholds.length - 1]) * 100);
+
+        // Badge logic
+        const newBadges = [];
+        if (points >= 100 && !userData.badges?.includes('BudgetMaster')) newBadges.push('BudgetMaster');
+        if (points >= 300 && !userData.badges?.includes('SavingsPro')) newBadges.push('SavingsPro');
+        if (newBadges.length > 0) {
+          updateDoc(doc(db, 'users', user.uid), { badges: [...(userData.badges || []), ...newBadges] });
+          toast.success(`Unlocked badges: ${newBadges.join(', ')}!`, { autoClose: 3000 });
+        }
+        setBadges(userData.badges || []);
+      }
+    });
+
+    // Streak logic (check daily login, reset if day skipped)
+    const checkStreak = () => {
+      const lastLogin = localStorage.getItem('lastLogin');
+      const today = new Date().toDateString();
+      const userRef = doc(db, 'users', user.uid);
+
+      onSnapshot(userRef, (snap) => {
+        const userData = snap.data();
+        const currentStreaks = userData.streaks || 0;
+
+        if (!lastLogin) {
+          // Premier login, set lastLogin et streaks
+          localStorage.setItem('lastLogin', today);
+          updateDoc(userRef, { streaks: 1 });
+        } else {
+          const lastDate = new Date(lastLogin);
+          const diffDays = Math.floor((new Date(today) - lastDate) / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 1) {
+            // Incrémente si connecté hier
+            updateDoc(userRef, { streaks: currentStreaks + 1 });
+            localStorage.setItem('lastLogin', today);
+          } else if (diffDays > 1) {
+            // Reset si jour sauté
+            updateDoc(userRef, { streaks: 1 });
+            localStorage.setItem('lastLogin', today);
+          }
+        }
+      }, (error) => {
+        console.error("Streak error:", error);
+      });
+    };
+
+    checkStreak();
+
+    return unsubscribe;
+  }, [user]);
 
   if (!user) return null;
 
@@ -36,15 +106,32 @@ function Dashboard({ t }) {
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaFire className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Streak</p>
-            <p className="text-xl font-bold text-white">{user.streaks} days</p>
+            <p className="text-xl font-bold text-white">{streaks} days</p>
           </div>
           
           <div className="bg-gray-800 p-4 rounded-lg text-center">
             <FaChartLine className="text-3xl text-gold-500 mx-auto mb-2" />
             <p className="text-sm text-gray-400">Progress</p>
-            <p className="text-xl font-bold text-white">0%</p> {/* À updater plus tard */}
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+              <div className="bg-gold-500 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+            </div>
+            <p className="text-sm text-gray-400">{Math.round(progress)}%</p>
           </div>
         </div>
+        
+        {/* Badges */}
+        {badges.length > 0 && (
+          <div className="bg-gray-800 p-4 rounded-lg mb-6">
+            <h2 className="text-xl font-semibold text-white mb-2">Badges</h2>
+            <div className="flex flex-wrap gap-2">
+              {badges.map(badge => (
+                <span key={badge} className="bg-gold-500 text-gray-900 px-2 py-1 rounded animate-bounce">
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Quick Actions */}
         <div className="bg-gray-800 p-6 rounded-lg">
@@ -62,6 +149,7 @@ function Dashboard({ t }) {
           </div>
         </div>
       </div>
+      <ToastContainer position="top-right" theme="dark" />
     </div>
   );
 }
