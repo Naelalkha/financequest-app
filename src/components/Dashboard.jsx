@@ -20,6 +20,7 @@ function Dashboard({ t }) {
   const [newBadges, setNewBadges] = useState([]);
   const [streakChecked, setStreakChecked] = useState(false);
   const [showTooltip, setShowTooltip] = useState({});
+  const [levelUpAnimation, setLevelUpAnimation] = useState(false);
 
   // Level system with thresholds
   const levelThresholds = {
@@ -29,7 +30,7 @@ function Dashboard({ t }) {
     600: 'Master'
   };
 
-  // Badge definitions without storing React components
+  // Enhanced badge definitions
   const badgeDefinitions = {
     'FirstSteps': { iconName: 'medal', requirement: 10, color: 'text-yellow-600', type: 'points' },
     'BudgetMaster': { iconName: 'star', requirement: 100, color: 'text-yellow-500', type: 'points' },
@@ -100,7 +101,7 @@ function Dashboard({ t }) {
     return { percentage: Math.round(progress), current: currentThreshold, next: nextThreshold, isMax: false };
   }, [userStats.points]);
 
-  // Enhanced badge checking
+  // Check for new badges
   const checkForNewBadges = (points, streaks, currentBadges) => {
     const earnedBadges = [];
     const currentHour = new Date().getHours();
@@ -135,7 +136,7 @@ function Dashboard({ t }) {
     return earnedBadges;
   };
 
-  // Enhanced daily streak logic
+  // Daily streak logic with proper reset
   const checkDailyStreak = async (lastLogin) => {
     if (streakChecked) return;
     
@@ -143,6 +144,7 @@ function Dashboard({ t }) {
     const todayDateString = today.toDateString();
     
     if (!lastLogin) {
+      // First time login
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: 1,
         lastLogin: todayDateString
@@ -155,27 +157,36 @@ function Dashboard({ t }) {
     const lastLoginDateString = lastLoginDate.toDateString();
     
     if (lastLoginDateString === todayDateString) {
+      // Already logged in today
       setStreakChecked(true);
       return;
     }
     
+    // Calculate difference in days
     const diffTime = today.getTime() - lastLoginDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 1) {
+      // Consecutive day - increment streak
       const newStreak = userStats.streaks + 1;
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: newStreak,
         lastLogin: todayDateString
       });
       
-      if (newStreak > 3) {
-        toast.success(`🔥 Amazing! ${newStreak} day streak!`, {
+      // Show streak toast if >5 days
+      if (newStreak > 5) {
+        toast.success(`🔥 Streak: ${newStreak} days! Keep it up!`, {
           position: "top-center",
-          autoClose: 3000,
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
       }
     } else if (diffDays > 1) {
+      // Streak broken - reset to 0
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: 0,
         lastLogin: todayDateString
@@ -192,6 +203,52 @@ function Dashboard({ t }) {
     setStreakChecked(true);
   };
 
+  // Level up animation and notification
+  const handleLevelUp = (oldLevel, newLevel) => {
+    if (oldLevel !== newLevel) {
+      setLevelUpAnimation(true);
+      toast.success(`🚀 Level Up! You are now ${newLevel}!`, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      
+      // Reset animation after delay
+      setTimeout(() => {
+        setLevelUpAnimation(false);
+      }, 2000);
+    }
+  };
+
+  // Badge unlock animation and notification
+  const handleBadgeUnlock = (badges) => {
+    if (badges.length > 0) {
+      setNewBadges(badges);
+      
+      badges.forEach((badgeKey, index) => {
+        const badgeName = getBadgeName(badgeKey);
+        setTimeout(() => {
+          toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }, index * 1000);
+      });
+
+      // Reset animation after delay
+      setTimeout(() => {
+        setNewBadges([]);
+      }, badges.length * 1000 + 2000);
+    }
+  };
+
   // Get badge name with language support
   const getBadgeName = (badgeKey) => {
     if (typeof t === 'function') {
@@ -203,6 +260,7 @@ function Dashboard({ t }) {
   useEffect(() => {
     if (!user) return;
 
+    // Real-time listener for user data
     const unsubscribe = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -211,6 +269,7 @@ function Dashboard({ t }) {
         const badges = userData.badges || [];
         const lastLogin = userData.lastLogin;
         const userLang = userData.lang || 'en';
+        const oldLevel = userStats.level;
         
         const currentLevel = getCurrentLevel(points);
         
@@ -223,28 +282,29 @@ function Dashboard({ t }) {
           lang: userLang
         });
 
+        // Auto-update level in Firestore if changed
         if (currentLevel !== userData.level) {
           await updateDoc(doc(db, 'users', user.uid), {
             level: currentLevel
           });
+          
+          // Trigger level up animation and notification
+          handleLevelUp(oldLevel, currentLevel);
         }
 
+        // Check for new badges
         const earnedBadges = checkForNewBadges(points, streaks, badges);
         if (earnedBadges.length > 0) {
-          setNewBadges(earnedBadges);
+          // Update user badges in Firestore
           await updateDoc(doc(db, 'users', user.uid), {
             badges: [...badges, ...earnedBadges]
           });
           
-          earnedBadges.forEach(badgeKey => {
-            const badgeName = getBadgeName(badgeKey);
-            toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
-              position: "top-center",
-              autoClose: 5000,
-            });
-          });
+          // Trigger badge unlock animation and notification
+          handleBadgeUnlock(earnedBadges);
         }
 
+        // Check daily streak (only once per session)
         if (!streakChecked) {
           checkDailyStreak(lastLogin);
         }
@@ -252,8 +312,9 @@ function Dashboard({ t }) {
     });
 
     return () => unsubscribe();
-  }, [user, streakChecked, userStats.streaks]);
+  }, [user, streakChecked, userStats.streaks, userStats.level]);
 
+  // Tooltip handlers
   const handleTooltipShow = (badgeKey) => {
     setShowTooltip(prev => ({ ...prev, [badgeKey]: true }));
   };
@@ -280,10 +341,14 @@ function Dashboard({ t }) {
       </div>
       
       {/* Level & Progress Section */}
-      <div className="bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700">
+      <div className={`bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700 transition-all duration-500 ${
+        levelUpAnimation ? 'animate-pulse border-yellow-400 bg-yellow-900/20' : ''
+      }`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className={`text-2xl font-bold text-white transition-all duration-500 ${
+              levelUpAnimation ? 'animate-bounce text-yellow-400' : ''
+            }`}>
               {typeof t === 'function' && t(userStats.level.toLowerCase()) !== userStats.level.toLowerCase() 
                 ? t(userStats.level.toLowerCase()) 
                 : userStats.level}
@@ -292,7 +357,9 @@ function Dashboard({ t }) {
               {userStats.points} {typeof t === 'function' ? t('points') : 'Points'}
             </p>
           </div>
-          <FaTrophy className="text-4xl text-yellow-400" />
+          <FaTrophy className={`text-4xl text-yellow-400 transition-all duration-500 ${
+            levelUpAnimation ? 'animate-spin' : ''
+          }`} />
         </div>
         
         {/* Progress Bar */}
@@ -323,10 +390,19 @@ function Dashboard({ t }) {
           <p className="text-xl font-bold text-white">{userStats.points}</p>
         </div>
         
-        <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
-          <FaFire className={`text-3xl mx-auto mb-2 ${userStats.streaks > 0 ? 'text-orange-500' : 'text-gray-500'}`} />
+        <div className={`bg-gray-800 p-4 rounded-lg text-center border border-gray-700 transition-all duration-300 ${
+          userStats.streaks >= 7 ? 'border-orange-500 bg-orange-900/20' : ''
+        }`}>
+          <FaFire className={`text-3xl mx-auto mb-2 transition-all duration-300 ${
+            userStats.streaks > 0 ? 'text-orange-500' : 'text-gray-500'
+          } ${userStats.streaks >= 7 ? 'animate-pulse' : ''}`} />
           <p className="text-sm text-gray-400">Streak</p>
           <p className="text-xl font-bold text-white">{userStats.streaks} days</p>
+          {userStats.streaks >= 7 && (
+            <div className="text-xs text-orange-400 font-bold animate-bounce">
+              🏆 Streak Warrior!
+            </div>
+          )}
         </div>
         
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700 col-span-2 md:col-span-1">
@@ -357,14 +433,16 @@ function Dashboard({ t }) {
               return (
                 <div 
                   key={badgeKey}
-                  className={`bg-gray-700 p-4 rounded-lg text-center border border-gray-600 transition-all duration-300 ${
-                    isNew ? 'animate-bounce border-yellow-400 bg-yellow-900/20' : 'hover:bg-gray-650'
+                  className={`bg-gray-700 p-4 rounded-lg text-center border border-gray-600 transition-all duration-500 ${
+                    isNew ? 'animate-bounce border-yellow-400 bg-yellow-900/20 scale-110' : 'hover:bg-gray-650'
                   }`}
                 >
-                  <IconComponent className={`text-3xl mx-auto mb-2 ${badge.color}`} />
+                  <IconComponent className={`text-3xl mx-auto mb-2 ${badge.color} transition-all duration-300 ${
+                    isNew ? 'animate-pulse' : ''
+                  }`} />
                   <p className="text-sm font-medium text-white">{getBadgeName(badgeKey)}</p>
                   {isNew && (
-                    <p className="text-xs text-yellow-400 mt-1 font-bold">NEW!</p>
+                    <p className="text-xs text-yellow-400 mt-1 font-bold animate-pulse">NEW!</p>
                   )}
                 </div>
               );
@@ -384,15 +462,18 @@ function Dashboard({ t }) {
                 const IconComponent = getIconComponent(badge.iconName);
                 let progress = 0;
                 let progressText = '';
+                let isCloseToUnlock = false;
                 
                 switch (badge.type) {
                   case 'points':
                     progress = Math.min((userStats.points / badge.requirement) * 100, 100);
                     progressText = `${userStats.points}/${badge.requirement} pts`;
+                    isCloseToUnlock = userStats.points >= badge.requirement * 0.8;
                     break;
                   case 'streak':
                     progress = Math.min((userStats.streaks / badge.requirement) * 100, 100);
                     progressText = `${userStats.streaks}/${badge.requirement} days`;
+                    isCloseToUnlock = userStats.streaks >= badge.requirement * 0.8;
                     break;
                   default:
                     progress = 0;
@@ -403,19 +484,33 @@ function Dashboard({ t }) {
                 return (
                   <div 
                     key={badgeKey} 
-                    className="bg-gray-700/50 p-4 rounded-lg text-center border border-gray-600 relative cursor-help"
+                    className={`bg-gray-700/50 p-4 rounded-lg text-center border border-gray-600 relative cursor-help transition-all duration-300 ${
+                      isCloseToUnlock ? 'border-yellow-500/50 bg-yellow-900/10 animate-pulse' : ''
+                    }`}
                     onMouseEnter={() => handleTooltipShow(badgeKey)}
                     onMouseLeave={() => handleTooltipHide(badgeKey)}
                   >
-                    <IconComponent className="text-3xl mx-auto mb-2 text-gray-500" />
+                    <IconComponent className={`text-3xl mx-auto mb-2 transition-all duration-300 ${
+                      isCloseToUnlock ? 'text-yellow-400' : 'text-gray-500'
+                    }`} />
                     <p className="text-xs font-medium text-gray-400">{getBadgeName(badgeKey)}</p>
                     <div className="w-full bg-gray-600 rounded-full h-1 mt-2">
                       <div 
-                        className="h-full bg-yellow-400 rounded-full transition-all duration-500"
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isCloseToUnlock ? 'bg-yellow-400' : 'bg-gray-500'
+                        }`}
                         style={{ width: `${progress}%` }}
                       ></div>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">{progressText}</p>
+                    
+                    {isCloseToUnlock && (
+                      <div className="absolute -top-1 -right-1">
+                        <div className="bg-yellow-400 text-gray-900 text-xs px-1 py-0.5 rounded-full font-bold animate-bounce">
+                          Soon!
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Tooltip */}
                     {showTooltip[badgeKey] && (

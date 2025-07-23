@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaCheckCircle, FaClock, FaStar, FaTrophy, FaRocket, FaShare, FaBolt, FaLightbulb, FaRedo, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaArrowLeft, FaCheckCircle, FaClock, FaStar, FaTrophy, FaRocket, FaShare, FaBolt, FaLightbulb, FaRedo, FaEye, FaEyeSlash, FaMedal } from 'react-icons/fa';
 import { useState, useEffect, useMemo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,8 +23,33 @@ function QuestDetail({ t }) {
   const [hints, setHints] = useState({});
   const [timeSpent, setTimeSpent] = useState(0);
   const [showExplanations, setShowExplanations] = useState({});
+  const [unlockedBadges, setUnlockedBadges] = useState([]);
+  const [levelUp, setLevelUp] = useState(null);
 
   const userLang = user?.lang || 'en';
+
+  // Level system with thresholds
+  const levelThresholds = {
+    0: 'Novice',      // 0-99 points
+    100: 'Intermediate', // 100-299 points
+    300: 'Expert',    // 300-599 points
+    600: 'Master'     // 600+ points
+  };
+
+  // Badge definitions for quest completion
+  const badgeDefinitions = {
+    'FirstSteps': { requirement: 10, type: 'points', name: 'First Steps' },
+    'BudgetMaster': { requirement: 100, type: 'points', name: 'Budget Master' },
+    'SavingsPro': { requirement: 300, type: 'points', name: 'Savings Pro' },
+    'InvestmentGuru': { requirement: 600, type: 'points', name: 'Investment Guru' },
+    'Legendary': { requirement: 1000, type: 'points', name: 'Legendary' },
+    'StreakWarrior': { requirement: 7, type: 'streak', name: 'Streak Warrior' },
+    'Dedicated': { requirement: 30, type: 'streak', name: 'Dedicated' },
+    'Perfectionist': { requirement: 1, type: 'perfect', name: 'Perfectionist' },
+    'SpeedRunner': { requirement: 1, type: 'speed', name: 'Speed Runner' },
+    'NightOwl': { requirement: 22, type: 'time', name: 'Night Owl' },
+    'EarlyBird': { requirement: 6, type: 'time', name: 'Early Bird' }
+  };
 
   // Timer for time tracking
   useEffect(() => {
@@ -80,6 +105,17 @@ function QuestDetail({ t }) {
     setShuffledOptions(shuffled);
   }, [quest, userLang]);
 
+  // Get current level based on points
+  const getCurrentLevel = (points) => {
+    const thresholds = Object.keys(levelThresholds).map(Number).sort((a, b) => b - a);
+    for (const threshold of thresholds) {
+      if (points >= threshold) {
+        return levelThresholds[threshold];
+      }
+    }
+    return 'Novice';
+  };
+
   // Calculate difficulty multiplier
   const getDifficultyMultiplier = () => {
     switch (quest?.difficulty) {
@@ -108,6 +144,56 @@ function QuestDetail({ t }) {
     return user?.premium ? 1.5 : 1;
   };
 
+  // Check for new badges based on points and achievements
+  const checkForNewBadges = (newTotalPoints, questData) => {
+    const newBadges = [];
+    const currentBadges = user?.badges || [];
+    const currentHour = new Date().getHours();
+    
+    // Points-based badges
+    Object.keys(badgeDefinitions).forEach(badgeKey => {
+      const badge = badgeDefinitions[badgeKey];
+      if (!currentBadges.includes(badgeKey)) {
+        switch (badge.type) {
+          case 'points':
+            if (newTotalPoints >= badge.requirement) {
+              newBadges.push(badgeKey);
+            }
+            break;
+          case 'streak':
+            if (user?.streaks >= badge.requirement) {
+              newBadges.push(badgeKey);
+            }
+            break;
+          case 'perfect':
+            // Perfect score (100% without hints)
+            if (questData.isPerfect && Object.keys(hints).length === 0) {
+              newBadges.push(badgeKey);
+            }
+            break;
+          case 'speed':
+            // Speed bonus earned
+            if (questData.timeBonus >= 50) {
+              newBadges.push(badgeKey);
+            }
+            break;
+          case 'time':
+            // Time-based badges (Night Owl, Early Bird)
+            if (badgeKey === 'NightOwl' && currentHour >= badge.requirement) {
+              newBadges.push(badgeKey);
+            } else if (badgeKey === 'EarlyBird' && currentHour <= badge.requirement) {
+              newBadges.push(badgeKey);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    });
+    
+    return newBadges;
+  };
+
   // Handle answer change with proper type checking
   const handleAnswer = (stepIndex, value) => {
     setAnswers(prev => ({ ...prev, [stepIndex]: value }));
@@ -122,7 +208,6 @@ function QuestDetail({ t }) {
         break;
       case 'checklist':
         const items = userLang === 'fr' ? step.itemsFR : step.itemsEN;
-        // value should be an array of checked item indices
         isStepComplete = Array.isArray(value) && value.length === items.length;
         break;
       case 'challenge':
@@ -240,44 +325,6 @@ function QuestDetail({ t }) {
     return Math.round(maxScore * getDifficultyMultiplier() * getPremiumMultiplier());
   };
 
-  // Check for new badges
-  const checkForNewBadges = (newPoints) => {
-    const badges = [];
-    
-    // Point-based badges
-    if (newPoints >= 100 && !user.badges?.includes('BudgetMaster')) {
-      badges.push('BudgetMaster');
-    }
-    if (newPoints >= 300 && !user.badges?.includes('SavingsPro')) {
-      badges.push('SavingsPro');
-    }
-    
-    // Quest-specific badges
-    if (currentScore === getMaxPossibleScore() && !user.badges?.includes('Perfectionist')) {
-      badges.push('Perfectionist');
-    }
-    
-    const timeBonus = getTimeBonus();
-    if (timeBonus >= 50 && !user.badges?.includes('SpeedRunner')) {
-      badges.push('SpeedRunner');
-    }
-    
-    // No hints used badge
-    if (Object.keys(hints).length === 0 && !user.badges?.includes('NaturalTalent')) {
-      badges.push('NaturalTalent');
-    }
-    
-    return badges;
-  };
-
-  // Get current level
-  const getCurrentLevel = (points) => {
-    if (points >= 600) return 'Master';
-    if (points >= 300) return 'Expert';
-    if (points >= 100) return 'Intermediate';
-    return 'Novice';
-  };
-
   // Confetti animation
   const triggerConfetti = () => {
     const confettiCount = 50;
@@ -304,7 +351,7 @@ function QuestDetail({ t }) {
     }
   };
 
-  // Handle quest submission
+  // Handle quest submission with gamification
   const handleSubmit = async () => {
     if (!user || isSubmitting) return;
     
@@ -315,27 +362,39 @@ function QuestDetail({ t }) {
       const timeBonus = getTimeBonus();
       const totalScore = baseScore + timeBonus;
       const newTotalPoints = user.points + totalScore;
+      const oldLevel = user.level || getCurrentLevel(user.points);
       const newLevel = getCurrentLevel(newTotalPoints);
       
-      // Update Firestore
-      const updates = {
-        points: newTotalPoints,
-        level: newLevel,
-        [`completedQuests.${quest.id}`]: {
-          score: totalScore,
-          completedAt: new Date().toISOString(),
-          timeBonus: timeBonus,
-          hintsUsed: Object.keys(hints).length,
-          timeSpent: timeSpent
-        }
+      // Check if quest was completed perfectly
+      const isPerfect = currentScore === getMaxPossibleScore() && Object.keys(hints).length === 0;
+      
+      // Quest completion data
+      const questData = {
+        score: totalScore,
+        completedAt: new Date().toISOString(),
+        timeBonus: timeBonus,
+        hintsUsed: Object.keys(hints).length,
+        timeSpent: timeSpent,
+        isPerfect: isPerfect
       };
 
       // Check for new badges
-      const newBadges = checkForNewBadges(newTotalPoints);
+      const newBadges = checkForNewBadges(newTotalPoints, questData);
+      
+      // Prepare Firestore updates
+      const updates = {
+        points: newTotalPoints,
+        level: newLevel,
+        [`completedQuests.${quest.id}`]: questData
+      };
+
+      // Add new badges to user's collection
       if (newBadges.length > 0) {
         updates.badges = [...(user.badges || []), ...newBadges];
+        setUnlockedBadges(newBadges);
       }
 
+      // Update Firestore
       await updateDoc(doc(db, 'users', user.uid), updates);
       
       // Clear saved progress
@@ -344,7 +403,7 @@ function QuestDetail({ t }) {
       // Trigger confetti
       triggerConfetti();
       
-      // Show success toast
+      // Show success toast with gamification elements
       toast.success(`🎉 Quest Completed! Score: ${totalScore} points!`, {
         position: "top-center",
         autoClose: 5000,
@@ -364,24 +423,44 @@ function QuestDetail({ t }) {
         }, 1000);
       }
 
-      // Show badge notifications
-      newBadges.forEach((badge, index) => {
-        setTimeout(() => {
-          toast.success(`🏆 New Badge Unlocked: ${badge}!`, {
-            position: "top-center",
-            autoClose: 4000,
-          });
-        }, 2000 + (index * 1000));
-      });
-
       // Show level up notification
-      if (newLevel !== user.level) {
+      if (newLevel !== oldLevel) {
+        setLevelUp({ from: oldLevel, to: newLevel });
         setTimeout(() => {
           toast.success(`🚀 Level Up! You are now ${newLevel}!`, {
             position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }, 2000);
+      }
+
+      // Show badge notifications with staggered timing
+      newBadges.forEach((badge, index) => {
+        setTimeout(() => {
+          const badgeName = badgeDefinitions[badge]?.name || badge;
+          toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
+            position: "top-center",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }, 3000 + (index * 1000));
+      });
+
+      // Show perfect score achievement
+      if (isPerfect) {
+        setTimeout(() => {
+          toast.success(`⭐ Perfect Score! No hints used!`, {
+            position: "top-center",
             autoClose: 4000,
           });
-        }, 3000);
+        }, 4000);
       }
 
       setFinalScore(totalScore);
@@ -403,13 +482,17 @@ function QuestDetail({ t }) {
     setFinalScore(0);
     setHints({});
     setShowExplanations({});
+    setUnlockedBadges([]);
+    setLevelUp(null);
     localStorage.removeItem(`quest-${id}-progress`);
     toast.info('Quest reset! Try to beat your previous score!');
   };
 
   // Share achievement
   const shareAchievement = () => {
-    const text = `🎉 Just completed "${quest.titleEN}" quest in FinanceQuest and scored ${finalScore} points! 💰 #FinanceQuest #MoneySkills`;
+    const badgeText = unlockedBadges.length > 0 ? ` and unlocked ${unlockedBadges.length} badge(s)` : '';
+    const levelText = levelUp ? ` and leveled up to ${levelUp.to}` : '';
+    const text = `🎉 Just completed "${quest.titleEN}" quest in FinanceQuest and scored ${finalScore} points${badgeText}${levelText}! 💰 #FinanceQuest #MoneySkills`;
     
     if (navigator.share) {
       navigator.share({
@@ -754,7 +837,7 @@ function QuestDetail({ t }) {
             </div>
           </div>
         ) : (
-          /* Completion Screen */
+          /* Completion Screen with Gamification */
           <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-8 rounded-lg text-center">
             <FaTrophy className="text-6xl text-yellow-300 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-white mb-2">
@@ -763,11 +846,33 @@ function QuestDetail({ t }) {
             <p className="text-green-100 text-xl mb-2">
               {userLang === 'fr' ? 'Score final' : 'Final Score'}: <span className="font-bold text-yellow-300">{finalScore}</span> {userLang === 'fr' ? 'points' : 'points'}
             </p>
-            <p className="text-green-200 text-sm mb-6">
+            <p className="text-green-200 text-sm mb-4">
               {userLang === 'fr' ? 'Temps' : 'Time'}: {formatTime(timeSpent)} | 
               {userLang === 'fr' ? 'Indices utilisés' : 'Hints used'}: {Object.keys(hints).length}
             </p>
-            
+
+            {/* Gamification Achievements */}
+            {levelUp && (
+              <div className="bg-purple-600/30 border border-purple-400 p-4 rounded-lg mb-4 animate-bounce">
+                <h3 className="text-lg font-bold text-purple-200 mb-1">🚀 Level Up!</h3>
+                <p className="text-purple-100">{levelUp.from} → {levelUp.to}</p>
+              </div>
+            )}
+
+            {unlockedBadges.length > 0 && (
+              <div className="bg-yellow-600/30 border border-yellow-400 p-4 rounded-lg mb-4">
+                <h3 className="text-lg font-bold text-yellow-200 mb-2">🏆 New Badges Unlocked!</h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {unlockedBadges.map(badge => (
+                    <span key={badge} className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+                      <FaMedal className="inline mr-1" />
+                      {badgeDefinitions[badge]?.name || badge}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <button
                 onClick={replayQuest}
