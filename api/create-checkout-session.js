@@ -1,5 +1,7 @@
 // /api/create-checkout-session.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482');
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482');
 
 export default async function handler(req, res) {
   // CORS headers
@@ -32,11 +34,6 @@ export default async function handler(req, res) {
 
     console.log('Creating checkout session for:', { userId, email, priceId });
 
-    // Vérifier si Stripe est bien configuré
-    if (!process.env.STRIPE_SECRET_KEY && !stripe) {
-      console.warn('Using hardcoded Stripe key - configure STRIPE_SECRET_KEY env var');
-    }
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
@@ -44,8 +41,8 @@ export default async function handler(req, res) {
         quantity: 1,
       }],
       mode: 'subscription',
-      success_url: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://financequest-app.vercel.app'}/dashboard?success=true`,
-      cancel_url: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://financequest-app.vercel.app'}/premium`,
+      success_url: `https://financequest-app.vercel.app/dashboard?success=true`,
+      cancel_url: `https://financequest-app.vercel.app/premium`,
       customer_email: email,
       metadata: {
         userId: userId,
@@ -57,19 +54,11 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ sessionId: session.id });
   } catch (error) {
-    console.error('Stripe error details:', {
-      message: error.message,
-      type: error.type,
-      statusCode: error.statusCode,
-      raw: error.raw
-    });
-
-    // Retourner un message d'erreur plus détaillé
+    console.error('Stripe error:', error);
+    
     return res.status(500).json({ 
       error: 'Failed to create checkout session',
-      details: error.message,
-      // En dev seulement - ne pas exposer en prod
-      debug: process.env.NODE_ENV === 'development' ? error : undefined
+      details: error.message
     });
   }
 }

@@ -1,21 +1,27 @@
-// /api/webhook.js (pour Vercel, dans le dossier /api à la racine)
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const admin = require('firebase-admin');
+// /api/webhook.js
+import Stripe from 'stripe';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-// Initialiser Firebase Admin une seule fois
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482');
+
+// Initialiser Firebase Admin
+let app;
+if (!getApps().length) {
+  app = initializeApp({
+    credential: cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
     })
   });
+} else {
+  app = getApps()[0];
 }
 
-const db = admin.firestore();
+const db = getFirestore(app);
 
-// Config pour désactiver le bodyParser de Vercel
+// Config pour désactiver le bodyParser
 export const config = {
   api: {
     bodyParser: false,
@@ -43,38 +49,32 @@ export default async function handler(req, res) {
   }
 
   const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_DuqP562WnIttXBoALLVInBjbBbRmcXlS';
 
-  if (!sig || !webhookSecret) {
-    console.error('Missing stripe signature or webhook secret');
-    return res.status(400).json({ error: 'Missing configuration' });
+  if (!sig) {
+    console.error('Missing stripe signature');
+    return res.status(400).json({ error: 'Missing signature' });
   }
 
   let event;
   let rawBody;
 
   try {
-    // Récupérer le body brut
     rawBody = await getRawBody(req);
-    
-    // Vérifier la signature Stripe
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
-  // Log l'event type
   console.log('Webhook event type:', event.type);
 
-  // Gérer les événements
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('Checkout session completed:', session.id);
         
-        // Récupérer le userId depuis metadata ou client_reference_id
         const userId = session.metadata?.userId || session.client_reference_id;
         
         if (!userId) {
@@ -84,10 +84,9 @@ export default async function handler(req, res) {
 
         console.log(`Activating premium for user: ${userId}`);
 
-        // Mettre à jour l'utilisateur dans Firestore
         await db.collection('users').doc(userId).update({ 
           premium: true,
-          premiumStartDate: admin.firestore.FieldValue.serverTimestamp(),
+          premiumStartDate: new Date(),
           stripeCustomerId: session.customer,
           stripeSubscriptionId: session.subscription,
           stripeSessionId: session.id
@@ -100,23 +99,18 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
         
-        try {
-          // Trouver l'utilisateur par stripeSubscriptionId
-          const usersSnapshot = await db.collection('users')
-            .where('stripeSubscriptionId', '==', subscription.id)
-            .limit(1)
-            .get();
-          
-          if (!usersSnapshot.empty) {
-            const userDoc = usersSnapshot.docs[0];
-            await userDoc.ref.update({ 
-              premium: false,
-              premiumEndDate: admin.firestore.FieldValue.serverTimestamp()
-            });
-            console.log(`Premium cancelled for user ${userDoc.id}`);
-          }
-        } catch (error) {
-          console.error('Error handling subscription cancellation:', error);
+        const usersSnapshot = await db.collection('users')
+          .where('stripeSubscriptionId', '==', subscription.id)
+          .limit(1)
+          .get();
+        
+        if (!usersSnapshot.empty) {
+          const userDoc = usersSnapshot.docs[0];
+          await userDoc.ref.update({ 
+            premium: false,
+            premiumEndDate: new Date()
+          });
+          console.log(`Premium cancelled for user ${userDoc.id}`);
         }
         break;
       }
@@ -125,7 +119,6 @@ export default async function handler(req, res) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
-    // Retourner une réponse de succès
     res.status(200).json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
