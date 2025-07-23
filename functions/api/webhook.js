@@ -2,7 +2,7 @@ const stripe = require('stripe')('sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7
 const endpointSecret = 'whsec_DuqP562WnIttXBoALLVInBjbBbRmcXlS'; // Ton signing secret de Stripe Webhook
 
 const { db } = require('../../src/firebase'); // Ajuste path si besoin (ex. '../../src/firebase')
-const { doc, updateDoc } from 'firebase/firestore';
+const { doc, updateDoc } = require('firebase/firestore');
 
 export async function onRequestPost(context) {
   const { request } = context;

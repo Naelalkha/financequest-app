@@ -12,6 +12,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.5.0",
     "firebase": "^12.0.0",
+    "firebase-admin": "^13.4.0",
     "lodash": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
