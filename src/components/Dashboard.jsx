@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
-function Dashboard({ t }) {
+function Dashboard({ t, currentLang }) {
   const { user, logout } = useAuth();
   const [userStats, setUserStats] = useState({
     points: 0,
@@ -176,7 +176,7 @@ function Dashboard({ t }) {
       
       // Show streak toast if >5 days
       if (newStreak > 5) {
-        toast.success(`🔥 Streak: ${newStreak} days! Keep it up!`, {
+        toast.success(`🔥 ${t('streak')}: ${newStreak} ${t('days')}! ${t('amazing')}`, {
           position: "top-center",
           autoClose: 4000,
           hideProgressBar: false,
@@ -193,7 +193,7 @@ function Dashboard({ t }) {
       });
       
       if (userStats.streaks > 0) {
-        toast.warn(`💔 Streak broken! Start fresh tomorrow`, {
+        toast.warn(`💔 ${t('streakBroken')} ${t('startFresh')}`, {
           position: "top-center",
           autoClose: 3000,
         });
@@ -207,7 +207,7 @@ function Dashboard({ t }) {
   const handleLevelUp = (oldLevel, newLevel) => {
     if (oldLevel !== newLevel) {
       setLevelUpAnimation(true);
-      toast.success(`🚀 Level Up! You are now ${newLevel}!`, {
+      toast.success(`🚀 ${t('levelUp')} ${t(newLevel.toLowerCase())}!`, {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -231,7 +231,7 @@ function Dashboard({ t }) {
       badges.forEach((badgeKey, index) => {
         const badgeName = getBadgeName(badgeKey);
         setTimeout(() => {
-          toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
+          toast.success(`🏆 ${t('newBadgeUnlocked')}: ${badgeName}!`, {
             position: "top-center",
             autoClose: 5000,
             hideProgressBar: false,
@@ -251,10 +251,7 @@ function Dashboard({ t }) {
 
   // Get badge name with language support
   const getBadgeName = (badgeKey) => {
-    if (typeof t === 'function') {
-      return t(`badges.${badgeKey}`) !== `badges.${badgeKey}` ? t(`badges.${badgeKey}`) : badgeKey;
-    }
-    return badgeKey;
+    return t(`badges.${badgeKey}`) || badgeKey;
   };
 
   useEffect(() => {
@@ -330,13 +327,13 @@ function Dashboard({ t }) {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-yellow-400">
-          {typeof t === 'function' ? t('dashboard') : 'Dashboard'}
+          {t('dashboard')}
         </h1>
         <button 
           onClick={logout} 
           className="text-yellow-400 hover:text-yellow-300 flex items-center gap-2 transition-colors"
         >
-          <FaSignOutAlt /> Logout
+          <FaSignOutAlt /> {t('logout')}
         </button>
       </div>
       
@@ -349,12 +346,10 @@ function Dashboard({ t }) {
             <h2 className={`text-2xl font-bold text-white transition-all duration-500 ${
               levelUpAnimation ? 'animate-bounce text-yellow-400' : ''
             }`}>
-              {typeof t === 'function' && t(userStats.level.toLowerCase()) !== userStats.level.toLowerCase() 
-                ? t(userStats.level.toLowerCase()) 
-                : userStats.level}
+              {t(userStats.level.toLowerCase())}
             </h2>
             <p className="text-gray-400">
-              {userStats.points} {typeof t === 'function' ? t('points') : 'Points'}
+              {userStats.points} {t('points')}
             </p>
           </div>
           <FaTrophy className={`text-4xl text-yellow-400 transition-all duration-500 ${
@@ -365,8 +360,8 @@ function Dashboard({ t }) {
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-400 mb-2">
-            <span>{progressData.current} pts</span>
-            {!progressData.isMax && <span>{progressData.next} pts</span>}
+            <span>{progressData.current} {t('pts')}</span>
+            {!progressData.isMax && <span>{progressData.next} {t('pts')}</span>}
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
             <div 
@@ -375,7 +370,7 @@ function Dashboard({ t }) {
             ></div>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {progressData.isMax ? 'Max Level Reached!' : `${progressData.percentage}% to next level`}
+            {progressData.isMax ? t('maxlevelreached') : `${progressData.percentage}% ${t('tonextlevel')}`}
           </p>
         </div>
       </div>
@@ -384,9 +379,7 @@ function Dashboard({ t }) {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
           <FaCoins className="text-3xl text-yellow-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">
-            {typeof t === 'function' ? t('points') : 'Points'}
-          </p>
+          <p className="text-sm text-gray-400">{t('points')}</p>
           <p className="text-xl font-bold text-white">{userStats.points}</p>
         </div>
         
@@ -396,18 +389,18 @@ function Dashboard({ t }) {
           <FaFire className={`text-3xl mx-auto mb-2 transition-all duration-300 ${
             userStats.streaks > 0 ? 'text-orange-500' : 'text-gray-500'
           } ${userStats.streaks >= 7 ? 'animate-pulse' : ''}`} />
-          <p className="text-sm text-gray-400">Streak</p>
-          <p className="text-xl font-bold text-white">{userStats.streaks} days</p>
+          <p className="text-sm text-gray-400">{t('streak')}</p>
+          <p className="text-xl font-bold text-white">{userStats.streaks} {t('days')}</p>
           {userStats.streaks >= 7 && (
             <div className="text-xs text-orange-400 font-bold animate-bounce">
-              🏆 Streak Warrior!
+              🏆 {t('badges.StreakWarrior')}!
             </div>
           )}
         </div>
         
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700 col-span-2 md:col-span-1">
           <FaMedal className="text-3xl text-purple-500 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">Badges</p>
+          <p className="text-sm text-gray-400">{t('badges')}</p>
           <p className="text-xl font-bold text-white">{userStats.badges.length}</p>
         </div>
       </div>
@@ -416,11 +409,11 @@ function Dashboard({ t }) {
       <div className="bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700">
         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <FaMedal className="text-yellow-400" />
-          Your Badges
+          {t('yourBadges')}
         </h3>
         
         {userStats.badges.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No badges earned yet. Complete quests to unlock badges!</p>
+          <p className="text-gray-400 text-center py-8">{t('noBadgesYet')}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {userStats.badges.map(badgeKey => {
@@ -442,7 +435,7 @@ function Dashboard({ t }) {
                   }`} />
                   <p className="text-sm font-medium text-white">{getBadgeName(badgeKey)}</p>
                   {isNew && (
-                    <p className="text-xs text-yellow-400 mt-1 font-bold animate-pulse">NEW!</p>
+                    <p className="text-xs text-yellow-400 mt-1 font-bold animate-pulse">{t('new')}</p>
                   )}
                 </div>
               );
@@ -452,7 +445,7 @@ function Dashboard({ t }) {
         
         {/* Available Badges Preview */}
         <div className="mt-6 pt-6 border-t border-gray-700">
-          <h4 className="text-lg font-semibold text-gray-300 mb-3">Available Badges</h4>
+          <h4 className="text-lg font-semibold text-gray-300 mb-3">{t('availableBadges')}</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.keys(badgeDefinitions)
               .filter(badgeKey => !userStats.badges.includes(badgeKey))
@@ -467,17 +460,17 @@ function Dashboard({ t }) {
                 switch (badge.type) {
                   case 'points':
                     progress = Math.min((userStats.points / badge.requirement) * 100, 100);
-                    progressText = `${userStats.points}/${badge.requirement} pts`;
+                    progressText = `${userStats.points}/${badge.requirement} ${t('pts')}`;
                     isCloseToUnlock = userStats.points >= badge.requirement * 0.8;
                     break;
                   case 'streak':
                     progress = Math.min((userStats.streaks / badge.requirement) * 100, 100);
-                    progressText = `${userStats.streaks}/${badge.requirement} days`;
+                    progressText = `${userStats.streaks}/${badge.requirement} ${t('days')}`;
                     isCloseToUnlock = userStats.streaks >= badge.requirement * 0.8;
                     break;
                   default:
                     progress = 0;
-                    progressText = 'Complete quests to unlock';
+                    progressText = t('completetounlock');
                     break;
                 }
                 
@@ -515,7 +508,7 @@ function Dashboard({ t }) {
                     {/* Tooltip */}
                     {showTooltip[badgeKey] && (
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-10 border border-gray-600">
-                        Complete quests to unlock
+                        {t('completetounlock')}
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                       </div>
                     )}
@@ -533,8 +526,8 @@ function Dashboard({ t }) {
           className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white p-6 rounded-lg text-center transition-all duration-300 transform hover:scale-105 shadow-lg"
         >
           <FaChartLine className="text-3xl mx-auto mb-2" />
-          <h3 className="text-xl font-bold">Continue Learning</h3>
-          <p className="text-sm opacity-90">Explore finance quests</p>
+          <h3 className="text-xl font-bold">{t('continuelearning')}</h3>
+          <p className="text-sm opacity-90">{t('explorequests')}</p>
         </Link>
         
         <Link 
@@ -542,8 +535,8 @@ function Dashboard({ t }) {
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white p-6 rounded-lg text-center transition-all duration-300 transform hover:scale-105 shadow-lg"
         >
           <FaCrown className="text-3xl mx-auto mb-2" />
-          <h3 className="text-xl font-bold">Go Premium</h3>
-          <p className="text-sm opacity-90">Unlock all features</p>
+          <h3 className="text-xl font-bold">{t('gopremium')}</h3>
+          <p className="text-sm opacity-90">{t('unlockfeatures')}</p>
         </Link>
       </div>
     </div>

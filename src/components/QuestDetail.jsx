@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-function QuestDetail({ t }) {
+function QuestDetail({ t, currentLang }) {
   const { id } = useParams();
   const quest = quests.find(q => q.id === parseInt(id));
   const { user } = useAuth();
@@ -25,8 +25,6 @@ function QuestDetail({ t }) {
   const [showExplanations, setShowExplanations] = useState({});
   const [unlockedBadges, setUnlockedBadges] = useState([]);
   const [levelUp, setLevelUp] = useState(null);
-
-  const userLang = user?.lang || 'en';
 
   // Level system with thresholds
   const levelThresholds = {
@@ -93,7 +91,7 @@ function QuestDetail({ t }) {
     const shuffled = {};
     quest.steps.forEach((step, index) => {
       if (step.type === 'quiz' && step.optionsEN) {
-        const options = userLang === 'fr' ? step.optionsFR : step.optionsEN;
+        const options = currentLang === 'fr' ? step.optionsFR : step.optionsEN;
         const shuffledIndexes = [...Array(options.length).keys()].sort(() => Math.random() - 0.5);
         shuffled[index] = {
           options: shuffledIndexes.map(i => options[i]),
@@ -103,7 +101,7 @@ function QuestDetail({ t }) {
       }
     });
     setShuffledOptions(shuffled);
-  }, [quest, userLang]);
+  }, [quest, currentLang]);
 
   // Get current level based on points
   const getCurrentLevel = (points) => {
@@ -207,7 +205,7 @@ function QuestDetail({ t }) {
         isStepComplete = value !== undefined && value !== null;
         break;
       case 'checklist':
-        const items = userLang === 'fr' ? step.itemsFR : step.itemsEN;
+        const items = currentLang === 'fr' ? step.itemsFR : step.itemsEN;
         isStepComplete = Array.isArray(value) && value.length === items.length;
         break;
       case 'challenge':
@@ -241,7 +239,7 @@ function QuestDetail({ t }) {
   // Show hint for a step
   const showHint = (stepIndex) => {
     setHints(prev => ({ ...prev, [stepIndex]: true }));
-    toast.info('💡 Hint revealed! (-10 points)', {
+    toast.info(`💡 ${t('hint')} ${t('revealed')}! (-10 ${t('points')})`, {
       position: "top-right",
       autoClose: 2000,
     });
@@ -264,7 +262,7 @@ function QuestDetail({ t }) {
       }
     };
     
-    return hintTexts[step.type]?.[userLang] || hintTexts[step.type]?.en;
+    return hintTexts[step.type]?.[currentLang] || hintTexts[step.type]?.en;
   };
 
   // Calculate current score
@@ -287,7 +285,7 @@ function QuestDetail({ t }) {
           }
           break;
         case 'checklist':
-          const items = userLang === 'fr' ? step.itemsFR : step.itemsEN;
+          const items = currentLang === 'fr' ? step.itemsFR : step.itemsEN;
           const checkedItems = answers[index] || [];
           if (Array.isArray(checkedItems) && checkedItems.length === items.length) {
             score += 30;
@@ -306,7 +304,7 @@ function QuestDetail({ t }) {
     
     const baseScore = score - hintPenalty;
     return Math.round(Math.max(0, baseScore) * getDifficultyMultiplier() * getPremiumMultiplier());
-  }, [answers, completedSteps, shuffledOptions, userLang, quest, user, hints]);
+  }, [answers, completedSteps, shuffledOptions, currentLang, quest, user, hints]);
 
   // Get max possible score
   const getMaxPossibleScore = () => {
@@ -404,7 +402,7 @@ function QuestDetail({ t }) {
       triggerConfetti();
       
       // Show success toast with gamification elements
-      toast.success(`🎉 Quest Completed! Score: ${totalScore} points!`, {
+      toast.success(`🎉 ${t('questCompleted')} ${t('finalScore')}: ${totalScore} ${t('points')}!`, {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -416,7 +414,7 @@ function QuestDetail({ t }) {
       // Show time bonus if applicable
       if (timeBonus > 0) {
         setTimeout(() => {
-          toast.info(`⚡ Speed Bonus: +${timeBonus} points!`, {
+          toast.info(`⚡ ${t('speedBonus')}: +${timeBonus} ${t('points')}!`, {
             position: "top-center",
             autoClose: 3000,
           });
@@ -427,7 +425,7 @@ function QuestDetail({ t }) {
       if (newLevel !== oldLevel) {
         setLevelUp({ from: oldLevel, to: newLevel });
         setTimeout(() => {
-          toast.success(`🚀 Level Up! You are now ${newLevel}!`, {
+          toast.success(`🚀 ${t('levelUp')} ${t(newLevel.toLowerCase())}!`, {
             position: "top-center",
             autoClose: 5000,
             hideProgressBar: false,
@@ -441,8 +439,8 @@ function QuestDetail({ t }) {
       // Show badge notifications with staggered timing
       newBadges.forEach((badge, index) => {
         setTimeout(() => {
-          const badgeName = badgeDefinitions[badge]?.name || badge;
-          toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
+          const badgeName = t(`badges.${badge}`) || badgeDefinitions[badge]?.name || badge;
+          toast.success(`🏆 ${t('newBadgeUnlocked')}: ${badgeName}!`, {
             position: "top-center",
             autoClose: 4000,
             hideProgressBar: false,
@@ -456,7 +454,7 @@ function QuestDetail({ t }) {
       // Show perfect score achievement
       if (isPerfect) {
         setTimeout(() => {
-          toast.success(`⭐ Perfect Score! No hints used!`, {
+          toast.success(`⭐ ${t('perfect')}`, {
             position: "top-center",
             autoClose: 4000,
           });
@@ -517,17 +515,17 @@ function QuestDetail({ t }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Quest Not Found</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">{t('questNotFound')}</h2>
           <Link to="/quests" className="text-yellow-400 hover:text-yellow-300">
-            ← Back to Quests
+            ← {t('backToQuests')}
           </Link>
         </div>
       </div>
     );
   }
 
-  const title = userLang === 'fr' ? quest.titleFR : quest.titleEN;
-  const difficulty = userLang === 'fr' ? quest.difficultyFR : quest.difficulty;
+  const title = currentLang === 'fr' ? quest.titleFR : quest.titleEN;
+  const difficulty = currentLang === 'fr' ? quest.difficultyFR : quest.difficulty;
   const progressPercentage = (completedSteps.size / quest.steps.length) * 100;
   const allStepsCompleted = completedSteps.size === quest.steps.length;
 
@@ -557,7 +555,7 @@ function QuestDetail({ t }) {
             className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors"
           >
             <FaArrowLeft />
-            {t('back') || 'Back to Quests'}
+            {t('backToQuests')}
           </Link>
           
           {!isCompleted && (
@@ -568,7 +566,7 @@ function QuestDetail({ t }) {
               </div>
               {Object.keys(hints).length > 0 && (
                 <div className="text-orange-400">
-                  💡 {Object.keys(hints).length} hints used
+                  💡 {Object.keys(hints).length} {t('hintsUsed')}
                 </div>
               )}
             </div>
@@ -583,14 +581,14 @@ function QuestDetail({ t }) {
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
                   <FaStar className={`${quest.difficulty === 'Easy' ? 'text-green-500' : quest.difficulty === 'Medium' ? 'text-yellow-500' : 'text-red-500'}`} />
-                  <span className="text-gray-400">{difficulty}</span>
+                  <span className="text-gray-400">{t(difficulty.toLowerCase())}</span>
                 </div>
                 <div className="text-gray-400">
-                  {quest.steps.length} {userLang === 'fr' ? 'étapes' : 'steps'}
+                  {quest.steps.length} {t('steps')}
                 </div>
                 {user?.premium && (
                   <div className="text-yellow-400 text-xs">
-                    👑 Premium 1.5x multiplier
+                    👑 {t('premium')} 1.5x multiplier
                   </div>
                 )}
               </div>
@@ -601,7 +599,7 @@ function QuestDetail({ t }) {
               <div className="text-center">
                 <div className="text-yellow-400 text-2xl font-bold">{currentScore}</div>
                 <div className="text-xs text-gray-400">
-                  {userLang === 'fr' ? 'Points' : 'Points'} / {getMaxPossibleScore()}
+                  {t('points')} / {getMaxPossibleScore()}
                 </div>
               </div>
             </div>
@@ -610,8 +608,8 @@ function QuestDetail({ t }) {
           {/* Progress Bar */}
           <div className="mt-4">
             <div className="flex justify-between text-sm text-gray-400 mb-2">
-              <span>{userLang === 'fr' ? 'Progression' : 'Progress'}</span>
-              <span>{completedSteps.size}/{quest.steps.length} {userLang === 'fr' ? 'complété' : 'completed'}</span>
+              <span>{t('progression')}</span>
+              <span>{completedSteps.size}/{quest.steps.length} {t('completed')}</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-3">
               <div 
@@ -642,7 +640,7 @@ function QuestDetail({ t }) {
                       <span className="bg-gray-700 text-yellow-400 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </span>
-                      {userLang === 'fr' ? 'Étape' : 'Step'} {index + 1}
+                      {t('step')} {index + 1}
                     </h3>
                     
                     <div className="flex items-center gap-2">
@@ -651,7 +649,7 @@ function QuestDetail({ t }) {
                         <button
                           onClick={() => showHint(index)}
                           className="text-orange-400 hover:text-orange-300 p-2 rounded-lg border border-orange-400 hover:border-orange-300 transition-colors"
-                          title={userLang === 'fr' ? 'Obtenir un indice (-10 points)' : 'Get hint (-10 points)'}
+                          title={t('getHint')}
                         >
                           <FaLightbulb />
                         </button>
@@ -668,7 +666,7 @@ function QuestDetail({ t }) {
                     <div className="bg-orange-900/30 border border-orange-500 p-3 rounded-lg mb-4">
                       <div className="flex items-center gap-2 text-orange-400 text-sm font-medium mb-1">
                         <FaLightbulb />
-                        {userLang === 'fr' ? 'Indice' : 'Hint'}
+                        {t('hint')}
                       </div>
                       <p className="text-orange-200 text-sm">{getHint(step, index)}</p>
                     </div>
@@ -678,7 +676,7 @@ function QuestDetail({ t }) {
                   {step.type === 'quiz' && (
                     <div>
                       <p className="text-white mb-4 text-lg">
-                        {userLang === 'fr' ? step.questionFR : step.questionEN}
+                        {currentLang === 'fr' ? step.questionFR : step.questionEN}
                       </p>
                       <div className="space-y-3">
                         {shuffledOptions[index]?.options.map((option, optionIndex) => (
@@ -711,7 +709,7 @@ function QuestDetail({ t }) {
                             className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                           >
                             {showExplanations[index] ? <FaEyeSlash /> : <FaEye />}
-                            {userLang === 'fr' ? 'Explication' : 'Explanation'}
+                            {t('explanation')}
                           </button>
                           
                           {showExplanations[index] && (
@@ -726,8 +724,8 @@ function QuestDetail({ t }) {
                                   : 'text-red-200'
                               }`}>
                                 {answers[index] === shuffledOptions[index]?.correctIndex 
-                                  ? (userLang === 'fr' ? '✅ Correct! Cette réponse est exacte en finance.' : '✅ Correct! This is the accurate answer in finance.')
-                                  : (userLang === 'fr' ? '❌ Incorrect. La bonne réponse était...' : '❌ Incorrect. The correct answer was...')
+                                  ? `✅ ${t('correct')}! ${t('accurateAnswer')}`
+                                  : `❌ ${t('incorrect')}. ${t('correctAnswer')}...`
                                 }
                               </p>
                             </div>
@@ -736,8 +734,8 @@ function QuestDetail({ t }) {
                       )}
                       
                       <div className="mt-3 text-sm text-gray-400">
-                        💡 {userLang === 'fr' ? '50 points si correct' : '50 points if correct'}
-                        {hasHint && <span className="text-orange-400"> (-10 points pour l'indice)</span>}
+                        💡 50 {t('pointsIfCorrect')}
+                        {hasHint && <span className="text-orange-400"> (-10 {t('pointsForHint')})</span>}
                       </div>
                     </div>
                   )}
@@ -745,10 +743,10 @@ function QuestDetail({ t }) {
                   {step.type === 'checklist' && (
                     <div>
                       <p className="text-white mb-4">
-                        {userLang === 'fr' ? 'Complétez toutes les tâches :' : 'Complete all tasks:'}
+                        {t('completeAllTasks')}
                       </p>
                       <div className="space-y-3">
-                        {(userLang === 'fr' ? step.itemsFR : step.itemsEN).map((item, itemIndex) => {
+                        {(currentLang === 'fr' ? step.itemsFR : step.itemsEN).map((item, itemIndex) => {
                           const currentChecked = answers[index] || [];
                           const isChecked = Array.isArray(currentChecked) && currentChecked.includes(itemIndex);
                           
@@ -769,8 +767,8 @@ function QuestDetail({ t }) {
                         })}
                       </div>
                       <div className="mt-3 text-sm text-gray-400">
-                        ✅ {userLang === 'fr' ? '30 points si tout complété' : '30 points if all completed'} 
-                        ({(answers[index] || []).length}/{(userLang === 'fr' ? step.itemsFR : step.itemsEN).length})
+                        ✅ 30 {t('pointsIfAllCompleted')} 
+                        ({(answers[index] || []).length}/{(currentLang === 'fr' ? step.itemsFR : step.itemsEN).length})
                       </div>
                     </div>
                   )}
@@ -778,17 +776,17 @@ function QuestDetail({ t }) {
                   {step.type === 'challenge' && (
                     <div>
                       <p className="text-white mb-4">
-                        {userLang === 'fr' ? step.descriptionFR : step.descriptionEN}
+                        {currentLang === 'fr' ? step.descriptionFR : step.descriptionEN}
                       </p>
                       <textarea
                         value={answers[index] || ''}
                         onChange={(e) => handleAnswer(index, e.target.value)}
-                        placeholder={userLang === 'fr' ? 'Décrivez votre approche...' : 'Describe your approach...'}
+                        placeholder={t('describeApproach')}
                         className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors resize-none"
                         rows={4}
                       />
                       <div className="mt-3 text-sm text-gray-400">
-                        📝 {userLang === 'fr' ? '20 points si >10 caractères' : '20 points if >10 characters'} 
+                        📝 20 {t('pointsIfMinChars')} 
                         ({(answers[index] || '').length}/10)
                       </div>
                     </div>
@@ -802,12 +800,12 @@ function QuestDetail({ t }) {
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="text-white">
                   <h3 className="text-lg font-semibold mb-1">
-                    {userLang === 'fr' ? 'Prêt à soumettre ?' : 'Ready to Submit?'}
+                    {t('readyToSubmit')}
                   </h3>
                   <p className="text-gray-400 text-sm">
-                    {userLang === 'fr' ? 'Score estimé' : 'Estimated score'}: <span className="text-yellow-400 font-bold">{currentScore}</span> {userLang === 'fr' ? 'points' : 'points'}
+                    {t('estimatedScore')}: <span className="text-yellow-400 font-bold">{currentScore}</span> {t('points')}
                     {getTimeBonus() > 0 && (
-                      <span className="text-green-400"> + {getTimeBonus()} {userLang === 'fr' ? 'bonus temps' : 'time bonus'}</span>
+                      <span className="text-green-400"> + {getTimeBonus()} {t('timeBonus')}</span>
                     )}
                   </p>
                 </div>
@@ -824,12 +822,12 @@ function QuestDetail({ t }) {
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      {userLang === 'fr' ? 'Soumission...' : 'Submitting...'}
+                      {t('submitting')}
                     </>
                   ) : (
                     <>
                       <FaTrophy />
-                      {userLang === 'fr' ? 'Soumettre Quête' : 'Submit Quest'}
+                      {t('submitQuest')}
                     </>
                   )}
                 </button>
@@ -841,32 +839,32 @@ function QuestDetail({ t }) {
           <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-8 rounded-lg text-center">
             <FaTrophy className="text-6xl text-yellow-300 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-white mb-2">
-              {userLang === 'fr' ? 'Quête Terminée !' : 'Quest Completed!'}
+              {t('questCompleted')}
             </h2>
             <p className="text-green-100 text-xl mb-2">
-              {userLang === 'fr' ? 'Score final' : 'Final Score'}: <span className="font-bold text-yellow-300">{finalScore}</span> {userLang === 'fr' ? 'points' : 'points'}
+              {t('finalScore')}: <span className="font-bold text-yellow-300">{finalScore}</span> {t('points')}
             </p>
             <p className="text-green-200 text-sm mb-4">
-              {userLang === 'fr' ? 'Temps' : 'Time'}: {formatTime(timeSpent)} | 
-              {userLang === 'fr' ? 'Indices utilisés' : 'Hints used'}: {Object.keys(hints).length}
+              {t('time')}: {formatTime(timeSpent)} | 
+              {t('hintsUsed')}: {Object.keys(hints).length}
             </p>
 
             {/* Gamification Achievements */}
             {levelUp && (
               <div className="bg-purple-600/30 border border-purple-400 p-4 rounded-lg mb-4 animate-bounce">
-                <h3 className="text-lg font-bold text-purple-200 mb-1">🚀 Level Up!</h3>
-                <p className="text-purple-100">{levelUp.from} → {levelUp.to}</p>
+                <h3 className="text-lg font-bold text-purple-200 mb-1">🚀 {t('levelUp')}!</h3>
+                <p className="text-purple-100">{t(levelUp.from.toLowerCase())} → {t(levelUp.to.toLowerCase())}</p>
               </div>
             )}
 
             {unlockedBadges.length > 0 && (
               <div className="bg-yellow-600/30 border border-yellow-400 p-4 rounded-lg mb-4">
-                <h3 className="text-lg font-bold text-yellow-200 mb-2">🏆 New Badges Unlocked!</h3>
+                <h3 className="text-lg font-bold text-yellow-200 mb-2">🏆 {t('newBadgeUnlocked')}!</h3>
                 <div className="flex flex-wrap justify-center gap-2">
                   {unlockedBadges.map(badge => (
                     <span key={badge} className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-bold animate-pulse">
                       <FaMedal className="inline mr-1" />
-                      {badgeDefinitions[badge]?.name || badge}
+                      {t(`badges.${badge}`) || badgeDefinitions[badge]?.name || badge}
                     </span>
                   ))}
                 </div>
@@ -879,7 +877,7 @@ function QuestDetail({ t }) {
                 className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 justify-center"
               >
                 <FaRedo />
-                {userLang === 'fr' ? 'Rejouer' : 'Replay Quest'}
+                {t('replay')}
               </button>
               
               <button
@@ -887,7 +885,7 @@ function QuestDetail({ t }) {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 justify-center"
               >
                 <FaShare />
-                {userLang === 'fr' ? 'Partager' : 'Share Achievement'}
+                {t('shareAchievement')}
               </button>
               
               <Link
@@ -895,7 +893,7 @@ function QuestDetail({ t }) {
                 className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 justify-center"
               >
                 <FaRocket />
-                {userLang === 'fr' ? 'Autres Quêtes' : 'More Quests'}
+                {t('moreQuests')}
               </Link>
               
               <Link
@@ -903,7 +901,7 @@ function QuestDetail({ t }) {
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 justify-center"
               >
                 <FaBolt />
-                {userLang === 'fr' ? 'Tableau de Bord' : 'Dashboard'}
+                {t('dashboard')}
               </Link>
             </div>
           </div>
