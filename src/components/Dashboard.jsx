@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FaTrophy, FaCoins, FaFire, FaChartLine, FaSignOutAlt, FaMedal, FaStar, FaCrown, FaGem, FaBolt, FaAward, FaRocket, FaMoon, FaSun, FaGamepad, FaTachometerAlt, FaShare, FaCalendarCheck, FaHeartbeat, FaLightbulb, FaShieldAlt, FaThunderbolt } from 'react-icons/fa';
+import { FaTrophy, FaCoins, FaFire, FaChartLine, FaSignOutAlt, FaMedal, FaStar, FaCrown, FaGem, FaBolt, FaAward, FaRocket, FaMoon, FaSun, FaGamepad, FaTachometerAlt, FaShare, FaCalendarCheck, FaHeartbeat, FaLightbulb, FaShieldAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useMemo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -154,7 +154,7 @@ function Dashboard({ t, currentLang }) {
       'award': FaAward,
       'lightbulb': FaLightbulb,
       'heartbeat': FaHeartbeat,
-      'thunderbolt': FaThunderbolt
+      'thunderbolt': FaBolt // Using FaBolt instead of non-existent FaThunderbolt
     };
     return iconMap[iconName] || FaMedal;
   };
