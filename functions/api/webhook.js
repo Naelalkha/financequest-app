@@ -1,31 +1,28 @@
 const stripe = require('stripe')('sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482'); // Ta clé secret test Stripe
 const endpointSecret = 'whsec_DuqP562WnIttXBoALLVInBjbBbRmcXlS'; // Ton signing secret de Stripe Webhook
 
-// Import Firebase (ajuste path si functions/ est à racine)
-const { db } = require('../../src/firebase'); // Si functions/ à racine, ajuste à '../../src/firebase'
-const { doc, updateDoc } = require('firebase/firestore');
+const { db } = require('../../src/firebase'); // Ajuste path si besoin (ex. '../../src/firebase')
+const { doc, updateDoc } from 'firebase/firestore';
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
-
-  const sig = event.headers['stripe-signature'];
-  let stripeEvent;
+export async function onRequestPost(context) {
+  const { request } = context;
+  const body = await request.text();
+  const sig = request.headers.get('stripe-signature');
+  let event;
 
   try {
-    stripeEvent = stripe.webhooks.constructEvent(event.body, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
   } catch (err) {
-    return { statusCode: 400, body: `Webhook Error: ${err.message}` };
+    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  if (stripeEvent.type === 'checkout.session.completed') {
-    const session = stripeEvent.data.object;
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
     const userId = session.metadata.userId;
     if (userId) {
       await updateDoc(doc(db, 'users', userId), { premium: true });
     }
   }
 
-  return { statusCode: 200, body: 'OK' };
-};
+  return new Response('OK', { status: 200 });
+}
