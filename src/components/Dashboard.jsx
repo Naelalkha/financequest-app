@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, updateDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function Dashboard({ t }) {
@@ -12,7 +12,8 @@ function Dashboard({ t }) {
   const [progress, setProgress] = useState(0);
   const [streaks, setStreaks] = useState(0);
   const [badges, setBadges] = useState([]);
-  const levelThresholds = [0, 100, 300, 600]; // Points pour Novice, Intermediate, Expert, Master
+  const [streakChecked, setStreakChecked] = useState(false); // Flag pour une seule check
+  const levelThresholds = [0, 100, 300, 600];
 
   useEffect(() => {
     if (!user) return;
@@ -37,43 +38,44 @@ function Dashboard({ t }) {
       }
     });
 
-    // Streak logic (check daily login, reset if day skipped)
-    const checkStreak = () => {
+    // Streak logic (one-time check)
+    const checkStreak = async () => {
+      if (streakChecked) return;
+      setStreakChecked(true);
+
       const lastLogin = localStorage.getItem('lastLogin');
       const today = new Date().toDateString();
       const userRef = doc(db, 'users', user.uid);
-
-      onSnapshot(userRef, (snap) => {
-        const userData = snap.data();
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
         const currentStreaks = userData.streaks || 0;
 
         if (!lastLogin) {
-          // Premier login, set lastLogin et streaks
+          // Premier login
+          await updateDoc(userRef, { streaks: 1 });
           localStorage.setItem('lastLogin', today);
-          updateDoc(userRef, { streaks: 1 });
         } else {
           const lastDate = new Date(lastLogin);
           const diffDays = Math.floor((new Date(today) - lastDate) / (1000 * 60 * 60 * 24));
 
           if (diffDays === 1) {
             // Incrémente si connecté hier
-            updateDoc(userRef, { streaks: currentStreaks + 1 });
+            await updateDoc(userRef, { streaks: currentStreaks + 1 });
             localStorage.setItem('lastLogin', today);
           } else if (diffDays > 1) {
-            // Reset si jour sauté
-            updateDoc(userRef, { streaks: 1 });
+            // Reset si saut
+            await updateDoc(userRef, { streaks: 1 });
             localStorage.setItem('lastLogin', today);
           }
         }
-      }, (error) => {
-        console.error("Streak error:", error);
-      });
+      }
     };
 
     checkStreak();
 
     return unsubscribe;
-  }, [user]);
+  }, [user, streakChecked]);
 
   if (!user) return null;
 
