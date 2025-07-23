@@ -29,24 +29,44 @@ function Dashboard({ t }) {
     600: 'Master'
   };
 
-  // Enhanced badge definitions with valid react-icons
+  // Badge definitions without storing React components
   const badgeDefinitions = {
-    'FirstSteps': { icon: FaMedal, requirement: 10, color: 'text-yellow-600', type: 'points' },
-    'BudgetMaster': { icon: FaStar, requirement: 100, color: 'text-yellow-500', type: 'points' },
-    'SavingsPro': { icon: FaCrown, requirement: 300, color: 'text-purple-500', type: 'points' },
-    'InvestmentGuru': { icon: FaGem, requirement: 600, color: 'text-blue-500', type: 'points' },
-    'Legendary': { icon: FaRocket, requirement: 1000, color: 'text-red-500', type: 'points' },
-    'StreakWarrior': { icon: FaBolt, requirement: 7, type: 'streak', color: 'text-orange-500' },
-    'Dedicated': { icon: FaAward, requirement: 30, type: 'streak', color: 'text-green-500' },
-    'NightOwl': { icon: FaMoon, requirement: 22, type: 'time', color: 'text-indigo-500' },
-    'EarlyBird': { icon: FaSun, requirement: 6, type: 'time', color: 'text-yellow-400' },
-    'WeekendWarrior': { icon: FaGamepad, requirement: 1, type: 'weekend', color: 'text-pink-500' },
-    'Perfectionist': { icon: FaTrophy, requirement: 5, type: 'perfect', color: 'text-emerald-500' },
-    'SpeedRunner': { icon: FaTachometerAlt, requirement: 3, type: 'speed', color: 'text-cyan-500' },
-    'SocialSharer': { icon: FaShare, requirement: 1, type: 'share', color: 'text-rose-500' }
+    'FirstSteps': { iconName: 'medal', requirement: 10, color: 'text-yellow-600', type: 'points' },
+    'BudgetMaster': { iconName: 'star', requirement: 100, color: 'text-yellow-500', type: 'points' },
+    'SavingsPro': { iconName: 'crown', requirement: 300, color: 'text-purple-500', type: 'points' },
+    'InvestmentGuru': { iconName: 'gem', requirement: 600, color: 'text-blue-500', type: 'points' },
+    'Legendary': { iconName: 'rocket', requirement: 1000, color: 'text-red-500', type: 'points' },
+    'StreakWarrior': { iconName: 'bolt', requirement: 7, type: 'streak', color: 'text-orange-500' },
+    'Dedicated': { iconName: 'award', requirement: 30, type: 'streak', color: 'text-green-500' },
+    'NightOwl': { iconName: 'moon', requirement: 22, type: 'time', color: 'text-indigo-500' },
+    'EarlyBird': { iconName: 'sun', requirement: 6, type: 'time', color: 'text-yellow-400' },
+    'WeekendWarrior': { iconName: 'gamepad', requirement: 1, type: 'weekend', color: 'text-pink-500' },
+    'Perfectionist': { iconName: 'trophy', requirement: 5, type: 'perfect', color: 'text-emerald-500' },
+    'SpeedRunner': { iconName: 'tachometer', requirement: 3, type: 'speed', color: 'text-cyan-500' },
+    'SocialSharer': { iconName: 'share', requirement: 1, type: 'share', color: 'text-rose-500' }
   };
 
-  // Get current level based on points (with auto-update)
+  // Icon mapping function
+  const getIconComponent = (iconName) => {
+    const iconMap = {
+      'medal': FaMedal,
+      'star': FaStar,
+      'crown': FaCrown,
+      'gem': FaGem,
+      'rocket': FaRocket,
+      'bolt': FaBolt,
+      'award': FaAward,
+      'moon': FaMoon,
+      'sun': FaSun,
+      'gamepad': FaGamepad,
+      'trophy': FaTrophy,
+      'tachometer': FaTachometerAlt,
+      'share': FaShare
+    };
+    return iconMap[iconName] || FaMedal;
+  };
+
+  // Get current level based on points
   const getCurrentLevel = (points) => {
     const thresholds = Object.keys(levelThresholds).map(Number).sort((a, b) => b - a);
     for (const threshold of thresholds) {
@@ -80,8 +100,8 @@ function Dashboard({ t }) {
     return { percentage: Math.round(progress), current: currentThreshold, next: nextThreshold, isMax: false };
   }, [userStats.points]);
 
-  // Enhanced badge checking with new badge types
-  const checkForNewBadges = (points, streaks, currentBadges, loginTime) => {
+  // Enhanced badge checking
+  const checkForNewBadges = (points, streaks, currentBadges) => {
     const earnedBadges = [];
     const currentHour = new Date().getHours();
     const isWeekend = [0, 6].includes(new Date().getDay());
@@ -106,7 +126,6 @@ function Dashboard({ t }) {
           case 'weekend':
             if (isWeekend) earnedBadges.push(badgeKey);
             break;
-          // Note: 'perfect', 'speed', 'share' badges would be awarded in quest completion logic
           default:
             break;
         }
@@ -116,7 +135,7 @@ function Dashboard({ t }) {
     return earnedBadges;
   };
 
-  // Enhanced daily streak logic with proper reset
+  // Enhanced daily streak logic
   const checkDailyStreak = async (lastLogin) => {
     if (streakChecked) return;
     
@@ -124,7 +143,6 @@ function Dashboard({ t }) {
     const todayDateString = today.toDateString();
     
     if (!lastLogin) {
-      // First time login
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: 1,
         lastLogin: todayDateString
@@ -137,17 +155,14 @@ function Dashboard({ t }) {
     const lastLoginDateString = lastLoginDate.toDateString();
     
     if (lastLoginDateString === todayDateString) {
-      // Already logged in today
       setStreakChecked(true);
       return;
     }
     
-    // Calculate difference in days
     const diffTime = today.getTime() - lastLoginDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 1) {
-      // Consecutive day - increment streak
       const newStreak = userStats.streaks + 1;
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: newStreak,
@@ -158,14 +173,9 @@ function Dashboard({ t }) {
         toast.success(`🔥 Amazing! ${newStreak} day streak!`, {
           position: "top-center",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
     } else if (diffDays > 1) {
-      // Streak broken - reset to 0 (not 1 for true interruption)
       await updateDoc(doc(db, 'users', user.uid), {
         streaks: 0,
         lastLogin: todayDateString
@@ -184,13 +194,15 @@ function Dashboard({ t }) {
 
   // Get badge name with language support
   const getBadgeName = (badgeKey) => {
-    return t(`badges.${badgeKey}`) || badgeKey;
+    if (typeof t === 'function') {
+      return t(`badges.${badgeKey}`) !== `badges.${badgeKey}` ? t(`badges.${badgeKey}`) : badgeKey;
+    }
+    return badgeKey;
   };
 
   useEffect(() => {
     if (!user) return;
 
-    // Real-time listener for user data
     const unsubscribe = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -211,37 +223,28 @@ function Dashboard({ t }) {
           lang: userLang
         });
 
-        // Auto-update level in Firestore if changed
         if (currentLevel !== userData.level) {
           await updateDoc(doc(db, 'users', user.uid), {
             level: currentLevel
           });
         }
 
-        // Check for new badges
-        const earnedBadges = checkForNewBadges(points, streaks, badges, lastLogin);
+        const earnedBadges = checkForNewBadges(points, streaks, badges);
         if (earnedBadges.length > 0) {
           setNewBadges(earnedBadges);
-          // Update user badges in Firestore
           await updateDoc(doc(db, 'users', user.uid), {
             badges: [...badges, ...earnedBadges]
           });
           
-          // Show toast for new badges
           earnedBadges.forEach(badgeKey => {
             const badgeName = getBadgeName(badgeKey);
             toast.success(`🏆 New Badge Unlocked: ${badgeName}!`, {
               position: "top-center",
               autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
             });
           });
         }
 
-        // Check daily streak (only once per session)
         if (!streakChecked) {
           checkDailyStreak(lastLogin);
         }
@@ -251,7 +254,6 @@ function Dashboard({ t }) {
     return () => unsubscribe();
   }, [user, streakChecked, userStats.streaks]);
 
-  // Tooltip handlers
   const handleTooltipShow = (badgeKey) => {
     setShowTooltip(prev => ({ ...prev, [badgeKey]: true }));
   };
@@ -267,7 +269,7 @@ function Dashboard({ t }) {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-yellow-400">
-          {t('dashboard')}
+          {typeof t === 'function' ? t('dashboard') : 'Dashboard'}
         </h1>
         <button 
           onClick={logout} 
@@ -281,8 +283,14 @@ function Dashboard({ t }) {
       <div className="bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">{t(userStats.level.toLowerCase()) || userStats.level}</h2>
-            <p className="text-gray-400">{userStats.points} {t('points')}</p>
+            <h2 className="text-2xl font-bold text-white">
+              {typeof t === 'function' && t(userStats.level.toLowerCase()) !== userStats.level.toLowerCase() 
+                ? t(userStats.level.toLowerCase()) 
+                : userStats.level}
+            </h2>
+            <p className="text-gray-400">
+              {userStats.points} {typeof t === 'function' ? t('points') : 'Points'}
+            </p>
           </div>
           <FaTrophy className="text-4xl text-yellow-400" />
         </div>
@@ -290,8 +298,8 @@ function Dashboard({ t }) {
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-400 mb-2">
-            <span>{progressData.current} {t('pts') || 'pts'}</span>
-            {!progressData.isMax && <span>{progressData.next} {t('pts') || 'pts'}</span>}
+            <span>{progressData.current} pts</span>
+            {!progressData.isMax && <span>{progressData.next} pts</span>}
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
             <div 
@@ -309,19 +317,21 @@ function Dashboard({ t }) {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
           <FaCoins className="text-3xl text-yellow-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">{t('points')}</p>
+          <p className="text-sm text-gray-400">
+            {typeof t === 'function' ? t('points') : 'Points'}
+          </p>
           <p className="text-xl font-bold text-white">{userStats.points}</p>
         </div>
         
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
           <FaFire className={`text-3xl mx-auto mb-2 ${userStats.streaks > 0 ? 'text-orange-500' : 'text-gray-500'}`} />
-          <p className="text-sm text-gray-400">{t('streak') || 'Streak'}</p>
-          <p className="text-xl font-bold text-white">{userStats.streaks} {t('days') || 'days'}</p>
+          <p className="text-sm text-gray-400">Streak</p>
+          <p className="text-xl font-bold text-white">{userStats.streaks} days</p>
         </div>
         
         <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700 col-span-2 md:col-span-1">
           <FaMedal className="text-3xl text-purple-500 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">{t('badges') || 'Badges'}</p>
+          <p className="text-sm text-gray-400">Badges</p>
           <p className="text-xl font-bold text-white">{userStats.badges.length}</p>
         </div>
       </div>
@@ -330,7 +340,7 @@ function Dashboard({ t }) {
       <div className="bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700">
         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <FaMedal className="text-yellow-400" />
-          {t('yourBadges') || 'Your Badges'}
+          Your Badges
         </h3>
         
         {userStats.badges.length === 0 ? (
@@ -340,7 +350,8 @@ function Dashboard({ t }) {
             {userStats.badges.map(badgeKey => {
               const badge = badgeDefinitions[badgeKey];
               if (!badge) return null;
-              const IconComponent = badge.icon;
+              
+              const IconComponent = getIconComponent(badge.iconName);
               const isNew = newBadges.includes(badgeKey);
               
               return (
@@ -353,7 +364,7 @@ function Dashboard({ t }) {
                   <IconComponent className={`text-3xl mx-auto mb-2 ${badge.color}`} />
                   <p className="text-sm font-medium text-white">{getBadgeName(badgeKey)}</p>
                   {isNew && (
-                    <p className="text-xs text-yellow-400 mt-1 font-bold">{t('new') || 'NEW!'}</p>
+                    <p className="text-xs text-yellow-400 mt-1 font-bold">NEW!</p>
                   )}
                 </div>
               );
@@ -361,27 +372,27 @@ function Dashboard({ t }) {
           </div>
         )}
         
-        {/* Available Badges Preview with Tooltips */}
+        {/* Available Badges Preview */}
         <div className="mt-6 pt-6 border-t border-gray-700">
-          <h4 className="text-lg font-semibold text-gray-300 mb-3">{t('availableBadges') || 'Available Badges'}</h4>
+          <h4 className="text-lg font-semibold text-gray-300 mb-3">Available Badges</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.keys(badgeDefinitions)
               .filter(badgeKey => !userStats.badges.includes(badgeKey))
               .slice(0, 8)
               .map(badgeKey => {
                 const badge = badgeDefinitions[badgeKey];
-                const IconComponent = badge.icon;
+                const IconComponent = getIconComponent(badge.iconName);
                 let progress = 0;
                 let progressText = '';
                 
                 switch (badge.type) {
                   case 'points':
                     progress = Math.min((userStats.points / badge.requirement) * 100, 100);
-                    progressText = `${userStats.points}/${badge.requirement} ${t('pts') || 'pts'}`;
+                    progressText = `${userStats.points}/${badge.requirement} pts`;
                     break;
                   case 'streak':
                     progress = Math.min((userStats.streaks / badge.requirement) * 100, 100);
-                    progressText = `${userStats.streaks}/${badge.requirement} ${t('days') || 'days'}`;
+                    progressText = `${userStats.streaks}/${badge.requirement} days`;
                     break;
                   default:
                     progress = 0;
@@ -427,8 +438,8 @@ function Dashboard({ t }) {
           className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white p-6 rounded-lg text-center transition-all duration-300 transform hover:scale-105 shadow-lg"
         >
           <FaChartLine className="text-3xl mx-auto mb-2" />
-          <h3 className="text-xl font-bold">{t('continuelearning') || 'Continue Learning'}</h3>
-          <p className="text-sm opacity-90">{t('explorequests') || 'Explore finance quests'}</p>
+          <h3 className="text-xl font-bold">Continue Learning</h3>
+          <p className="text-sm opacity-90">Explore finance quests</p>
         </Link>
         
         <Link 
@@ -436,8 +447,8 @@ function Dashboard({ t }) {
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white p-6 rounded-lg text-center transition-all duration-300 transform hover:scale-105 shadow-lg"
         >
           <FaCrown className="text-3xl mx-auto mb-2" />
-          <h3 className="text-xl font-bold">{t('gopremium') || 'Go Premium'}</h3>
-          <p className="text-sm opacity-90">{t('unlockfeatures') || 'Unlock all features'}</p>
+          <h3 className="text-xl font-bold">Go Premium</h3>
+          <p className="text-sm opacity-90">Unlock all features</p>
         </Link>
       </div>
     </div>
