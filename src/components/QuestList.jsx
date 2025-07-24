@@ -4,10 +4,13 @@ import { useState, useMemo } from 'react';
 import quests from '../data/quests.json';
 import { useAuth } from '../context/AuthContext';
 
-function QuestList({ t, currentLang }) {
+function QuestList({ t }) {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('difficulty'); // difficulty, title, duration
+
+  // Get user language
+  const userLang = user?.lang || 'en';
 
   // Difficulty order for sorting
   const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
@@ -19,7 +22,7 @@ function QuestList({ t, currentLang }) {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(quest => {
-        const title = currentLang === 'fr' ? quest.titleFR : quest.titleEN;
+        const title = userLang === 'fr' ? quest.titleFR : quest.titleEN;
         return title.toLowerCase().includes(searchTerm.toLowerCase());
       });
     }
@@ -30,8 +33,8 @@ function QuestList({ t, currentLang }) {
         case 'difficulty':
           return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
         case 'title':
-          const titleA = currentLang === 'fr' ? a.titleFR : a.titleEN;
-          const titleB = currentLang === 'fr' ? b.titleFR : b.titleEN;
+          const titleA = userLang === 'fr' ? a.titleFR : a.titleEN;
+          const titleB = userLang === 'fr' ? b.titleFR : b.titleEN;
           return titleA.localeCompare(titleB);
         case 'duration':
           return a.duration - b.duration;
@@ -41,7 +44,7 @@ function QuestList({ t, currentLang }) {
     });
 
     return filtered;
-  }, [quests, searchTerm, sortBy, currentLang]);
+  }, [quests, searchTerm, sortBy, userLang]);
 
   // Get difficulty color
   const getDifficultyColor = (difficulty) => {
@@ -79,14 +82,14 @@ function QuestList({ t, currentLang }) {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-yellow-400">
-            {t('quests')}
+            {t('quests') || 'Finance Quests'}
           </h1>
           
           {/* Premium status */}
           {user?.premium && (
             <div className="flex items-center gap-2 bg-yellow-600 text-gray-900 px-4 py-2 rounded-full">
               <FaCrown className="text-sm" />
-              <span className="font-semibold">{t('premiumMember')}</span>
+              <span className="font-semibold">Premium Member</span>
             </div>
           )}
         </div>
@@ -99,7 +102,7 @@ function QuestList({ t, currentLang }) {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder={t('searchQuests')}
+                placeholder={userLang === 'fr' ? 'Rechercher des quêtes...' : 'Search quests...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
@@ -113,26 +116,38 @@ function QuestList({ t, currentLang }) {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full py-3 px-4 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
               >
-                <option value="difficulty">{t('sortByDifficulty')}</option>
-                <option value="title">{t('sortByTitle')}</option>
-                <option value="duration">{t('sortByDuration')}</option>
+                <option value="difficulty">
+                  {userLang === 'fr' ? 'Trier par difficulté' : 'Sort by Difficulty'}
+                </option>
+                <option value="title">
+                  {userLang === 'fr' ? 'Trier par titre' : 'Sort by Title'}
+                </option>
+                <option value="duration">
+                  {userLang === 'fr' ? 'Trier par durée' : 'Sort by Duration'}
+                </option>
               </select>
             </div>
           </div>
 
           {/* Quest Statistics */}
           <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-400">
-            <span>{t('totalQuests')}: {processedQuests.length}</span>
-            <span>{t('free')}: {processedQuests.filter(q => !q.premium).length}</span>
-            <span>{t('premium')}: {processedQuests.filter(q => q.premium).length}</span>
+            <span>
+              {t('totalQuests') || 'Total'}: {processedQuests.length}
+            </span>
+            <span>
+              {userLang === 'fr' ? 'Gratuits' : 'Free'}: {processedQuests.filter(q => !q.premium).length}
+            </span>
+            <span>
+              {userLang === 'fr' ? 'Premium' : 'Premium'}: {processedQuests.filter(q => q.premium).length}
+            </span>
           </div>
         </div>
 
         {/* Quests Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {processedQuests.map(quest => {
-            const title = currentLang === 'fr' ? quest.titleFR : quest.titleEN;
-            const difficulty = currentLang === 'fr' ? quest.difficultyFR : quest.difficulty;
+            const title = userLang === 'fr' ? quest.titleFR : quest.titleEN;
+            const difficulty = userLang === 'fr' ? quest.difficultyFR : quest.difficulty;
             const isLocked = quest.premium && !user?.premium;
             const difficultyColor = getDifficultyColor(quest.difficulty);
             const difficultyStars = getDifficultyStars(quest.difficulty);
@@ -158,12 +173,12 @@ function QuestList({ t, currentLang }) {
                       <div className="flex flex-wrap items-center gap-3 text-sm">
                         {/* Difficulty */}
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400">{t('difficulty')}:</span>
+                          <span className="text-gray-400">{userLang === 'fr' ? 'Difficulté:' : 'Difficulty:'}</span>
                           <div className="flex items-center gap-1">
                             {renderStars(difficultyStars, difficultyColor)}
                           </div>
                           <span className={`${difficultyColor} font-medium`}>
-                            {t(difficulty.toLowerCase())}
+                            {difficulty}
                           </span>
                         </div>
 
@@ -178,7 +193,7 @@ function QuestList({ t, currentLang }) {
                           <div className="flex items-center gap-1">
                             <FaCrown className="text-yellow-500 text-xs" />
                             <span className="text-yellow-500 text-xs font-medium">
-                              {t('premium')}
+                              {userLang === 'fr' ? 'Premium' : 'Premium'}
                             </span>
                           </div>
                         )}
@@ -202,7 +217,7 @@ function QuestList({ t, currentLang }) {
                       className="w-full bg-yellow-600 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
                     >
                       <FaCrown className="text-sm" />
-                      {t('unlockPremium')}
+                      {userLang === 'fr' ? 'Débloquer Premium' : 'Unlock Premium'}
                     </Link>
                   ) : (
                     <Link
@@ -210,7 +225,7 @@ function QuestList({ t, currentLang }) {
                       className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105"
                     >
                       <FaFire className="text-sm" />
-                      {t('startQuest')}
+                      {userLang === 'fr' ? 'Commencer Quête' : 'Start Quest'}
                     </Link>
                   )}
                 </div>
@@ -225,7 +240,7 @@ function QuestList({ t, currentLang }) {
                       ></div>
                     </div>
                     <p className="text-xs text-gray-500 mt-1 text-center">
-                      {t('notStarted')}
+                      {userLang === 'fr' ? 'Pas encore commencé' : 'Not started'}
                     </p>
                   </div>
                 )}
@@ -239,15 +254,21 @@ function QuestList({ t, currentLang }) {
           <div className="text-center py-12">
             <div className="text-gray-500 mb-4">
               <FaSearch className="text-4xl mx-auto mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">{t('noQuestsFound')}</h3>
-              <p className="text-gray-400">{t('tryAdjusting')}</p>
+              <h3 className="text-xl font-semibold mb-2">
+                {userLang === 'fr' ? 'Aucune quête trouvée' : 'No quests found'}
+              </h3>
+              <p className="text-gray-400">
+                {userLang === 'fr' 
+                  ? 'Essayez de modifier votre recherche ou vos filtres' 
+                  : 'Try adjusting your search or filters'}
+              </p>
             </div>
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
                 className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-2 rounded-lg font-semibold transition-colors"
               >
-                {t('clearSearch')}
+                {userLang === 'fr' ? 'Effacer la recherche' : 'Clear Search'}
               </button>
             )}
           </div>
@@ -258,17 +279,19 @@ function QuestList({ t, currentLang }) {
           <div className="mt-12 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg p-6 text-center">
             <FaCrown className="text-3xl text-gray-900 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {t('unlockAllQuests')}
+              {userLang === 'fr' ? 'Débloquez toutes les quêtes' : 'Unlock All Quests'}
             </h3>
             <p className="text-gray-800 mb-4">
-              {t('accessPremium')}
+              {userLang === 'fr' 
+                ? 'Accédez à 10 quêtes premium avancées avec des stratégies financières exclusives'
+                : 'Access 10 premium advanced quests with exclusive financial strategies'}
             </p>
             <Link
               to="/premium"
               className="inline-flex items-center gap-2 bg-gray-900 text-yellow-500 px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
             >
               <FaCrown className="text-sm" />
-              {t('gopremium')}
+              {userLang === 'fr' ? 'Passer Premium' : 'Go Premium'}
             </Link>
           </div>
         )}
