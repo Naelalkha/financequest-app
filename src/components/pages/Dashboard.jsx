@@ -6,8 +6,8 @@ import {
 } from 'react-icons/fa';
 import { collection, query, where, getDocs, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { useAuth } from '../../contexts/AuthContext'; // CHANGÉ : nouveau path
-import { useLanguage } from '../../contexts/LanguageContext'; // NOUVEAU : ajout du contexte langue
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 
 const Dashboard = () => {
@@ -293,7 +293,7 @@ const Dashboard = () => {
           {/* Quests Card */}
           <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-green-500 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-400 text-sm">{t('quests')}</h3>
+              <h3 className="text-gray-400 text-sm">{t('quests.my_quests')}</h3>
               <FaCheckCircle className="text-2xl text-green-500" />
             </div>
             <p className="text-3xl font-bold text-green-400">
@@ -313,7 +313,7 @@ const Dashboard = () => {
           {/* Badges Card */}
           <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-purple-500 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-400 text-sm">{t('badges')}</h3>
+              <h3 className="text-gray-400 text-sm">{t('badges_title')}</h3> {/* Correction : utilisez 'badges_title' pour la chaîne, au lieu de 'badges' qui renvoie l'objet */}
               <FaMedal className="text-2xl text-purple-500" />
             </div>
             <p className="text-3xl font-bold text-purple-400">

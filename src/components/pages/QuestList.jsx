@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaLock, FaUnlock, FaStar, FaClock, FaChartLine, 
@@ -6,15 +6,16 @@ import {
 } from 'react-icons/fa';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { useAuth } from '../../contexts/AuthContext'; // CHANGÉ : nouveau path
-import { useLanguage } from '../../contexts/LanguageContext'; // NOUVEAU : ajout du contexte langue
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import Header from '../Header';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import QuestCard from '../../components/common/Card';
 import { toast } from 'react-hot-toast';
+import { questTemplates, localizeQuest } from '../../data/questTemplates'; // Import local templates and localizer
 
 const QuestList = () => {
-  const { currentUser } = useContext(AuthContext);
+  const { user } = useAuth();
   const { t, language } = useLanguage();
   const [quests, setQuests] = useState([]);
   const [filteredQuests, setFilteredQuests] = useState([]);
@@ -45,12 +46,12 @@ const QuestList = () => {
   ];
 
   useEffect(() => {
-    if (currentUser) {
+    if (user) {
       fetchQuests();
       checkPremiumStatus();
       fetchUserProgress();
     }
-  }, [currentUser, language]);
+  }, [user, language]);
 
   useEffect(() => {
     filterQuests();
@@ -61,12 +62,12 @@ const QuestList = () => {
       setLoading(true);
       const questsCollection = collection(db, 'quests');
       const questSnapshot = await getDocs(questsCollection);
-      const questList = questSnapshot.docs.map(doc => {
+      
+      let questList = questSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          // Use language-specific title and description
           title: data[`title${language}`] || data.titleEN || data.title,
           description: data[`description${language}`] || data.descriptionEN || data.description,
           steps: data.steps?.map(step => ({
@@ -76,10 +77,21 @@ const QuestList = () => {
           })) || []
         };
       });
+      
+      // Fallback to local templates if no data in Firestore
+      if (questList.length === 0) {
+        questList = questTemplates.map(quest => localizeQuest(quest, language));
+        toast.info(t('quests.usingLocalData') || 'Using local quest data');
+      }
+      
       setQuests(questList);
     } catch (error) {
       console.error('Error fetching quests:', error);
       toast.error(t('errors.questLoadFailed'));
+      
+      // Fallback to local on error
+      const localQuests = questTemplates.map(quest => localizeQuest(quest, language));
+      setQuests(localQuests);
     } finally {
       setLoading(false);
     }
@@ -87,7 +99,7 @@ const QuestList = () => {
 
   const checkPremiumStatus = async () => {
     try {
-      const userRef = doc(db, 'users', currentUser.uid);
+      const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         setIsPremium(userSnap.data().isPremium || false);
@@ -101,7 +113,7 @@ const QuestList = () => {
     try {
       const progressQuery = query(
         collection(db, 'userQuests'),
-        where('userId', '==', currentUser.uid)
+        where('userId', '==', user.uid)
       );
       const progressSnapshot = await getDocs(progressQuery);
       const progress = {};
@@ -122,17 +134,14 @@ const QuestList = () => {
   const filterQuests = () => {
     let filtered = [...quests];
 
-    // Category filter
     if (filters.category !== 'all') {
       filtered = filtered.filter(quest => quest.category === filters.category);
     }
 
-    // Difficulty filter
     if (filters.difficulty !== 'all') {
       filtered = filtered.filter(quest => quest.difficulty === filters.difficulty);
     }
 
-    // Status filter
     if (filters.status !== 'all') {
       if (filters.status === 'free') {
         filtered = filtered.filter(quest => !quest.isPremium);
@@ -141,7 +150,6 @@ const QuestList = () => {
       }
     }
 
-    // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(quest => 
@@ -181,7 +189,6 @@ const QuestList = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center gap-3">
             <FaTrophy className="text-yellow-500" />
@@ -192,10 +199,8 @@ const QuestList = () => {
           </p>
         </div>
 
-        {/* Filters Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search Bar */}
             <div className="flex-1">
               <div className="relative">
                 <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -209,7 +214,6 @@ const QuestList = () => {
               </div>
             </div>
 
-            {/* Category Filter */}
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
@@ -220,7 +224,6 @@ const QuestList = () => {
               ))}
             </select>
 
-            {/* Difficulty Filter */}
             <select
               value={filters.difficulty}
               onChange={(e) => handleFilterChange('difficulty', e.target.value)}
@@ -231,7 +234,6 @@ const QuestList = () => {
               ))}
             </select>
 
-            {/* Premium Filter */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleFilterChange('status', 'all')}
@@ -267,7 +269,6 @@ const QuestList = () => {
           </div>
         </div>
 
-        {/* Quests Grid */}
         {filteredQuests.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredQuests.map((quest) => (
@@ -290,7 +291,6 @@ const QuestList = () => {
           </div>
         )}
 
-        {/* Premium Banner */}
         {!isPremium && (
           <div className="mt-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-8 text-white">
             <div className="flex flex-col md:flex-row items-center justify-between">

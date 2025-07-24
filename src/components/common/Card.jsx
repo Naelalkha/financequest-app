@@ -12,8 +12,7 @@ const Card = ({
   glow = false,
   to,
   onClick,
-  padding = 'p-6',
-  ...props
+  padding = 'p-6'
 }) => {
   const baseStyles = `
     bg-gray-800 rounded-xl border border-gray-700
@@ -27,7 +26,7 @@ const Card = ({
 
   if (to) {
     return (
-      <Link to={to} className={baseStyles} {...props}>
+      <Link to={to} className={baseStyles}>
         {children}
       </Link>
     );
@@ -35,14 +34,14 @@ const Card = ({
 
   if (onClick) {
     return (
-      <div onClick={onClick} className={baseStyles} {...props}>
+      <div className={baseStyles} onClick={onClick}>
         {children}
       </div>
     );
   }
 
   return (
-    <div className={baseStyles} {...props}>
+    <div className={baseStyles}>
       {children}
     </div>
   );
@@ -228,11 +227,11 @@ export const FeatureCard = ({
  */
 export const QuestCard = ({
   quest,
-  userProgress,
-  onStart,
-  onContinue,
-  isPremium = false,
-  locked = false,
+  status,
+  progress,
+  isPremium,
+  userIsPremium,
+  language,
   className = ''
 }) => {
   const difficultyColors = {
@@ -241,6 +240,8 @@ export const QuestCard = ({
     advanced: 'text-orange-400 bg-orange-400/10',
     expert: 'text-red-400 bg-red-400/10'
   };
+
+  const locked = quest.isPremium && !userIsPremium;
 
   return (
     <Card
@@ -284,10 +285,10 @@ export const QuestCard = ({
         </div>
 
         {/* Progress */}
-        {userProgress && userProgress.status === 'active' && (
+        {status === 'active' && (
           <div className="mb-4">
             <ProgressBar
-              progress={userProgress.progress || 0}
+              progress={progress || 0}
               label="Progress"
               showPercentage
               color="gradient"
@@ -298,23 +299,23 @@ export const QuestCard = ({
         {/* Action button */}
         <div className="mt-4">
           {locked ? (
-            <Button variant="secondary" fullWidth disabled>
-              <FaLock className="mr-2" />
+            <button disabled className="w-full px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+              <FaLock />
               Locked
-            </Button>
-          ) : userProgress?.status === 'active' ? (
-            <Button variant="primary" fullWidth onClick={onContinue}>
+            </button>
+          ) : status === 'active' ? (
+            <Link to={`/quests/${quest.id}`} className="w-full block px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors font-semibold text-center">
               Continue Quest
-            </Button>
-          ) : userProgress?.status === 'completed' ? (
-            <Button variant="success" fullWidth disabled>
-              <FaCheckCircle className="mr-2" />
+            </Link>
+          ) : status === 'completed' ? (
+            <button disabled className="w-full px-4 py-2 bg-green-600 text-white rounded-lg cursor-default flex items-center justify-center gap-2">
+              <FaCheckCircle />
               Completed
-            </Button>
+            </button>
           ) : (
-            <Button variant="primary" fullWidth onClick={onStart}>
+            <Link to={`/quests/${quest.id}`} className="w-full block px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold text-center">
               Start Quest
-            </Button>
+            </Link>
           )}
         </div>
       </CardBody>

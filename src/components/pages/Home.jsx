@@ -1,7 +1,10 @@
-import { Link } from 'react-router-dom'
-import { FaTrophy, FaCoins, FaGamepad } from 'react-icons/fa'
+import { Link } from 'react-router-dom';
+import { FaTrophy, FaCoins, FaGamepad } from 'react-icons/fa';
+import { useLanguage } from '../../contexts/LanguageContext'; // Ajout de l'importation
 
-function Home({ t }) {
+function Home() {
+  const { t } = useLanguage(); // Obtenez t depuis le contexte
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-lg">
@@ -41,20 +44,20 @@ function Home({ t }) {
         <div className="mt-16 grid grid-cols-3 gap-4 text-center">
           <div className="flex flex-col items-center">
             <FaTrophy className="text-3xl text-gold-500 mb-2" />
-            <span className="text-sm text-gray-400">Earn Badges</span>
+            <span className="text-sm text-gray-400">{t('badges.earn_badges')}</span>
           </div>
           <div className="flex flex-col items-center">
             <FaCoins className="text-3xl text-gold-500 mb-2" />
-            <span className="text-sm text-gray-400">Gain Points</span>
+            <span className="text-sm text-gray-400">{t('badges.gain_points')}</span>
           </div>
           <div className="flex flex-col items-center">
             <FaGamepad className="text-3xl text-gold-500 mb-2" />
-            <span className="text-sm text-gray-400">Complete Quests</span>
+            <span className="text-sm text-gray-400">{t('badges.complete_quests')}</span>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;

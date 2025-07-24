@@ -1,4 +1,3 @@
-// Quest templates with full bilingual support (EN/FR)
 export const questTemplates = [
   // BUDGETING CATEGORY
   {
@@ -473,7 +472,6 @@ Meilleures options :
     },
     
     steps: [
-      // Premium content structure similar to above
       {
         id: 'investing_intro',
         type: 'info',
@@ -521,8 +519,6 @@ Meilleures options :
     ]
   }
 ];
-
-// Helper functions for quest management
 
 /**
  * Get quest by ID with language support
@@ -591,7 +587,7 @@ export const getRecommendedQuests = (completedQuestIds, userLevel, lang = 'en') 
 /**
  * Localize quest object based on language
  */
-const localizeQuest = (quest, lang) => {
+export const localizeQuest = (quest, lang) => {
   const localizedQuest = {
     ...quest,
     title: quest[`title_${lang}`] || quest.title_en,

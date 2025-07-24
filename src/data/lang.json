@@ -26,7 +26,7 @@
     "points": "points",
     "level": "Level",
     "streak": "Streak",
-    "badges": "Badges",
+    "badges_title": "Badges",
     "achievements": "Achievements",
     "progress": "Progress",
     "complete": "Complete",
@@ -40,7 +40,7 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save_percent": "Save {{percent}}%",
-    
+
     "home": {
       "hero_title": "Master Your Finances",
       "hero_subtitle": "Through Fun & Interactive Quests",
@@ -65,7 +65,7 @@
       "how_step3": "Earn Rewards",
       "how_step3_desc": "Unlock badges, level up, and track your progress"
     },
-    
+
     "auth": {
       "email": "Email",
       "password": "Password",
@@ -85,7 +85,7 @@
       "email_exists": "Email already registered",
       "demo_login": "Try Demo Account"
     },
-    
+
     "dashboard": {
       "welcome_back": "Welcome back, {{name}}!",
       "daily_tip": "Daily Tip",
@@ -98,9 +98,23 @@
       "no_active_quests": "No active quests. Start a new adventure!",
       "view_all_quests": "View All Quests",
       "daily_challenge": "Daily Challenge",
-      "claim_reward": "Claim Reward"
+      "claim_reward": "Claim Reward",
+      "next_level_progress": "{{progress}}% to next level",
+      "days_consecutive": "consecutive days",
+      "quests_completed": "completed quests",
+      "badges_earned": "badges earned",
+      "start_new_quest": "Start new quest",
+      "explore_quests": "Explore quests",
+      "complete_for_points": "Complete for {{points}} points",
+      "accept_challenge": "Accept challenge",
+      "unlock_premium": "Unlock Premium",
+      "premium_benefits": "Unlimited quests, exclusive content, and more",
+      "upgrade_now": "Upgrade now",
+      "on_fire": "On Fire!",
+      "streak_continued": "Streak continued! {{days}} days",
+      "streak_reset": "Streak reset. Start again!"
     },
-    
+
     "quests": {
       "all_quests": "All Quests",
       "my_quests": "My Quests",
@@ -263,9 +277,95 @@
       "streak_maintained": "Streak maintained! {{days}} days",
       "payment_successful": "Payment successful! Welcome to Premium!",
       "settings_saved": "Settings saved"
+    },
+    "badges": {
+      "first_quest": {
+        "name": "First Steps",
+        "description": "Complete your first quest"
+      },
+      "profile_complete": {
+        "name": "Identity Established",
+        "description": "Complete your profile"
+      },
+      "week_streak": {
+        "name": "Week Warrior",
+        "description": "Maintain a 7-day streak"
+      },
+      "month_streak": {
+        "name": "Monthly Master",
+        "description": "Maintain a 30-day streak"
+      },
+      "quarter_streak": {
+        "name": "Quarter Champion",
+        "description": "Maintain a 90-day streak"
+      },
+      "ten_quests": {
+        "name": "Quest Enthusiast",
+        "description": "Complete 10 quests"
+      },
+      "fifty_quests": {
+        "name": "Quest Master",
+        "description": "Complete 50 quests"
+      },
+      "hundred_quests": {
+        "name": "Quest Legend",
+        "description": "Complete 100 quests"
+      },
+      "budgeting_expert": {
+        "name": "Budget Master",
+        "description": "Complete all budgeting quests"
+      },
+      "saving_expert": {
+        "name": "Savings Guru",
+        "description": "Complete all saving quests"
+      },
+      "investing_expert": {
+        "name": "Investment Wizard",
+        "description": "Complete all investing quests"
+      },
+      "debt_crusher": {
+        "name": "Debt Destroyer",
+        "description": "Complete all debt management quests"
+      },
+      "points_1000": {
+        "name": "Rising Star",
+        "description": "Earn 1,000 points"
+      },
+      "points_5000": {
+        "name": "High Achiever",
+        "description": "Earn 5,000 points"
+      },
+      "points_10000": {
+        "name": "Elite Member",
+        "description": "Earn 10,000 points"
+      },
+      "early_bird": {
+        "name": "Early Bird",
+        "description": "Complete 5 quests before 8 AM"
+      },
+      "night_owl": {
+        "name": "Night Owl",
+        "description": "Complete 5 quests after 10 PM"
+      },
+      "speed_demon": {
+        "name": "Speed Demon",
+        "description": "Complete 3 quests in one day"
+      },
+      "perfectionist": {
+        "name": "Perfectionist",
+        "description": "Get 100% on 10 quizzes"
+      },
+      "premium_member": {
+        "name": "Premium Member",
+        "description": "Become a premium member"
+      },
+      "premium_veteran": {
+        "name": "Premium Veteran",
+        "description": "6 months of premium membership"
+      }
     }
   },
-  
+
   "fr": {
     "welcome": "Bienvenue",
     "back": "Retour",
@@ -293,7 +393,7 @@
     "points": "points",
     "level": "Niveau",
     "streak": "Série",
-    "badges": "Badges",
+    "badges_title": "Badges",
     "achievements": "Réalisations",
     "progress": "Progression",
     "complete": "Terminer",
@@ -307,7 +407,7 @@
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "save_percent": "Économisez {{percent}}%",
-    
+
     "home": {
       "hero_title": "Maîtrisez Vos Finances",
       "hero_subtitle": "Avec des Quêtes Amusantes et Interactives",
@@ -332,7 +432,7 @@
       "how_step3": "Gagnez des Récompenses",
       "how_step3_desc": "Débloquez des badges et suivez votre progression"
     },
-    
+
     "auth": {
       "email": "Email",
       "password": "Mot de passe",
@@ -352,7 +452,7 @@
       "email_exists": "Email déjà enregistré",
       "demo_login": "Essayer le compte démo"
     },
-    
+
     "dashboard": {
       "welcome_back": "Bon retour, {{name}} !",
       "daily_tip": "Conseil du Jour",
@@ -365,9 +465,23 @@
       "no_active_quests": "Aucune quête active. Commencez une nouvelle aventure !",
       "view_all_quests": "Voir Toutes les Quêtes",
       "daily_challenge": "Défi du Jour",
-      "claim_reward": "Réclamer la Récompense"
+      "claim_reward": "Réclamer la Récompense",
+      "next_level_progress": "{{progress}}% jusqu'au prochain niveau",
+      "days_consecutive": "jours consécutifs",
+      "quests_completed": "quêtes complétées",
+      "badges_earned": "badges gagnés",
+      "start_new_quest": "Commencer une nouvelle quête",
+      "explore_quests": "Explorer les quêtes",
+      "complete_for_points": "Complétez pour {{points}} points",
+      "accept_challenge": "Accepter le défi",
+      "unlock_premium": "Débloquer Premium",
+      "premium_benefits": "Quêtes illimitées, contenu exclusif, et plus",
+      "upgrade_now": "Passer à Premium",
+      "on_fire": "En feu !",
+      "streak_continued": "Série continuée ! {{days}} jours",
+      "streak_reset": "Série réinitialisée. Recommencez !"
     },
-    
+
     "quests": {
       "all_quests": "Toutes les Quêtes",
       "my_quests": "Mes Quêtes",
@@ -530,6 +644,92 @@
       "streak_maintained": "Série maintenue ! {{days}} jours",
       "payment_successful": "Paiement réussi ! Bienvenue chez Premium !",
       "settings_saved": "Paramètres enregistrés"
+    },
+    "badges": {
+      "first_quest": {
+        "name": "Premiers Pas",
+        "description": "Complétez votre première quête"
+      },
+      "profile_complete": {
+        "name": "Identité Établie",
+        "description": "Complétez votre profil"
+      },
+      "week_streak": {
+        "name": "Guerrier de la Semaine",
+        "description": "Maintenez une série de 7 jours"
+      },
+      "month_streak": {
+        "name": "Maître du Mois",
+        "description": "Maintenez une série de 30 jours"
+      },
+      "quarter_streak": {
+        "name": "Champion du Trimestre",
+        "description": "Maintenez une série de 90 jours"
+      },
+      "ten_quests": {
+        "name": "Enthousiaste des Quêtes",
+        "description": "Complétez 10 quêtes"
+      },
+      "fifty_quests": {
+        "name": "Maître des Quêtes",
+        "description": "Complétez 50 quêtes"
+      },
+      "hundred_quests": {
+        "name": "Légende des Quêtes",
+        "description": "Complétez 100 quêtes"
+      },
+      "budgeting_expert": {
+        "name": "Maître du Budget",
+        "description": "Complétez toutes les quêtes de budget"
+      },
+      "saving_expert": {
+        "name": "Gourou de l'Épargne",
+        "description": "Complétez toutes les quêtes d'épargne"
+      },
+      "investing_expert": {
+        "name": "Magicien de l'Investissement",
+        "description": "Complétez toutes les quêtes d'investissement"
+      },
+      "debt_crusher": {
+        "name": "Destructeur de Dettes",
+        "description": "Complétez toutes les quêtes de gestion de dettes"
+      },
+      "points_1000": {
+        "name": "Étoile Montante",
+        "description": "Gagnez 1 000 points"
+      },
+      "points_5000": {
+        "name": "Haut Performeur",
+        "description": "Gagnez 5 000 points"
+      },
+      "points_10000": {
+        "name": "Membre Élite",
+        "description": "Gagnez 10 000 points"
+      },
+      "early_bird": {
+        "name": "Lève-tôt",
+        "description": "Complétez 5 quêtes avant 8h"
+      },
+      "night_owl": {
+        "name": "Oiseau de Nuit",
+        "description": "Complétez 5 quêtes après 22h"
+      },
+      "speed_demon": {
+        "name": "Démon de Vitesse",
+        "description": "Complétez 3 quêtes en un jour"
+      },
+      "perfectionist": {
+        "name": "Perfectionniste",
+        "description": "Obtenez 100% sur 10 quiz"
+      },
+      "premium_member": {
+        "name": "Membre Premium",
+        "description": "Devenez membre premium"
+      },
+      "premium_veteran": {
+        "name": "Vétéran Premium",
+        "description": "6 mois d'abonnement premium"
+      }
     }
   }
 }

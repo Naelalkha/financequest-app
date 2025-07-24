@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaArrowLeft, FaCheckCircle, FaTrophy, FaCoins, 
@@ -13,11 +13,12 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import ProgressBar from '../../components/common/ProgressBar';
 import Confetti from 'react-confetti';
 import { toast } from 'react-hot-toast';
+import { getQuestById } from '../../data/questTemplates'; // Import getQuestById for fallback
 
 const QuestDetail = () => {
   const { questId } = useParams();
   const navigate = useNavigate();
-  const { currentUser } = useContext(AuthContext);
+  const { user } = useAuth();
   const { t, language } = useLanguage();
   const [quest, setQuest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,25 +30,25 @@ const QuestDetail = () => {
   const [questCompleted, setQuestCompleted] = useState(false);
 
   useEffect(() => {
-    if (currentUser && questId) {
+    if (user && questId) {
       fetchQuestData();
       checkPremiumStatus();
     }
-  }, [currentUser, questId, language]);
+  }, [user, questId, language]);
 
   const fetchQuestData = async () => {
     try {
       setLoading(true);
       
-      // Fetch quest data
+      // Fetch quest data from Firestore
       const questRef = doc(db, 'quests', questId);
       const questSnap = await getDoc(questRef);
       
+      let localizedQuest;
       if (questSnap.exists()) {
         const questData = questSnap.data();
         
-        // Apply language-specific content
-        const localizedQuest = {
+        localizedQuest = {
           ...questData,
           title: questData[`title${language}`] || questData.titleEN || questData.title,
           description: questData[`description${language}`] || questData.descriptionEN || questData.description,
@@ -67,38 +68,44 @@ const QuestDetail = () => {
             ) || []
           })) || []
         };
-        
-        setQuest(localizedQuest);
-        
-        // Fetch user progress
-        const progressRef = doc(db, 'userQuests', `${currentUser.uid}_${questId}`);
-        const progressSnap = await getDoc(progressRef);
-        
-        if (progressSnap.exists()) {
-          const progress = progressSnap.data();
-          setUserProgress(progress);
-          setCurrentStep(progress.currentStep || 0);
-          setStepAnswers(progress.stepAnswers || {});
-          if (progress.status === 'completed') {
-            setQuestCompleted(true);
-          }
-        } else {
-          // Create initial progress
-          const initialProgress = {
-            userId: currentUser.uid,
-            questId: questId,
-            status: 'active',
-            currentStep: 0,
-            progress: 0,
-            startedAt: new Date(),
-            stepAnswers: {}
-          };
-          await setDoc(progressRef, initialProgress);
-          setUserProgress(initialProgress);
+      } else {
+        // Fallback to local templates
+        localizedQuest = getQuestById(questId, language);
+        if (!localizedQuest) {
+          toast.error(t('errors.questLoadFailed'));
+          navigate('/quests');
+          return;
+        }
+        toast.info(t('quests.usingLocalData') || 'Using local quest data');
+      }
+      
+      setQuest(localizedQuest);
+      
+      // Fetch user progress
+      const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
+      const progressSnap = await getDoc(progressRef);
+      
+      if (progressSnap.exists()) {
+        const progress = progressSnap.data();
+        setUserProgress(progress);
+        setCurrentStep(progress.currentStep || 0);
+        setStepAnswers(progress.stepAnswers || {});
+        if (progress.status === 'completed') {
+          setQuestCompleted(true);
         }
       } else {
-        toast.error(t('errors.questLoadFailed'));
-        navigate('/quests');
+        // Create initial progress
+        const initialProgress = {
+          userId: user.uid,
+          questId: questId,
+          status: 'active',
+          currentStep: 0,
+          progress: 0,
+          startedAt: new Date(),
+          stepAnswers: {}
+        };
+        await setDoc(progressRef, initialProgress);
+        setUserProgress(initialProgress);
       }
     } catch (error) {
       console.error('Error fetching quest:', error);
@@ -111,7 +118,7 @@ const QuestDetail = () => {
 
   const checkPremiumStatus = async () => {
     try {
-      const userRef = doc(db, 'users', currentUser.uid);
+      const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         setIsPremium(userSnap.data().isPremium || false);
@@ -131,8 +138,7 @@ const QuestDetail = () => {
 
       const progress = ((currentStep + 1) / quest.steps.length) * 100;
       
-      // Update progress in Firestore
-      const progressRef = doc(db, 'userQuests', `${currentUser.uid}_${questId}`);
+      const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
       await updateDoc(progressRef, {
         currentStep: currentStep + 1,
         progress: progress,
@@ -140,7 +146,6 @@ const QuestDetail = () => {
         lastUpdated: new Date()
       });
 
-      // Check if quest is completed
       if (currentStep + 1 >= quest.steps.length) {
         await completeQuest();
       } else {
@@ -158,26 +163,22 @@ const QuestDetail = () => {
       setShowConfetti(true);
       setQuestCompleted(true);
 
-      // Calculate points earned
       const pointsEarned = quest.points || 100;
       
-      // Update user progress
-      const progressRef = doc(db, 'userQuests', `${currentUser.uid}_${questId}`);
+      const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
       await updateDoc(progressRef, {
         status: 'completed',
         progress: 100,
         completedAt: new Date()
       });
 
-      // Update user stats
-      const userRef = doc(db, 'users', currentUser.uid);
+      const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
         totalPoints: increment(pointsEarned),
         questsCompleted: increment(1),
         lastCompletedQuest: new Date()
       });
 
-      // Check for level up
       const userSnap = await getDoc(userRef);
       const userData = userSnap.data();
       const newTotalPoints = userData.totalPoints;
@@ -227,7 +228,6 @@ const QuestDetail = () => {
     return null;
   }
 
-  // Check if quest is premium and user doesn't have access
   if (quest.isPremium && !isPremium) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
@@ -263,7 +263,6 @@ const QuestDetail = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Back Button */}
         <button
           onClick={() => navigate('/quests')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
@@ -272,7 +271,6 @@ const QuestDetail = () => {
           {t('questDetail.backToQuests')}
         </button>
 
-        {/* Quest Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex-1">
@@ -291,7 +289,6 @@ const QuestDetail = () => {
             </div>
           </div>
           
-          {/* Progress Bar */}
           <div className="mt-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>{t('questDetail.progress')}</span>
@@ -301,7 +298,6 @@ const QuestDetail = () => {
           </div>
         </div>
 
-        {/* Quest Content */}
         {!questCompleted ? (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="mb-6">
@@ -313,7 +309,6 @@ const QuestDetail = () => {
               )}
             </div>
 
-            {/* Render appropriate step component */}
             {currentStepData.type === 'quiz' && (
               <QuizStep
                 step={currentStepData}
@@ -339,7 +334,6 @@ const QuestDetail = () => {
             )}
           </div>
         ) : (
-          /* Completion Screen */
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <FaTrophy className="text-6xl text-yellow-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-800 mb-2">

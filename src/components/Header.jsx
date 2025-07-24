@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useLanguage(); // Correction : Utilisez = pour destructurer le hook, pas "from"
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -35,13 +35,13 @@ const Header = () => {
     },
     { 
       to: '/quests', 
-      label: t('quests') || 'Quests', 
+      label: t('quests.my_quests') || 'Quests', 
       icon: FaScroll,
       color: 'text-green-400'
     },
     { 
       to: '/premium', 
-      label: t('premium') || 'Premium', 
+      label: t('premium.title') || 'Premium', 
       icon: FaCrown,
       color: 'text-purple-400',
       premium: true
