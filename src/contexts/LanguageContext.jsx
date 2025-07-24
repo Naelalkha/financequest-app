@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
-import translations from '../lang.json';
+import translations from '../data/lang.json';
 
 const LanguageContext = createContext();
 

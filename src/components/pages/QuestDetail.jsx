@@ -6,14 +6,11 @@ import {
 } from 'react-icons/fa';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { AuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Header from '../Header';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ProgressBar from '../components/ProgressBar';
-import QuizStep from '../components/QuizStep';
-import ChecklistStep from '../components/ChecklistStep';
-import ChallengeStep from '../components/ChallengeStep';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ProgressBar from '../../components/common/ProgressBar';
 import Confetti from 'react-confetti';
 import { toast } from 'react-hot-toast';
 

@@ -5,12 +5,12 @@ import {
   FaFilter, FaSearch, FaTrophy, FaCoins 
 } from 'react-icons/fa';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db } from '../../services/firebase';
 import { useAuth } from '../../contexts/AuthContext'; // CHANGÉ : nouveau path
 import { useLanguage } from '../../contexts/LanguageContext'; // NOUVEAU : ajout du contexte langue
 import Header from '../Header';
-import LoadingSpinner from '../components/LoadingSpinner';
-import QuestCard from '../components/QuestCard';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import QuestCard from '../../components/common/Card';
 import { toast } from 'react-hot-toast';
 
 const QuestList = () => {
