@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+<<<<<<< HEAD:src/components/Premium.jsx
 import { useAuth } from '../context/AuthContext';
 import { FaCrown, FaCheck, FaRocket, FaTrophy, FaShieldAlt, FaGem, FaStar, FaBolt, FaArrowLeft, FaCoins } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+=======
+import { useAuth } from '../../contexts/AuthContext';
+import { FaCrown, FaCheck } from 'react-icons/fa';
+>>>>>>> working-version:src/components/pages/Premium.jsx
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RnceePEdl4W6QSBLwf47mjWRXZHOJbZO4Obw3tCZzocdvRgxFhbthIQt4BjQLHiVr0CCZEz7130mmOCEsHQTHMR007KEVMEbY');
 

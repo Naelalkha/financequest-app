@@ -1,0 +1,735 @@
+{
+  "en": {
+    "welcome": "Welcome",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "share": "Share",
+    "settings": "Settings",
+    "profile": "Profile",
+    "help": "Help",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Sign Up",
+    "dashboard": "Dashboard",
+    "quests": "Quests",
+    "premium": "Premium",
+    "points": "points",
+    "level": "Level",
+    "streak": "Streak",
+    "badges_title": "Badges",
+    "achievements": "Achievements",
+    "progress": "Progress",
+    "complete": "Complete",
+    "start": "Start",
+    "continue": "Continue",
+    "unlock": "Unlock",
+    "locked": "Locked",
+    "free": "Free",
+    "upgrade": "Upgrade",
+    "subscribe": "Subscribe",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save_percent": "Save {{percent}}%",
+
+    "home": {
+      "hero_title": "Master Your Finances",
+      "hero_subtitle": "Through Fun & Interactive Quests",
+      "hero_desc": "Join thousands learning personal finance the gamified way. Build wealth, crush debt, and level up your money skills!",
+      "cta_start": "Start Your Journey",
+      "cta_demo": "Try Demo",
+      "stats_users": "Active Questers",
+      "stats_quests": "Quests Completed",
+      "stats_saved": "Money Saved",
+      "features_title": "Why FinanceQuest?",
+      "features_gamified": "Gamified Learning",
+      "features_gamified_desc": "Turn boring finance into exciting quests with rewards",
+      "features_bite": "Bite-sized Lessons",
+      "features_bite_desc": "Learn in 5-10 minute sessions that fit your schedule",
+      "features_practical": "Practical Skills",
+      "features_practical_desc": "Real-world finance tips you can apply immediately",
+      "how_title": "How It Works",
+      "how_step1": "Choose Your Quest",
+      "how_step1_desc": "Pick from budgeting, investing, or debt management paths",
+      "how_step2": "Complete Challenges",
+      "how_step2_desc": "Interactive lessons, quizzes, and real-world tasks",
+      "how_step3": "Earn Rewards",
+      "how_step3_desc": "Unlock badges, level up, and track your progress"
+    },
+
+    "auth": {
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "forgot_password": "Forgot Password?",
+      "remember_me": "Remember me",
+      "or": "OR",
+      "continue_with": "Continue with",
+      "have_account": "Already have an account?",
+      "no_account": "Don't have an account?",
+      "create_account": "Create Account",
+      "terms": "By signing up, you agree to our Terms & Privacy Policy",
+      "login_error": "Invalid email or password",
+      "register_error": "Registration failed. Please try again.",
+      "password_mismatch": "Passwords don't match",
+      "weak_password": "Password must be at least 6 characters",
+      "email_exists": "Email already registered",
+      "demo_login": "Try Demo Account"
+    },
+
+    "dashboard": {
+      "welcome_back": "Welcome back, {{name}}!",
+      "daily_tip": "Daily Tip",
+      "recent_activity": "Recent Activity",
+      "quick_actions": "Quick Actions",
+      "stats_overview": "Your Stats",
+      "active_quests": "Active Quests",
+      "recommended": "Recommended for You",
+      "streak_message": "{{days}} day streak! Keep it up!",
+      "no_active_quests": "No active quests. Start a new adventure!",
+      "view_all_quests": "View All Quests",
+      "daily_challenge": "Daily Challenge",
+      "claim_reward": "Claim Reward",
+      "next_level_progress": "{{progress}}% to next level",
+      "days_consecutive": "consecutive days",
+      "quests_completed": "completed quests",
+      "badges_earned": "badges earned",
+      "start_new_quest": "Start new quest",
+      "explore_quests": "Explore quests",
+      "complete_for_points": "Complete for {{points}} points",
+      "accept_challenge": "Accept challenge",
+      "unlock_premium": "Unlock Premium",
+      "premium_benefits": "Unlimited quests, exclusive content, and more",
+      "upgrade_now": "Upgrade now",
+      "on_fire": "On Fire!",
+      "streak_continued": "Streak continued! {{days}} days",
+      "streak_reset": "Streak reset. Start again!"
+    },
+
+    "quests": {
+      "all_quests": "All Quests",
+      "my_quests": "My Quests",
+      "categories": "Categories",
+      "difficulty": "Difficulty",
+      "duration": "Duration",
+      "rewards": "Rewards",
+      "search_placeholder": "Search quests...",
+      "filter_free": "Free Only",
+      "filter_premium": "Premium",
+      "sort_popular": "Most Popular",
+      "sort_newest": "Newest First",
+      "sort_easiest": "Easiest First",
+      "minutes": "{{count}} minutes",
+      "xp_reward": "+{{xp}} XP",
+      "badge_reward": "Badge: {{badge}}",
+      "premium_only": "Premium members only",
+      "coming_soon": "Coming Soon",
+      "completed_by": "Completed by {{count}} users",
+      
+      "categories_list": {
+        "budgeting": "Budgeting Basics",
+        "saving": "Smart Saving",
+        "investing": "Investing 101",
+        "debt": "Debt Management",
+        "credit": "Credit Score",
+        "retirement": "Retirement Planning",
+        "taxes": "Tax Strategies",
+        "emergency": "Emergency Fund"
+      },
+      
+      "difficulty_levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate", 
+        "advanced": "Advanced",
+        "expert": "Expert"
+      }
+    },
+    
+    "quest_detail": {
+      "overview": "Overview",
+      "objectives": "Learning Objectives",
+      "requirements": "Requirements",
+      "estimated_time": "Estimated Time",
+      "difficulty": "Difficulty",
+      "category": "Category",
+      "start_quest": "Start Quest",
+      "resume_quest": "Resume Quest",
+      "restart_quest": "Restart Quest",
+      "quest_completed": "Quest Completed!",
+      "earn_reward": "You earned:",
+      "share_achievement": "Share Achievement",
+      "next_quest": "Next Quest",
+      "back_to_quests": "Back to Quests",
+      
+      "steps": {
+        "step": "Step {{current}} of {{total}}",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Submit",
+        "check_answer": "Check Answer",
+        "try_again": "Try Again",
+        "hint": "Show Hint",
+        "explanation": "Explanation"
+      }
+    },
+    
+    "premium": {
+      "title": "Unlock Premium",
+      "subtitle": "Get full access to all quests and features",
+      "current_plan": "Current Plan",
+      "free_plan": "Free Plan",
+      "premium_plan": "Premium Plan",
+      "choose_plan": "Choose Your Plan",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "best_value": "Best Value",
+      "price_monthly": "${{price}}/month",
+      "price_yearly": "${{price}}/year",
+      "billed_as": "Billed as ${{total}}",
+      "features_title": "What's Included",
+      "feature_quests": "Access to {{count}}+ premium quests",
+      "feature_offline": "Offline mode",
+      "feature_certificates": "Completion certificates",
+      "feature_support": "Priority support",
+      "feature_updates": "Early access to new content",
+      "feature_analytics": "Advanced progress analytics",
+      "money_back": "7-day money-back guarantee",
+      "secure_payment": "Secure payment via Stripe",
+      "cancel_anytime": "Cancel anytime",
+      "upgrade_now": "Upgrade Now",
+      "testimonial": "Premium helped me save ${{amount}} in just {{time}}!"
+    },
+    
+    "profile": {
+      "my_profile": "My Profile",
+      "edit_profile": "Edit Profile",
+      "account_settings": "Account Settings",
+      "display_name": "Display Name",
+      "email": "Email Address",
+      "member_since": "Member Since",
+      "total_points": "Total Points",
+      "quests_completed": "Quests Completed",
+      "current_level": "Current Level",
+      "next_level_in": "{{points}} points to next level",
+      "achievements": "Achievements",
+      "view_all": "View All",
+      "recent_badges": "Recent Badges",
+      "statistics": "Statistics",
+      "avg_quest_time": "Avg. Quest Time",
+      "success_rate": "Success Rate",
+      "favorite_category": "Favorite Category",
+      "learning_streak": "Learning Streak",
+      "share_profile": "Share Profile"
+    },
+    
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "security": "Security",
+      "language": "Language",
+      "theme": "Theme",
+      "theme_light": "Light",
+      "theme_dark": "Dark",
+      "theme_auto": "Auto",
+      "notifications_email": "Email Notifications",
+      "notifications_push": "Push Notifications",
+      "notifications_reminders": "Daily Reminders",
+      "notifications_achievements": "Achievement Alerts",
+      "privacy_profile": "Public Profile",
+      "privacy_stats": "Show Statistics",
+      "privacy_badges": "Display Badges",
+      "security_password": "Change Password",
+      "security_2fa": "Two-Factor Authentication",
+      "delete_account": "Delete Account",
+      "save_changes": "Save Changes",
+      "changes_saved": "Changes saved successfully"
+    },
+    
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "network": "Network error. Check your connection.",
+      "not_found": "Page not found",
+      "unauthorized": "Please login to continue",
+      "forbidden": "You don't have access to this content",
+      "server_error": "Server error. Please try later.",
+      "validation": "Please check your input",
+      "quest_not_found": "Quest not found",
+      "profile_update_failed": "Failed to update profile",
+      "payment_failed": "Payment failed. Please try again."
+    },
+    
+    "success": {
+      "profile_updated": "Profile updated successfully",
+      "quest_completed": "Quest completed! Great job!",
+      "badge_earned": "New badge earned!",
+      "level_up": "Level up! You're now level {{level}}",
+      "streak_maintained": "Streak maintained! {{days}} days",
+      "payment_successful": "Payment successful! Welcome to Premium!",
+      "settings_saved": "Settings saved"
+    },
+    "badges": {
+      "first_quest": {
+        "name": "First Steps",
+        "description": "Complete your first quest"
+      },
+      "profile_complete": {
+        "name": "Identity Established",
+        "description": "Complete your profile"
+      },
+      "week_streak": {
+        "name": "Week Warrior",
+        "description": "Maintain a 7-day streak"
+      },
+      "month_streak": {
+        "name": "Monthly Master",
+        "description": "Maintain a 30-day streak"
+      },
+      "quarter_streak": {
+        "name": "Quarter Champion",
+        "description": "Maintain a 90-day streak"
+      },
+      "ten_quests": {
+        "name": "Quest Enthusiast",
+        "description": "Complete 10 quests"
+      },
+      "fifty_quests": {
+        "name": "Quest Master",
+        "description": "Complete 50 quests"
+      },
+      "hundred_quests": {
+        "name": "Quest Legend",
+        "description": "Complete 100 quests"
+      },
+      "budgeting_expert": {
+        "name": "Budget Master",
+        "description": "Complete all budgeting quests"
+      },
+      "saving_expert": {
+        "name": "Savings Guru",
+        "description": "Complete all saving quests"
+      },
+      "investing_expert": {
+        "name": "Investment Wizard",
+        "description": "Complete all investing quests"
+      },
+      "debt_crusher": {
+        "name": "Debt Destroyer",
+        "description": "Complete all debt management quests"
+      },
+      "points_1000": {
+        "name": "Rising Star",
+        "description": "Earn 1,000 points"
+      },
+      "points_5000": {
+        "name": "High Achiever",
+        "description": "Earn 5,000 points"
+      },
+      "points_10000": {
+        "name": "Elite Member",
+        "description": "Earn 10,000 points"
+      },
+      "early_bird": {
+        "name": "Early Bird",
+        "description": "Complete 5 quests before 8 AM"
+      },
+      "night_owl": {
+        "name": "Night Owl",
+        "description": "Complete 5 quests after 10 PM"
+      },
+      "speed_demon": {
+        "name": "Speed Demon",
+        "description": "Complete 3 quests in one day"
+      },
+      "perfectionist": {
+        "name": "Perfectionist",
+        "description": "Get 100% on 10 quizzes"
+      },
+      "premium_member": {
+        "name": "Premium Member",
+        "description": "Become a premium member"
+      },
+      "premium_veteran": {
+        "name": "Premium Veteran",
+        "description": "6 months of premium membership"
+      }
+    }
+  },
+
+  "fr": {
+    "welcome": "Bienvenue",
+    "back": "Retour",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "share": "Partager",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "help": "Aide",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "dashboard": "Tableau de bord",
+    "quests": "Quêtes",
+    "premium": "Premium",
+    "points": "points",
+    "level": "Niveau",
+    "streak": "Série",
+    "badges_title": "Badges",
+    "achievements": "Réalisations",
+    "progress": "Progression",
+    "complete": "Terminer",
+    "start": "Commencer",
+    "continue": "Continuer",
+    "unlock": "Débloquer",
+    "locked": "Verrouillé",
+    "free": "Gratuit",
+    "upgrade": "Améliorer",
+    "subscribe": "S'abonner",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "save_percent": "Économisez {{percent}}%",
+
+    "home": {
+      "hero_title": "Maîtrisez Vos Finances",
+      "hero_subtitle": "Avec des Quêtes Amusantes et Interactives",
+      "hero_desc": "Rejoignez des milliers de personnes qui apprennent la finance personnelle de manière ludique. Construisez votre patrimoine et améliorez vos compétences !",
+      "cta_start": "Commencer l'Aventure",
+      "cta_demo": "Essayer la Démo",
+      "stats_users": "Aventuriers Actifs",
+      "stats_quests": "Quêtes Complétées",
+      "stats_saved": "Argent Économisé",
+      "features_title": "Pourquoi FinanceQuest ?",
+      "features_gamified": "Apprentissage Ludique",
+      "features_gamified_desc": "Transformez la finance ennuyeuse en quêtes passionnantes",
+      "features_bite": "Leçons Courtes",
+      "features_bite_desc": "Apprenez en sessions de 5-10 minutes adaptées à votre emploi du temps",
+      "features_practical": "Compétences Pratiques",
+      "features_practical_desc": "Des conseils financiers concrets applicables immédiatement",
+      "how_title": "Comment ça marche",
+      "how_step1": "Choisissez Votre Quête",
+      "how_step1_desc": "Budget, investissement ou gestion de dettes",
+      "how_step2": "Relevez les Défis",
+      "how_step2_desc": "Leçons interactives, quiz et tâches pratiques",
+      "how_step3": "Gagnez des Récompenses",
+      "how_step3_desc": "Débloquez des badges et suivez votre progression"
+    },
+
+    "auth": {
+      "email": "Email",
+      "password": "Mot de passe",
+      "confirm_password": "Confirmer le mot de passe",
+      "forgot_password": "Mot de passe oublié ?",
+      "remember_me": "Se souvenir de moi",
+      "or": "OU",
+      "continue_with": "Continuer avec",
+      "have_account": "Vous avez déjà un compte ?",
+      "no_account": "Pas encore de compte ?",
+      "create_account": "Créer un compte",
+      "terms": "En vous inscrivant, vous acceptez nos Conditions et Politique de confidentialité",
+      "login_error": "Email ou mot de passe invalide",
+      "register_error": "Inscription échouée. Veuillez réessayer.",
+      "password_mismatch": "Les mots de passe ne correspondent pas",
+      "weak_password": "Le mot de passe doit contenir au moins 6 caractères",
+      "email_exists": "Email déjà enregistré",
+      "demo_login": "Essayer le compte démo"
+    },
+
+    "dashboard": {
+      "welcome_back": "Bon retour, {{name}} !",
+      "daily_tip": "Conseil du Jour",
+      "recent_activity": "Activité Récente",
+      "quick_actions": "Actions Rapides",
+      "stats_overview": "Vos Statistiques",
+      "active_quests": "Quêtes Actives",
+      "recommended": "Recommandé pour Vous",
+      "streak_message": "Série de {{days}} jours ! Continuez !",
+      "no_active_quests": "Aucune quête active. Commencez une nouvelle aventure !",
+      "view_all_quests": "Voir Toutes les Quêtes",
+      "daily_challenge": "Défi du Jour",
+      "claim_reward": "Réclamer la Récompense",
+      "next_level_progress": "{{progress}}% jusqu'au prochain niveau",
+      "days_consecutive": "jours consécutifs",
+      "quests_completed": "quêtes complétées",
+      "badges_earned": "badges gagnés",
+      "start_new_quest": "Commencer une nouvelle quête",
+      "explore_quests": "Explorer les quêtes",
+      "complete_for_points": "Complétez pour {{points}} points",
+      "accept_challenge": "Accepter le défi",
+      "unlock_premium": "Débloquer Premium",
+      "premium_benefits": "Quêtes illimitées, contenu exclusif, et plus",
+      "upgrade_now": "Passer à Premium",
+      "on_fire": "En feu !",
+      "streak_continued": "Série continuée ! {{days}} jours",
+      "streak_reset": "Série réinitialisée. Recommencez !"
+    },
+
+    "quests": {
+      "all_quests": "Toutes les Quêtes",
+      "my_quests": "Mes Quêtes",
+      "categories": "Catégories",
+      "difficulty": "Difficulté",
+      "duration": "Durée",
+      "rewards": "Récompenses",
+      "search_placeholder": "Rechercher des quêtes...",
+      "filter_free": "Gratuites Seulement",
+      "filter_premium": "Premium",
+      "sort_popular": "Plus Populaires",
+      "sort_newest": "Plus Récentes",
+      "sort_easiest": "Plus Faciles",
+      "minutes": "{{count}} minutes",
+      "xp_reward": "+{{xp}} XP",
+      "badge_reward": "Badge : {{badge}}",
+      "premium_only": "Membres premium uniquement",
+      "coming_soon": "Bientôt Disponible",
+      "completed_by": "Complété par {{count}} utilisateurs",
+      
+      "categories_list": {
+        "budgeting": "Bases du Budget",
+        "saving": "Épargne Intelligente",
+        "investing": "Investissement 101",
+        "debt": "Gestion des Dettes",
+        "credit": "Score de Crédit",
+        "retirement": "Planification Retraite",
+        "taxes": "Stratégies Fiscales",
+        "emergency": "Fonds d'Urgence"
+      },
+      
+      "difficulty_levels": {
+        "beginner": "Débutant",
+        "intermediate": "Intermédiaire",
+        "advanced": "Avancé",
+        "expert": "Expert"
+      }
+    },
+    
+    "quest_detail": {
+      "overview": "Aperçu",
+      "objectives": "Objectifs d'Apprentissage",
+      "requirements": "Prérequis",
+      "estimated_time": "Temps Estimé",
+      "difficulty": "Difficulté",
+      "category": "Catégorie",
+      "start_quest": "Commencer la Quête",
+      "resume_quest": "Reprendre la Quête",
+      "restart_quest": "Recommencer la Quête",
+      "quest_completed": "Quête Terminée !",
+      "earn_reward": "Vous avez gagné :",
+      "share_achievement": "Partager la Réussite",
+      "next_quest": "Quête Suivante",
+      "back_to_quests": "Retour aux Quêtes",
+      
+      "steps": {
+        "step": "Étape {{current}} sur {{total}}",
+        "next": "Suivant",
+        "previous": "Précédent",
+        "submit": "Soumettre",
+        "check_answer": "Vérifier",
+        "try_again": "Réessayer",
+        "hint": "Indice",
+        "explanation": "Explication"
+      }
+    },
+    
+    "premium": {
+      "title": "Débloquer Premium",
+      "subtitle": "Accédez à toutes les quêtes et fonctionnalités",
+      "current_plan": "Abonnement Actuel",
+      "free_plan": "Plan Gratuit",
+      "premium_plan": "Plan Premium",
+      "choose_plan": "Choisissez Votre Plan",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "best_value": "Meilleure Offre",
+      "price_monthly": "{{price}}€/mois",
+      "price_yearly": "{{price}}€/an",
+      "billed_as": "Facturé {{total}}€",
+      "features_title": "Inclus dans Premium",
+      "feature_quests": "Accès à {{count}}+ quêtes premium",
+      "feature_offline": "Mode hors ligne",
+      "feature_certificates": "Certificats de réussite",
+      "feature_support": "Support prioritaire",
+      "feature_updates": "Accès anticipé au nouveau contenu",
+      "feature_analytics": "Analyses de progression avancées",
+      "money_back": "Garantie remboursement 7 jours",
+      "secure_payment": "Paiement sécurisé via Stripe",
+      "cancel_anytime": "Annulation à tout moment",
+      "upgrade_now": "Passer à Premium",
+      "testimonial": "Premium m'a aidé à économiser {{amount}}€ en seulement {{time}} !"
+    },
+    
+    "profile": {
+      "my_profile": "Mon Profil",
+      "edit_profile": "Modifier le Profil",
+      "account_settings": "Paramètres du Compte",
+      "display_name": "Nom d'Affichage",
+      "email": "Adresse Email",
+      "member_since": "Membre Depuis",
+      "total_points": "Points Totaux",
+      "quests_completed": "Quêtes Complétées",
+      "current_level": "Niveau Actuel",
+      "next_level_in": "{{points}} points jusqu'au prochain niveau",
+      "achievements": "Réalisations",
+      "view_all": "Voir Tout",
+      "recent_badges": "Badges Récents",
+      "statistics": "Statistiques",
+      "avg_quest_time": "Temps Moyen par Quête",
+      "success_rate": "Taux de Réussite",
+      "favorite_category": "Catégorie Préférée",
+      "learning_streak": "Série d'Apprentissage",
+      "share_profile": "Partager le Profil"
+    },
+    
+    "settings": {
+      "title": "Paramètres",
+      "general": "Général",
+      "notifications": "Notifications",
+      "privacy": "Confidentialité",
+      "security": "Sécurité",
+      "language": "Langue",
+      "theme": "Thème",
+      "theme_light": "Clair",
+      "theme_dark": "Sombre",
+      "theme_auto": "Auto",
+      "notifications_email": "Notifications Email",
+      "notifications_push": "Notifications Push",
+      "notifications_reminders": "Rappels Quotidiens",
+      "notifications_achievements": "Alertes de Réussite",
+      "privacy_profile": "Profil Public",
+      "privacy_stats": "Afficher les Statistiques",
+      "privacy_badges": "Afficher les Badges",
+      "security_password": "Changer le Mot de Passe",
+      "security_2fa": "Authentification à Deux Facteurs",
+      "delete_account": "Supprimer le Compte",
+      "save_changes": "Enregistrer",
+      "changes_saved": "Modifications enregistrées"
+    },
+    
+    "errors": {
+      "generic": "Une erreur est survenue. Veuillez réessayer.",
+      "network": "Erreur réseau. Vérifiez votre connexion.",
+      "not_found": "Page non trouvée",
+      "unauthorized": "Veuillez vous connecter pour continuer",
+      "forbidden": "Vous n'avez pas accès à ce contenu",
+      "server_error": "Erreur serveur. Réessayez plus tard.",
+      "validation": "Veuillez vérifier vos données",
+      "quest_not_found": "Quête introuvable",
+      "profile_update_failed": "Échec de la mise à jour du profil",
+      "payment_failed": "Paiement échoué. Veuillez réessayer."
+    },
+    
+    "success": {
+      "profile_updated": "Profil mis à jour avec succès",
+      "quest_completed": "Quête terminée ! Excellent travail !",
+      "badge_earned": "Nouveau badge débloqué !",
+      "level_up": "Niveau supérieur ! Vous êtes maintenant niveau {{level}}",
+      "streak_maintained": "Série maintenue ! {{days}} jours",
+      "payment_successful": "Paiement réussi ! Bienvenue chez Premium !",
+      "settings_saved": "Paramètres enregistrés"
+    },
+    "badges": {
+      "first_quest": {
+        "name": "Premiers Pas",
+        "description": "Complétez votre première quête"
+      },
+      "profile_complete": {
+        "name": "Identité Établie",
+        "description": "Complétez votre profil"
+      },
+      "week_streak": {
+        "name": "Guerrier de la Semaine",
+        "description": "Maintenez une série de 7 jours"
+      },
+      "month_streak": {
+        "name": "Maître du Mois",
+        "description": "Maintenez une série de 30 jours"
+      },
+      "quarter_streak": {
+        "name": "Champion du Trimestre",
+        "description": "Maintenez une série de 90 jours"
+      },
+      "ten_quests": {
+        "name": "Enthousiaste des Quêtes",
+        "description": "Complétez 10 quêtes"
+      },
+      "fifty_quests": {
+        "name": "Maître des Quêtes",
+        "description": "Complétez 50 quêtes"
+      },
+      "hundred_quests": {
+        "name": "Légende des Quêtes",
+        "description": "Complétez 100 quêtes"
+      },
+      "budgeting_expert": {
+        "name": "Maître du Budget",
+        "description": "Complétez toutes les quêtes de budget"
+      },
+      "saving_expert": {
+        "name": "Gourou de l'Épargne",
+        "description": "Complétez toutes les quêtes d'épargne"
+      },
+      "investing_expert": {
+        "name": "Magicien de l'Investissement",
+        "description": "Complétez toutes les quêtes d'investissement"
+      },
+      "debt_crusher": {
+        "name": "Destructeur de Dettes",
+        "description": "Complétez toutes les quêtes de gestion de dettes"
+      },
+      "points_1000": {
+        "name": "Étoile Montante",
+        "description": "Gagnez 1 000 points"
+      },
+      "points_5000": {
+        "name": "Haut Performeur",
+        "description": "Gagnez 5 000 points"
+      },
+      "points_10000": {
+        "name": "Membre Élite",
+        "description": "Gagnez 10 000 points"
+      },
+      "early_bird": {
+        "name": "Lève-tôt",
+        "description": "Complétez 5 quêtes avant 8h"
+      },
+      "night_owl": {
+        "name": "Oiseau de Nuit",
+        "description": "Complétez 5 quêtes après 22h"
+      },
+      "speed_demon": {
+        "name": "Démon de Vitesse",
+        "description": "Complétez 3 quêtes en un jour"
+      },
+      "perfectionist": {
+        "name": "Perfectionniste",
+        "description": "Obtenez 100% sur 10 quiz"
+      },
+      "premium_member": {
+        "name": "Membre Premium",
+        "description": "Devenez membre premium"
+      },
+      "premium_veteran": {
+        "name": "Vétéran Premium",
+        "description": "6 mois d'abonnement premium"
+      }
+    }
+  }
+}

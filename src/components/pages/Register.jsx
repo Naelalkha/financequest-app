@@ -1,8 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock, FaSpinner, FaCoins, FaRocket, FaShieldAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import { useState } from 'react';
+<<<<<<< HEAD:src/components/Register.jsx
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+=======
+import { useAuth } from '../../contexts/AuthContext';
+>>>>>>> working-version:src/components/pages/Register.jsx
 
 function Register({ t, currentLang }) {
   const [formData, setFormData] = useState({

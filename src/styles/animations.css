@@ -1,0 +1,134 @@
+/* Language Toggle Animations */
+@keyframes slideLanguage {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Language transition effects */
+.language-fade-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.language-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.language-fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.language-fade-exit-active {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Toast customizations for language changes */
+.Toastify__toast--success {
+  background: #10B981 !important;
+}
+
+.Toastify__toast--warning {
+  background: #F59E0B !important;
+}
+
+/* Smooth text transitions */
+.text-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Flag animation */
+@keyframes flagWave {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.flag-wave {
+  animation: flagWave 2s ease-in-out infinite;
+}
+
+/* Utility animations */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Mobile responsive animations */
+@media (max-width: 768px) {
+  .language-toggle {
+    transform: scale(0.9);
+  }
+  
+  .language-toggle:hover {
+    transform: scale(0.95);
+  }
+}
