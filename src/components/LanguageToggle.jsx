@@ -1,149 +1,141 @@
 import React, { useState } from 'react';
-import { FaGlobe, FaSpinner } from 'react-icons/fa';
+import { FaGlobe } from 'react-icons/fa';
+import { useLanguage } from '../contexts/LanguageContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 
-function LanguageToggle() {
+const LanguageToggle = () => {
+  const { t, language, setLanguage } = useLanguage();
   const { user } = useAuth();
-  const { currentLang, setCurrentLang, t } = useLanguage();
   const [isChanging, setIsChanging] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
-  const handleLanguageSwitch = async () => {
-    if (isChanging) return;
+  const languages = [
+    { code: 'en', label: 'English', flag: '🇬🇧', active: true },
+    { code: 'fr', label: 'Français', flag: '🇫🇷', active: true },
+    { code: 'es', label: 'Español', flag: '🇪🇸', active: false },
+    { code: 'de', label: 'Deutsch', flag: '🇩🇪', active: false }
+  ];
+
+  const handleLanguageChange = async (newLang) => {
+    if (newLang === language || isChanging) return;
     
+    const selectedLang = languages.find(l => l.code === newLang);
+    if (!selectedLang.active) {
+      toast.info(t('settings.language_coming_soon') || 'This language is coming soon!');
+      return;
+    }
+
     setIsChanging(true);
-    const newLang = currentLang === 'en' ? 'fr' : 'en';
-    
+    setShowMenu(false);
+
     try {
-      // Update local state immediately for better UX
-      setCurrentLang(newLang);
+      // Update language in context
+      setLanguage(newLang);
+      
+      // Save to localStorage
       localStorage.setItem('language', newLang);
       
-      // Update user language in Firestore if logged in
+      // Update in Firebase if user is logged in
       if (user?.uid) {
-        await updateDoc(doc(db, 'users', user.uid), {
-          lang: newLang,
-          lastUpdated: new Date()
-        });
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, { lang: newLang });
       }
       
-      // Show success toast
-      const successMessage = newLang === 'fr' 
-        ? '🇫🇷 Langue changée en français !' 
-        : '🇬🇧 Language changed to English!';
+      // Show success message
+      const messages = {
+        en: 'Language changed to English',
+        fr: 'Langue changée en Français',
+        es: 'Idioma cambiado a Español',
+        de: 'Sprache geändert zu Deutsch'
+      };
       
-      toast.success(successMessage, {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        style: {
-          background: '#10B981',
-          color: '#fff',
-          fontWeight: 'bold'
-        },
-        icon: '✨'
+      toast.success(messages[newLang] || 'Language updated!', {
+        icon: selectedLang.flag,
+        autoClose: 2000
       });
-      
     } catch (error) {
-      console.error('Error updating language:', error);
-      
-      // Still keep the local change even if Firestore fails
-      toast.warn(
-        newLang === 'fr' 
-          ? 'Langue changée localement' 
-          : 'Language changed locally',
-        {
-          position: "top-right",
-          autoClose: 2000,
-        }
-      );
+      console.error('Error changing language:', error);
+      toast.error(t('errors.language_change_failed') || 'Failed to change language');
     } finally {
       setTimeout(() => setIsChanging(false), 500);
     }
   };
 
+  const currentLang = languages.find(l => l.code === language) || languages[0];
+
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="relative">
+      {/* Toggle Button */}
       <button
-        onClick={handleLanguageSwitch}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setShowMenu(!showMenu)}
         disabled={isChanging}
         className={`
-          relative overflow-hidden
-          bg-gradient-to-r from-yellow-500 to-orange-500 
-          hover:from-yellow-600 hover:to-orange-600 
-          disabled:from-gray-500 disabled:to-gray-600
-          text-white px-5 py-2.5 rounded-full 
-          flex items-center gap-2.5
-          font-semibold text-sm
-          transition-all duration-300 
-          transform hover:scale-105 active:scale-95
-          shadow-lg hover:shadow-xl
-          ${isChanging ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}
+          flex items-center gap-2 px-4 py-2 
+          bg-gray-800 border border-gray-700 rounded-xl
+          text-white hover:border-yellow-500 
+          transition-all duration-300 group
+          ${isChanging ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
+          ${showMenu ? 'border-yellow-500 shadow-lg shadow-yellow-500/20' : ''}
         `}
-        aria-label={t('settings.language')}
-        title={currentLang === 'en' ? '🇫🇷 Passer en Français' : '🇬🇧 Switch to English'}
+        aria-label={t('settings.change_language') || 'Change language'}
       >
-        {/* Animated globe icon */}
-        <div className={`transition-transform duration-500 ${isChanging ? 'animate-spin' : ''}`}>
-          {isChanging ? (
-            <FaSpinner className="text-lg" />
-          ) : (
-            <FaGlobe className={`text-lg ${isHovered ? 'animate-pulse' : ''}`} />
-          )}
-        </div>
-        
-        {/* Language text with slide animation */}
-        <div className="relative h-5 w-8 overflow-hidden">
-          <div className={`absolute inset-0 transition-transform duration-300 ${
-            isChanging ? (currentLang === 'en' ? '-translate-y-full' : 'translate-y-0') : ''
-          }`}>
-            <div className="flex flex-col">
-              <span className="h-5 flex items-center justify-center">
-                {currentLang === 'en' ? 'EN' : 'FR'}
-              </span>
-              <span className="h-5 flex items-center justify-center">
-                {currentLang === 'en' ? 'FR' : 'EN'}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Flag indicator */}
-        <span className="text-base ml-1">
-          {currentLang === 'en' ? '🇬🇧' : '🇫🇷'}
-        </span>
-        
-        {/* Ripple effect on click */}
-        {isChanging && (
-          <span className="absolute inset-0 rounded-full animate-ping bg-white opacity-30" />
-        )}
+        <FaGlobe className={`text-lg ${showMenu ? 'text-yellow-400' : 'text-gray-400'} group-hover:text-yellow-400 transition-colors`} />
+        <span className="font-medium">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
+        <span className={`text-xs transition-transform ${showMenu ? 'rotate-180' : ''}`}>▼</span>
       </button>
-      
-      {/* Tooltip on hover */}
-      <div className={`
-        absolute top-full right-0 mt-2 
-        transition-all duration-300 pointer-events-none
-        ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}
-      `}>
-        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap border border-gray-700 shadow-xl">
-          {currentLang === 'en' 
-            ? '🇫🇷 Passer en Français' 
-            : '🇬🇧 Switch to English'
-          }
-          <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 transform rotate-45"></div>
+
+      {/* Language Menu */}
+      {showMenu && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowMenu(false)}
+          />
+          
+          {/* Menu */}
+          <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-slideDown">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => handleLanguageChange(lang.code)}
+                disabled={!lang.active || lang.code === language}
+                className={`
+                  w-full px-4 py-3 flex items-center gap-3
+                  transition-all duration-300
+                  ${lang.code === language 
+                    ? 'bg-yellow-500/20 text-yellow-400 cursor-default' 
+                    : lang.active
+                      ? 'text-white hover:bg-gray-700 hover:text-yellow-400'
+                      : 'text-gray-500 cursor-not-allowed opacity-50'
+                  }
+                `}
+              >
+                <span className="text-xl">{lang.flag}</span>
+                <span className="font-medium">{lang.label}</span>
+                {lang.code === language && (
+                  <span className="ml-auto text-xs">✓</span>
+                )}
+                {!lang.active && (
+                  <span className="ml-auto text-xs">{t('ui.soon') || 'Soon'}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Loading overlay */}
+      {isChanging && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded-xl">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-yellow-400 border-t-transparent"></div>
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};
 
 export default LanguageToggle;

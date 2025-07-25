@@ -1,32 +1,38 @@
-// Exemple de comment mettre à jour Login.jsx avec la nouvelle structure
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCoins, FaArrowLeft, FaEnvelope, FaLock, FaGoogle } from 'react-icons/fa';
-import { useAuth } from '../../contexts/AuthContext'; // CHANGÉ : nouveau path
-import { useLanguage } from '../../contexts/LanguageContext'; // NOUVEAU : ajout du contexte langue
+import { FaEnvelope, FaLock, FaGoogle, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 
-function Login() { // CHANGÉ : plus de props t et currentLang
-  const { login } = useAuth();
-  const { t } = useLanguage(); // NOUVEAU : récupérer t depuis le contexte
+const Login = () => {
+  const { login, loginWithGoogle } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+
+  // Load remembered email
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError(t('auth.fill_all_fields') || 'Please fill in all fields');
+      toast.error(t('auth.fill_all_fields') || 'Please fill in all fields');
       return;
     }
 
     setIsSubmitting(true);
-    setError('');
 
     try {
       await login(email, password);
@@ -53,192 +59,195 @@ function Login() { // CHANGÉ : plus de props t et currentLang
         errorMessage = t('auth.invalid_email') || 'Invalid email address';
       }
       
-      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Demo login
-  const handleDemoLogin = async () => {
-    setEmail('demo@financequest.com');
-    setPassword('demo123');
+  const handleGoogleLogin = async () => {
     setIsSubmitting(true);
-    
     try {
-      await login('demo@financequest.com', 'demo123');
-      toast.success(t('auth.demo_welcome') || 'Welcome to the demo! 🚀');
+      await loginWithGoogle();
+      toast.success(t('auth.login_success') || 'Welcome back! 🎉');
       navigate('/dashboard');
     } catch (err) {
-      toast.error(t('auth.demo_unavailable') || 'Demo account unavailable');
+      console.error('Google login error:', err);
+      toast.error(t('auth.google_login_error') || 'Failed to login with Google');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Check for remembered email on mount
-  useState(() => {
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setRememberMe(true);
-    }
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-4 -left-4 w-72 h-72 bg-gold-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 -right-4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-yellow-500 rounded-full filter blur-3xl opacity-10"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-10"></div>
       </div>
-      
-      {/* Back button */}
-      <Link 
-        to="/" 
-        className="absolute top-6 left-6 text-gold-400 hover:text-gold-300 transition-colors group"
-      >
-        <div className="flex items-center gap-2">
-          <FaArrowLeft className="text-xl group-hover:-translate-x-1 transition-transform duration-300" />
-          <span className="hidden sm:inline">{t('back')}</span>
-        </div>
-      </Link>
-      
-      <div className="w-full max-w-md relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-gold-500 to-yellow-500 p-4 rounded-full">
-              <FaCoins className="text-3xl text-gray-900" />
+
+      <div className="relative w-full max-w-md">
+        {/* Back to home */}
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group"
+        >
+          <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+          {t('ui.back') || 'Back'}
+        </Link>
+
+        {/* Login Card */}
+        <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8 animate-fadeIn">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-lg">
+              <FaLock className="text-2xl text-gray-900" />
             </div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {t('auth.login_title') || 'Welcome back!'}
+            </h1>
+            <p className="text-gray-400">
+              {t('auth.login_subtitle') || 'Login to continue your journey'}
+            </p>
           </div>
-          <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-400 to-yellow-300 mb-2">
-            {t('auth.welcome_back')}!
-          </h2>
-          <p className="text-gray-400">
-            {t('auth.login_subtitle') || 'Continue your financial journey'}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t('auth.email') || 'Email'}
+              </label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  placeholder="you@example.com"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t('auth.password') || 'Password'}
+              </label>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 transition-colors"
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 bg-gray-900 border-gray-700 rounded text-yellow-500 focus:ring-yellow-500"
+                />
+                <span className="text-sm text-gray-300">
+                  {t('auth.remember_me') || 'Remember me'}
+                </span>
+              </label>
+              
+              <Link
+                to="/forgot-password"
+                className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+              >
+                {t('auth.forgot_password') || 'Forgot password?'}
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`
+                w-full py-3 rounded-lg font-bold text-lg
+                transform transition-all duration-300
+                ${isSubmitting
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 hover:from-yellow-500 hover:to-orange-600 hover:scale-105 shadow-lg'
+                }
+              `}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                  {t('ui.processing') || 'Processing...'}
+                </span>
+              ) : (
+                t('auth.login') || 'Login'
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-800 text-gray-400">
+                  {t('auth.or_continue_with') || 'Or continue with'}
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gray-900 border border-gray-700 rounded-lg font-medium text-white hover:bg-gray-700 hover:border-gray-600 transition-all duration-300 flex items-center justify-center gap-3"
+            >
+              <FaGoogle className="text-xl" />
+              {t('auth.continue_with_google') || 'Continue with Google'}
+            </button>
+          </form>
+
+          {/* Sign up link */}
+          <p className="text-center text-gray-400 mt-8">
+            {t('auth.dont_have_account') || "Don't have an account?"}{' '}
+            <Link
+              to="/register"
+              className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
+            >
+              {t('auth.register') || 'Sign up'}
+            </Link>
           </p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Email Field */}
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
-              {t('auth.email')}
-            </label>
-            <div className="relative">
-              <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
-                placeholder={t('auth.email_placeholder') || 'your@email.com'}
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
-              {t('auth.password')}
-            </label>
-            <div className="relative">
-              <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
-                placeholder="••••••••"
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 bg-gray-800 border-gray-700 rounded text-gold-500 focus:ring-gold-500"
-              />
-              <span className="ml-2 text-sm text-gray-400">
-                {t('auth.remember_me')}
-              </span>
-            </label>
-            <Link 
-              to="/forgot-password" 
-              className="text-sm text-gold-400 hover:text-gold-300 transition-colors"
-            >
-              {t('auth.forgot_password')}
-            </Link>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-3 bg-gradient-to-r from-gold-500 to-yellow-500 text-gray-900 font-bold rounded-lg hover:from-gold-600 hover:to-yellow-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {isSubmitting ? t('auth.logging_in') || 'Logging in...' : t('auth.login')}
-          </button>
-
-          {/* Demo Account */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={isSubmitting}
-            className="w-full py-3 bg-gray-800 text-gray-300 font-medium rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-          >
-            {t('auth.demo_login')}
-          </button>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-900 text-gray-500">{t('auth.or')}</span>
-            </div>
-          </div>
-
-          {/* Social Login */}
-          <button
-            type="button"
-            disabled={isSubmitting}
-            className="w-full py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <FaGoogle className="text-lg" />
-            {t('auth.continue_with_google')}
-          </button>
-        </form>
-
-        {/* Sign Up Link */}
-        <p className="mt-8 text-center text-gray-400">
-          {t('auth.no_account')}{' '}
-          <Link 
-            to="/register" 
-            className="text-gold-400 hover:text-gold-300 font-medium transition-colors"
-          >
-            {t('auth.signup')}
-          </Link>
-        </p>
+        {/* Demo account info */}
+        <div className="mt-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg animate-fadeIn" style={{ animationDelay: '200ms' }}>
+          <p className="text-sm text-gray-400 text-center">
+            {t('auth.demo_info') || 'Try with demo account'}:<br />
+            <span className="text-white">demo@financequest.com / demo123</span>
+          </p>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-export default Login; // Pas de changement ici
+export default Login;

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FaLock, FaCheckCircle } from 'react-icons/fa';
+import ProgressBar from './ProgressBar';
 
 /**
  * Reusable Card component
@@ -236,90 +238,113 @@ export const QuestCard = ({
 }) => {
   const difficultyColors = {
     beginner: 'text-green-400 bg-green-400/10',
+    easy: 'text-green-400 bg-green-400/10',
     intermediate: 'text-yellow-400 bg-yellow-400/10',
+    medium: 'text-yellow-400 bg-yellow-400/10',
     advanced: 'text-orange-400 bg-orange-400/10',
+    hard: 'text-orange-400 bg-orange-400/10',
     expert: 'text-red-400 bg-red-400/10'
   };
 
+  const categoryColors = {
+    budgeting: 'text-blue-400',
+    saving: 'text-green-400',
+    investing: 'text-purple-400',
+    debt: 'text-red-400',
+    credit: 'text-yellow-400',
+    planning: 'text-cyan-400'
+  };
+
   const locked = quest.isPremium && !userIsPremium;
+  const completed = status === 'completed';
+  const inProgress = status === 'active';
 
   return (
-    <Card
-      hover={!locked}
+    <div
       className={`
-        relative
-        ${locked ? 'opacity-50 cursor-not-allowed' : ''}
+        bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300
+        ${!locked ? 'hover:shadow-xl hover:transform hover:-translate-y-1 cursor-pointer' : 'opacity-75'}
         ${className}
       `}
     >
-      {/* Premium badge */}
-      {quest.isPremium && (
-        <div className="absolute top-4 right-4">
-          <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">
-            PRO
-          </span>
-        </div>
-      )}
-
-      <CardBody>
-        {/* Quest info */}
-        <div className="mb-4">
-          <CardTitle className="mb-2">{quest.title}</CardTitle>
-          <CardDescription>{quest.description}</CardDescription>
+      {/* Card content */}
+      <Link 
+        to={locked ? '#' : `/quests/${quest.id}`}
+        onClick={(e) => locked && e.preventDefault()}
+        className="block p-6"
+      >
+        {/* Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-800 mb-1 pr-2">
+              {quest.title}
+            </h3>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {quest.description}
+            </p>
+          </div>
+          {quest.isPremium && (
+            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold flex-shrink-0">
+              PRO
+            </span>
+          )}
         </div>
 
         {/* Quest meta */}
-        <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <span className={`
-            px-2 py-1 text-xs rounded-full
-            ${difficultyColors[quest.difficulty]}
+            px-2 py-1 text-xs rounded-full font-medium
+            ${difficultyColors[quest.difficulty] || difficultyColors.beginner}
           `}>
-            {quest.difficulty}
+            {quest.difficulty || 'beginner'}
           </span>
-          <span className="text-xs text-gray-400">
-            ~{quest.duration} min
+          <span className={`text-xs font-medium ${categoryColors[quest.category] || 'text-gray-400'}`}>
+            {quest.category}
           </span>
-          <span className="text-xs text-gray-400">
-            +{quest.points} pts
+          <span className="text-xs text-gray-500">
+            ~{quest.duration || 15} min
+          </span>
+          <span className="text-xs text-gray-500 font-semibold">
+            +{quest.points || 100} pts
           </span>
         </div>
 
         {/* Progress */}
-        {status === 'active' && (
+        {inProgress && (
           <div className="mb-4">
             <ProgressBar
               progress={progress || 0}
-              label="Progress"
-              showPercentage
-              color="gradient"
+              showPercentage={true}
+              color="yellow"
+              height="h-2"
             />
           </div>
         )}
 
-        {/* Action button */}
+        {/* Status */}
         <div className="mt-4">
           {locked ? (
-            <button disabled className="w-full px-4 py-2 bg-gray-600 text-gray-300 rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-2 py-2 bg-gray-100 text-gray-400 rounded-lg">
               <FaLock />
-              Locked
-            </button>
-          ) : status === 'active' ? (
-            <Link to={`/quests/${quest.id}`} className="w-full block px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors font-semibold text-center">
-              Continue Quest
-            </Link>
-          ) : status === 'completed' ? (
-            <button disabled className="w-full px-4 py-2 bg-green-600 text-white rounded-lg cursor-default flex items-center justify-center gap-2">
+              <span className="font-medium">Premium Only</span>
+            </div>
+          ) : completed ? (
+            <div className="flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 rounded-lg">
               <FaCheckCircle />
-              Completed
-            </button>
+              <span className="font-medium">Completed</span>
+            </div>
+          ) : inProgress ? (
+            <div className="py-2 bg-yellow-400 text-gray-900 rounded-lg text-center font-semibold hover:bg-yellow-500 transition-colors">
+              Continue Quest
+            </div>
           ) : (
-            <Link to={`/quests/${quest.id}`} className="w-full block px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold text-center">
+            <div className="py-2 bg-green-500 text-white rounded-lg text-center font-semibold hover:bg-green-600 transition-colors">
               Start Quest
-            </Link>
+            </div>
           )}
         </div>
-      </CardBody>
-    </Card>
+      </Link>
+    </div>
   );
 };
 

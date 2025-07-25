@@ -1,17 +1,33 @@
-/* Language Toggle Animations */
-@keyframes slideLanguage {
+/* Shimmer effect for progress bars */
+@keyframes shimmer {
   0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-100%);
+    transform: translateX(-100%);
   }
   100% {
-    transform: translateY(-100%);
+    transform: translateX(100%);
   }
 }
 
-@keyframes fadeInUp {
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+/* Pulse effect */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -22,113 +38,161 @@
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes spin {
+/* Slide in from right */
+@keyframes slideInRight {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateX(20px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
-@keyframes ripple {
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Bounce effect */
+@keyframes bounce-once {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 0.5s ease-out;
+}
+
+/* Scale up */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.3s ease-out;
+}
+
+/* Confetti colors */
+.confetti-piece {
+  animation: confetti-fall 3s linear infinite;
+}
+
+@keyframes confetti-fall {
   0% {
-    transform: scale(0);
+    transform: translateY(-100vh) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: scale(4);
+    transform: translateY(100vh) rotate(720deg);
     opacity: 0;
   }
 }
 
-/* Language transition effects */
-.language-fade-enter {
-  opacity: 0;
-  transform: translateY(-10px);
+/* Mobile menu slide */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.language-fade-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
 }
 
-.language-fade-exit {
-  opacity: 1;
-  transform: translateY(0);
+/* Success checkmark */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 
-.language-fade-exit-active {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 300ms, transform 300ms;
+.animate-checkmark {
+  stroke-dasharray: 100;
+  animation: checkmark 0.5s ease-out forwards;
 }
 
-/* Toast customizations for language changes */
-.Toastify__toast--success {
-  background: #10B981 !important;
+/* Glow effect */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.8);
+  }
 }
 
-.Toastify__toast--warning {
-  background: #F59E0B !important;
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }
 
-/* Smooth text transitions */
-.text-transition {
+/* Text transition for language toggle */
+.text-transition * {
+  transition: all 0.3s ease-out;
+}
+
+/* Loading dots */
+@keyframes loadingDots {
+  0%, 20% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.loading-dot:nth-child(1) {
+  animation: loadingDots 1.4s infinite;
+  animation-delay: 0s;
+}
+
+.loading-dot:nth-child(2) {
+  animation: loadingDots 1.4s infinite;
+  animation-delay: 0.2s;
+}
+
+.loading-dot:nth-child(3) {
+  animation: loadingDots 1.4s infinite;
+  animation-delay: 0.4s;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Flag animation */
-@keyframes flagWave {
-  0%, 100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(3deg);
-  }
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
 }
 
-.flag-wave {
-  animation: flagWave 2s ease-in-out infinite;
-}
-
-/* Utility animations */
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-ping {
-  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-/* Mobile responsive animations */
-@media (max-width: 768px) {
-  .language-toggle {
-    transform: scale(0.9);
-  }
-  
-  .language-toggle:hover {
-    transform: scale(0.95);
-  }
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
