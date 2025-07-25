@@ -8,7 +8,7 @@ import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from '
 import { db } from '../../services/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../common/LoadingSpinner';
 import { CircularProgressBar } from '../../components/common/ProgressBar';
 import { toast } from 'react-toastify';
 import { questTemplates, localizeQuest } from '../../data/questTemplates';

@@ -515,7 +515,86 @@ Meilleures options :
     ],
     
     steps: [
-      // Debt management steps...
+      {
+        id: 'debt_intro',
+        type: 'info',
+        title_en: 'Understanding Debt',
+        title_fr: 'Comprendre la dette',
+        content_en: 'Not all debt is created equal. Good debt helps you build wealth (like a mortgage or student loans), while bad debt drains your finances (like high-interest credit cards). The debt avalanche method focuses on paying off your highest interest rate debts first, saving you the most money over time.',
+        content_fr: 'Toutes les dettes ne sont pas égales. Les bonnes dettes vous aident à construire de la richesse (comme une hypothèque ou des prêts étudiants), tandis que les mauvaises dettes drainent vos finances (comme les cartes de crédit à taux élevé). La méthode avalanche se concentre sur le remboursement des dettes au taux d\'intérêt le plus élevé en premier, vous économisant le plus d\'argent au fil du temps.'
+      },
+      {
+        id: 'debt_types_quiz',
+        type: 'multiple_choice',
+        title_en: 'Good vs Bad Debt',
+        title_fr: 'Bonne vs Mauvaise Dette',
+        question_en: 'Which of the following is typically considered "good debt"?',
+        question_fr: 'Laquelle des suivantes est généralement considérée comme une "bonne dette"?',
+        options_en: [
+          'Credit card debt for shopping',
+          'Student loan for education',
+          'Payday loan',
+          'Store credit card'
+        ],
+        options_fr: [
+          'Dette de carte de crédit pour le shopping',
+          'Prêt étudiant pour l\'éducation',
+          'Prêt sur salaire',
+          'Carte de crédit de magasin'
+        ],
+        correctAnswer: 'Student loan for education'
+      },
+      {
+        id: 'avalanche_explanation',
+        type: 'info',
+        title_en: 'The Debt Avalanche Method',
+        title_fr: 'La Méthode Avalanche',
+        content_en: 'The debt avalanche method prioritizes paying off debts with the highest interest rates first while making minimum payments on all other debts. This approach minimizes the total interest you\'ll pay over time. Here\'s how it works:\n\n1. List all your debts\n2. Order them by interest rate (highest to lowest)\n3. Pay minimums on all debts\n4. Put any extra money toward the highest-rate debt\n5. Once paid off, move to the next highest rate',
+        content_fr: 'La méthode avalanche priorise le remboursement des dettes avec les taux d\'intérêt les plus élevés en premier tout en effectuant les paiements minimums sur toutes les autres dettes. Cette approche minimise l\'intérêt total que vous paierez au fil du temps. Voici comment ça fonctionne:\n\n1. Listez toutes vos dettes\n2. Ordonnez-les par taux d\'intérêt (du plus élevé au plus bas)\n3. Payez les minimums sur toutes les dettes\n4. Mettez tout argent supplémentaire vers la dette au taux le plus élevé\n5. Une fois payée, passez au taux suivant'
+      },
+      {
+        id: 'debt_list_checklist',
+        type: 'checklist',
+        title_en: 'Create Your Debt List',
+        title_fr: 'Créez Votre Liste de Dettes',
+        description_en: 'To use the debt avalanche method, you need to gather information about all your debts. Check off each item as you collect it:',
+        description_fr: 'Pour utiliser la méthode avalanche, vous devez rassembler des informations sur toutes vos dettes. Cochez chaque élément au fur et à mesure:',
+        items_en: [
+          'List all credit card balances and interest rates',
+          'Include all loans (auto, personal, student)',
+          'Note the minimum payment for each debt',
+          'Calculate total monthly minimum payments',
+          'Determine how much extra you can pay monthly'
+        ],
+        items_fr: [
+          'Listez tous les soldes et taux d\'intérêt des cartes de crédit',
+          'Incluez tous les prêts (auto, personnel, étudiant)',
+          'Notez le paiement minimum pour chaque dette',
+          'Calculez le total des paiements minimums mensuels',
+          'Déterminez combien vous pouvez payer en extra mensuellement'
+        ]
+      },
+      {
+        id: 'avalanche_calculation',
+        type: 'quiz',
+        title_en: 'Calculate Your Savings',
+        title_fr: 'Calculez Vos Économies',
+        question_en: 'If you have a $5,000 credit card debt at 20% APR and can pay $200/month, how many months will it take to pay off using the avalanche method (assuming no other debts)?',
+        question_fr: 'Si vous avez une dette de carte de crédit de 5 000$ à 20% TAP et pouvez payer 200$/mois, combien de mois faudra-t-il pour rembourser en utilisant la méthode avalanche (en supposant aucune autre dette)?',
+        correctAnswer: '30',
+        hint_en: 'Use an online debt calculator or the formula: months = -log(1-(rate/12)*(balance/payment))/log(1+rate/12)',
+        hint_fr: 'Utilisez un calculateur de dette en ligne ou la formule: mois = -log(1-(taux/12)*(solde/paiement))/log(1+taux/12)'
+      },
+      {
+        id: 'avalanche_challenge',
+        type: 'challenge',
+        title_en: 'Create Your Debt Avalanche Plan',
+        title_fr: 'Créez Votre Plan Avalanche',
+        description_en: 'Based on what you\'ve learned, create a simple debt avalanche plan. List your debts (you can use examples if you prefer) ordered by interest rate, and describe your payoff strategy.',
+        description_fr: 'Basé sur ce que vous avez appris, créez un plan avalanche simple. Listez vos dettes (vous pouvez utiliser des exemples si vous préférez) ordonnées par taux d\'intérêt, et décrivez votre stratégie de remboursement.',
+        example_en: 'Example:\n1. Credit Card A: $3,000 @ 22% - Pay $300/month\n2. Credit Card B: $1,500 @ 18% - Pay minimum until A is paid\n3. Car Loan: $8,000 @ 5% - Pay minimum until B is paid\n\nExtra $100/month goes to Card A first.',
+        example_fr: 'Exemple:\n1. Carte de crédit A: 3 000$ @ 22% - Payer 300$/mois\n2. Carte de crédit B: 1 500$ @ 18% - Payer minimum jusqu\'à ce que A soit payé\n3. Prêt auto: 8 000$ @ 5% - Payer minimum jusqu\'à ce que B soit payé\n\n100$ supplémentaires/mois vont à la carte A en premier.'
+      }
     ]
   }
 ];
