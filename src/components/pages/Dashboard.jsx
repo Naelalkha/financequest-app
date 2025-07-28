@@ -9,13 +9,13 @@ import { db } from '../../services/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { CircularProgressBar } from '../../components/common/ProgressBar';
+import ProgressBar from '../common/ProgressBar';
 import { toast } from 'react-toastify';
 import { questTemplates, localizeQuest } from '../../data/questTemplates';
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const { t, currentLang } = useLanguage();
   const navigate = useNavigate();
   
   const [userData, setUserData] = useState(null);
@@ -28,7 +28,7 @@ const Dashboard = () => {
     if (user) {
       fetchDashboardData();
     }
-  }, [user, language]);
+  }, [user, currentLang]);
 
   const fetchDashboardData = async () => {
     try {
@@ -43,7 +43,7 @@ const Dashboard = () => {
         setUserData(data);
         
         // Animate streak if it exists
-        if (data.currentStreak > 0) {
+        if (data.currentStreak > 0 || data.streaks > 0) {
           setTimeout(() => setStreakAnimation(true), 500);
         }
       }
@@ -64,23 +64,53 @@ const Dashboard = () => {
 
   const fetchRecentActivity = async () => {
     try {
+      // Simplified query without composite index requirement
       const recentQuery = query(
         collection(db, 'userQuests'),
         where('userId', '==', user.uid),
-        where('status', 'in', ['active', 'completed']),
         orderBy('lastUpdated', 'desc'),
-        limit(3)
+        limit(5)
       );
       
       const snapshot = await getDocs(recentQuery);
-      const activities = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const activities = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(activity => activity.status === 'active' || activity.status === 'completed')
+        .slice(0, 3); // Take only the first 3 after filtering
       
       setRecentQuests(activities);
     } catch (error) {
       console.error('Error fetching recent activity:', error);
+      // If still fails, try without orderBy
+      try {
+        const fallbackQuery = query(
+          collection(db, 'userQuests'),
+          where('userId', '==', user.uid),
+          limit(10)
+        );
+        
+        const snapshot = await getDocs(fallbackQuery);
+        const activities = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter(activity => activity.status === 'active' || activity.status === 'completed')
+          .sort((a, b) => {
+            const dateA = a.lastUpdated?.toDate?.() || new Date(a.lastUpdated || 0);
+            const dateB = b.lastUpdated?.toDate?.() || new Date(b.lastUpdated || 0);
+            return dateB - dateA;
+          })
+          .slice(0, 3);
+        
+        setRecentQuests(activities);
+      } catch (fallbackError) {
+        console.error('Fallback query also failed:', fallbackError);
+        setRecentQuests([]);
+      }
     }
   };
 
@@ -88,7 +118,7 @@ const Dashboard = () => {
     try {
       // Get 3 random quests for recommendations
       const localQuests = questTemplates
-        .map(quest => localizeQuest(quest, language))
+        .map(quest => localizeQuest(quest, currentLang))
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
       
@@ -109,17 +139,19 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <LoadingSpinner size="lg" color="yellow" />
+        <LoadingSpinner />
       </div>
     );
   }
 
-  const userLevel = calculateLevel(userData?.points || 0);
-  const levelProgress = calculateLevelProgress(userData?.points || 0);
-  const nextLevelPoints = (userLevel * 1000) - (userData?.points || 0);
+  const userPoints = userData?.points || 0;
+  const userLevel = calculateLevel(userPoints);
+  const levelProgress = calculateLevelProgress(userPoints);
+  const nextLevelPoints = (userLevel * 1000) - userPoints;
+  const streakDays = userData?.streaks || userData?.currentStreak || 0;
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 pb-20">
       {/* Header Section */}
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 px-4 pt-16 pb-8">
         <div className="max-w-4xl mx-auto">
@@ -129,109 +161,79 @@ const Dashboard = () => {
               {t('dashboard.welcome_back') || 'Welcome back,'} {userData?.displayName || user?.email?.split('@')[0]}! 👋
             </h1>
             <p className="text-gray-400">
-              {t('dashboard.subtitle') || "Let's continue your financial journey"}
+              {t('dashboard.subtitle') || 'Ready to continue your financial journey?'}
             </p>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {/* Level Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 transform hover:scale-105 transition-all duration-300 animate-fadeIn" style={{ animationDelay: '100ms' }}>
-              <div className="flex items-center justify-between mb-2">
-                <FaStar className="text-yellow-400 text-xl" />
-                <span className="text-xs text-gray-500 font-medium">
-                  {t('dashboard.level') || 'Level'}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <div className="text-2xl font-bold text-white">{userLevel}</div>
-                <div className="text-xs text-gray-400">
-                  {nextLevelPoints} {t('ui.points_to_next') || 'to next'}
-                </div>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* Level */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center animate-fadeIn" style={{ animationDelay: '100ms' }}>
+              <FaStar className="text-3xl text-yellow-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">{t('dashboard.level') || 'Level'}</p>
+              <p className="text-3xl font-bold text-white">{userLevel}</p>
             </div>
 
-            {/* Points Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 transform hover:scale-105 transition-all duration-300 animate-fadeIn" style={{ animationDelay: '200ms' }}>
-              <div className="flex items-center justify-between mb-2">
-                <FaCoins className="text-yellow-400 text-xl" />
-                <span className="text-xs text-gray-500 font-medium">
-                  {t('dashboard.total_points') || 'Points'}
-                </span>
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {userData?.points || 0}
-              </div>
+            {/* Total Points */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center animate-fadeIn" style={{ animationDelay: '200ms' }}>
+              <FaCoins className="text-3xl text-yellow-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">{t('dashboard.total_points') || 'Total Points'}</p>
+              <p className="text-3xl font-bold text-white">{userPoints}</p>
             </div>
 
-            {/* Streak Card */}
-            <div className={`bg-gray-800 border border-gray-700 rounded-xl p-4 transform hover:scale-105 transition-all duration-300 animate-fadeIn ${streakAnimation ? 'animate-pulse' : ''}`} style={{ animationDelay: '300ms' }}>
-              <div className="flex items-center justify-between mb-2">
-                <FaFire className={`text-xl ${userData?.currentStreak > 0 ? 'text-orange-500' : 'text-gray-600'}`} />
-                <span className="text-xs text-gray-500 font-medium">
-                  {t('dashboard.streak') || 'Streak'}
-                </span>
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {userData?.currentStreak || 0}
-                <span className="text-sm text-gray-400 ml-1">
-                  {t('ui.days') || 'days'}
-                </span>
-              </div>
+            {/* Streak */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center animate-fadeIn" style={{ animationDelay: '300ms' }}>
+              <FaFire className={`text-3xl mx-auto mb-2 ${streakDays > 0 ? 'text-orange-500 animate-pulse' : 'text-gray-600'}`} />
+              <p className="text-sm text-gray-400">{t('dashboard.streak') || 'Streak'}</p>
+              <p className="text-3xl font-bold text-white">
+                {streakDays}
+              </p>
+              <p className="text-sm text-gray-400">
+                {streakDays === 1 ? t('ui.day') : t('ui.days')}
+              </p>
             </div>
 
-            {/* Quests Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 transform hover:scale-105 transition-all duration-300 animate-fadeIn" style={{ animationDelay: '400ms' }}>
-              <div className="flex items-center justify-between mb-2">
-                <FaTrophy className="text-green-400 text-xl" />
-                <span className="text-xs text-gray-500 font-medium">
-                  {t('dashboard.quests_done') || 'Quests'}
-                </span>
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {userData?.questsCompleted || 0}
-              </div>
+            {/* Quests Completed */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center animate-fadeIn" style={{ animationDelay: '400ms' }}>
+              <FaChartLine className="text-3xl text-purple-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">{t('dashboard.quests_done') || 'Quests Done'}</p>
+              <p className="text-3xl font-bold text-white">{userData?.completedQuests || 0}</p>
             </div>
           </div>
 
           {/* Level Progress */}
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 animate-fadeIn" style={{ animationDelay: '500ms' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-1">
-                  {t('dashboard.level_progress') || 'Level Progress'}
-                </h3>
-                <p className="text-sm text-gray-400">
-                  {userData?.points || 0} / {userLevel * 1000} {t('ui.points') || 'points'}
-                </p>
-              </div>
-              <CircularProgressBar 
-                progress={levelProgress} 
-                size={80} 
-                strokeWidth={6}
-                color="yellow"
-                showPercentage={true}
-              />
-            </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 animate-fadeIn" style={{ animationDelay: '500ms' }}>
+            <h3 className="text-sm font-medium text-gray-400 mb-2">
+              {t('dashboard.level_progress') || 'Level Progress'}
+            </h3>
+            <p className="text-sm text-gray-400 mb-2">
+              {userPoints % 1000} / 1000 points
+            </p>
+            <ProgressBar 
+              progress={levelProgress} 
+              showPercentage={true} 
+              color="gradient"
+              animated={true}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              {nextLevelPoints} {t('ui.points')} {t('ui.until')} {t('dashboard.level')} {userLevel + 1}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="px-4 py-8 max-w-4xl mx-auto">
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4">
         {/* Daily Challenge */}
         <div className="mb-8 animate-fadeIn" style={{ animationDelay: '600ms' }}>
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaBolt className="text-yellow-300 text-xl" />
-                  <h3 className="text-xl font-bold text-white">
-                    {t('dashboard.daily_challenge') || 'Daily Challenge'}
-                  </h3>
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {t('dashboard.daily_challenge') || 'Daily Challenge'}
+                </h3>
                 <p className="text-purple-100 mb-4">
-                  {t('dashboard.daily_challenge_desc') || 'Complete today\'s challenge for bonus rewards!'}
+                  {t('dashboard.daily_challenge_desc') || 'Complete today\'s special challenge and earn double points!'}
                 </p>
                 <Link
                   to="/quests"
@@ -260,7 +262,7 @@ const Dashboard = () => {
               {recentQuests.map((activity, index) => (
                 <div 
                   key={activity.id}
-                  className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex items-center justify-between hover:border-gray-600 transition-all duration-300"
+                  className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex items-center justify-between hover:border-gray-600 transition-all duration-300 animate-fadeIn"
                   style={{ animationDelay: `${800 + index * 100}ms` }}
                 >
                   <div className="flex items-center gap-3">
@@ -278,7 +280,7 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-400">
                         {activity.status === 'completed' 
                           ? t('dashboard.completed') || 'Completed'
-                          : `${activity.progress || 0}% ${t('dashboard.complete') || 'complete'}`
+                          : `${Math.round(activity.progress || 0)}% ${t('dashboard.complete') || 'complete'}`
                         }
                       </p>
                     </div>
@@ -309,7 +311,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recommended Quests */}
-        <div className="animate-fadeIn" style={{ animationDelay: '900ms' }}>
+        <div className="mb-8 animate-fadeIn" style={{ animationDelay: '900ms' }}>
           <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
             <FaStar className="text-yellow-400" />
             {t('dashboard.recommended') || 'Recommended for You'}
@@ -320,7 +322,7 @@ const Dashboard = () => {
               <Link
                 key={quest.id}
                 to={`/quests/${quest.id}`}
-                className="bg-gray-800 border border-gray-700 rounded-xl p-4 hover:border-yellow-500/50 hover:shadow-lg hover:shadow-yellow-500/10 transform hover:scale-105 transition-all duration-300"
+                className="bg-gray-800 border border-gray-700 rounded-xl p-4 hover:border-yellow-500/50 hover:shadow-lg hover:shadow-yellow-500/10 transform hover:scale-105 transition-all duration-300 animate-fadeIn"
                 style={{ animationDelay: `${1000 + index * 100}ms` }}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -340,7 +342,7 @@ const Dashboard = () => {
         </div>
 
         {/* Premium CTA */}
-        {!userData?.isPremium && (
+        {!userData?.isPremium && !userData?.premium && (
           <div className="mt-12 animate-fadeIn" style={{ animationDelay: '1100ms' }}>
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 shadow-lg text-center">
               <FaCrown className="text-5xl text-yellow-300 mx-auto mb-4 animate-bounce" />

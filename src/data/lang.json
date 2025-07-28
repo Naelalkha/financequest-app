@@ -90,11 +90,15 @@
     "dashboard": {
       "title": "Dashboard",
       "welcome": "Welcome back",
+      "welcome_back": "Welcome back,",
       "subtitle": "Ready to continue your financial journey?",
       "current_level": "Current Level",
+      "level": "Level",
       "total_points": "Total Points",
       "quests_completed": "Quests Completed",
+      "quests_done": "Quests Done",
       "current_streak": "Current Streak",
+      "streak": "Streak",
       "day": "day",
       "days": "days",
       "daily_goal": "Daily Goal",
@@ -107,6 +111,7 @@
       "points_to_next": "{{points}} points to level {{level}}",
       "daily_challenge": "Daily Challenge",
       "challenge_desc": "Complete today's challenge for bonus points!",
+      "daily_challenge_desc": "Complete today's special challenge and earn double points!",
       "start_challenge": "Start Challenge",
       "recent_activity": "Recent Activity",
       "completed": "Completed",
@@ -116,6 +121,8 @@
       "recommended": "Recommended for You",
       "unlock_premium": "Unlock Premium",
       "premium_desc": "Get access to exclusive quests and features",
+      "unlock_all": "Unlock All Quests",
+      "get_access": "Get Access Now",
       "upgrade_now": "Upgrade Now"
     },
     
@@ -175,6 +182,10 @@
       "congratulations": "Congratulations!",
       "quest_completed": "Quest completed successfully!",
       "quest_complete_msg": "You've mastered this quest!",
+      "interactive_placeholder": "Interactive calculator would appear here",
+      "interactive_instruction": "For now, imagine you've calculated your budget using the 50/30/20 rule",
+      "reflection_title": "Reflection Time",
+      "reflection_placeholder": "Share your thoughts...",
       
       "steps": {
         "step": "Step {{current}} of {{total}}",
@@ -324,7 +335,10 @@
       "all": "All",
       "month": "month",
       "year": "year",
-      "processing": "Processing..."
+      "points_to_next": "{{points}} points to next level",
+      "filters": "Filters",
+      "characters": "characters",
+      "skip_step": "Skip this step"
     }
   },
   
@@ -419,11 +433,15 @@
     "dashboard": {
       "title": "Tableau de bord",
       "welcome": "Bon retour",
+      "welcome_back": "Bon retour,",
       "subtitle": "Prêt à continuer votre voyage financier ?",
       "current_level": "Niveau Actuel",
+      "level": "Niveau",
       "total_points": "Points Totaux",
       "quests_completed": "Quêtes Complétées",
+      "quests_done": "Quêtes Terminées",
       "current_streak": "Série Actuelle",
+      "streak": "Série",
       "day": "jour",
       "days": "jours",
       "daily_goal": "Objectif Quotidien",
@@ -436,6 +454,7 @@
       "points_to_next": "{{points}} points jusqu'au niveau {{level}}",
       "daily_challenge": "Défi Quotidien",
       "challenge_desc": "Complétez le défi d'aujourd'hui pour des points bonus !",
+      "daily_challenge_desc": "Complétez le défi spécial d'aujourd'hui et gagnez des points doubles !",
       "start_challenge": "Commencer le défi",
       "recent_activity": "Activité récente",
       "completed": "Terminé",
@@ -445,6 +464,8 @@
       "recommended": "Recommandé pour vous",
       "unlock_premium": "Débloquer Premium",
       "premium_desc": "Accédez aux quêtes et fonctionnalités exclusives",
+      "unlock_all": "Débloquer Toutes les Quêtes",
+      "get_access": "Obtenir l'Accès Maintenant",
       "upgrade_now": "Passer à Premium"
     },
     
@@ -504,6 +525,10 @@
       "congratulations": "Félicitations!",
       "quest_completed": "Quête complétée avec succès!",
       "quest_complete_msg": "Vous avez maîtrisé cette quête!",
+      "interactive_placeholder": "Le calculateur interactif apparaîtrait ici",
+      "interactive_instruction": "Pour l'instant, imaginez que vous avez calculé votre budget en utilisant la règle 50/30/20",
+      "reflection_title": "Temps de Réflexion",
+      "reflection_placeholder": "Partagez vos pensées...",
       
       "steps": {
         "step": "Étape {{current}} sur {{total}}",
@@ -653,7 +678,10 @@
       "all": "Tous",
       "month": "mois",
       "year": "année",
-      "processing": "Traitement..."
+      "points_to_next": "{{points}} points jusqu'au prochain niveau",
+      "filters": "Filtres",
+      "characters": "caractères",
+      "skip_step": "Passer cette étape"
     }
   }
 }
