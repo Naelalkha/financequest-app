@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const ProgressBar = ({ 
   progress = 0, 
@@ -8,6 +9,8 @@ const ProgressBar = ({
   animated = true,
   className = ''
 }) => {
+  const { t } = useLanguage();
+  
   // Ensure progress is between 0 and 100
   const safeProgress = Math.min(Math.max(progress, 0), 100);
   
@@ -35,7 +38,7 @@ const ProgressBar = ({
     <div className={`w-full ${className}`}>
       {showPercentage && (
         <div className="flex justify-between text-sm text-gray-600 mb-1">
-          <span>Progress</span>
+          <span>{t('ui.progress') || 'Progress'}</span>
           <span>{Math.round(safeProgress)}%</span>
         </div>
       )}
