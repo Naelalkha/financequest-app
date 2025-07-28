@@ -54,33 +54,51 @@ export const LanguageProvider = ({ children }) => {
     return translation || key;
   };
 
+  // Change language function
+  const changeLanguage = (newLang) => {
+    if (newLang && (newLang === 'en' || newLang === 'fr')) {
+      setCurrentLang(newLang);
+      localStorage.setItem('financequest_language', newLang);
+    }
+  };
+
   // Initialize language from user data or localStorage
   useEffect(() => {
     const initLanguage = async () => {
-      if (user?.uid) {
-        // Listen to user's language preference from Firestore
-        const userRef = doc(db, 'users', user.uid);
-        const unsubscribe = onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            const userLang = userData.lang || 'en';
-            setCurrentLang(userLang);
-            localStorage.setItem('language', userLang);
-          }
-          setIsLoading(false);
-        }, (error) => {
-          console.error('Error fetching user language:', error);
-          // Fallback to localStorage
-          const savedLang = localStorage.getItem('language') || 'en';
+      try {
+        // First check localStorage
+        const savedLang = localStorage.getItem('financequest_language');
+        if (savedLang && (savedLang === 'en' || savedLang === 'fr')) {
           setCurrentLang(savedLang);
-          setIsLoading(false);
-        });
+        }
 
-        return () => unsubscribe();
-      } else {
-        // No user, use localStorage
-        const savedLang = localStorage.getItem('language') || 'en';
-        setCurrentLang(savedLang);
+        // If user is logged in, sync with Firestore
+        if (user?.uid) {
+          const userRef = doc(db, 'users', user.uid);
+          
+          // Set up real-time listener
+          const unsubscribe = onSnapshot(userRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const userData = docSnap.data();
+              const userLang = userData.lang || userData.language || 'en';
+              
+              if (userLang === 'en' || userLang === 'fr') {
+                setCurrentLang(userLang);
+                localStorage.setItem('financequest_language', userLang);
+              }
+            }
+            setIsLoading(false);
+          }, (error) => {
+            console.error('Error fetching user language:', error);
+            setIsLoading(false);
+          });
+
+          return () => unsubscribe();
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing language:', error);
         setIsLoading(false);
       }
     };
@@ -90,7 +108,9 @@ export const LanguageProvider = ({ children }) => {
 
   const value = {
     currentLang,
-    setCurrentLang,
+    setCurrentLang: changeLanguage,
+    language: currentLang, // Alias for compatibility
+    setLanguage: changeLanguage, // Alias for compatibility
     t,
     translations,
     isLoading

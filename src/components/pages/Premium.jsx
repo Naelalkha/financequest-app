@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { FaCrown, FaCheck, FaInfinity, FaRocket, FaBolt, FaTrophy, FaLock } from 'react-icons/fa';
+import { FaCrown, FaCheck, FaInfinity, FaRocket, FaBolt, FaTrophy, FaLock, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,9 +8,12 @@ import { toast } from 'react-toastify';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logPremiumEvent } from '../../utils/analytics';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RnceePEdl4W6QSBLwf47mjWRXZHOJbZO4Obw3tCZzocdvRgxFhbthIQt4BjQLHiVr0CCZEz7130mmOCEsHQTHMR007KEVMEbY');
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 const Premium = () => {
   const { t, currentLang } = useLanguage();
@@ -19,23 +22,50 @@ const Premium = () => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [isPremium, setIsPremium] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   useEffect(() => {
-    checkPremiumStatus();
-    logPremiumEvent('premium_page_view');
+    if (user) {
+      checkPremiumStatus();
+      logPremiumEvent('premium_page_view');
+    } else {
+      setCheckingStatus(false);
+    }
   }, [user]);
 
   const checkPremiumStatus = async () => {
-    if (!user) return;
+    if (!user) {
+      setCheckingStatus(false);
+      return;
+    }
     
     try {
+      setCheckingStatus(true);
+      // First check if user object already has premium status
+      if (user.isPremium !== undefined) {
+        console.log('Premium status from user object:', user.isPremium);
+        setIsPremium(user.isPremium);
+        setCheckingStatus(false);
+        return;
+      }
+      
+      // Otherwise fetch from Firestore
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
+      
       if (userSnap.exists()) {
-        setIsPremium(userSnap.data().isPremium || false);
+        const userData = userSnap.data();
+        console.log('User data from Firestore:', userData);
+        // Check both 'premium' and 'isPremium' fields for compatibility
+        const premiumStatus = userData.premium === true || userData.isPremium === true;
+        setIsPremium(premiumStatus);
       }
     } catch (error) {
       console.error('Error checking premium status:', error);
+      // If error, check user object as fallback
+      setIsPremium(user.isPremium || false);
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
@@ -46,8 +76,8 @@ const Premium = () => {
       return;
     }
 
-    if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
-      toast.error('Stripe is not configured. Please add your Stripe keys.');
+    if (!stripePromise) {
+      toast.error('Payment system is not configured. Please contact support.');
       return;
     }
 
@@ -79,12 +109,23 @@ const Premium = () => {
     }
   };
 
+  // Show loading while checking status
+  if (checkingStatus) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Show premium member screen
   if (isPremium) {
     return (
       <div className="min-h-screen bg-gray-900 px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4">
+          {/* Premium Member Header */}
+          <div className="text-center mb-8 animate-fadeIn">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-lg animate-pulse">
               <FaCrown className="text-4xl text-gray-900" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
@@ -95,36 +136,73 @@ const Premium = () => {
             </p>
           </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+          {/* Benefits Card */}
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-6 animate-fadeIn" style={{ animationDelay: '200ms' }}>
             <h2 className="text-xl font-bold text-white mb-4">
               {t('premium.your_benefits') || 'Your Premium Benefits'}
             </h2>
-            <ul className="space-y-3">
+            <div className="grid md:grid-cols-2 gap-4">
               {[
-                t('premium.features.unlimited_quests') || 'Unlimited access to all quests',
-                t('premium.features.exclusive_content') || 'Exclusive premium content',
-                t('premium.features.advanced_tracking') || 'Advanced progress tracking',
-                t('premium.features.no_ads') || 'Ad-free experience',
-                t('premium.features.priority_support') || 'Priority support'
-              ].map((benefit, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <FaCheck className="text-green-400 mt-0.5" />
-                  <span className="text-gray-300">{benefit}</span>
-                </li>
-              ))}
-            </ul>
+                { icon: FaInfinity, text: t('premium.features.unlimited_quests') || 'Unlimited access to all quests' },
+                { icon: FaCrown, text: t('premium.features.exclusive_content') || 'Exclusive premium content' },
+                { icon: FaBolt, text: t('premium.features.advanced_tracking') || 'Advanced progress tracking' },
+                { icon: FaShieldAlt, text: t('premium.features.no_ads') || 'Ad-free experience' },
+                { icon: FaRocket, text: t('premium.features.priority_support') || 'Priority support' },
+                { icon: FaStar, text: t('premium.features.early_access') || 'Early access to new features' },
+                { icon: FaTrophy, text: t('premium.features.custom_challenges') || 'Custom daily challenges' },
+                { icon: FaLock, text: t('premium.features.export_data') || 'Export your progress data' }
+              ].map((benefit, index) => {
+                const Icon = benefit.icon;
+                return (
+                  <li key={index} className="flex items-start gap-3">
+                    <Icon className="text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300">{benefit.text}</span>
+                  </li>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Premium Status Card */}
+          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl p-6 animate-fadeIn" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <FaStar className="text-yellow-400 text-2xl" />
+              <h3 className="text-lg font-bold text-white">
+                {t('premium.member_since') || 'Premium Member'}
+              </h3>
+            </div>
+            <p className="text-gray-300 mb-4">
+              {t('premium.thank_you') || 'Thank you for supporting FinanceQuest! Your premium membership helps us create more amazing content.'}
+            </p>
+            
+            <div className="pt-4 border-t border-gray-700">
+              <p className="text-sm text-gray-400">
+                {t('premium.manage_subscription') || 'To manage your subscription, please contact support at support@financequest.app'}
+              </p>
+            </div>
+          </div>
+
+          {/* Continue Learning CTA */}
+          <div className="mt-8 text-center animate-fadeIn" style={{ animationDelay: '600ms' }}>
+            <button
+              onClick={() => navigate('/quests')}
+              className="px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
+            >
+              {t('premium.continue_learning') || 'Continue Learning'}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
+  // Show subscription options for non-premium users
   return (
     <div className="min-h-screen bg-gray-900 px-4 py-8 pb-24">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 animate-pulse">
+        <div className="text-center mb-12 animate-fadeIn">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 animate-pulse shadow-lg">
             <FaCrown className="text-4xl text-gray-900" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">
@@ -139,11 +217,12 @@ const Premium = () => {
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* Monthly Plan */}
           <div 
-            className={`relative bg-gray-800 border rounded-xl p-6 cursor-pointer transition-all duration-300 ${
+            className={`relative bg-gray-800 border rounded-xl p-6 cursor-pointer transition-all duration-300 animate-fadeIn ${
               selectedPlan === 'monthly' 
                 ? 'border-yellow-400 shadow-lg shadow-yellow-400/20 scale-105' 
                 : 'border-gray-700 hover:border-gray-600'
             }`}
+            style={{ animationDelay: '200ms' }}
             onClick={() => setSelectedPlan('monthly')}
           >
             {selectedPlan === 'monthly' && (
@@ -167,11 +246,11 @@ const Premium = () => {
             </div>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-center gap-2">
-                <FaCheck className="text-green-400 text-sm" />
+                <FaCheck className="text-green-400 text-sm flex-shrink-0" />
                 {t('premium.cancel_anytime') || 'Cancel anytime'}
               </li>
               <li className="flex items-center gap-2">
-                <FaCheck className="text-green-400 text-sm" />
+                <FaCheck className="text-green-400 text-sm flex-shrink-0" />
                 {t('premium.instant_access') || 'Instant access'}
               </li>
             </ul>
@@ -179,11 +258,12 @@ const Premium = () => {
 
           {/* Yearly Plan */}
           <div 
-            className={`relative bg-gray-800 border rounded-xl p-6 cursor-pointer transition-all duration-300 ${
+            className={`relative bg-gray-800 border rounded-xl p-6 cursor-pointer transition-all duration-300 animate-fadeIn ${
               selectedPlan === 'yearly' 
                 ? 'border-yellow-400 shadow-lg shadow-yellow-400/20 scale-105' 
                 : 'border-gray-700 hover:border-gray-600'
             }`}
+            style={{ animationDelay: '300ms' }}
             onClick={() => setSelectedPlan('yearly')}
           >
             <div className="absolute -top-3 -right-3">
@@ -205,116 +285,93 @@ const Premium = () => {
             </div>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-center gap-2">
-                <FaCheck className="text-green-400 text-sm" />
+                <FaCheck className="text-green-400 text-sm flex-shrink-0" />
                 {t('premium.best_value') || 'Best value'}
               </li>
               <li className="flex items-center gap-2">
-                <FaCheck className="text-green-400 text-sm" />
+                <FaCheck className="text-green-400 text-sm flex-shrink-0" />
                 {t('premium.months_free', { months: 4 }) || '4 months free'}
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-8">
+        {/* Features Section */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-8 animate-fadeIn" style={{ animationDelay: '400ms' }}>
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             {t('premium.features_title') || 'Everything in Premium'}
           </h2>
           
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-yellow-400/10 rounded-lg">
-                  <FaInfinity className="text-yellow-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.unlimited_quests') || 'Unlimited Quests'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.unlimited_quests_desc') || 'Access all current and future quests'}
-                  </p>
-                </div>
-              </div>
+            {[
+              {
+                icon: FaInfinity,
+                color: 'yellow',
+                title: t('premium.features.unlimited_quests') || 'Unlimited Quests',
+                description: t('premium.features.unlimited_quests_desc') || 'Access all current and future quests'
+              },
+              {
+                icon: FaRocket,
+                color: 'purple',
+                title: t('premium.features.advanced_content') || 'Advanced Content',
+                description: t('premium.features.advanced_content_desc') || 'Expert-level strategies and techniques'
+              },
+              {
+                icon: FaBolt,
+                color: 'blue',
+                title: t('premium.features.priority_updates') || 'Priority Updates',
+                description: t('premium.features.priority_updates_desc') || 'Get new features and content first'
+              },
+              {
+                icon: FaTrophy,
+                color: 'green',
+                title: t('premium.features.exclusive_badges') || 'Exclusive Badges',
+                description: t('premium.features.exclusive_badges_desc') || 'Show off your premium status'
+              },
+              {
+                icon: FaLock,
+                color: 'red',
+                title: t('premium.features.no_ads') || 'Ad-Free Experience',
+                description: t('premium.features.no_ads_desc') || 'Focus on learning without distractions'
+              },
+              {
+                icon: FaCrown,
+                color: 'orange',
+                title: t('premium.features.vip_support') || 'VIP Support',
+                description: t('premium.features.vip_support_desc') || 'Get help when you need it most'
+              }
+            ].map((feature, index) => {
+              const Icon = feature.icon;
+              const colorClasses = {
+                yellow: 'bg-yellow-400/10 text-yellow-400',
+                purple: 'bg-purple-400/10 text-purple-400',
+                blue: 'bg-blue-400/10 text-blue-400',
+                green: 'bg-green-400/10 text-green-400',
+                red: 'bg-red-400/10 text-red-400',
+                orange: 'bg-orange-400/10 text-orange-400'
+              };
               
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-purple-400/10 rounded-lg">
-                  <FaRocket className="text-purple-400 text-xl" />
+              return (
+                <div key={index} className="flex items-start gap-3">
+                  <div className={`p-2 rounded-lg ${colorClasses[feature.color]}`}>
+                    <Icon className="text-xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.advanced_content') || 'Advanced Content'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.advanced_content_desc') || 'Expert-level strategies and techniques'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-400/10 rounded-lg">
-                  <FaBolt className="text-blue-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.priority_updates') || 'Priority Updates'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.priority_updates_desc') || 'Get new features and content first'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-400/10 rounded-lg">
-                  <FaTrophy className="text-green-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.exclusive_badges') || 'Exclusive Badges'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.exclusive_badges_desc') || 'Show off your premium status'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-red-400/10 rounded-lg">
-                  <FaLock className="text-red-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.no_ads') || 'Ad-Free Experience'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.no_ads_desc') || 'Focus on learning without distractions'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-orange-400/10 rounded-lg">
-                  <FaCrown className="text-orange-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {t('premium.features.vip_support') || 'VIP Support'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {t('premium.features.vip_support_desc') || 'Get help when you need it most'}
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center">
+        {/* CTA Section */}
+        <div className="text-center animate-fadeIn" style={{ animationDelay: '500ms' }}>
           <button
             onClick={handleSubscribe}
             disabled={loading}
@@ -333,6 +390,45 @@ const Premium = () => {
           <p className="mt-2 text-xs text-gray-600">
             {t('premium.secure_payment') || 'Secure payment powered by Stripe'}
           </p>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mt-16 animate-fadeIn" style={{ animationDelay: '600ms' }}>
+          <h3 className="text-xl font-bold text-white mb-6 text-center">
+            {t('premium.faq_title') || 'Frequently Asked Questions'}
+          </h3>
+          
+          <div className="space-y-4">
+            <details className="group bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <summary className="flex items-center justify-between cursor-pointer text-white hover:text-yellow-400 transition-colors">
+                <span>{t('premium.faq_1_q') || 'Can I cancel anytime?'}</span>
+                <span className="group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <p className="mt-3 text-gray-400 text-sm">
+                {t('premium.faq_1_a') || 'Yes! You can cancel your subscription anytime from your account settings. You\'ll continue to have access until the end of your billing period.'}
+              </p>
+            </details>
+            
+            <details className="group bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <summary className="flex items-center justify-between cursor-pointer text-white hover:text-yellow-400 transition-colors">
+                <span>{t('premium.faq_2_q') || 'What payment methods do you accept?'}</span>
+                <span className="group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <p className="mt-3 text-gray-400 text-sm">
+                {t('premium.faq_2_a') || 'We accept all major credit cards, debit cards, and digital wallets through our secure payment partner Stripe.'}
+              </p>
+            </details>
+            
+            <details className="group bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <summary className="flex items-center justify-between cursor-pointer text-white hover:text-yellow-400 transition-colors">
+                <span>{t('premium.faq_3_q') || 'Do you offer refunds?'}</span>
+                <span className="group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <p className="mt-3 text-gray-400 text-sm">
+                {t('premium.faq_3_a') || 'Yes! We offer a 30-day money-back guarantee. If you\'re not satisfied, contact support for a full refund.'}
+              </p>
+            </details>
+          </div>
         </div>
       </div>
     </div>

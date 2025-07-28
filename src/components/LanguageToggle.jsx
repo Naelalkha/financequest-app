@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const LanguageToggle = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { t, currentLang, setLanguage } = useLanguage();
   const { user } = useAuth();
   const [isChanging, setIsChanging] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -20,11 +20,13 @@ const LanguageToggle = () => {
   ];
 
   const handleLanguageChange = async (newLang) => {
-    if (newLang === language || isChanging) return;
+    if (newLang === currentLang || isChanging) return;
     
     const selectedLang = languages.find(l => l.code === newLang);
+    if (!selectedLang) return;
+    
     if (!selectedLang.active) {
-      toast.info(t('settings.language_coming_soon') || 'This language is coming soon!');
+      toast.info('This language is coming soon!');
       return;
     }
 
@@ -35,21 +37,24 @@ const LanguageToggle = () => {
       // Update language in context
       setLanguage(newLang);
       
-      // Save to localStorage
-      localStorage.setItem('language', newLang);
-      
       // Update in Firebase if user is logged in
       if (user?.uid) {
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, { lang: newLang });
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, { 
+            lang: newLang,
+            language: newLang // Store both for compatibility
+          });
+        } catch (firebaseError) {
+          console.error('Error updating language in Firebase:', firebaseError);
+          // Continue even if Firebase update fails
+        }
       }
       
       // Show success message
       const messages = {
         en: 'Language changed to English',
-        fr: 'Langue changée en Français',
-        es: 'Idioma cambiado a Español',
-        de: 'Sprache geändert zu Deutsch'
+        fr: 'Langue changée en Français'
       };
       
       toast.success(messages[newLang] || 'Language updated!', {
@@ -58,13 +63,13 @@ const LanguageToggle = () => {
       });
     } catch (error) {
       console.error('Error changing language:', error);
-      toast.error(t('errors.language_change_failed') || 'Failed to change language');
+      toast.error('Failed to change language');
     } finally {
       setTimeout(() => setIsChanging(false), 500);
     }
   };
 
-  const currentLang = languages.find(l => l.code === language) || languages[0];
+  const currentLangData = languages.find(l => l.code === currentLang) || languages[0];
 
   return (
     <div className="relative">
@@ -80,10 +85,10 @@ const LanguageToggle = () => {
           ${isChanging ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
           ${showMenu ? 'border-yellow-500 shadow-lg shadow-yellow-500/20' : ''}
         `}
-        aria-label={t('settings.change_language') || 'Change language'}
+        aria-label="Change language"
       >
         <FaGlobe className={`text-lg ${showMenu ? 'text-yellow-400' : 'text-gray-400'} group-hover:text-yellow-400 transition-colors`} />
-        <span className="font-medium">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
+        <span className="font-medium">{currentLangData.flag} {currentLangData.code.toUpperCase()}</span>
         <span className={`text-xs transition-transform ${showMenu ? 'rotate-180' : ''}`}>▼</span>
       </button>
 
@@ -102,11 +107,11 @@ const LanguageToggle = () => {
               <button
                 key={lang.code}
                 onClick={() => handleLanguageChange(lang.code)}
-                disabled={!lang.active || lang.code === language}
+                disabled={!lang.active || lang.code === currentLang || isChanging}
                 className={`
                   w-full px-4 py-3 flex items-center gap-3
                   transition-all duration-300
-                  ${lang.code === language 
+                  ${lang.code === currentLang 
                     ? 'bg-yellow-500/20 text-yellow-400 cursor-default' 
                     : lang.active
                       ? 'text-white hover:bg-gray-700 hover:text-yellow-400'
@@ -116,11 +121,11 @@ const LanguageToggle = () => {
               >
                 <span className="text-xl">{lang.flag}</span>
                 <span className="font-medium">{lang.label}</span>
-                {lang.code === language && (
+                {lang.code === currentLang && (
                   <span className="ml-auto text-xs">✓</span>
                 )}
                 {!lang.active && (
-                  <span className="ml-auto text-xs">{t('ui.soon') || 'Soon'}</span>
+                  <span className="ml-auto text-xs text-gray-600">Soon</span>
                 )}
               </button>
             ))}
