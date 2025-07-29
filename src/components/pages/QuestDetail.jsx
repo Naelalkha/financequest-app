@@ -3,8 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
-import ShareButton from '../common/ShareButton';
-import { autoShareQuestComplete } from '../../utils/socialSharing';
+import AchievementShareButton from '../common/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -196,7 +195,7 @@ const QuestDetail = () => {
         
         // Update user data with streak protection
         const streakUpdate = await updateStreakWithProtection(
-          currentUser.uid, 
+          user.uid, 
           (userData.currentStreak || 0) + 1, 
           'quest_completion'
         );
@@ -219,12 +218,7 @@ const QuestDetail = () => {
         xp: quest.xp
       });
 
-      // Auto-share on TikTok
-      try {
-        await autoShareQuestComplete(quest, userData, currentLang);
-      } catch (shareError) {
-        console.error('Auto-share failed:', shareError);
-      }
+      // Auto-share removed - now handled by AchievementShareButton
     } catch (error) {
       console.error('Error completing quest:', error);
       toast.error(t('errors.complete_quest_failed') || 'Failed to complete quest');
@@ -272,6 +266,38 @@ const QuestDetail = () => {
     ? (currentStep / quest.steps.length) * 100 
     : 0;
   const currentStepData = quest.steps[currentStep] || {};
+
+  // Calculer le score basé sur les réponses correctes
+  const calculateScore = () => {
+    if (!quest.steps || quest.steps.length === 0) return 100;
+    
+    let correctAnswers = 0;
+    let completedSteps = 0;
+    const totalSteps = quest.steps.length;
+    
+    quest.steps.forEach((step, index) => {
+      const stepData = stepAnswers[index];
+      if (stepData) {
+        completedSteps++;
+        if (stepData.correct) {
+          correctAnswers++;
+        }
+      }
+    });
+    
+    // Si aucune étape n'est complétée, retourner un score par défaut
+    if (completedSteps === 0) return 85; // Score par défaut pour quête terminée
+    
+    // Si toutes les étapes sont complétées, calculer le score réel
+    if (completedSteps === totalSteps) {
+      return Math.round((correctAnswers / totalSteps) * 100);
+    }
+    
+    // Si la quête est terminée mais pas toutes les étapes, estimer le score
+    // en supposant que les étapes manquantes seraient correctes
+    const estimatedCorrect = correctAnswers + (totalSteps - completedSteps);
+    return Math.round((estimatedCorrect / totalSteps) * 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -418,52 +444,24 @@ const QuestDetail = () => {
                 <p className="text-sm text-gray-400">{t('ui.xp_earned') || 'XP Earned'}</p>
                 <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
               </div>
-              {quest.xp && (
-                <div className="bg-gray-700 rounded-lg px-6 py-3">
-                  <p className="text-sm text-gray-400">{t('ui.xp_earned') || 'XP Earned'}</p>
-                  <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
-                </div>
-              )}
             </div>
 
-            {/* Share Achievement */}
-            <div className="flex justify-center mb-6">
-              <ShareButton
-                shareType="QUEST_COMPLETE"
-                data={{
-                  quest: quest.title,
-                  xp: quest.xp,
-                  level: userData?.level || 'Novice'
-                }}
-                language={currentLang}
-                autoShare={true}
-                className="text-lg"
-              />
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => {
-                  const shareText = t('share.quest_complete', {
-                    quest: quest.title,
-                    points: quest.points
-                  }) || `I just completed "${quest.title}" on FinanceQuest and earned ${quest.points} points! 🎯`;
-                  
-                  if (navigator.share) {
-                    navigator.share({
-                      title: 'FinanceQuest Achievement',
-                      text: shareText,
-                      url: window.location.origin
-                    });
-                  } else {
-                    navigator.clipboard.writeText(shareText);
-                    toast.success(t('ui.copied') || 'Copied to clipboard!');
-                  }
-                }}
-                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
-              >
-                {t('ui.share_achievement') || 'Share Achievement'}
-              </button>
+            {/* Single CTA: Share Achievement */}
+            <div className="flex flex-col items-center gap-4 mb-6">
+              {user && (
+                <AchievementShareButton
+                  quest={quest}
+                  userData={user}
+                  score={questCompleted ? calculateScore() : 100} // Score 100 si quête terminée, sinon calculé
+                  language={currentLang}
+                  className="text-lg"
+                  showBonus={true}
+                  onShareComplete={(result) => {
+                    console.log('Achievement shared:', result);
+                  }}
+                />
+              )}
+              
               <Link
                 to="/quests"
                 className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
