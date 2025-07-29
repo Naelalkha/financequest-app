@@ -61,9 +61,9 @@ const AchievementShareButton = ({
           backgroundColor: '#111827',
           logging: true,
           width: 400,
-          height: 600,
+          height: 711,
           windowWidth: 400,
-          windowHeight: 600,
+          windowHeight: 711,
           foreignObjectRendering: false,
           imageTimeout: 0
         });
@@ -264,7 +264,7 @@ const AchievementShareButton = ({
           left: '-9999px',
           top: '0',
           width: '400px',
-          height: '600px',
+          height: '711px',
           zIndex: -1,
           pointerEvents: 'none',
           opacity: 1

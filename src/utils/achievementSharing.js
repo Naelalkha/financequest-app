@@ -9,7 +9,7 @@ export const SHARING_CONFIG = {
   DAILY_SHARE_LIMIT: 1,
   IMAGE: {
     WIDTH: 400,
-    HEIGHT: 600,
+    HEIGHT: 711,
     QUALITY: 0.95,
     BACKGROUND: '#111827'
   },
