@@ -3,6 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
+import ShareButton from '../common/ShareButton';
+import { autoShareQuestComplete } from '../../utils/socialSharing';
+import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getQuestById } from '../../data/questTemplates';
@@ -191,10 +194,18 @@ const QuestDetail = () => {
             const newXP = (userData.xp || 0) + quest.xp;
         const completedQuests = (userData.completedQuests || 0) + 1;
         
+        // Update user data with streak protection
+        const streakUpdate = await updateStreakWithProtection(
+          currentUser.uid, 
+          (userData.currentStreak || 0) + 1, 
+          'quest_completion'
+        );
+        
         await updateDoc(userRef, {
           xp: newXP,
           completedQuests: completedQuests,
-          lastActivityAt: new Date().toISOString()
+          lastActivityAt: new Date().toISOString(),
+          ...(streakUpdate.success && { currentStreak: streakUpdate.appliedValue })
         });
       }
       
@@ -207,6 +218,13 @@ const QuestDetail = () => {
         questId,
         xp: quest.xp
       });
+
+      // Auto-share on TikTok
+      try {
+        await autoShareQuestComplete(quest, userData, currentLang);
+      } catch (shareError) {
+        console.error('Auto-share failed:', shareError);
+      }
     } catch (error) {
       console.error('Error completing quest:', error);
       toast.error(t('errors.complete_quest_failed') || 'Failed to complete quest');
@@ -406,6 +424,21 @@ const QuestDetail = () => {
                   <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
                 </div>
               )}
+            </div>
+
+            {/* Share Achievement */}
+            <div className="flex justify-center mb-6">
+              <ShareButton
+                shareType="QUEST_COMPLETE"
+                data={{
+                  quest: quest.title,
+                  xp: quest.xp,
+                  level: userData?.level || 'Novice'
+                }}
+                language={currentLang}
+                autoShare={true}
+                className="text-lg"
+              />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

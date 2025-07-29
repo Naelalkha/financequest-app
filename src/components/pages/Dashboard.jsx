@@ -12,6 +12,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import ProgressBar from '../common/ProgressBar';
 import { toast } from 'react-toastify';
 import { questTemplates, localizeQuest } from '../../data/questTemplates';
+import { getUserDailyChallenge, getDailyChallengeStats } from '../../services/dailyChallenge';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [recentQuests, setRecentQuests] = useState([]);
   const [recommendedQuests, setRecommendedQuests] = useState([]);
+  const [dailyChallenge, setDailyChallenge] = useState(null);
   const [loading, setLoading] = useState(true);
   const [streakAnimation, setStreakAnimation] = useState(false);
 
@@ -53,6 +55,9 @@ const Dashboard = () => {
       
       // Get recommended quests
       await fetchRecommendedQuests();
+      
+      // Get daily challenge
+      await fetchDailyChallenge();
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -125,6 +130,16 @@ const Dashboard = () => {
       setRecommendedQuests(localQuests);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
+    }
+  };
+
+  const fetchDailyChallenge = async () => {
+    try {
+      const challenge = await getUserDailyChallenge(user.uid);
+      setDailyChallenge(challenge);
+    } catch (error) {
+      console.error('Error fetching daily challenge:', error);
+      toast.error(t('errors.daily_challenge_failed') || 'Failed to load daily challenge');
     }
   };
 
@@ -228,22 +243,60 @@ const Dashboard = () => {
         <div className="mb-8 animate-fadeIn" style={{ animationDelay: '600ms' }}>
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                  <FaGem className="text-yellow-300" />
                   {t('dashboard.daily_challenge') || 'Daily Challenge'}
+                  {dailyChallenge?.status === 'completed' && (
+                    <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">
+                      ✓ Completed
+                    </span>
+                  )}
                 </h3>
-                <p className="text-purple-100 mb-4">
-                  {t('dashboard.daily_challenge_desc') || 'Complete today\'s special challenge and earn double XP!'}
-                </p>
-                <Link
-                  to="/quests"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 text-gray-900 rounded-lg font-bold hover:bg-yellow-300 transform hover:scale-105 transition-all duration-300"
-                >
-                  {t('dashboard.start_challenge') || 'Start Challenge'}
-                  <FaArrowRight />
-                </Link>
+                {dailyChallenge ? (
+                  <>
+                    <p className="text-purple-100 mb-2 font-medium">
+                      {dailyChallenge.questTitle}
+                    </p>
+                    <p className="text-purple-200 mb-4 text-sm">
+                      {dailyChallenge.requirements?.description}
+                    </p>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-yellow-300">
+                        <FaStar />
+                        <span className="font-bold">+{dailyChallenge.rewards?.xp} XP</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-orange-300">
+                        <FaFire />
+                        <span className="font-bold">+{dailyChallenge.rewards?.streak} Streak</span>
+                      </div>
+                    </div>
+                    {dailyChallenge.status === 'active' ? (
+                      <Link
+                        to={`/quests/${dailyChallenge.questId}`}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 text-gray-900 rounded-lg font-bold hover:bg-yellow-300 transform hover:scale-105 transition-all duration-300"
+                      >
+                        {t('dashboard.start_challenge') || 'Start Challenge'}
+                        <FaArrowRight />
+                      </Link>
+                    ) : (
+                      <div className="text-green-300 font-medium">
+                        ✓ Challenge completed today!
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-purple-100 mb-4">
+                      {t('dashboard.daily_challenge_desc') || 'Complete today\'s special challenge and earn double XP!'}
+                    </p>
+                    <div className="animate-pulse">
+                      <div className="h-10 bg-purple-500/20 rounded-lg"></div>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="hidden md:block">
+              <div className="hidden md:block ml-4">
                 <FaGem className="text-yellow-300 text-6xl opacity-20" />
               </div>
             </div>
