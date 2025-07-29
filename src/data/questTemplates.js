@@ -5,8 +5,7 @@ export const questTemplates = [
     category: 'budgeting',
     difficulty: 'beginner',
     duration: 15,
-    points: 100,
-    xp: 50,
+    xp: 100,
     isPremium: false,
     order: 1,
     
@@ -78,7 +77,7 @@ export const questTemplates = [
         correctAnswer: 1,
         explanation_en: 'A budget helps you plan and track your money, giving you control over your finances rather than restricting you.',
         explanation_fr: 'Un budget vous aide à planifier et suivre votre argent, vous donnant le contrôle sur vos finances plutôt que de vous restreindre.',
-        points: 10
+        xp: 10
       },
       {
         id: 'rule503020',
@@ -165,7 +164,7 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
             tips_fr: 'Cela montrera si vous avez un surplus ou un déficit'
           }
         ],
-        points: 20
+        xp: 20
       },
       {
         id: 'challenge',
@@ -189,7 +188,7 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
           'Identifiez un domaine où réduire les dépenses'
         ],
         submission_type: 'self_check',
-        points: 30
+        xp: 30
       },
       {
         id: 'quiz2',
@@ -207,7 +206,7 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
         correctAnswer: 1,
         explanation_en: '20% of $4,000 is $800, which should go towards savings and debt payments.',
         explanation_fr: '20% de 4 000€ est 800€, qui devrait aller vers l\'épargne et le remboursement des dettes.',
-        points: 10
+        xp: 10
       },
       {
         id: 'reflection',
@@ -217,7 +216,7 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
         prompt_en: 'What surprised you most about your spending patterns? How do you feel about making changes to your budget?',
         prompt_fr: 'Qu\'est-ce qui vous a le plus surpris dans vos habitudes de dépenses ? Comment vous sentez-vous à l\'idée de modifier votre budget ?',
         minLength: 50,
-        points: 10
+        xp: 10
       }
     ]
   },
@@ -228,8 +227,7 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
     category: 'saving',
     difficulty: 'beginner',
     duration: 20,
-    points: 150,
-    xp: 75,
+    xp: 150,
     isPremium: false,
     order: 2,
     
@@ -301,7 +299,7 @@ Sans fonds d'urgence, vous pourriez recourir aux cartes de crédit ou prêts, cr
         correctAnswer: 1,
         explanation_en: 'Most experts recommend 3-6 months of expenses. Start with 3 months as your initial goal.',
         explanation_fr: 'La plupart des experts recommandent 3-6 mois de dépenses. Commencez avec 3 mois comme objectif initial.',
-        points: 15
+        xp: 15
       },
       {
         id: 'calculate_goal',
@@ -319,7 +317,7 @@ Sans fonds d'urgence, vous pourriez recourir aux cartes de crédit ou prêts, cr
           { id: 'insurance', label_en: 'Insurance', label_fr: 'Assurance' },
           { id: 'debt', label_en: 'Minimum debt payments', label_fr: 'Paiements minimums de dettes' }
         ],
-        points: 25
+        xp: 25
       },
       {
         id: 'savings_strategies',
@@ -363,7 +361,7 @@ Sans fonds d'urgence, vous pourriez recourir aux cartes de crédit ou prêts, cr
             cons_fr: ['Progrès lent', 'Risque de perdre la motivation']
           }
         ],
-        points: 20
+        xp: 20
       },
       {
         id: 'where_to_save',
@@ -438,8 +436,7 @@ Meilleures options :
     category: 'investing',
     difficulty: 'intermediate',
     duration: 30,
-    points: 200,
-    xp: 100,
+    xp: 200,
     isPremium: true,
     order: 5,
     
@@ -490,8 +487,7 @@ Meilleures options :
     category: 'debt',
     difficulty: 'intermediate',
     duration: 25,
-    points: 175,
-    xp: 85,
+    xp: 175,
     isPremium: false,
     order: 3,
     

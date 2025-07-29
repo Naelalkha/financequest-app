@@ -74,9 +74,9 @@ export const formatDuration = (minutes, locale = 'en-US') => {
 };
 
 /**
- * Calculate level from points
+ * Calculate level from XP
  */
-export const calculateLevel = (points) => {
+export const calculateLevel = (xp) => {
   const levels = [
     { name: 'Novice', min: 0, max: 499, color: 'text-gray-400', bgColor: 'bg-gray-400' },
     { name: 'Apprentice', min: 500, max: 1499, color: 'text-green-400', bgColor: 'bg-green-400' },
@@ -87,18 +87,18 @@ export const calculateLevel = (points) => {
     { name: 'Legend', min: 20000, max: Infinity, color: 'text-red-400', bgColor: 'bg-red-400' }
   ];
   
-  const level = levels.find(l => points >= l.min && points <= l.max) || levels[0];
+  const level = levels.find(l => xp >= l.min && xp <= l.max) || levels[0];
   const nextLevel = levels[levels.indexOf(level) + 1];
   
   const progress = nextLevel 
-    ? ((points - level.min) / (nextLevel.min - level.min)) * 100
+    ? ((xp - level.min) / (nextLevel.min - level.min)) * 100
     : 100;
   
   return {
     ...level,
     current: levels.indexOf(level) + 1,
     progress: Math.min(progress, 100),
-    pointsToNext: nextLevel ? nextLevel.min - points : 0,
+    xpToNext: nextLevel ? nextLevel.min - xp : 0,
     nextLevel: nextLevel?.name || null
   };
 };
@@ -284,8 +284,8 @@ export const sortQuests = (quests, sortBy = 'order') => {
       );
     case 'duration':
       return sortedQuests.sort((a, b) => a.duration - b.duration);
-    case 'points':
-      return sortedQuests.sort((a, b) => b.points - a.points);
+    case 'xp':
+      return sortedQuests.sort((a, b) => b.xp - a.xp);
     case 'order':
     default:
       return sortedQuests.sort((a, b) => a.order - b.order);

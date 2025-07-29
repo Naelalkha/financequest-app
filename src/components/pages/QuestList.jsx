@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaLock, FaStar, FaClock, FaSearch, FaTrophy, 
-  FaCoins, FaFilter, FaTimes, FaCrown, FaFire
+  FaFilter, FaTimes, FaCrown, FaFire
 } from 'react-icons/fa';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
@@ -394,9 +394,9 @@ const QuestList = () => {
 
                   {/* Quest Status/Action */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-yellow-400 font-medium">
-                      <FaCoins />
-                      <span>+{quest.points} pts</span>
+                    <div className="flex items-center gap-2 text-blue-400 font-medium">
+                      <FaStar />
+                      <span>+{quest.xp} XP</span>
                     </div>
                     
                     <div className="text-sm font-medium">

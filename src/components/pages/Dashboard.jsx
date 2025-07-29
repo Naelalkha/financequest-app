@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  FaTrophy, FaFire, FaCoins, FaStar, FaChartLine, 
+  FaTrophy, FaFire, FaStar, FaChartLine, 
   FaLock, FaArrowRight, FaBolt, FaGem, FaBullseye, FaCrown
 } from 'react-icons/fa';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
@@ -174,10 +174,10 @@ const Dashboard = () => {
               <p className="text-3xl font-bold text-white">{userLevel}</p>
             </div>
 
-            {/* Total Points */}
+            {/* Total XP */}
             <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center animate-fadeIn" style={{ animationDelay: '200ms' }}>
-              <FaCoins className="text-3xl text-yellow-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">{t('dashboard.total_points') || 'Total Points'}</p>
+              <FaStar className="text-3xl text-blue-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">{t('dashboard.total_xp') || 'Total XP'}</p>
               <p className="text-3xl font-bold text-white">{userPoints}</p>
             </div>
 
@@ -207,7 +207,7 @@ const Dashboard = () => {
               {t('dashboard.level_progress') || 'Level Progress'}
             </h3>
             <p className="text-sm text-gray-400 mb-2">
-              {userPoints % 1000} / 1000 points
+              {userPoints % 1000} / 1000 XP
             </p>
             <ProgressBar 
               progress={levelProgress} 
@@ -216,7 +216,7 @@ const Dashboard = () => {
               animated={true}
             />
             <p className="text-xs text-gray-500 mt-2">
-              {nextLevelPoints} {t('ui.points')} {t('ui.until')} {t('dashboard.level')} {userLevel + 1}
+              {nextLevelPoints} {t('ui.xp')} {t('ui.until')} {t('dashboard.level')} {userLevel + 1}
             </p>
           </div>
         </div>
@@ -233,7 +233,7 @@ const Dashboard = () => {
                   {t('dashboard.daily_challenge') || 'Daily Challenge'}
                 </h3>
                 <p className="text-purple-100 mb-4">
-                  {t('dashboard.daily_challenge_desc') || 'Complete today\'s special challenge and earn double points!'}
+                  {t('dashboard.daily_challenge_desc') || 'Complete today\'s special challenge and earn double XP!'}
                 </p>
                 <Link
                   to="/quests"
@@ -334,7 +334,7 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-400 mb-3 line-clamp-2">{quest.description}</p>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-500">~{quest.duration || 15} min</span>
-                  <span className="text-yellow-400 font-medium">+{quest.points || 100} pts</span>
+                  <span className="text-blue-400 font-medium">+{quest.xp || 100} XP</span>
                 </div>
               </Link>
             ))}

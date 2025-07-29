@@ -1,6 +1,6 @@
 // Badge system for FinanceQuest gamification
 import { 
-    FaRocket, FaFire, FaBolt, FaTrophy, FaCoins, 
+    FaRocket, FaFire, FaBolt, FaTrophy, 
     FaChartLine, FaGem, FaPiggyBank, FaGraduationCap,
     FaMedal, FaStar, FaCrown, FaShieldAlt, FaAward,
     FaUserGraduate, FaLightbulb, FaHandHoldingUsd,
@@ -18,7 +18,7 @@ import {
       description_fr: 'Complétez votre première quête',
       icon: FaRocket,
       color: 'bg-green-500',
-      points: 50,
+      xp: 50,
       requirement: {
         type: 'quests_completed',
         value: 1
@@ -33,7 +33,7 @@ import {
       description_fr: 'Complétez votre profil',
       icon: FaUserGraduate,
       color: 'bg-blue-500',
-      points: 25,
+      xp: 25,
       requirement: {
         type: 'profile_complete',
         value: true
@@ -50,7 +50,7 @@ import {
       description_fr: 'Maintenez une série de 7 jours',
       icon: FaFire,
       color: 'bg-orange-500',
-      points: 100,
+      xp: 100,
       requirement: {
         type: 'streak',
         value: 7
@@ -65,7 +65,7 @@ import {
       description_fr: 'Maintenez une série de 30 jours',
       icon: FaBolt,
       color: 'bg-red-500',
-      points: 300,
+      xp: 300,
       requirement: {
         type: 'streak',
         value: 30
@@ -80,7 +80,7 @@ import {
       description_fr: 'Maintenez une série de 90 jours',
       icon: FaCrown,
       color: 'bg-purple-600',
-      points: 1000,
+      xp: 1000,
       requirement: {
         type: 'streak',
         value: 90
@@ -98,7 +98,7 @@ import {
       description_fr: 'Complétez 10 quêtes',
       icon: FaTrophy,
       color: 'bg-yellow-500',
-      points: 200,
+      xp: 200,
       requirement: {
         type: 'quests_completed',
         value: 10
@@ -113,7 +113,7 @@ import {
       description_fr: 'Complétez 50 quêtes',
       icon: FaMedal,
       color: 'bg-gold-500',
-      points: 500,
+      xp: 500,
       requirement: {
         type: 'quests_completed',
         value: 50
@@ -128,7 +128,7 @@ import {
       description_fr: 'Complétez 100 quêtes',
       icon: FaStar,
       color: 'bg-purple-700',
-      points: 1000,
+      xp: 1000,
       requirement: {
         type: 'quests_completed',
         value: 100
@@ -146,7 +146,7 @@ import {
       description_fr: 'Complétez toutes les quêtes de budget',
       icon: FaCalculator,
       color: 'bg-green-600',
-      points: 300,
+      xp: 300,
       requirement: {
         type: 'category_complete',
         value: 'budgeting'
@@ -161,7 +161,7 @@ import {
       description_fr: 'Complétez toutes les quêtes d\'épargne',
       icon: FaPiggyBank,
       color: 'bg-pink-500',
-      points: 300,
+      xp: 300,
       requirement: {
         type: 'category_complete',
         value: 'saving'
@@ -176,7 +176,7 @@ import {
       description_fr: 'Complétez toutes les quêtes d\'investissement',
       icon: FaChartLine,
       color: 'bg-purple-500',
-      points: 400,
+      xp: 400,
       requirement: {
         type: 'category_complete',
         value: 'investing'
@@ -191,56 +191,56 @@ import {
       description_fr: 'Complétez toutes les quêtes de gestion de dettes',
       icon: FaShieldAlt,
       color: 'bg-red-600',
-      points: 350,
+      xp: 350,
       requirement: {
         type: 'category_complete',
         value: 'debt'
       }
     },
   
-    // POINTS BADGES
+    // XP BADGES
     {
-      id: 'points_1000',
-      category: 'points',
+      id: 'xp_1000',
+      category: 'xp',
       name_en: 'Rising Star',
       name_fr: 'Étoile Montante',
-      description_en: 'Earn 1,000 points',
-      description_fr: 'Gagnez 1 000 points',
-      icon: FaCoins,
+      description_en: 'Earn 1,000 XP',
+      description_fr: 'Gagnez 1 000 XP',
+      icon: FaStar,
       color: 'bg-bronze-500',
-      points: 0, // No additional points for point badges
+      xp: 0, // No additional XP for XP badges
       requirement: {
-        type: 'points',
+        type: 'xp',
         value: 1000
       }
     },
     {
-      id: 'points_5000',
-      category: 'points',
+      id: 'xp_5000',
+      category: 'xp',
       name_en: 'High Achiever',
       name_fr: 'Haut Performeur',
-      description_en: 'Earn 5,000 points',
-      description_fr: 'Gagnez 5 000 points',
+      description_en: 'Earn 5,000 XP',
+      description_fr: 'Gagnez 5 000 XP',
       icon: FaGem,
       color: 'bg-silver-500',
-      points: 0,
+      xp: 0,
       requirement: {
-        type: 'points',
+        type: 'xp',
         value: 5000
       }
     },
     {
-      id: 'points_10000',
-      category: 'points',
+      id: 'xp_10000',
+      category: 'xp',
       name_en: 'Elite Member',
       name_fr: 'Membre Élite',
-      description_en: 'Earn 10,000 points',
-      description_fr: 'Gagnez 10 000 points',
+      description_en: 'Earn 10,000 XP',
+      description_fr: 'Gagnez 10 000 XP',
       icon: FaAward,
       color: 'bg-gold-600',
-      points: 0,
+      xp: 0,
       requirement: {
-        type: 'points',
+        type: 'xp',
         value: 10000
       },
       rare: true
@@ -256,7 +256,7 @@ import {
       description_fr: 'Complétez 5 quêtes avant 8h',
       icon: FaLightbulb,
       color: 'bg-yellow-400',
-      points: 150,
+      xp: 150,
       requirement: {
         type: 'special',
         value: 'early_bird'
@@ -271,7 +271,7 @@ import {
       description_fr: 'Complétez 5 quêtes après 22h',
       icon: FaMedal,
       color: 'bg-indigo-600',
-      points: 150,
+      xp: 150,
       requirement: {
         type: 'special',
         value: 'night_owl'
@@ -286,7 +286,7 @@ import {
       description_fr: 'Complétez 3 quêtes en un jour',
       icon: FaBolt,
       color: 'bg-red-500',
-      points: 200,
+      xp: 200,
       requirement: {
         type: 'special',
         value: 'speed_demon'
@@ -301,7 +301,7 @@ import {
       description_fr: 'Obtenez 100% sur 10 quiz',
       icon: FaStar,
       color: 'bg-purple-500',
-      points: 250,
+      xp: 250,
       requirement: {
         type: 'special',
         value: 'perfectionist'
@@ -318,7 +318,7 @@ import {
       description_fr: 'Devenez membre premium',
       icon: FaCrown,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      points: 100,
+      xp: 100,
       requirement: {
         type: 'premium',
         value: true
@@ -334,7 +334,7 @@ import {
       description_fr: '6 mois d\'abonnement premium',
       icon: FaAward,
       color: 'bg-gradient-to-r from-gold-500 to-yellow-500',
-      points: 500,
+      xp: 500,
       requirement: {
         type: 'premium_months',
         value: 6
@@ -390,8 +390,8 @@ import {
           earned = userStats.currentStreak >= badge.requirement.value || 
                    userStats.longestStreak >= badge.requirement.value;
           break;
-        case 'points':
-          earned = userStats.totalPoints >= badge.requirement.value;
+        case 'xp':
+          earned = userStats.totalXP >= badge.requirement.value;
           break;
         case 'profile_complete':
           earned = userStats.profileComplete === true;
@@ -443,8 +443,8 @@ import {
           current = Math.max(userStats.currentStreak || 0, userStats.longestStreak || 0);
           progress = (current / target) * 100;
           break;
-        case 'points':
-          current = userStats.totalPoints || 0;
+        case 'xp':
+          current = userStats.totalXP || 0;
           progress = (current / target) * 100;
           break;
         default:
@@ -468,14 +468,14 @@ import {
   };
   
   /**
-   * Calculate total points from badges
-   */
-  export const calculateBadgePoints = (badgeIds) => {
-    return badgeIds.reduce((total, badgeId) => {
-      const badge = badges.find(b => b.id === badgeId);
-      return total + (badge?.points || 0);
-    }, 0);
-  };
+ * Calculate total XP from badges
+ */
+export const calculateBadgeXP = (badgeIds) => {
+  return badgeIds.reduce((total, badgeId) => {
+    const badge = badges.find(b => b.id === badgeId);
+    return total + (badge?.xp || 0);
+  }, 0);
+};
   
   /**
    * Get badge statistics

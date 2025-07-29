@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCoins, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -188,12 +188,10 @@ const QuestDetail = () => {
       
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        const newPoints = (userData.points || 0) + quest.points;
-        const newXP = (userData.xp || 0) + (quest.xp || quest.points);
+            const newXP = (userData.xp || 0) + quest.xp;
         const completedQuests = (userData.completedQuests || 0) + 1;
         
         await updateDoc(userRef, {
-          points: newPoints,
           xp: newXP,
           completedQuests: completedQuests,
           lastActivityAt: new Date().toISOString()
@@ -207,7 +205,6 @@ const QuestDetail = () => {
       
       logQuestEvent('quest_complete', {
         questId,
-        points: quest.points,
         xp: quest.xp
       });
     } catch (error) {
@@ -306,10 +303,10 @@ const QuestDetail = () => {
             
             {/* Quest stats */}
             <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <div className="text-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                <FaCoins className="text-2xl text-yellow-400 mx-auto mb-1" />
-                <p className="text-sm font-semibold text-white">{quest.points}</p>
-                <p className="text-xs text-gray-400">{t('ui.points') || 'points'}</p>
+              <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <FaStar className="text-2xl text-blue-400 mx-auto mb-1" />
+                <p className="text-sm font-semibold text-white">{quest.xp}</p>
+                <p className="text-xs text-gray-400">{t('ui.xp') || 'XP'}</p>
               </div>
               <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                 <FaClock className="text-2xl text-blue-400 mx-auto mb-1" />
@@ -400,8 +397,8 @@ const QuestDetail = () => {
             
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
               <div className="bg-gray-700 rounded-lg px-6 py-3">
-                <p className="text-sm text-gray-400">{t('ui.points_earned') || 'Points Earned'}</p>
-                <p className="text-2xl font-bold text-yellow-400">+{quest.points}</p>
+                <p className="text-sm text-gray-400">{t('ui.xp_earned') || 'XP Earned'}</p>
+                <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
               </div>
               {quest.xp && (
                 <div className="bg-gray-700 rounded-lg px-6 py-3">

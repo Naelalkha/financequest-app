@@ -75,7 +75,7 @@ export const logQuestEvent = (action, questData = {}) => {
     quest_title: questData.questTitle,
     quest_category: questData.questCategory,
     quest_difficulty: questData.questDifficulty,
-    quest_points: questData.questPoints,
+    quest_xp: questData.questXP,
     ...questData
   });
 };
@@ -98,12 +98,12 @@ export const logPremiumEvent = (action, data = {}) => {
 /**
  * Log level up event
  * @param {number} newLevel - New user level
- * @param {number} totalPoints - Total points earned
+ * @param {number} totalXP - Total XP earned
  */
-export const logLevelUpEvent = (newLevel, totalPoints) => {
+export const logLevelUpEvent = (newLevel, totalXP) => {
   logAnalyticsEvent('level_up', {
     new_level: newLevel,
-    total_points: totalPoints
+    total_xp: totalXP
   });
 };
 
@@ -202,7 +202,7 @@ export const initializeAnalytics = (user) => {
   setAnalyticsUserProperties({
     account_type: user.isPremium ? 'premium' : 'free',
     user_level: user.level || 'Novice',
-    total_points: user.points || 0,
+    total_xp: user.xp || 0,
     completed_quests: user.completedQuests || 0,
     preferred_language: user.language || 'en',
     signup_date: user.createdAt || new Date().toISOString()

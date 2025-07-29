@@ -148,8 +148,8 @@ export const SHARE_TEMPLATES = {
     fr: "Je viens de terminer '{{quest}}' sur FinanceQuest ! 🎯 Rejoignez-moi pour maîtriser les finances personnelles ! #FinanceQuest #FinancesPersonnelles"
   },
   LEVEL_UP: {
-    en: "I just reached {{level}} level on FinanceQuest! 🚀 {{points}} points and counting! #FinanceQuest #LevelUp",
-    fr: "Je viens d'atteindre le niveau {{level}} sur FinanceQuest ! 🚀 {{points}} points et ça continue ! #FinanceQuest #NiveauSupérieur"
+    en: "I just reached {{level}} level on FinanceQuest! 🚀 {{xp}} XP and counting! #FinanceQuest #LevelUp",
+    fr: "Je viens d'atteindre le niveau {{level}} sur FinanceQuest ! 🚀 {{xp}} XP et ça continue ! #FinanceQuest #NiveauSupérieur"
   },
   BADGE_EARNED: {
     en: "New badge unlocked: {{badge}} on FinanceQuest! 🏆 #FinanceQuest #Achievement",
