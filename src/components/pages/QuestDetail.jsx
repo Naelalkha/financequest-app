@@ -3,12 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
+// Import par défaut au lieu d'import nommé
 import AchievementShareButton from '../common/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getQuestById } from '../../data/questTemplates';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logQuestEvent } from '../../utils/analytics';
 import ProgressBar from '../common/ProgressBar';
@@ -30,6 +31,7 @@ const QuestDetail = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [questCompleted, setQuestCompleted] = useState(false);
   const [animatingProgress, setAnimatingProgress] = useState(false);
+  const [finalScore, setFinalScore] = useState(null);
 
   // Load quest data
   useEffect(() => {
@@ -86,6 +88,9 @@ const QuestDetail = () => {
         setCurrentStep(progress.currentStep || 0);
         setStepAnswers(progress.stepAnswers || {});
         setQuestCompleted(progress.status === 'completed');
+        if (progress.finalScore !== undefined) {
+          setFinalScore(progress.finalScore);
+        }
       } else {
         // Create initial progress
         const initialProgress = {
@@ -123,6 +128,31 @@ const QuestDetail = () => {
     }
   };
 
+  // Calculer le score basé sur les réponses
+  const calculateScore = () => {
+    if (!quest.steps || quest.steps.length === 0) return 100;
+    
+    let correctAnswers = 0;
+    let totalQuestions = 0;
+    
+    quest.steps.forEach((step, index) => {
+      // Only count steps that have correct/incorrect answers (quiz, multiple_choice)
+      if (step.type === 'quiz' || step.type === 'multiple_choice') {
+        totalQuestions++;
+        const stepData = stepAnswers[index];
+        if (stepData && stepData.correct) {
+          correctAnswers++;
+        }
+      }
+    });
+    
+    // Si aucune question scorable, retourner 100
+    if (totalQuestions === 0) return 100;
+    
+    // Calculer le pourcentage
+    return Math.round((correctAnswers / totalQuestions) * 100);
+  };
+
   const handleStepComplete = async (stepData) => {
     try {
       setAnimatingProgress(true);
@@ -136,17 +166,19 @@ const QuestDetail = () => {
       const newProgress = ((currentStep + 1) / quest.steps.length) * 100;
       
       // Update Firebase
-      const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
-      await updateDoc(progressRef, {
-        currentStep: currentStep + 1,
-        progress: newProgress,
-        stepAnswers: newStepAnswers,
-        lastUpdated: new Date().toISOString()
-      });
+      if (user) {
+        const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
+        await updateDoc(progressRef, {
+          currentStep: currentStep + 1,
+          progress: newProgress,
+          stepAnswers: newStepAnswers,
+          lastUpdated: new Date().toISOString()
+        });
+      }
 
       // Check if quest is complete
       if (currentStep + 1 >= quest.steps.length) {
-        setTimeout(() => completeQuest(), 500);
+        setTimeout(() => completeQuest(newStepAnswers), 500);
       } else {
         // Move to next step
         setTimeout(() => {
@@ -171,41 +203,48 @@ const QuestDetail = () => {
     }
   };
 
-  const completeQuest = async () => {
+  const completeQuest = async (allStepAnswers) => {
     try {
+      // Calculer le score final avec toutes les réponses
+      const score = calculateScoreFromAnswers(allStepAnswers);
+      setFinalScore(score);
+      
       setShowConfetti(true);
       setQuestCompleted(true);
       
-      // Update quest status
-      const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
-      await updateDoc(progressRef, {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        progress: 100
-      });
-
-      // Update user stats
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-            const newXP = (userData.xp || 0) + quest.xp;
-        const completedQuests = (userData.completedQuests || 0) + 1;
-        
-        // Update user data with streak protection
-        const streakUpdate = await updateStreakWithProtection(
-          user.uid, 
-          (userData.currentStreak || 0) + 1, 
-          'quest_completion'
-        );
-        
-        await updateDoc(userRef, {
-          xp: newXP,
-          completedQuests: completedQuests,
-          lastActivityAt: new Date().toISOString(),
-          ...(streakUpdate.success && { currentStreak: streakUpdate.appliedValue })
+      if (user) {
+        // Update quest status
+        const progressRef = doc(db, 'userQuests', `${user.uid}_${questId}`);
+        await updateDoc(progressRef, {
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+          progress: 100,
+          finalScore: score
         });
+
+        // Update user stats
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const newXP = (userData.xp || 0) + quest.xp;
+          const completedQuests = (userData.completedQuests || 0) + 1;
+          
+          // Update user data with streak protection
+          const streakUpdate = await updateStreakWithProtection(
+            user.uid, 
+            (userData.currentStreak || 0) + 1, 
+            'quest_completion'
+          );
+          
+          await updateDoc(userRef, {
+            xp: newXP,
+            completedQuests: completedQuests,
+            lastActivityAt: new Date().toISOString(),
+            ...(streakUpdate.success && { currentStreak: streakUpdate.appliedValue })
+          });
+        }
       }
       
       toast.success(
@@ -215,14 +254,35 @@ const QuestDetail = () => {
       
       logQuestEvent('quest_complete', {
         questId,
-        xp: quest.xp
+        xp: quest.xp,
+        score
       });
 
-      // Auto-share removed - now handled by AchievementShareButton
     } catch (error) {
       console.error('Error completing quest:', error);
       toast.error(t('errors.complete_quest_failed') || 'Failed to complete quest');
     }
+  };
+
+  // Fonction helper pour calculer le score à partir des réponses
+  const calculateScoreFromAnswers = (answers) => {
+    if (!quest.steps || quest.steps.length === 0) return 100;
+    
+    let correctAnswers = 0;
+    let totalQuestions = 0;
+    
+    quest.steps.forEach((step, index) => {
+      if (step.type === 'quiz' || step.type === 'multiple_choice') {
+        totalQuestions++;
+        const stepData = answers[index];
+        if (stepData && stepData.correct) {
+          correctAnswers++;
+        }
+      }
+    });
+    
+    if (totalQuestions === 0) return 100;
+    return Math.round((correctAnswers / totalQuestions) * 100);
   };
 
   // Check premium access
@@ -266,38 +326,6 @@ const QuestDetail = () => {
     ? (currentStep / quest.steps.length) * 100 
     : 0;
   const currentStepData = quest.steps[currentStep] || {};
-
-  // Calculer le score basé sur les réponses correctes
-  const calculateScore = () => {
-    if (!quest.steps || quest.steps.length === 0) return 100;
-    
-    let correctAnswers = 0;
-    let completedSteps = 0;
-    const totalSteps = quest.steps.length;
-    
-    quest.steps.forEach((step, index) => {
-      const stepData = stepAnswers[index];
-      if (stepData) {
-        completedSteps++;
-        if (stepData.correct) {
-          correctAnswers++;
-        }
-      }
-    });
-    
-    // Si aucune étape n'est complétée, retourner un score par défaut
-    if (completedSteps === 0) return 85; // Score par défaut pour quête terminée
-    
-    // Si toutes les étapes sont complétées, calculer le score réel
-    if (completedSteps === totalSteps) {
-      return Math.round((correctAnswers / totalSteps) * 100);
-    }
-    
-    // Si la quête est terminée mais pas toutes les étapes, estimer le score
-    // en supposant que les étapes manquantes seraient correctes
-    const estimatedCorrect = correctAnswers + (totalSteps - completedSteps);
-    return Math.round((estimatedCorrect / totalSteps) * 100);
-  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -444,6 +472,12 @@ const QuestDetail = () => {
                 <p className="text-sm text-gray-400">{t('ui.xp_earned') || 'XP Earned'}</p>
                 <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
               </div>
+              {finalScore !== null && (
+                <div className="bg-gray-700 rounded-lg px-6 py-3">
+                  <p className="text-sm text-gray-400">{t('ui.score') || 'Score'}</p>
+                  <p className="text-2xl font-bold text-green-400">{finalScore}%</p>
+                </div>
+              )}
             </div>
 
             {/* Single CTA: Share Achievement */}
@@ -451,13 +485,21 @@ const QuestDetail = () => {
               {user && (
                 <AchievementShareButton
                   quest={quest}
-                  userData={user}
-                  score={questCompleted ? calculateScore() : 100} // Score 100 si quête terminée, sinon calculé
+                  userData={{
+                    ...user,
+                    level: user.level || 'Novice',
+                    streak: userProgress?.currentStreak || 0,
+                    completedQuests: user.completedQuests || 0
+                  }}
+                  score={finalScore || calculateScore()}
                   language={currentLang}
                   className="text-lg"
                   showBonus={true}
                   onShareComplete={(result) => {
                     console.log('Achievement shared:', result);
+                    if (result.success) {
+                      // Optionally update UI or stats after share
+                    }
                   }}
                 />
               )}
@@ -511,38 +553,38 @@ const StepRenderer = ({ step, onComplete, previousAnswer, t, currentLang }) => {
     // Handle both string and localized answer formats
     let correctAnswer = step.correctAnswer;
     
-    // If correctAnswer is localized (e.g., for multiple_choice)
+    // If correctAnswer is localized
     if (step.correctAnswer_en || step.correctAnswer_fr) {
       const lang = currentLang || 'en';
       correctAnswer = step[`correctAnswer_${lang}`] || step.correctAnswer_en || step.correctAnswer;
     }
     
     // Convert to string and compare
-    const isCorrect = answer.toLowerCase() === String(correctAnswer).toLowerCase();
-    setIsCorrect(isCorrect);
+    const isAnswerCorrect = answer.toLowerCase() === String(correctAnswer).toLowerCase();
+    setIsCorrect(isAnswerCorrect);
     setShowFeedback(true);
     
     setTimeout(() => {
-      onComplete({ answer, correct: isCorrect });
-    }, isCorrect ? 1500 : 2500);
+      onComplete({ answer, correct: isAnswerCorrect });
+    }, isAnswerCorrect ? 1500 : 2500);
   };
 
   const handleMultipleChoiceSubmit = () => {
     // correctAnswer is an index (0, 1, 2, etc.)
-    const isCorrect = answer === step.correctAnswer;
-    setIsCorrect(isCorrect);
+    const isAnswerCorrect = answer === step.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
     setShowFeedback(true);
     
     setTimeout(() => {
-      onComplete({ answer, correct: isCorrect });
-    }, isCorrect ? 1500 : 2500);
+      onComplete({ answer, correct: isAnswerCorrect });
+    }, isAnswerCorrect ? 1500 : 2500);
   };
 
   const handleChecklistComplete = () => {
     const tasks = step.tasks || step.items || [];
     const allChecked = selectedOptions.length === tasks.length;
     if (allChecked) {
-      onComplete({ selectedOptions, completed: true });
+      onComplete({ selectedOptions, completed: true, correct: true });
     } else {
       toast.warning(t('quest_detail.complete_tasks_first') || 'Please complete all tasks first');
     }
