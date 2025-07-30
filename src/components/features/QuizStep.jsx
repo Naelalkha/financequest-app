@@ -17,7 +17,20 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
   const [hintUsed, setHintUsed] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
   const [animateResult, setAnimateResult] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
+
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Reset state when step changes
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setTextAnswer('');
+    setShowFeedback(false);
+    setIsCorrect(false);
+    setShowHint(false);
+    setHintUsed(false);
+    setHasSubmitted(false);
+    setTimeSpent(0);
+  }, [step]);
 
   // Déterminer si c'est un quiz à choix multiples ou texte
   const isMultipleChoice = step.isMultipleChoice || (step.options && Array.isArray(step.options));
@@ -51,12 +64,12 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
   const options = getOptions();
 
   const handleAnswerSelect = (index) => {
-    if (showFeedback) return;
+    if (showFeedback || hasSubmitted) return;
     setSelectedAnswer(index);
   };
 
   const handleTextChange = (e) => {
-    if (showFeedback) return;
+    if (showFeedback || hasSubmitted) return;
     setTextAnswer(e.target.value);
   };
 
@@ -78,10 +91,18 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
       );
     }
     
+    // Si on a acceptableAnswers (autre format possible)
+    if (step.acceptableAnswers && Array.isArray(step.acceptableAnswers)) {
+      return step.acceptableAnswers.some(answer => 
+        userAnswer === answer.toString().toLowerCase().trim()
+      );
+    }
+    
     return false;
   };
 
   const handleSubmit = () => {
+    if (hasSubmitted) return;
     if (isMultipleChoice && selectedAnswer === null) return;
     if (isTextQuiz && !textAnswer.trim()) return;
 
@@ -94,24 +115,23 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
 
     setIsCorrect(correct);
     setShowFeedback(true);
+    setHasSubmitted(true);
     setAnimateResult(true);
 
     // Animation de feedback
     setTimeout(() => {
       setAnimateResult(false);
     }, 600);
+  };
 
-    // Auto-progression après délai
-    const delay = correct ? 2000 : 3500;
-    setTimeout(() => {
-      onComplete({
-        answer: isMultipleChoice ? selectedAnswer : textAnswer,
-        correct,
-        hintUsed,
-        timeSpent,
-        showedExplanation: !correct || showExplanation
-      });
-    }, delay);
+  const handleContinue = () => {
+    onComplete({
+      answer: isMultipleChoice ? selectedAnswer : textAnswer,
+      correct: isCorrect,
+      hintUsed,
+      timeSpent,
+      showedExplanation: !isCorrect
+    });
   };
 
   const handleShowHint = () => {
@@ -127,7 +147,8 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
     }
     setShowFeedback(false);
     setIsCorrect(false);
-    setShowExplanation(false);
+
+    setHasSubmitted(false);
   };
 
   const getDifficultyStars = () => {
@@ -243,7 +264,7 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
             type="text"
             value={textAnswer}
             onChange={handleTextChange}
-            onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+            onKeyPress={(e) => e.key === 'Enter' && !hasSubmitted && handleSubmit()}
             disabled={showFeedback}
             placeholder={step.placeholder || t('quiz.enter_answer') || 'Enter your answer...'}
             className={`
@@ -255,6 +276,7 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
                   : 'border-red-500 bg-red-500/10'
                 : 'border-gray-600 focus:border-yellow-500'
               }
+              ${hasSubmitted ? 'cursor-not-allowed' : ''}
             `}
           />
           {step.inputHelp && (
@@ -288,12 +310,12 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(index)}
-                disabled={showFeedback}
+                disabled={showFeedback || hasSubmitted}
                 className={`
                   w-full p-4 rounded-xl transition-all duration-300 group
                   ${optionClass}
-                  ${!showFeedback && 'hover:transform hover:scale-[1.02] cursor-pointer'}
-                  ${showFeedback && 'cursor-default'}
+                  ${!showFeedback && !hasSubmitted && 'hover:transform hover:scale-[1.02] cursor-pointer'}
+                  ${(showFeedback || hasSubmitted) && 'cursor-default'}
                   ${animateResult && isSelected && !isCorrect && 'animate-shake'}
                   ${animateResult && isCorrectAnswer && 'animate-pulse'}
                 `}
@@ -355,34 +377,22 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
                   : t('quiz.incorrect_title') || 'Not quite right'}
               </h4>
               
-              {/* Explanation */}
-              {(step.explanation || step.feedback) && (
-                <div className="mt-3">
-                  {!showExplanation && !isCorrect ? (
-                    <button
-                      onClick={() => setShowExplanation(true)}
-                      className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                    >
-                      <FaGraduationCap />
-                      {t('quiz.show_explanation') || 'Learn why'}
-                    </button>
-                  ) : (
-                    <div className="space-y-2 animate-fadeIn">
-                      <p className="text-gray-300 leading-relaxed">
-                        {step.explanation || step.feedback}
+              {/* Explanation - Always show for incorrect answers */}
+              {(step.explanation || step.feedback) && !isCorrect && (
+                <div className="mt-3 space-y-2 animate-fadeIn">
+                  <p className="text-gray-300 leading-relaxed">
+                    {step.explanation || step.feedback}
+                  </p>
+                  
+                  {/* Fun fact ou conseil supplémentaire */}
+                  {step.funFact && (
+                    <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                      <p className="text-sm text-purple-400 flex items-start gap-2">
+                        <FaAward className="mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{t('quiz.fun_fact') || 'Fun fact:'}</strong> {step.funFact}
+                        </span>
                       </p>
-                      
-                      {/* Fun fact ou conseil supplémentaire */}
-                      {step.funFact && (
-                        <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                          <p className="text-sm text-purple-400 flex items-start gap-2">
-                            <FaAward className="mt-0.5 flex-shrink-0" />
-                            <span>
-                              <strong>{t('quiz.fun_fact') || 'Fun fact:'}</strong> {step.funFact}
-                            </span>
-                          </p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -417,9 +427,9 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
         </div>
       )}
 
-      {/* Submit Button */}
-      {!showFeedback && (
-        <div className="flex justify-end">
+      {/* Submit/Continue Buttons */}
+      <div className="flex justify-end">
+        {!showFeedback && !hasSubmitted ? (
           <button
             onClick={handleSubmit}
             disabled={isMultipleChoice ? selectedAnswer === null : !textAnswer.trim()}
@@ -435,8 +445,16 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
             {t('quiz.submit_answer') || 'Submit Answer'}
             <FaChevronRight />
           </button>
-        </div>
-      )}
+        ) : showFeedback ? (
+          <button
+            onClick={handleContinue}
+            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center gap-2"
+          >
+            {t('ui.continue') || 'Continue'}
+            <FaChevronRight />
+          </button>
+        ) : null}
+      </div>
 
       {/* Progress indication */}
       {step.totalQuestions && (

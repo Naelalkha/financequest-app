@@ -7,10 +7,36 @@ const ChecklistStep = ({ step, onComplete, language }) => {
   const [checkedItems, setCheckedItems] = useState({});
   const [showTips, setShowTips] = useState({});
 
-  const tasks = step.tasks || [];
+  // Gérer différents formats de tâches
+  let tasks = step.tasks || [];
+  if (tasks.length === 0 && step.items_en) {
+    // Format items_en/items_fr
+    const items = step[`items_${language}`] || step.items_en || [];
+    tasks = items.map((item, index) => ({
+      id: index,
+      text: item,
+      en: item,
+      fr: item
+    }));
+  }
+  
   const requiredCount = step.requiredCount || tasks.length;
   const checkedCount = Object.values(checkedItems).filter(Boolean).length;
   const isComplete = checkedCount >= requiredCount;
+
+  // Si pas de tâches, compléter automatiquement
+  if (tasks.length === 0) {
+    // Compléter automatiquement après un court délai
+    setTimeout(() => {
+      onComplete({
+        type: 'checklist',
+        checkedItems: {},
+        completedCount: 0,
+        timestamp: new Date()
+      });
+    }, 100);
+    return null; // Ne rien afficher
+  }
 
   const handleToggle = (index) => {
     setCheckedItems(prev => ({

@@ -35,6 +35,11 @@ const QuestDetail = () => {
   const [finalScore, setFinalScore] = useState(null);
   const [answer, setAnswer] = useState('');
 
+  // Calculer le nombre total de questions
+  const totalQuestions = quest?.steps?.filter(step => 
+    step.type === 'quiz' || step.type === 'multiple_choice' || step.isMultipleChoice
+  ).length || 0;
+
   // Load quest data
   useEffect(() => {
     const loadQuest = async () => {
@@ -139,7 +144,7 @@ const QuestDetail = () => {
     
     quest.steps.forEach((step, index) => {
       // Only count steps that have correct/incorrect answers (quiz, multiple_choice)
-      if (step.type === 'quiz' || step.type === 'multiple_choice') {
+      if (step.type === 'quiz' || step.type === 'multiple_choice' || step.isMultipleChoice) {
         totalQuestions++;
         const stepData = stepAnswers[index];
         if (stepData && stepData.correct) {
@@ -180,17 +185,20 @@ const QuestDetail = () => {
 
       // Check if quest is complete
       if (currentStep + 1 >= quest.steps.length) {
-        setTimeout(() => completeQuest(newStepAnswers), 500);
+        // Délai pour permettre à l'utilisateur de voir le résultat final
+        setTimeout(() => completeQuest(newStepAnswers), 1500);
       } else {
-        // Move to next step
+        // Move to next step après un court délai
         setTimeout(() => {
           setCurrentStep(currentStep + 1);
           setAnimatingProgress(false);
+          // Reset answer pour reflection steps
+          setAnswer('');
           toast.success(
             t('quest_detail.step_completed') || 'Step completed!',
             { icon: '✨' }
           );
-        }, 500);
+        }, 300);
       }
       
       logQuestEvent('step_complete', {
@@ -274,7 +282,7 @@ const QuestDetail = () => {
     let totalQuestions = 0;
     
     quest.steps.forEach((step, index) => {
-      if (step.type === 'quiz' || step.type === 'multiple_choice') {
+      if (step.type === 'quiz' || step.type === 'multiple_choice' || step.isMultipleChoice) {
         totalQuestions++;
         const stepData = answers[index];
         if (stepData && stepData.correct) {
@@ -353,19 +361,8 @@ const QuestDetail = () => {
         );
 
       case 'quiz':
-        // Quiz avec réponse textuelle
-        return (
-          <QuizStep 
-            step={currentStepData}
-            onComplete={handleStepComplete}
-            questProgress={{
-              correctStreak: userProgress?.correctStreak || 0
-            }}
-          />
-        );
-
       case 'multiple_choice':
-        // Quiz à choix multiples
+        // Utiliser le même composant QuizStep pour les deux types
         return (
           <QuizStep 
             step={currentStepData}
@@ -381,6 +378,7 @@ const QuestDetail = () => {
           <ChecklistStep
             step={currentStepData}
             onComplete={handleStepComplete}
+            language={currentLang}
           />
         );
 
@@ -460,6 +458,12 @@ const QuestDetail = () => {
         return (
           <div className="text-center py-8">
             <p className="text-gray-400">Unknown step type: {currentStepData.type}</p>
+            <button
+              onClick={() => handleStepComplete({ completed: true })}
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300"
+            >
+              {t('ui.continue') || 'Continue'}
+            </button>
           </div>
         );
     }
@@ -556,7 +560,7 @@ const QuestDetail = () => {
                     {userProgress.currentStreak} {t('ui.day_streak') || 'day streak'}
                   </span>
                 )}
-                {currentScore !== null && (
+                {currentScore !== null && totalQuestions > 0 && (
                   <span className="flex items-center gap-1">
                     <FaStar className="text-yellow-400" />
                     {currentScore}% {t('ui.score') || 'Score'}
@@ -576,7 +580,7 @@ const QuestDetail = () => {
                   {currentStepData.title || t('quest_detail.step_title', { step: currentStep + 1 }) || `Step ${currentStep + 1}`}
                 </h2>
                 <span className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-full">
-                  {currentStepData.type === 'multiple_choice' ? t('quiz.multiple_choice') || 'Multiple Choice' :
+                  {currentStepData.type === 'multiple_choice' || currentStepData.isMultipleChoice ? t('quiz.multiple_choice') || 'Multiple Choice' :
                    currentStepData.type === 'quiz' ? t('quiz.question') || 'Question' :
                    currentStepData.type ? currentStepData.type.charAt(0).toUpperCase() + currentStepData.type.slice(1) : 'Quiz'}
                 </span>
@@ -612,7 +616,7 @@ const QuestDetail = () => {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
               <div className="bg-gray-700 rounded-lg px-6 py-3">
                 <p className="text-sm text-gray-400">{t('ui.xp_earned') || 'XP Earned'}</p>
-                <p className="text-2xl font-bold text-blue-400">+{quest.xp}</p>
+                <p className="text-2xl font-bold text-blue-400">+{quest?.xp || 0}</p>
               </div>
               {finalScore !== null && (
                 <div className="bg-gray-700 rounded-lg px-6 py-3">
@@ -624,7 +628,7 @@ const QuestDetail = () => {
 
             {/* Single CTA: Share Achievement */}
             <div className="flex flex-col items-center gap-4 mb-6">
-              {user && (
+              {user && quest && (
                 <AchievementShareButton
                   quest={quest}
                   userData={{
@@ -657,7 +661,7 @@ const QuestDetail = () => {
         )}
 
         {/* Step indicators */}
-        {!questCompleted && quest.steps && quest.steps.length > 1 && (
+        {!questCompleted && quest?.steps && quest.steps.length > 1 && (
           <div className="mt-6 flex justify-center items-center gap-2">
             {quest.steps.map((_, index) => (
               <div
@@ -683,7 +687,5 @@ const QuestDetail = () => {
     </div>
   );
 };
-
-
 
 export default QuestDetail;
