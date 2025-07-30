@@ -51,32 +51,32 @@ export const questTemplates = [
       },
       {
         id: 'quiz1',
-        type: 'quiz',
+        type: 'multiple_choice',
         title_en: 'Understanding Budgets',
         title_fr: 'Comprendre les Budgets',
         question_en: 'What is the main purpose of a budget?',
         question_fr: 'Quel est le but principal d\'un budget ?',
-        options: [
-          {
-            en: 'To restrict your spending completely',
-            fr: 'Pour restreindre complètement vos dépenses'
-          },
-          {
-            en: 'To plan and track income and expenses',
-            fr: 'Pour planifier et suivre les revenus et dépenses'
-          },
-          {
-            en: 'To make you feel bad about spending',
-            fr: 'Pour vous faire sentir mal de dépenser'
-          },
-          {
-            en: 'To impress others with your finances',
-            fr: 'Pour impressionner les autres avec vos finances'
-          }
+        options_en: [
+          'To restrict your spending completely',
+          'To plan and track income and expenses',
+          'To make you feel bad about spending',
+          'To impress others with your finances'
+        ],
+        options_fr: [
+          'Pour restreindre complètement vos dépenses',
+          'Pour planifier et suivre les revenus et dépenses',
+          'Pour vous faire sentir mal de dépenser',
+          'Pour impressionner les autres avec vos finances'
         ],
         correctAnswer: 1,
         explanation_en: 'A budget helps you plan and track your money, giving you control over your finances rather than restricting you.',
         explanation_fr: 'Un budget vous aide à planifier et suivre votre argent, vous donnant le contrôle sur vos finances plutôt que de vous restreindre.',
+        hint_en: 'Think about what would be most helpful for managing money',
+        hint_fr: 'Pensez à ce qui serait le plus utile pour gérer l\'argent',
+        difficulty: 'easy',
+        points: 10,
+        funFact_en: 'Did you know? People who budget save 20% more on average than those who don\'t!',
+        funFact_fr: 'Le saviez-vous ? Les gens qui budgétisent économisent 20% de plus en moyenne que ceux qui ne le font pas !',
         xp: 10
       },
       {
@@ -85,7 +85,7 @@ export const questTemplates = [
         title_en: 'The 50/30/20 Rule',
         title_fr: 'La Règle 50/30/20',
         content_en: `This simple rule divides your after-tax income into three categories:
-        
+
 • **50% for Needs**: Essential expenses like rent, utilities, groceries
 • **30% for Wants**: Entertainment, dining out, hobbies
 • **20% for Savings & Debt**: Emergency fund, debt payments, investments
@@ -95,7 +95,7 @@ Example: If you earn $3,000/month after taxes:
 - $900 for wants  
 - $600 for savings & debt`,
         content_fr: `Cette règle simple divise vos revenus après impôts en trois catégories :
-        
+
 • **50% pour les Besoins** : Dépenses essentielles comme loyer, services, alimentation
 • **30% pour les Envies** : Divertissement, restaurants, loisirs
 • **20% pour l'Épargne & Dettes** : Fonds d'urgence, remboursements, investissements
@@ -107,18 +107,16 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
         interactive: true
       },
       {
-        id: 'calculator',
-        type: 'interactive',
-        title_en: 'Calculate Your 50/30/20 Budget',
-        title_fr: 'Calculez Votre Budget 50/30/20',
-        component: 'BudgetCalculator',
-        instruction_en: 'Enter your monthly after-tax income to see your budget breakdown:',
-        instruction_fr: 'Entrez vos revenus mensuels après impôts pour voir votre répartition budgétaire :',
-        validation: {
-          type: 'calculation',
-          minValue: 0,
-          maxValue: 100000
-        }
+        id: 'budget_calculator_challenge',
+        type: 'interactive_challenge',
+        challengeType: 'budget_calculator',
+        title_en: 'Create Your 50/30/20 Budget',
+        title_fr: 'Créez Votre Budget 50/30/20',
+        instruction_en: 'Use our interactive calculator to create a balanced budget following the 50/30/20 rule',
+        instruction_fr: 'Utilisez notre calculateur interactif pour créer un budget équilibré selon la règle 50/30/20',
+        description_en: 'Enter your monthly income and allocate it according to the 50/30/20 rule. The calculator will help you balance your budget.',
+        description_fr: 'Entrez vos revenus mensuels et répartissez-les selon la règle 50/30/20. Le calculateur vous aidera à équilibrer votre budget.',
+        xp: 25
       },
       {
         id: 'checklist',
@@ -167,56 +165,34 @@ Exemple : Si vous gagnez 3 000€/mois après impôts :
         xp: 20
       },
       {
-        id: 'challenge',
-        type: 'challenge',
-        title_en: 'Create Your First Budget',
-        title_fr: 'Créez Votre Premier Budget',
-        description_en: 'Using what you\'ve learned, create a simple budget for next month.',
-        description_fr: 'En utilisant ce que vous avez appris, créez un budget simple pour le mois prochain.',
-        tasks_en: [
-          'Calculate your expected income',
-          'List all your expected expenses',
-          'Categorize them into needs/wants/savings',
-          'Apply the 50/30/20 rule',
-          'Identify one area where you can reduce spending'
-        ],
-        tasks_fr: [
-          'Calculez vos revenus prévus',
-          'Listez toutes vos dépenses prévues',
-          'Catégorisez-les en besoins/envies/épargne',
-          'Appliquez la règle 50/30/20',
-          'Identifiez un domaine où réduire les dépenses'
-        ],
-        submission_type: 'self_check',
-        xp: 30
-      },
-      {
         id: 'quiz2',
         type: 'quiz',
         title_en: 'Budget Check',
         title_fr: 'Vérification Budget',
         question_en: 'If your monthly income is $4,000, how much should go to savings according to the 50/30/20 rule?',
         question_fr: 'Si vos revenus mensuels sont de 4 000€, combien devrait aller à l\'épargne selon la règle 50/30/20 ?',
-        options: [
-          { en: '$400', fr: '400€' },
-          { en: '$800', fr: '800€' },
-          { en: '$1,200', fr: '1 200€' },
-          { en: '$2,000', fr: '2 000€' }
-        ],
-        correctAnswer: 1,
+        correctAnswer: '800',
+        acceptedAnswers: ['800', '$800', '800€', '800 €'],
         explanation_en: '20% of $4,000 is $800, which should go towards savings and debt payments.',
         explanation_fr: '20% de 4 000€ est 800€, qui devrait aller vers l\'épargne et le remboursement des dettes.',
+        hint_en: 'Calculate 20% of 4,000',
+        hint_fr: 'Calculez 20% de 4 000',
+        difficulty: 'medium',
+        points: 10,
+        allowRetry: true,
         xp: 10
       },
       {
-        id: 'reflection',
-        type: 'reflection',
-        title_en: 'Budget Reflection',
-        title_fr: 'Réflexion sur le Budget',
-        prompt_en: 'What surprised you most about your spending patterns? How do you feel about making changes to your budget?',
-        prompt_fr: 'Qu\'est-ce qui vous a le plus surpris dans vos habitudes de dépenses ? Comment vous sentez-vous à l\'idée de modifier votre budget ?',
-        minLength: 50,
-        xp: 10
+        id: 'expense_sorter_challenge',
+        type: 'interactive_challenge',
+        challengeType: 'expense_sorter',
+        title_en: 'Sort Your Expenses',
+        title_fr: 'Triez Vos Dépenses',
+        instruction_en: 'Practice categorizing expenses into Needs, Wants, and Savings',
+        instruction_fr: 'Pratiquez la catégorisation des dépenses en Besoins, Envies et Épargne',
+        description_en: 'Drag and drop common expenses into the correct categories according to the 50/30/20 rule.',
+        description_fr: 'Glissez et déposez les dépenses courantes dans les bonnes catégories selon la règle 50/30/20.',
+        xp: 20
       }
     ]
   },
@@ -285,82 +261,70 @@ Sans fonds d'urgence, vous pourriez recourir aux cartes de crédit ou prêts, cr
       },
       {
         id: 'quiz_amount',
-        type: 'quiz',
+        type: 'multiple_choice',
         title_en: 'Emergency Fund Size',
         title_fr: 'Taille du Fonds d\'Urgence',
         question_en: 'How many months of expenses should a basic emergency fund cover?',
         question_fr: 'Combien de mois de dépenses un fonds d\'urgence de base devrait-il couvrir ?',
-        options: [
-          { en: '1-2 months', fr: '1-2 mois' },
-          { en: '3-6 months', fr: '3-6 mois' },
-          { en: '12 months', fr: '12 mois' },
-          { en: 'As much as possible', fr: 'Autant que possible' }
+        options_en: [
+          '1-2 months',
+          '3-6 months',
+          '12 months',
+          'As much as possible'
+        ],
+        options_fr: [
+          '1-2 mois',
+          '3-6 mois',
+          '12 mois',
+          'Autant que possible'
         ],
         correctAnswer: 1,
         explanation_en: 'Most experts recommend 3-6 months of expenses. Start with 3 months as your initial goal.',
         explanation_fr: 'La plupart des experts recommandent 3-6 mois de dépenses. Commencez avec 3 mois comme objectif initial.',
+        hint_en: 'Consider what would give you peace of mind in case of job loss',
+        hint_fr: 'Considérez ce qui vous donnerait la tranquillité d\'esprit en cas de perte d\'emploi',
+        difficulty: 'easy',
+        points: 15,
         xp: 15
       },
       {
-        id: 'calculate_goal',
-        type: 'interactive',
-        title_en: 'Calculate Your Emergency Fund Goal',
-        title_fr: 'Calculez Votre Objectif de Fonds d\'Urgence',
-        component: 'EmergencyCalculator',
-        instruction_en: 'List your essential monthly expenses to calculate your emergency fund target:',
-        instruction_fr: 'Listez vos dépenses mensuelles essentielles pour calculer votre objectif de fonds d\'urgence :',
-        fields: [
-          { id: 'housing', label_en: 'Housing (rent/mortgage)', label_fr: 'Logement (loyer/hypothèque)' },
-          { id: 'utilities', label_en: 'Utilities', label_fr: 'Services publics' },
-          { id: 'food', label_en: 'Groceries', label_fr: 'Alimentation' },
-          { id: 'transport', label_en: 'Transportation', label_fr: 'Transport' },
-          { id: 'insurance', label_en: 'Insurance', label_fr: 'Assurance' },
-          { id: 'debt', label_en: 'Minimum debt payments', label_fr: 'Paiements minimums de dettes' }
-        ],
-        xp: 25
+        id: 'investment_growth_sim',
+        type: 'interactive_challenge',
+        challengeType: 'investment_simulator',
+        title_en: 'See Your Savings Grow',
+        title_fr: 'Voyez Vos Économies Croître',
+        instruction_en: 'Use our investment simulator to see how your emergency fund can grow over time',
+        instruction_fr: 'Utilisez notre simulateur d\'investissement pour voir comment votre fonds d\'urgence peut croître avec le temps',
+        description_en: 'Experiment with different monthly contributions and see the power of compound interest.',
+        description_fr: 'Expérimentez avec différentes contributions mensuelles et voyez la puissance des intérêts composés.',
+        xp: 30
       },
       {
         id: 'savings_strategies',
-        type: 'choice',
+        type: 'multiple_choice',
         title_en: 'Choose Your Savings Strategy',
         title_fr: 'Choisissez Votre Stratégie d\'Épargne',
-        question_en: 'Which savings approach works best for your situation?',
-        question_fr: 'Quelle approche d\'épargne convient le mieux à votre situation ?',
-        options: [
-          {
-            id: 'aggressive',
-            title_en: 'Sprint Saver',
-            title_fr: 'Épargnant Sprint',
-            description_en: 'Save 20-30% of income, reach goal in 6-12 months',
-            description_fr: 'Épargner 20-30% des revenus, atteindre l\'objectif en 6-12 mois',
-            pros_en: ['Reach goal quickly', 'Build momentum fast'],
-            pros_fr: ['Atteindre l\'objectif rapidement', 'Créer un élan rapide'],
-            cons_en: ['Requires sacrifices', 'May not be sustainable'],
-            cons_fr: ['Nécessite des sacrifices', 'Peut ne pas être durable']
-          },
-          {
-            id: 'moderate',
-            title_en: 'Steady Builder',
-            title_fr: 'Constructeur Régulier',
-            description_en: 'Save 10-15% of income, reach goal in 1-2 years',
-            description_fr: 'Épargner 10-15% des revenus, atteindre l\'objectif en 1-2 ans',
-            pros_en: ['Balanced approach', 'Sustainable long-term'],
-            pros_fr: ['Approche équilibrée', 'Durable à long terme'],
-            cons_en: ['Takes more time', 'Requires patience'],
-            cons_fr: ['Prend plus de temps', 'Nécessite de la patience']
-          },
-          {
-            id: 'gradual',
-            title_en: 'Slow & Steady',
-            title_fr: 'Lent et Régulier',
-            description_en: 'Save 5-10% of income, reach goal in 2-3 years',
-            description_fr: 'Épargner 5-10% des revenus, atteindre l\'objectif en 2-3 ans',
-            pros_en: ['Minimal lifestyle impact', 'Very sustainable'],
-            pros_fr: ['Impact minimal sur le style de vie', 'Très durable'],
-            cons_en: ['Slow progress', 'Risk of losing motivation'],
-            cons_fr: ['Progrès lent', 'Risque de perdre la motivation']
-          }
+        question_en: 'Which savings approach typically leads to the fastest emergency fund growth?',
+        question_fr: 'Quelle approche d\'épargne mène généralement à la croissance la plus rapide du fonds d\'urgence ?',
+        options_en: [
+          'Saving whatever is left at the end of the month',
+          'Automatic transfers right after getting paid',
+          'Putting money in a jar at home',
+          'Waiting for a bonus or tax refund'
         ],
+        options_fr: [
+          'Épargner ce qui reste à la fin du mois',
+          'Virements automatiques juste après avoir été payé',
+          'Mettre de l\'argent dans un bocal à la maison',
+          'Attendre une prime ou un remboursement d\'impôts'
+        ],
+        correctAnswer: 1,
+        explanation_en: 'Automatic transfers ensure you save consistently before you have a chance to spend the money.',
+        explanation_fr: 'Les virements automatiques garantissent que vous épargnez régulièrement avant d\'avoir la chance de dépenser l\'argent.',
+        difficulty: 'medium',
+        points: 20,
+        funFact_en: 'Studies show people who automate their savings save 3x more than those who do it manually!',
+        funFact_fr: 'Les études montrent que les gens qui automatisent leur épargne économisent 3x plus que ceux qui le font manuellement !',
         xp: 20
       },
       {
@@ -369,7 +333,7 @@ Sans fonds d'urgence, vous pourriez recourir aux cartes de crédit ou prêts, cr
         title_en: 'Where to Keep Your Emergency Fund',
         title_fr: 'Où Garder Votre Fonds d\'Urgence',
         content_en: `Your emergency fund needs to be:
-        
+
 ✅ **Liquid** - Accessible within 1-2 days
 ✅ **Safe** - Protected from market volatility
 ✅ **Separate** - Not mixed with daily spending
@@ -381,7 +345,7 @@ Best options:
 
 Avoid: Stocks, long-term investments, or your checking account!`,
         content_fr: `Votre fonds d'urgence doit être :
-        
+
 ✅ **Liquide** - Accessible en 1-2 jours
 ✅ **Sûr** - Protégé de la volatilité du marché
 ✅ **Séparé** - Non mélangé aux dépenses quotidiennes
@@ -474,10 +438,49 @@ Meilleures options :
         type: 'info',
         title_en: 'Welcome to Investing',
         title_fr: 'Bienvenue dans l\'Investissement',
-        content_en: 'Investing is putting your money to work to potentially earn more money over time...',
-        content_fr: 'Investir c\'est mettre votre argent au travail pour potentiellement gagner plus d\'argent avec le temps...'
+        content_en: 'Investing is putting your money to work to potentially earn more money over time. Unlike saving, investing involves some risk but offers the potential for higher returns.',
+        content_fr: 'Investir c\'est mettre votre argent au travail pour potentiellement gagner plus d\'argent avec le temps. Contrairement à l\'épargne, investir implique un certain risque mais offre le potentiel de rendements plus élevés.'
+      },
+      {
+        id: 'investment_types_quiz',
+        type: 'multiple_choice',
+        title_en: 'Types of Investments',
+        title_fr: 'Types d\'Investissements',
+        question_en: 'Which investment typically has the highest long-term returns but also the most volatility?',
+        question_fr: 'Quel investissement a généralement les rendements à long terme les plus élevés mais aussi la plus grande volatilité ?',
+        options_en: [
+          'Savings account',
+          'Bonds',
+          'Stocks',
+          'CDs'
+        ],
+        options_fr: [
+          'Compte épargne',
+          'Obligations',
+          'Actions',
+          'Certificats de dépôt'
+        ],
+        correctAnswer: 2,
+        explanation_en: 'Stocks historically provide the highest returns over long periods but can fluctuate significantly in the short term.',
+        explanation_fr: 'Les actions fournissent historiquement les rendements les plus élevés sur de longues périodes mais peuvent fluctuer significativement à court terme.',
+        difficulty: 'intermediate',
+        points: 15,
+        funFact_en: 'The S&P 500 has averaged about 10% annual returns over the past 90 years!',
+        funFact_fr: 'Le S&P 500 a eu un rendement moyen d\'environ 10% par an au cours des 90 dernières années !',
+        xp: 15
+      },
+      {
+        id: 'compound_interest_sim',
+        type: 'interactive_challenge',
+        challengeType: 'investment_simulator',
+        title_en: 'The Power of Compound Interest',
+        title_fr: 'La Puissance des Intérêts Composés',
+        instruction_en: 'See how your investments can grow exponentially over time',
+        instruction_fr: 'Voyez comment vos investissements peuvent croître exponentiellement avec le temps',
+        description_en: 'Experiment with different investment amounts, returns, and time periods to understand compound growth.',
+        description_fr: 'Expérimentez avec différents montants d\'investissement, rendements et périodes pour comprendre la croissance composée.',
+        xp: 30
       }
-      // ... more steps
     ]
   },
 
@@ -533,12 +536,19 @@ Meilleures options :
           'Store credit card'
         ],
         options_fr: [
-          'Dette de carte de crédit pour le shopping',
+          'Dette de carte de crédit pour les achats',
           'Prêt étudiant pour l\'éducation',
           'Prêt sur salaire',
           'Carte de crédit de magasin'
         ],
-        correctAnswer: 'Student loan for education'
+        correctAnswer: 1,
+        explanation_en: 'Student loans are considered good debt because education is an investment in your future earning potential.',
+        explanation_fr: 'Les prêts étudiants sont considérés comme une bonne dette car l\'éducation est un investissement dans votre potentiel de gains futurs.',
+        hint_en: 'Think about which option helps you build value over time',
+        hint_fr: 'Pensez à quelle option vous aide à construire de la valeur avec le temps',
+        difficulty: 'intermediate',
+        points: 15,
+        xp: 15
       },
       {
         id: 'avalanche_explanation',
@@ -549,47 +559,73 @@ Meilleures options :
         content_fr: 'La méthode avalanche priorise le remboursement des dettes avec les taux d\'intérêt les plus élevés en premier tout en effectuant les paiements minimums sur toutes les autres dettes. Cette approche minimise l\'intérêt total que vous paierez au fil du temps. Voici comment ça fonctionne:\n\n1. Listez toutes vos dettes\n2. Ordonnez-les par taux d\'intérêt (du plus élevé au plus bas)\n3. Payez les minimums sur toutes les dettes\n4. Mettez tout argent supplémentaire vers la dette au taux le plus élevé\n5. Une fois payée, passez au taux suivant'
       },
       {
+        id: 'debt_calculator_challenge',
+        type: 'interactive_challenge',
+        challengeType: 'debt_payoff',
+        title_en: 'Calculate Your Debt-Free Date',
+        title_fr: 'Calculez Votre Date Sans Dette',
+        instruction_en: 'Use our debt avalanche calculator to see when you\'ll be debt-free',
+        instruction_fr: 'Utilisez notre calculateur avalanche pour voir quand vous serez sans dette',
+        description_en: 'Enter your debts and see how the avalanche method can save you money and time.',
+        description_fr: 'Entrez vos dettes et voyez comment la méthode avalanche peut vous économiser argent et temps.',
+        xp: 35
+      },
+      {
         id: 'debt_list_checklist',
         type: 'checklist',
         title_en: 'Create Your Debt List',
         title_fr: 'Créez Votre Liste de Dettes',
         description_en: 'To use the debt avalanche method, you need to gather information about all your debts. Check off each item as you collect it:',
         description_fr: 'Pour utiliser la méthode avalanche, vous devez rassembler des informations sur toutes vos dettes. Cochez chaque élément au fur et à mesure:',
-        items_en: [
-          'List all credit card balances and interest rates',
-          'Include all loans (auto, personal, student)',
-          'Note the minimum payment for each debt',
-          'Calculate total monthly minimum payments',
-          'Determine how much extra you can pay monthly'
+        tasks: [
+          {
+            en: 'List all credit card balances and interest rates',
+            fr: 'Listez tous les soldes et taux d\'intérêt des cartes de crédit'
+          },
+          {
+            en: 'Include all loans (auto, personal, student)',
+            fr: 'Incluez tous les prêts (auto, personnel, étudiant)'
+          },
+          {
+            en: 'Note the minimum payment for each debt',
+            fr: 'Notez le paiement minimum pour chaque dette'
+          },
+          {
+            en: 'Calculate total monthly minimum payments',
+            fr: 'Calculez le total des paiements minimums mensuels'
+          },
+          {
+            en: 'Determine how much extra you can pay monthly',
+            fr: 'Déterminez combien vous pouvez payer en extra mensuellement'
+          }
         ],
-        items_fr: [
-          'Listez tous les soldes et taux d\'intérêt des cartes de crédit',
-          'Incluez tous les prêts (auto, personnel, étudiant)',
-          'Notez le paiement minimum pour chaque dette',
-          'Calculez le total des paiements minimums mensuels',
-          'Déterminez combien vous pouvez payer en extra mensuellement'
-        ]
+        xp: 20
       },
       {
-        id: 'avalanche_calculation',
-        type: 'quiz',
-        title_en: 'Calculate Your Savings',
-        title_fr: 'Calculez Vos Économies',
-        question_en: 'If you have a $5,000 credit card debt at 20% APR and can pay $200/month, how many months will it take to pay off using the avalanche method (assuming no other debts)?',
-        question_fr: 'Si vous avez une dette de carte de crédit de 5 000$ à 20% TAP et pouvez payer 200$/mois, combien de mois faudra-t-il pour rembourser en utilisant la méthode avalanche (en supposant aucune autre dette)?',
-        correctAnswer: '30',
-        hint_en: 'Use an online debt calculator or the formula: months = -log(1-(rate/12)*(balance/payment))/log(1+rate/12)',
-        hint_fr: 'Utilisez un calculateur de dette en ligne ou la formule: mois = -log(1-(taux/12)*(solde/paiement))/log(1+taux/12)'
-      },
-      {
-        id: 'avalanche_challenge',
-        type: 'challenge',
-        title_en: 'Create Your Debt Avalanche Plan',
-        title_fr: 'Créez Votre Plan Avalanche',
-        description_en: 'Based on what you\'ve learned, create a simple debt avalanche plan. List your debts (you can use examples if you prefer) ordered by interest rate, and describe your payoff strategy.',
-        description_fr: 'Basé sur ce que vous avez appris, créez un plan avalanche simple. Listez vos dettes (vous pouvez utiliser des exemples si vous préférez) ordonnées par taux d\'intérêt, et décrivez votre stratégie de remboursement.',
-        example_en: 'Example:\n1. Credit Card A: $3,000 @ 22% - Pay $300/month\n2. Credit Card B: $1,500 @ 18% - Pay minimum until A is paid\n3. Car Loan: $8,000 @ 5% - Pay minimum until B is paid\n\nExtra $100/month goes to Card A first.',
-        example_fr: 'Exemple:\n1. Carte de crédit A: 3 000$ @ 22% - Payer 300$/mois\n2. Carte de crédit B: 1 500$ @ 18% - Payer minimum jusqu\'à ce que A soit payé\n3. Prêt auto: 8 000$ @ 5% - Payer minimum jusqu\'à ce que B soit payé\n\n100$ supplémentaires/mois vont à la carte A en premier.'
+        id: 'avalanche_quiz',
+        type: 'multiple_choice',
+        title_en: 'Avalanche Method Quiz',
+        title_fr: 'Quiz Méthode Avalanche',
+        question_en: 'You have 3 debts: Card A ($1000 @ 22%), Card B ($2000 @ 18%), Loan C ($5000 @ 6%). Using the avalanche method, which should you pay off first?',
+        question_fr: 'Vous avez 3 dettes : Carte A (1000$ @ 22%), Carte B (2000$ @ 18%), Prêt C (5000$ @ 6%). Avec la méthode avalanche, laquelle devriez-vous rembourser en premier ?',
+        options_en: [
+          'Card A (highest interest rate)',
+          'Card B (middle balance)',
+          'Loan C (largest balance)',
+          'Pay them equally'
+        ],
+        options_fr: [
+          'Carte A (taux d\'intérêt le plus élevé)',
+          'Carte B (solde moyen)',
+          'Prêt C (solde le plus important)',
+          'Les payer également'
+        ],
+        correctAnswer: 0,
+        explanation_en: 'The avalanche method prioritizes the highest interest rate (22%), regardless of balance size.',
+        explanation_fr: 'La méthode avalanche priorise le taux d\'intérêt le plus élevé (22%), indépendamment de la taille du solde.',
+        difficulty: 'intermediate',
+        points: 20,
+        xp: 20
       }
     ]
   }
@@ -669,34 +705,52 @@ export const localizeQuest = (quest, lang) => {
     description: quest[`description_${lang}`] || quest.description_en,
     objectives: quest[`objectives_${lang}`] || quest.objectives_en,
     prerequisites: quest[`prerequisites_${lang}`] || quest.prerequisites_en,
-    steps: quest.steps.map(step => ({
-      ...step,
-      title: step[`title_${lang}`] || step.title_en || step.title,
-      content: step[`content_${lang}`] || step.content_en || step.content,
-      question: step[`question_${lang}`] || step.question_en || step.question,
-      instruction: step[`instruction_${lang}`] || step.instruction_en || step.instruction,
-      description: step[`description_${lang}`] || step.description_en || step.description,
-      explanation: step[`explanation_${lang}`] || step.explanation_en || step.explanation,
-      tasks: step.tasks?.map(task => {
-        if (typeof task === 'object') {
-          return {
-            ...task,
-            text: task[lang] || task.en || task.text,
-            tips: task[`tips_${lang}`] || task.tips_en || task.tips
-          };
-        }
-        return task;
-      }),
-      options: step.options?.map(opt => {
-        if (typeof opt === 'object' && opt[lang]) {
-          return opt[lang];
-        }
-        return opt.en || opt;
-      })
-    }))
+    steps: quest.steps.map(step => {
+      const localizedStep = {
+        ...step,
+        title: step[`title_${lang}`] || step.title_en || step.title,
+        content: step[`content_${lang}`] || step.content_en || step.content,
+        question: step[`question_${lang}`] || step.question_en || step.question,
+        instruction: step[`instruction_${lang}`] || step.instruction_en || step.instruction,
+        description: step[`description_${lang}`] || step.description_en || step.description,
+        explanation: step[`explanation_${lang}`] || step.explanation_en || step.explanation,
+        hint: step[`hint_${lang}`] || step.hint_en || step.hint,
+        funFact: step[`funFact_${lang}`] || step.funFact_en || step.funFact
+      };
+      
+      // Gérer les options selon le type
+      if (step.options_en && step.options_fr) {
+        // Format séparé pour les langues
+        localizedStep.options = step[`options_${lang}`] || step.options_en;
+      } else if (step.options && Array.isArray(step.options)) {
+        // Format avec objets ou strings
+        localizedStep.options = step.options.map(opt => {
+          if (typeof opt === 'object' && (opt[lang] || opt.en || opt.fr)) {
+            return opt[lang] || opt.en || opt.fr;
+          }
+          return opt;
+        });
+      }
+
+      // Gérer les tâches pour les checklists
+      if (step.tasks) {
+        localizedStep.tasks = step.tasks.map(task => {
+          if (typeof task === 'object') {
+            return {
+              ...task,
+              text: task[lang] || task.en || task.fr || task.text,
+              tips: task[`tips_${lang}`] || task.tips_en || task.tips
+            };
+          }
+          return task;
+        });
+      }
+      
+      return localizedStep;
+    })
   };
   
-  // Remove language-specific fields to clean up the object
+  // Nettoyer l'objet
   Object.keys(localizedQuest).forEach(key => {
     if (key.includes('_en') || key.includes('_fr')) {
       delete localizedQuest[key];
