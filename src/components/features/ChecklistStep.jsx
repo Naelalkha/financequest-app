@@ -1,177 +1,181 @@
 import React, { useState } from 'react';
-import { FaCheckSquare, FaSquare, FaInfoCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaListUl } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
+import posthog from 'posthog-js';
 
 const ChecklistStep = ({ step, onComplete, language }) => {
-  const { t } = useLanguage();
-  const [checkedItems, setCheckedItems] = useState({});
-  const [showTips, setShowTips] = useState({});
+  const { t, currentLang } = useLanguage();
+  const [completedItems, setCompletedItems] = useState({});
 
-  // Gérer différents formats de tâches
-  let tasks = step.tasks || [];
-  if (tasks.length === 0 && step.items_en) {
-    // Format items_en/items_fr
-    const items = step[`items_${language}`] || step.items_en || [];
-    tasks = items.map((item, index) => ({
-      id: index,
-      text: item,
-      en: item,
-      fr: item
-    }));
-  }
-  
-  const requiredCount = step.requiredCount || tasks.length;
-  const checkedCount = Object.values(checkedItems).filter(Boolean).length;
-  const isComplete = checkedCount >= requiredCount;
-
-  // Si pas de tâches, compléter automatiquement
-  if (tasks.length === 0) {
-    // Compléter automatiquement après un court délai
-    setTimeout(() => {
-      onComplete({
-        type: 'checklist',
-        checkedItems: {},
-        completedCount: 0,
-        timestamp: new Date()
-      });
-    }, 100);
-    return null; // Ne rien afficher
-  }
-
-  const handleToggle = (index) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+  // Récupérer les items de la checklist
+  const getChecklistItems = () => {
+    const items = step.items || 
+                  step.content?.items || 
+                  step.content?.[currentLang]?.items ||
+                  [];
+    
+    if (Array.isArray(items)) {
+      return items;
+    }
+    
+    if (items && typeof items === 'object') {
+      return items[currentLang] || items.en || [];
+    }
+    
+    return [];
   };
 
-  const handleComplete = () => {
-    onComplete({
-      type: 'checklist',
-      checkedItems: checkedItems,
-      completedCount: checkedCount,
-      timestamp: new Date()
+  const checklistItems = getChecklistItems();
+
+  // Items par défaut si aucune checklist n'est trouvée
+  const defaultItems = [
+    {
+      id: 'default_item_1',
+      text: t('checklist.default_item_1') || 'I understand the key concepts',
+      xp: 5
+    },
+    {
+      id: 'default_item_2',
+      text: t('checklist.default_item_2') || 'I can apply this to my situation',
+      xp: 5
+    }
+  ];
+
+  const finalItems = checklistItems.length > 0 ? checklistItems : defaultItems;
+
+  const handleItemToggle = (itemId) => {
+    setCompletedItems(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+
+    // Capture l'événement PostHog
+    const item = finalItems.find(i => i.id === itemId);
+    posthog.capture('quest_step_complete', {
+      step_id: step.id || step.title,
+      step_type: 'checklist',
+      quest_id: step.questId,
+      item_id: itemId,
+      item_text: item?.text,
+      completed: !completedItems[itemId]
     });
   };
 
-  const toggleTip = (index) => {
-    setShowTips(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+  const handleContinue = () => {
+    const completedCount = Object.values(completedItems).filter(Boolean).length;
+    const totalItems = finalItems.length;
+    
+    // Calculer le score basé sur les items cochés
+    const score = Math.round((completedCount / totalItems) * 100);
+    
+    onComplete({
+      type: 'checklist',
+      completedItems,
+      score,
+      totalItems,
+      completedCount
+    });
   };
+
+  const isAllCompleted = finalItems.every(item => completedItems[item.id]);
 
   return (
     <div className="space-y-6">
-      {/* Instructions */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">
-          {step.title || t('quest_detail.checklist_title') || 'Complete the following tasks'}
-        </h3>
-        {step.content && (
-          <p className="text-gray-600 mb-4">{step.content}</p>
-        )}
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>{t('quest_detail.progress') || 'Progress'}:</span>
-          <div className="flex-1 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(checkedCount / requiredCount) * 100}%` }}
-            />
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
+        <div className="flex items-start gap-3">
+          <FaListUl className="text-purple-600 text-2xl mt-1" />
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              {step.title || t('checklist.title') || 'Checklist'}
+            </h3>
+            {step.content && (
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {typeof step.content === 'string' 
+                  ? step.content 
+                  : step.content[currentLang] || step.content.en || step.content.description
+                }
+              </p>
+            )}
           </div>
-          <span className="font-medium">
-            {checkedCount}/{requiredCount}
-          </span>
         </div>
       </div>
 
-      {/* Task List */}
-      <div className="space-y-3">
-        {tasks.map((task, index) => {
-          const taskText = typeof task === 'string' ? task : (task.text || task[language] || task.en);
-          const taskTip = typeof task === 'object' ? task.tip : null;
-          const isChecked = checkedItems[index] || false;
-
-          return (
-            <div key={index} className="space-y-2">
-              <div
-                onClick={() => handleToggle(index)}
-                className={`
-                  p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-                  ${isChecked 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-gray-300 hover:border-yellow-400 hover:bg-yellow-50'
-                  }
-                `}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    {isChecked ? (
-                      <FaCheckSquare className="text-green-600 text-xl" />
-                    ) : (
-                      <FaSquare className="text-gray-400 text-xl" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className={`${isChecked ? 'text-green-800 line-through' : 'text-gray-800'}`}>
-                      {taskText}
-                    </p>
-                  </div>
-                  {taskTip && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTip(index);
-                      }}
-                      className="text-blue-500 hover:text-blue-600"
-                    >
-                      <FaInfoCircle />
-                    </button>
-                  )}
-                </div>
+      {/* Checklist Items */}
+      <div className="space-y-4">
+        <h4 className="text-lg font-semibold text-white">
+          {t('checklist.check_items') || 'Check the items that apply:'}
+        </h4>
+        
+        {finalItems.map((item, index) => (
+          <div
+            key={item.id}
+            className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+              completedItems[item.id]
+                ? 'border-green-500 bg-green-900/20'
+                : 'border-gray-600 bg-gray-700 hover:border-gray-500'
+            }`}
+            onClick={() => handleItemToggle(item.id)}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                completedItems[item.id]
+                  ? 'border-green-500 bg-green-500 text-white'
+                  : 'border-gray-400 hover:border-green-400'
+              }`}>
+                {completedItems[item.id] && <FaCheckCircle className="text-sm" />}
               </div>
               
-              {/* Tip Display */}
-              {taskTip && showTips[index] && (
-                <div className="ml-10 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">{taskTip}</p>
-                </div>
-              )}
+              <div className="flex-1">
+                <p className="text-white">
+                  {item.text}
+                </p>
+                {item.xp && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-yellow-400 text-sm font-medium">
+                      +{item.xp} XP
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
-      {/* Completion Message */}
-      {isComplete && (
-        <div className="bg-green-100 border border-green-300 rounded-lg p-4">
-          <p className="text-green-800 font-semibold">
-            {t('quest_detail.all_tasks_complete') || 'Great job! All required tasks completed!'}
-          </p>
+      {/* Progress */}
+      <div className="bg-gray-800 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-gray-300 text-sm">
+            {t('checklist.progress') || 'Progress'}
+          </span>
+          <span className="text-white font-semibold">
+            {Object.values(completedItems).filter(Boolean).length} / {finalItems.length}
+          </span>
         </div>
-      )}
-
-      {/* Action Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleComplete}
-          disabled={!isComplete}
-          className={`
-            px-6 py-3 rounded-lg font-semibold transition-all duration-200
-            ${isComplete
-              ? 'bg-green-500 text-white hover:bg-green-600 transform hover:scale-105'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }
-          `}
-        >
-          {isComplete 
-            ? (t('quest_detail.steps.next') || 'Continue')
-            : t('quest_detail.complete_tasks_first') || `Complete ${requiredCount - checkedCount} more tasks`
-          }
-        </button>
+        <div className="w-full bg-gray-700 rounded-full h-2">
+          <div
+            className="bg-gradient-to-r from-purple-400 to-pink-500 h-2 rounded-full transition-all duration-300"
+            style={{
+              width: `${(Object.values(completedItems).filter(Boolean).length / finalItems.length) * 100}%`
+            }}
+          />
+        </div>
       </div>
+
+      {/* Continue Button */}
+      <button
+        onClick={handleContinue}
+        disabled={!isAllCompleted}
+        className="w-full px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+      >
+        {isAllCompleted 
+          ? (t('ui.continue') || 'Continue')
+          : (t('checklist.complete_all_items') || 'Check all items to continue')
+        }
+      </button>
     </div>
   );
 };
 
-export default ChecklistStep;
+export default ChecklistStep; 

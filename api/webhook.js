@@ -81,7 +81,7 @@ export default async function handler(req, res) {
         console.log(`Activating premium for user: ${userId}`);
 
         await db.collection('users').doc(userId).update({ 
-          premium: true,
+          isPremium: true,
           premiumStartDate: new Date(),
           stripeCustomerId: session.customer,
           stripeSubscriptionId: session.subscription,
@@ -89,6 +89,15 @@ export default async function handler(req, res) {
         });
         
         console.log(`Premium activated for user ${userId}`);
+        
+        // Note: PostHog event would be captured here in a real implementation
+        // Since this is server-side, you'd typically use PostHog's server-side SDK
+        // or send the event from the client after confirming the webhook was processed
+        console.log('PostHog event: checkout_success', {
+          variant: session.metadata?.variant || 'unknown',
+          price_id: session.metadata?.priceId || 'unknown',
+          quest_id: session.metadata?.questId || 'unknown'
+        });
         break;
       }
 

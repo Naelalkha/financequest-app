@@ -13,7 +13,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ProgressBar from '../../components/common/ProgressBar';
 import { toast } from 'react-toastify';
-import { questTemplates, localizeQuest } from '../../data/questTemplates';
+import { allQuests, localizeQuest } from '../../data/quests';
 
 const QuestList = () => {
   const { user } = useAuth();
@@ -69,9 +69,9 @@ const QuestList = () => {
   const loadQuests = () => {
     try {
       // Enrichir les quêtes avec des métadonnées
-      const enrichedQuests = questTemplates.map((quest, index) => ({
+      const enrichedQuests = allQuests.map((quest, index) => ({
         ...localizeQuest(quest, language),
-        isNew: index >= questTemplates.length - 3,
+        isNew: index >= allQuests.length - 3,
         completionCount: Math.floor(Math.random() * 500),
         avgCompletionTime: quest.duration + Math.floor(Math.random() * 5) - 2,
         successRate: 70 + Math.floor(Math.random() * 25),

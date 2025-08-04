@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaCalculator, FaChartLine, FaLightbulb, FaCheckCircle } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
+import posthog from 'posthog-js';
 
 const ChallengeStep = ({ step, onComplete, language }) => {
   const { t } = useLanguage();
@@ -17,6 +18,15 @@ const ChallengeStep = ({ step, onComplete, language }) => {
     if (!userInput.trim()) return;
     
     setCompleted(true);
+    
+    // Capture l'événement PostHog pour la validation d'étape
+    posthog.capture('quest_step_complete', {
+      step_id: step.id || step.title,
+      step_type: 'challenge',
+      quest_id: step.questId,
+      user_input_length: userInput.length,
+      hint_used: showHint
+    });
     
     // For challenges, we don't check correctness, just completion
     setTimeout(() => {

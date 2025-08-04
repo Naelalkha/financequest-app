@@ -7,6 +7,7 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import ProgressBar from '../common/ProgressBar';
 import { toast } from 'react-toastify';
+import posthog from 'posthog-js';
 
 const InteractiveChallenge = ({ step, onComplete }) => {
   const { t } = useLanguage();
@@ -214,6 +215,19 @@ const InteractiveChallenge = ({ step, onComplete }) => {
       // Marquer comme complété après visualisation
       setTimeout(() => {
         setIsCompleted(true);
+        
+        // Capture l'événement PostHog pour la validation d'étape
+        posthog.capture('quest_step_complete', {
+          step_id: step.id || step.title,
+          step_type: 'interactive_challenge',
+          quest_id: step.questId,
+          challenge_type: 'debt_payoff',
+          debts_count: validDebts.length,
+          total_debt: validDebts.reduce((sum, d) => sum + d.originalBalance, 0),
+          months_to_payoff: months,
+          interest_saved: interestSaved
+        });
+        
         onComplete({
           completed: true,
           score: 100,
@@ -509,6 +523,20 @@ const InteractiveChallenge = ({ step, onComplete }) => {
       if (result.isValid) {
         setIsCompleted(true);
         setTimeout(() => {
+          // Capture l'événement PostHog pour la validation d'étape
+          posthog.capture('quest_step_complete', {
+            step_id: step.id || step.title,
+            step_type: 'interactive_challenge',
+            quest_id: step.questId,
+            challenge_type: 'budget_calculator',
+            score: result.points,
+            attempts: attempts + 1,
+            income: parseFloat(income) || 0,
+            needs_percentage: getPercentage(expenses.needs),
+            wants_percentage: getPercentage(expenses.wants),
+            savings_percentage: getPercentage(expenses.savings)
+          });
+          
           onComplete({
             completed: true,
             score: result.points,
@@ -773,6 +801,19 @@ const InteractiveChallenge = ({ step, onComplete }) => {
 
       // Auto complete after viewing
       setTimeout(() => {
+        // Capture l'événement PostHog pour la validation d'étape
+        posthog.capture('quest_step_complete', {
+          step_id: step.id || step.title,
+          step_type: 'interactive_challenge',
+          quest_id: step.questId,
+          challenge_type: 'investment_simulator',
+          principal: parseFloat(principal) || 0,
+          monthly_contribution: parseFloat(monthlyContribution) || 0,
+          annual_return: parseFloat(annualReturn) || 0,
+          years: parseFloat(years) || 0,
+          future_value: Math.round(futureValue)
+        });
+        
         onComplete({
           completed: true,
           score: 100,
@@ -1002,6 +1043,18 @@ const InteractiveChallenge = ({ step, onComplete }) => {
 
       if (scoreValue === 100) {
         setTimeout(() => {
+          // Capture l'événement PostHog pour la validation d'étape
+          posthog.capture('quest_step_complete', {
+            step_id: step.id || step.title,
+            step_type: 'interactive_challenge',
+            quest_id: step.questId,
+            challenge_type: 'expense_sorter',
+            score: scoreValue,
+            attempts: attempts + 1,
+            correct_answers: correct,
+            total_expenses: expenses.length
+          });
+          
           onComplete({
             completed: true,
             score: scoreValue,

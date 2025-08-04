@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import { questTemplates } from '../data/questTemplates';
+import { allQuests } from '../data/quests';
 
 // Types de défis quotidiens
 const DAILY_CHALLENGE_TYPES = {
@@ -20,7 +20,7 @@ export const generateDailyChallenge = (date = new Date()) => {
   const challengeType = challengeTypes[seed % challengeTypes.length];
   
   // Sélectionner une quête basée sur le seed
-  const availableQuests = questTemplates.filter(q => !q.isPremium);
+  const availableQuests = allQuests.filter(q => !q.isPremium);
   const selectedQuest = availableQuests[seed % availableQuests.length];
   
   return {

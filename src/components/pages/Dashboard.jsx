@@ -11,7 +11,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ProgressBar from '../common/ProgressBar';
 import { toast } from 'react-toastify';
-import { questTemplates, localizeQuest } from '../../data/questTemplates';
+import { allQuests, localizeQuest } from '../../data/quests';
 import { getUserDailyChallenge, getDailyChallengeStats } from '../../services/dailyChallenge';
 
 const Dashboard = () => {
@@ -122,7 +122,7 @@ const Dashboard = () => {
   const fetchRecommendedQuests = async () => {
     try {
       // Get 3 random quests for recommendations
-      const localQuests = questTemplates
+      const localQuests = allQuests
         .map(quest => localizeQuest(quest, currentLang))
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
@@ -395,7 +395,7 @@ const Dashboard = () => {
         </div>
 
         {/* Premium CTA */}
-        {!userData?.isPremium && !userData?.premium && (
+        {!userData?.isPremium && (
           <div className="mt-12 animate-fadeIn" style={{ animationDelay: '1100ms' }}>
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 shadow-lg text-center">
               <FaCrown className="text-5xl text-yellow-300 mx-auto mb-4 animate-bounce" />

@@ -5,10 +5,13 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
+import posthog from 'posthog-js';
 
 const AuthContext = createContext();
 
@@ -109,6 +112,12 @@ export const AuthProvider = ({ children }) => {
         ...userData
       });
       
+      // Capture PostHog signup event
+      posthog.capture('signup', {
+        provider: 'email',
+        lang: userData.lang || 'en'
+      });
+      
       return userCredential.user;
     } catch (error) {
       setError(error.message);
@@ -132,6 +141,42 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    }
+  };
+
+  // Google login/signup function
+  const loginWithGoogle = async () => {
+    try {
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      
+      // Create or update user document
+      const userData = await createUserDocument(
+        userCredential.user.uid, 
+        userCredential.user.email,
+        { 
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL
+        }
+      );
+      
+      // Merge Firebase Auth user with Firestore data
+      setUser({
+        ...userCredential.user,
+        ...userData
+      });
+      
+      // Capture PostHog signup event
+      posthog.capture('signup', {
+        provider: 'google',
+        lang: userData.lang || 'en'
+      });
+      
+      return userCredential.user;
     } catch (error) {
       setError(error.message);
       throw error;
@@ -210,6 +255,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     register,
+    loginWithGoogle,
     logout,
     resetPassword,
     updateUserProfile,

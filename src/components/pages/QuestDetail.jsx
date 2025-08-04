@@ -8,13 +8,18 @@ import AchievementShareButton from '../common/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getQuestById } from '../../data/questTemplates';
+import { getQuestById } from '../../data/quests';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logQuestEvent } from '../../utils/analytics';
 import ProgressBar from '../common/ProgressBar';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { QuizStep, ChecklistStep, ChallengeStep, InteractiveChallenge } from '../features';
+import { QuizStep, ActionChallenge, ChallengeStep, InteractiveChallenge } from '../features';
+import SimpleActionStep from '../features/SimpleActionStep';
+import ChecklistStep from '../features/ChecklistStep';
+import posthog from 'posthog-js';
+import { usePaywall } from '../../hooks/usePaywall';
+import PaywallModal from '../PaywallModal';
 
 const QuestDetail = () => {
   const { id: questId } = useParams();
@@ -34,6 +39,10 @@ const QuestDetail = () => {
   const [animatingProgress, setAnimatingProgress] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
   const [answer, setAnswer] = useState('');
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  // Utiliser le hook usePaywall
+  const { show: shouldShowPaywall, variant } = usePaywall(quest);
 
   // Calculer le nombre total de questions
   const totalQuestions = quest?.steps?.filter(step => 
@@ -69,6 +78,12 @@ const QuestDetail = () => {
           await loadUserProgress();
           await checkPremiumStatus();
         }
+        
+        // Capture PostHog quest_start event
+        posthog.capture('quest_start', {
+          quest_id: questId,
+          category: questData.category
+        });
         
         logQuestEvent('quest_view', { questId });
       } catch (error) {
@@ -262,11 +277,36 @@ const QuestDetail = () => {
         { icon: '🏆' }
       );
       
+      // Capture PostHog quest_complete event
+      posthog.capture('quest_complete', {
+        quest_id: questId,
+        xp_gained: quest.xp
+      });
+      
       logQuestEvent('quest_complete', {
         questId,
         xp: quest.xp,
         score
       });
+
+      // Variante B : Vérifier si on doit afficher le paywall après 3 quêtes
+      if (variant === 'B_after_3' && !user?.isPremium) {
+        const updatedCompletedQuests = (user?.completedQuests || 0) + 1;
+        console.log('Checking Paywall B after quest completion:', {
+          completedQuests: updatedCompletedQuests,
+          shouldShow: updatedCompletedQuests >= 3,
+          variant
+        });
+        
+        if (updatedCompletedQuests >= 3) {
+          console.log('🎯 PAYWALL B TRIGGERED after quest completion');
+          
+          // Attendre un peu pour laisser le temps à l'utilisateur de voir la completion
+          setTimeout(() => {
+            setShowPaywall(true);
+          }, 2000);
+        }
+      }
 
     } catch (error) {
       console.error('Error completing quest:', error);
@@ -295,8 +335,55 @@ const QuestDetail = () => {
     return Math.round((correctAnswers / totalQuestions) * 100);
   };
 
-  // Check premium access
-  if (!loading && quest?.isPremium && !isPremium && user) {
+  // Check premium access avec variantes A/B
+  console.log('QuestDetail Paywall Check:', {
+    loading,
+    shouldShowPaywall,
+    quest: quest ? { id: quest.id, isPremium: quest.isPremium } : null,
+    variant,
+    user: user ? { isPremium: user.isPremium, completedQuests: user.completedQuests } : null
+  });
+
+  // Variante A : Paywall immédiat sur quête premium
+  if (!loading && shouldShowPaywall && quest && variant === 'A_direct') {
+    console.log('🎯 PAYWALL A TRIGGERED:', { variant, questId: quest.id });
+    
+    // Capture l'événement d'ouverture du paywall
+    posthog.capture('checkout_start', { 
+      variant, 
+      quest_id: quest.id 
+    });
+    
+    return (
+      <PaywallModal 
+        quest={quest} 
+        variant={variant} 
+        onClose={() => setShowPaywall(false)} 
+      />
+    );
+  }
+
+  // Variante B : Paywall après completion de quête
+  if (showPaywall && variant === 'B_after_3' && quest) {
+    console.log('🎯 PAYWALL B DISPLAYED:', { variant, questId: quest.id });
+    
+    // Capture l'événement d'ouverture du paywall
+    posthog.capture('checkout_start', { 
+      variant, 
+      quest_id: quest.id 
+    });
+    
+    return (
+      <PaywallModal 
+        quest={quest} 
+        variant={variant} 
+        onClose={() => setShowPaywall(false)} 
+      />
+    );
+  }
+
+  // Fallback pour l'ancien système premium
+  if (!loading && quest?.isPremium && !isPremium && user && !shouldShowPaywall) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center max-w-md">
@@ -340,6 +427,8 @@ const QuestDetail = () => {
   // Calculer le score actuel basé sur les réponses
   const currentScore = calculateScore();
   const currentStepData = quest.steps[currentStep] || {};
+  
+
 
   const renderStep = () => {
     if (!currentStepData) return null;
@@ -381,6 +470,27 @@ const QuestDetail = () => {
             language={currentLang}
           />
         );
+
+      case 'action':
+        // ActionChallenge uniquement à la fin de la quête
+        if (currentStep === quest.steps.length - 1) {
+          return (
+            <ActionChallenge
+              step={currentStepData}
+              onComplete={handleStepComplete}
+              language={currentLang}
+            />
+          );
+        } else {
+          // Pour les étapes d'action intermédiaires, utiliser un composant simple
+          return (
+            <SimpleActionStep
+              step={currentStepData}
+              onComplete={handleStepComplete}
+              language={currentLang}
+            />
+          );
+        }
 
       case 'interactive_challenge':
         return (
@@ -430,7 +540,7 @@ const QuestDetail = () => {
         return (
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
             <h3 className="text-xl font-bold text-white mb-4">
-              {currentStepData.title}
+              {typeof currentStepData.title === 'string' ? currentStepData.title : 'Interactive Step'}
             </h3>
             <p className="text-gray-400 mb-6">
               {currentStepData.instruction}
@@ -577,7 +687,7 @@ const QuestDetail = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">
-                  {currentStepData.title || t('quest_detail.step_title', { step: currentStep + 1 }) || `Step ${currentStep + 1}`}
+                  {(typeof currentStepData.title === 'string' ? currentStepData.title : null) || t('quest_detail.step_title', { step: currentStep + 1 }) || `Step ${currentStep + 1}`}
                 </h2>
                 <span className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-full">
                   {currentStepData.type === 'multiple_choice' || currentStepData.isMultipleChoice ? t('quiz.multiple_choice') || 'Multiple Choice' :

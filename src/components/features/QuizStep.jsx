@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ProgressBar from '../common/ProgressBar';
+import posthog from 'posthog-js';
 
 const QuizStep = ({ step, onComplete, questProgress = {} }) => {
   const { t } = useLanguage();
@@ -117,6 +118,18 @@ const QuizStep = ({ step, onComplete, questProgress = {} }) => {
     setShowFeedback(true);
     setHasSubmitted(true);
     setAnimateResult(true);
+
+    // Capture l'événement PostHog pour la validation d'étape
+    posthog.capture('quest_step_complete', {
+      step_id: step.id || step.title,
+      step_type: 'quiz',
+      quest_id: step.questId,
+      is_correct: correct,
+      answer_type: isMultipleChoice ? 'multiple_choice' : 'text',
+      time_spent: timeSpent,
+      hint_used: hintUsed,
+      user_answer: isMultipleChoice ? selectedAnswer : textAnswer
+    });
 
     // Animation de feedback
     setTimeout(() => {
