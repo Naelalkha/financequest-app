@@ -10,6 +10,7 @@ import { db } from '../../services/firebase';
 import { logPremiumEvent } from '../../utils/analytics';
 import LoadingSpinner from '../common/LoadingSpinner';
 import posthog from 'posthog-js';
+import SubscriptionManager from '../SubscriptionManager';
 
 // Initialize Stripe with your publishable key
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
@@ -498,8 +499,18 @@ const Premium = () => {
           </p>
         </div>
 
+        {/* Subscription Management */}
+        {isPremium && (
+          <div className="mt-16 animate-fadeIn" style={{ animationDelay: '600ms' }}>
+            <h3 className="text-xl font-bold text-white mb-6 text-center">
+              {t('premium.manage_subscription') || 'Manage Your Subscription'}
+            </h3>
+            <SubscriptionManager />
+          </div>
+        )}
+
         {/* FAQ Section */}
-        <div className="mt-16 animate-fadeIn" style={{ animationDelay: '600ms' }}>
+        <div className="mt-16 animate-fadeIn" style={{ animationDelay: '700ms' }}>
           <h3 className="text-xl font-bold text-white mb-6 text-center">
             {t('premium.faq_title') || 'Frequently Asked Questions'}
           </h3>

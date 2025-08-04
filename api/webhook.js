@@ -99,10 +99,13 @@ export default async function handler(req, res) {
 
         await db.collection('users').doc(userId).update({ 
           isPremium: true,
-          premiumStartDate: new Date(),
+          premiumStartDate: new Date().toISOString(),
+          premiumEndDate: null, // Pas de date de fin pour un abonnement actif
           stripeCustomerId: session.customer,
           stripeSubscriptionId: session.subscription,
-          stripeSessionId: session.id
+          stripeSessionId: session.id,
+          subscriptionCancelled: false,
+          lastUpdated: new Date().toISOString()
         });
         
         console.log(`Premium activated for user ${userId}`);
@@ -130,9 +133,45 @@ export default async function handler(req, res) {
           const userDoc = usersSnapshot.docs[0];
           await userDoc.ref.update({ 
             isPremium: false,
-            premiumEndDate: new Date()
+            premiumEndDate: new Date().toISOString(),
+            subscriptionDeleted: true,
+            lastUpdated: new Date().toISOString()
           });
           console.log(`Premium cancelled for user ${userDoc.id}`);
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        
+        const usersSnapshot = await db.collection('users')
+          .where('stripeSubscriptionId', '==', subscription.id)
+          .limit(1)
+          .get();
+        
+        if (!usersSnapshot.empty) {
+          const userDoc = usersSnapshot.docs[0];
+          const updates = {
+            lastUpdated: new Date().toISOString()
+          };
+
+          // Si l'abonnement est annulé à la fin de la période
+          if (subscription.cancel_at_period_end) {
+            const endDate = new Date(subscription.current_period_end * 1000);
+            updates.premiumEndDate = endDate.toISOString();
+            updates.subscriptionCancelled = true;
+            console.log(`Subscription cancelled for user ${userDoc.id}, ends at ${endDate}`);
+          }
+
+          // Si l'abonnement est réactivé
+          if (!subscription.cancel_at_period_end && subscription.status === 'active') {
+            updates.premiumEndDate = null;
+            updates.subscriptionCancelled = false;
+            console.log(`Subscription reactivated for user ${userDoc.id}`);
+          }
+
+          await userDoc.ref.update(updates);
         }
         break;
       }
