@@ -14,6 +14,9 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import ProgressBar from '../../components/common/ProgressBar';
 import { toast } from 'react-toastify';
 import { allQuests, localizeQuest } from '../../data/quests';
+import { usePaywall } from '../../hooks/usePaywall';
+import PaywallModal from '../PaywallModal';
+import posthog from 'posthog-js';
 
 const QuestList = () => {
   const { user } = useAuth();
@@ -27,6 +30,8 @@ const QuestList = () => {
   const [hoveredQuest, setHoveredQuest] = useState(null);
   const [bookmarkedQuests, setBookmarkedQuests] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [selectedQuest, setSelectedQuest] = useState(null);
   
   const [filters, setFilters] = useState({
     category: 'all',
@@ -245,6 +250,36 @@ const QuestList = () => {
     }
   };
 
+  const handleQuestClick = (quest, e) => {
+    // Vérifier la variante active depuis PostHog
+    const activeVariant = posthog.getFeatureFlag('paywall_variant');
+    console.log('QuestList handleQuestClick:', { 
+      questId: quest.id, 
+      questIsPremium: quest.isPremium, 
+      userIsPremium: isPremium, 
+      activeVariant 
+    });
+    
+    // Si la quête est premium, l'utilisateur n'est pas premium, ET on est en variant A
+    if (quest.isPremium && !isPremium && activeVariant === 'A_direct') {
+      e.preventDefault();
+      
+      // Capture l'événement checkout_start pour la variante A
+      posthog.capture('checkout_start', {
+        variant: 'A_direct',
+        quest_id: quest.id,
+        price_id: 'premium_quest_click'
+      });
+      
+      // Afficher le paywall
+      setSelectedQuest(quest);
+      setShowPaywall(true);
+      return;
+    }
+    
+    // Sinon, laisser le Link fonctionner normalement
+  };
+
   const QuestCard = ({ quest }) => {
     const progress = userProgress[quest.id];
     const isCompleted = progress?.status === 'completed';
@@ -385,7 +420,7 @@ const QuestList = () => {
           {/* Action Button - Full width sur mobile */}
           <Link
             to={isLocked ? '#' : `/quests/${quest.id}`}
-            onClick={(e) => isLocked && e.preventDefault()}
+            onClick={(e) => handleQuestClick(quest, e)}
             className={`
               w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all text-sm
               ${isLocked 
@@ -643,6 +678,18 @@ const QuestList = () => {
               {t('quests.try_different_filters') || 'Try adjusting your filters'}
             </p>
           </div>
+        )}
+
+        {/* Paywall Modal */}
+        {showPaywall && selectedQuest && (
+          <PaywallModal
+            quest={selectedQuest}
+            variant="A_direct"
+            onClose={() => {
+              setShowPaywall(false);
+              setSelectedQuest(null);
+            }}
+          />
         )}
       </main>
     </div>

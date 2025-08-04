@@ -1,16 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCrown, FaLock, FaCheck, FaRocket, FaBolt, FaTrophy, FaStar, FaShieldAlt, FaTimes } from 'react-icons/fa';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { PAYWALL_VARIANTS } from '../hooks/usePaywall';
 import posthog from 'posthog-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 const PaywallModal = ({ quest, variant, onClose }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+
+  // Vérifier si on revient de Stripe (URL avec session_id)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    if (sessionId) {
+      console.log('PaywallModal: Returning from Stripe checkout with session:', sessionId);
+      handleStripeReturn(sessionId);
+    }
+  }, []);
+
+  const handleStripeReturn = async (sessionId) => {
+    if (!user) return;
+    
+    try {
+      console.log('PaywallModal: Handling Stripe return for session:', sessionId);
+      
+      // Mettre à jour le statut premium directement
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        isPremium: true,
+        premiumStartDate: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+      });
+      
+      // Capture PostHog checkout_success event
+      posthog.capture('checkout_success', {
+        session_id: sessionId,
+        variant,
+        quest_id: quest.id,
+        plan: selectedPlan
+      });
+      
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Fermer le modal
+      onClose();
+      
+    } catch (error) {
+      console.error('PaywallModal: Error handling Stripe return:', error);
+    }
+  };
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -21,8 +66,12 @@ const PaywallModal = ({ quest, variant, onClose }) => {
     setLoading(true);
     
     try {
+      // Définir priceId avec les variables d'environnement
+      const priceId = selectedPlan === 'monthly' 
+        ? (import.meta.env.VITE_STRIPE_PRICE_MONTHLY || 'price_1ABC123DEF456GHI789JKL')
+        : (import.meta.env.VITE_STRIPE_PRICE_YEARLY || 'price_1XYZ789ABC123DEF456GHI');
+
       // Capture l'événement checkout_start avec la variante
-      const priceId = selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly';
       posthog.capture('checkout_start', { 
         variant, 
         quest_id: quest.id,
@@ -36,18 +85,31 @@ const PaywallModal = ({ quest, variant, onClose }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly',
-          variant,
-          questId: quest.id,
-          userId: user.uid
+          priceId: priceId,
+          userId: user.uid,
+          email: user.email
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Failed to create checkout session: ${response.status}`);
+      }
+
       const { sessionId } = await response.json();
+      console.log('Paywall session created:', sessionId);
       
       // Rediriger vers Stripe Checkout
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      await stripe.redirectToCheckout({ sessionId });
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      if (!stripeKey) {
+        throw new Error('Stripe publishable key not configured');
+      }
+      
+      const stripe = await loadStripe(stripeKey);
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (error) {
+        throw error;
+      }
       
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -57,7 +119,6 @@ const PaywallModal = ({ quest, variant, onClose }) => {
         posthog.capture('checkout_success', {
           variant,
           quest_id: quest.id,
-          price_id: priceId,
           plan
         });
         onClose();
