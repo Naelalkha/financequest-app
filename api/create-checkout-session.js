@@ -1,10 +1,24 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Vérifier que la clé Stripe est définie
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('STRIPE_SECRET_KEY is not defined');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Vérifier que la clé Stripe est définie
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('STRIPE_SECRET_KEY is not defined');
+    return res.status(500).json({ 
+      error: 'Stripe configuration missing',
+      details: 'STRIPE_SECRET_KEY environment variable is not set'
+    });
   }
 
   try {

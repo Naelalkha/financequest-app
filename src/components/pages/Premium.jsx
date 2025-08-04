@@ -89,9 +89,11 @@ const Premium = () => {
 
     setLoading(true);
     
+    // Définir priceId au niveau de la fonction pour être accessible partout
+    const priceId = selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly';
+    
     try {
       // Capture PostHog checkout_start event
-      const priceId = selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly';
       posthog.capture('checkout_start', {
         price_id: priceId
       });
@@ -109,7 +111,7 @@ const Premium = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly',
+          priceId: priceId,
           variant: 'direct_premium',
           questId: 'premium_subscription',
           userId: user.uid
@@ -117,7 +119,8 @@ const Premium = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        console.error('API response not ok:', response.status, response.statusText);
+        throw new Error(`Failed to create checkout session: ${response.status}`);
       }
 
       const { sessionId } = await response.json();
@@ -135,7 +138,7 @@ const Premium = () => {
       toast.error(t('errors.subscription_failed') || 'Failed to start subscription');
       
       // Fallback pour la démo si l'API n'est pas disponible
-      toast.info('Demo mode: Simulating successful subscription');
+      toast.info(`Demo mode: Simulating successful subscription (API error: ${error.message})`);
       setTimeout(() => {
         // Capture PostHog checkout_success event
         const plan = selectedPlan === 'monthly' ? 'monthly' : 'yearly';
