@@ -185,12 +185,12 @@ export const FeatureCard = ({
   icon: Icon,
   features = [],
   action,
-  premium = false,
+  isPremium = false,
   className = ''
 }) => {
   return (
     <Card gradient hover className={`relative overflow-hidden ${className}`}>
-      {premium && (
+      {isPremium && (
         <div className="absolute -top-3 -right-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-8 py-1 rotate-45 shadow-lg">
           PREMIUM
         </div>

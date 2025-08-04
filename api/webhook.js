@@ -129,7 +129,7 @@ export default async function handler(req, res) {
         if (!usersSnapshot.empty) {
           const userDoc = usersSnapshot.docs[0];
           await userDoc.ref.update({ 
-            premium: false,
+            isPremium: false,
             premiumEndDate: new Date()
           });
           console.log(`Premium cancelled for user ${userDoc.id}`);

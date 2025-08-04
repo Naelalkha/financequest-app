@@ -323,7 +323,7 @@ import {
         type: 'premium',
         value: true
       },
-      premium: true
+      isPremium: true
     },
     {
       id: 'premium_veteran',
@@ -339,7 +339,7 @@ import {
         type: 'premium_months',
         value: 6
       },
-      premium: true,
+      isPremium: true,
       rare: true
     }
   ];

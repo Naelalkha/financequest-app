@@ -35,10 +35,8 @@ const Premium = () => {
       const sessionId = urlParams.get('session_id');
       if (sessionId) {
         console.log('Returning from Stripe checkout with session:', sessionId);
-        // Recharger le statut premium après un délai
-        setTimeout(() => {
-          checkPremiumStatus();
-        }, 2000);
+        // Mettre à jour le statut premium directement
+        handleStripeReturn(sessionId);
       }
     } else {
       setCheckingStatus(false);
@@ -170,6 +168,34 @@ const Premium = () => {
       }, 2000);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fonction pour gérer le retour de Stripe
+  const handleStripeReturn = async (sessionId) => {
+    if (!user) return;
+    
+    try {
+      console.log('Handling Stripe return for session:', sessionId);
+      
+      // Mettre à jour le statut premium directement
+      await updateUserPremiumStatus(true);
+      
+      // Capture PostHog checkout_success event
+      posthog.capture('checkout_success', {
+        session_id: sessionId,
+        plan: selectedPlan
+      });
+      
+      toast.success(t('premium.subscribe_success') || 'Welcome to Premium!');
+      setIsPremium(true);
+      
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, '/premium');
+      
+    } catch (error) {
+      console.error('Error handling Stripe return:', error);
+      toast.error('Error activating premium status');
     }
   };
 

@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         quantity: 1,
       }],
       mode: 'subscription',
-      success_url: 'https://financequest-app.vercel.app/dashboard?success=true',
+      success_url: 'https://financequest-app.vercel.app/premium?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: 'https://financequest-app.vercel.app/premium',
       customer_email: email,
       metadata: {
