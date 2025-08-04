@@ -40,8 +40,8 @@ export default async function handler(req, res) {
         userId,
         priceId
       },
-      success_url: `${process.env.ORIGIN || 'https://financequest-app.vercel.app/'}/premium?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.ORIGIN || 'https://financequest-app.vercel.app/'}/premium`,
+      success_url: `${process.env.ORIGIN || 'https://financequest-app.vercel.app'}/premium?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.ORIGIN || 'https://financequest-app.vercel.app'}/premium`,
       client_reference_id: userId,
     });
 

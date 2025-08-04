@@ -128,12 +128,24 @@ const Premium = () => {
       }
 
       const { sessionId } = await response.json();
+      console.log('Session created successfully:', sessionId);
 
       // Rediriger vers Stripe Checkout
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      console.log('Stripe key available:', !!stripeKey);
+      
+      if (!stripeKey) {
+        throw new Error('Stripe publishable key not configured');
+      }
+      
+      const stripe = await loadStripe(stripeKey);
+      console.log('Stripe loaded:', !!stripe);
+      
       const { error } = await stripe.redirectToCheckout({ sessionId });
+      console.log('Redirect result:', { error });
 
       if (error) {
+        console.error('Stripe redirect error:', error);
         throw error;
       }
 
