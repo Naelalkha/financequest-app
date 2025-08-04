@@ -91,6 +91,7 @@ const Premium = () => {
     
     // Définir priceId au niveau de la fonction pour être accessible partout
     // Utiliser les variables d'environnement ou les IDs par défaut
+    // IMPORTANT: Utiliser des Price IDs (price_...) pas des Product IDs (prod_...)
     const priceId = selectedPlan === 'monthly' 
       ? (import.meta.env.VITE_STRIPE_PRICE_MONTHLY || 'price_1ABC123DEF456GHI789JKL')
       : (import.meta.env.VITE_STRIPE_PRICE_YEARLY || 'price_1XYZ789ABC123DEF456GHI');
