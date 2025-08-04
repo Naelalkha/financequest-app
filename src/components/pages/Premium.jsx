@@ -116,9 +116,8 @@ const Premium = () => {
         },
         body: JSON.stringify({
           priceId: priceId,
-          variant: 'direct_premium',
-          questId: 'premium_subscription',
-          userId: user.uid
+          userId: user.uid,
+          email: user.email
         }),
       });
 
