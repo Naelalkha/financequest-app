@@ -90,7 +90,10 @@ const Premium = () => {
     setLoading(true);
     
     // Définir priceId au niveau de la fonction pour être accessible partout
-    const priceId = selectedPlan === 'monthly' ? 'price_monthly' : 'price_yearly';
+    // Utiliser les variables d'environnement ou les IDs par défaut
+    const priceId = selectedPlan === 'monthly' 
+      ? (import.meta.env.VITE_STRIPE_PRICE_MONTHLY || 'price_1ABC123DEF456GHI789JKL')
+      : (import.meta.env.VITE_STRIPE_PRICE_YEARLY || 'price_1XYZ789ABC123DEF456GHI');
     
     try {
       // Capture PostHog checkout_start event
