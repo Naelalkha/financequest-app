@@ -44,39 +44,42 @@ const Premium = () => {
     }
   }, [user]);
 
+
+
   const checkPremiumStatus = async () => {
     if (!user) {
       setCheckingStatus(false);
       return;
     }
     
-    try {
-      setCheckingStatus(true);
-      // First check if user object already has premium status
-      if (user.isPremium !== undefined) {
-        console.log('Premium status from user object:', user.isPremium);
-        setIsPremium(user.isPremium);
+          try {
+        setCheckingStatus(true);
+        
+        // First check if user object already has premium status
+        if (user.isPremium !== undefined) {
+          setIsPremium(user.isPremium);
+          setCheckingStatus(false);
+          return;
+        }
+      
+              // Otherwise fetch from Firestore
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          // Check isPremium field
+          setIsPremium(userData.isPremium || false);
+        } else {
+          setIsPremium(false);
+        }
+      } catch (error) {
+        console.error('Error checking premium status:', error);
+        // If error, check user object as fallback
+        setIsPremium(user.isPremium || false);
+      } finally {
         setCheckingStatus(false);
-        return;
       }
-      
-      // Otherwise fetch from Firestore
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        console.log('User data from Firestore:', userData);
-        // Check isPremium field
-        setIsPremium(userData.isPremium || false);
-      }
-    } catch (error) {
-      console.error('Error checking premium status:', error);
-      // If error, check user object as fallback
-      setIsPremium(user.isPremium || false);
-    } finally {
-      setCheckingStatus(false);
-    }
   };
 
   const handleSubscribe = async () => {
@@ -200,6 +203,16 @@ const Premium = () => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast.error(t('auth.login_required') || 'Please login to manage subscription');
+      return;
+    }
+
+    // Rediriger directement vers le portail Stripe configuré
+    window.open('https://billing.stripe.com/p/login/test_28E14p0n96mxbd0aiLcjS00', '_blank');
+  };
+
   // Fonction pour mettre à jour le statut premium dans Firebase
   const updateUserPremiumStatus = async (isPremiumStatus) => {
     try {
@@ -270,23 +283,20 @@ const Premium = () => {
             </div>
           </div>
 
-          {/* Premium Status Card */}
-          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl p-6 animate-fadeIn" style={{ animationDelay: '400ms' }}>
-            <div className="flex items-center gap-3 mb-3">
-              <FaStar className="text-yellow-400 text-2xl" />
-              <h3 className="text-lg font-bold text-white">
-                {t('premium.member_since') || 'Premium Member'}
+          {/* Subscription Management */}
+          <div className="mt-8 animate-fadeIn" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white">
+                {t('premium.manage_subscription') || 'Manage Your Subscription'}
               </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <FaCrown className="text-yellow-400" />
+                <span>{t('premium.active_subscription') || 'Active Subscription'}</span>
+              </div>
             </div>
-            <p className="text-gray-300 mb-4">
-              {t('premium.thank_you') || 'Thank you for supporting FinanceQuest! Your premium membership helps us create more amazing content.'}
-            </p>
+            <SubscriptionManager />
             
-            <div className="pt-4 border-t border-gray-700">
-              <p className="text-sm text-gray-400">
-                {t('premium.manage_subscription') || 'To manage your subscription, please contact support at support@financequest.app'}
-              </p>
-            </div>
+
           </div>
 
           {/* Continue Learning CTA */}
@@ -297,6 +307,8 @@ const Premium = () => {
             >
               {t('premium.continue_learning') || 'Continue Learning'}
             </button>
+            
+
           </div>
         </div>
       </div>
@@ -499,15 +511,7 @@ const Premium = () => {
           </p>
         </div>
 
-        {/* Subscription Management */}
-        {isPremium && (
-          <div className="mt-16 animate-fadeIn" style={{ animationDelay: '600ms' }}>
-            <h3 className="text-xl font-bold text-white mb-6 text-center">
-              {t('premium.manage_subscription') || 'Manage Your Subscription'}
-            </h3>
-            <SubscriptionManager />
-          </div>
-        )}
+
 
         {/* FAQ Section */}
         <div className="mt-16 animate-fadeIn" style={{ animationDelay: '700ms' }}>

@@ -1,44 +1,26 @@
 import React, { useState } from 'react';
-import { FaCrown, FaCalendarAlt, FaCreditCard, FaTimes, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCrown, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
 import { useSubscription } from '../hooks/useSubscription';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const SubscriptionManager = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { 
     subscription, 
-    loading, 
-    isActive, 
-    daysRemaining, 
-    cancelSubscription, 
-    reactivateSubscription,
-    getSubscriptionStatus,
-    getStatusColor,
-    getStatusText
+    loading
   } = useSubscription();
-  
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
-  const handleCancelSubscription = async () => {
-    setCancelling(true);
-    
-    try {
-      const success = await cancelSubscription();
-      
-      if (success) {
-        toast.success(t('subscription.cancelled_success') || 'Subscription cancelled successfully');
-        setShowCancelConfirm(false);
-      } else {
-        toast.error(t('subscription.cancel_failed') || 'Failed to cancel subscription');
-      }
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      toast.error(t('subscription.cancel_failed') || 'Failed to cancel subscription');
-    } finally {
-      setCancelling(false);
+  const handleManageSubscription = () => {
+    if (!user) {
+      toast.error(t('auth.login_required') || 'Please login to manage subscription');
+      return;
     }
+
+    // Rediriger directement vers le portail Stripe configuré
+    window.open('https://billing.stripe.com/p/login/test_28E14p0n96mxbd0aiLcjS00', '_blank');
   };
 
   const formatDate = (dateString) => {
@@ -82,8 +64,6 @@ const SubscriptionManager = () => {
     );
   }
 
-  const status = getSubscriptionStatus();
-
   return (
     <div className="bg-gray-800 rounded-xl p-6">
       {/* Header */}
@@ -94,17 +74,13 @@ const SubscriptionManager = () => {
             <h3 className="text-xl font-semibold text-white">
               {t('subscription.title') || 'Premium Subscription'}
             </h3>
-            <p className={`text-sm ${getStatusColor()}`}>
-              {getStatusText()}
+            <p className="text-green-400 text-sm">
+              {t('subscription.active') || 'Active'}
             </p>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-          status === 'active' ? 'bg-green-500/20 text-green-400' :
-          status === 'expired' ? 'bg-red-500/20 text-red-400' :
-          'bg-gray-500/20 text-gray-400'
-        }`}>
-          {status.toUpperCase()}
+        <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+          ACTIVE
         </div>
       </div>
 
@@ -122,20 +98,6 @@ const SubscriptionManager = () => {
           </p>
         </div>
 
-        {subscription.premiumEndDate && (
-          <div className="bg-gray-700 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FaTimes className="text-red-400" />
-              <span className="text-sm font-medium text-gray-300">
-                {t('subscription.end_date') || 'End Date'}
-              </span>
-            </div>
-            <p className="text-white">
-              {formatDate(subscription.premiumEndDate)}
-            </p>
-          </div>
-        )}
-
         <div className="bg-gray-700 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <FaCreditCard className="text-blue-400" />
@@ -147,90 +109,20 @@ const SubscriptionManager = () => {
             {subscription.plan}
           </p>
         </div>
-
-        {subscription.stripeSubscriptionId && (
-          <div className="bg-gray-700 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FaCheck className="text-green-400" />
-              <span className="text-sm font-medium text-gray-300">
-                {t('subscription.subscription_id') || 'Subscription ID'}
-              </span>
-            </div>
-            <p className="text-white text-sm font-mono">
-              {subscription.stripeSubscriptionId.slice(-8)}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Actions */}
+      {/* Manage Subscription Button */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {status === 'active' && !subscription.subscriptionCancelled && (
-          <button
-            onClick={() => setShowCancelConfirm(true)}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            {t('subscription.cancel') || 'Cancel Subscription'}
-          </button>
-        )}
-
-        {status === 'expired' && (
-          <button
-            onClick={reactivateSubscription}
-            className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-4 py-2 rounded-lg font-medium hover:from-yellow-500 hover:to-orange-600 transition-all"
-          >
-            {t('subscription.reactivate') || 'Reactivate Subscription'}
-          </button>
-        )}
-
-        {subscription.subscriptionCancelled && (
-          <div className="flex-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <FaExclamationTriangle className="text-yellow-400" />
-              <span className="text-yellow-400 text-sm">
-                {t('subscription.cancelled_notice') || 'Subscription will end at the end of the current period'}
-              </span>
-            </div>
+        <button
+          onClick={handleManageSubscription}
+          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <FaCreditCard />
+            {t('subscription.manage_subscription') || 'Manage Subscription'}
           </div>
-        )}
+        </button>
       </div>
-
-      {/* Cancel Confirmation Modal */}
-      {showCancelConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold text-white mb-4">
-              {t('subscription.confirm_cancel') || 'Cancel Subscription?'}
-            </h3>
-            <p className="text-gray-400 mb-6">
-              {t('subscription.cancel_warning') || 'Your subscription will remain active until the end of the current billing period. You can reactivate it anytime.'}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCancelConfirm(false)}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                disabled={cancelling}
-              >
-                {t('common.cancel') || 'Cancel'}
-              </button>
-              <button
-                onClick={handleCancelSubscription}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                disabled={cancelling}
-              >
-                {cancelling ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    {t('common.processing') || 'Processing...'}
-                  </div>
-                ) : (
-                  t('subscription.confirm_cancel_yes') || 'Yes, Cancel'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -79,50 +79,7 @@ export const useSubscription = () => {
     }
   };
 
-  const cancelSubscription = async () => {
-    if (!user || !subscription?.stripeSubscriptionId) {
-      console.error('No subscription to cancel');
-      return false;
-    }
 
-    try {
-      setLoading(true);
-      
-      // Appel API pour annuler l'abonnement
-      const response = await fetch('/api/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subscriptionId: subscription.stripeSubscriptionId,
-          userId: user.uid
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to cancel subscription: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      // Capture l'événement PostHog
-      posthog.capture('subscription_cancelled', {
-        subscription_id: subscription.stripeSubscriptionId,
-        plan: subscription.plan
-      });
-
-      // Mettre à jour l'état local
-      await loadSubscription();
-      
-      return true;
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const reactivateSubscription = async () => {
     if (!user) return false;
@@ -174,7 +131,6 @@ export const useSubscription = () => {
     loading,
     isActive,
     daysRemaining,
-    cancelSubscription,
     reactivateSubscription,
     getSubscriptionStatus,
     getStatusColor,
