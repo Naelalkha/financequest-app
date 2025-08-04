@@ -8,9 +8,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialiser Firebase Admin
 let app;
 if (!getApps().length) {
-  app = initializeApp({
-    credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
-  });
+  try {
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+      console.error('FIREBASE_SERVICE_ACCOUNT is not defined');
+      throw new Error('Firebase service account not configured');
+    }
+    
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    app = initializeApp({
+      credential: cert(serviceAccount)
+    });
+    console.log('Firebase Admin initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Firebase Admin:', error);
+    throw error;
+  }
 } else {
   app = getApps()[0];
 }
@@ -44,28 +56,33 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_DuqP562WnIttXBoALLVInBjbBbRmcXlS';
-
-  if (!sig) {
-    console.error('Missing stripe signature');
-    return res.status(400).json({ error: 'Missing signature' });
-  }
-
-  let event;
-  let rawBody;
-
   try {
-    rawBody = await getRawBody(req);
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
-  }
+    // Vérifier que Firebase est initialisé
+    if (!app) {
+      throw new Error('Firebase not initialized');
+    }
 
-  console.log('Webhook event type:', event.type);
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_DuqP562WnIttXBoALLVInBjbBbRmcXlS';
 
-  try {
+    if (!sig) {
+      console.error('Missing stripe signature');
+      return res.status(400).json({ error: 'Missing signature' });
+    }
+
+    let event;
+    let rawBody;
+
+    try {
+      rawBody = await getRawBody(req);
+      event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+    }
+
+        console.log('Webhook event type:', event.type);
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
@@ -127,6 +144,9 @@ export default async function handler(req, res) {
     res.status(200).json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 }
