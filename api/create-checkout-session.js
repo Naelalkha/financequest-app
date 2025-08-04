@@ -13,6 +13,12 @@ export default async function handler(req, res) {
   }
 
   // Vérifier que la clé Stripe est définie
+  console.log('Environment check:', {
+    hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+    hasOrigin: !!process.env.ORIGIN,
+    nodeEnv: process.env.NODE_ENV
+  });
+  
   if (!process.env.STRIPE_SECRET_KEY) {
     console.error('STRIPE_SECRET_KEY is not defined');
     return res.status(500).json({ 
@@ -22,11 +28,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Request body:', req.body);
     const { priceId, variant, questId, userId } = req.body;
 
     if (!priceId || !variant || !questId || !userId) {
+      console.error('Missing fields:', { priceId, variant, questId, userId });
       return res.status(400).json({ 
-        error: 'Missing required fields: priceId, variant, questId, userId' 
+        error: 'Missing required fields: priceId, variant, questId, userId',
+        received: { priceId, variant, questId, userId }
       });
     }
 
@@ -48,6 +57,10 @@ export default async function handler(req, res) {
     res.status(200).json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    res.status(500).json({ 
+      error: 'Failed to create checkout session',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
