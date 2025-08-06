@@ -58,7 +58,7 @@ const CountUp = ({ end, duration = 1200, prefix = '', suffix = '' }) => {
   return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
 };
 
-// ➊ HeroHeader Component - Sans emoji, plus épuré
+// ➊ HeroHeader Component - Version plus compacte
 const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
   const { t } = useLanguage();
   const hour = new Date().getHours();
@@ -72,9 +72,9 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
 
   // Badge selon le niveau
   const getLevelBadge = () => {
-    if (userLevel >= 50) return { icon: <FaCrown className="text-purple-400 text-xs" />, glow: 'shadow-purple-400/50' };
-    if (userLevel >= 20) return { icon: <FaGem className="text-blue-400 text-xs" />, glow: 'shadow-blue-400/50' };
-    if (userLevel >= 10) return { icon: <FaStar className="text-yellow-400 text-xs" />, glow: 'shadow-yellow-400/50' };
+    if (userLevel >= 50) return { icon: <FaCrown className="text-purple-400 text-[10px]" />, glow: 'shadow-purple-400/30' };
+    if (userLevel >= 20) return { icon: <FaGem className="text-blue-400 text-[10px]" />, glow: 'shadow-blue-400/30' };
+    if (userLevel >= 10) return { icon: <FaStar className="text-yellow-400 text-[10px]" />, glow: 'shadow-yellow-400/30' };
     return null;
   };
 
@@ -86,15 +86,15 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center justify-between"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <motion.div 
           whileTap={{ scale: 0.95 }}
           className="relative"
         >
-          <div className={`w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-400 to-yellow-500 rounded-3xl flex items-center justify-center text-xl font-bold text-gray-900 shadow-2xl border border-yellow-300/30 ${levelBadge?.glow ? levelBadge.glow : ''}`}>
+          <div className={`w-14 h-14 bg-gradient-to-br from-yellow-400 via-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center text-lg font-bold text-gray-900 shadow-xl border border-yellow-300/25 ${levelBadge?.glow ? levelBadge.glow : ''}`}>
             <span className="relative z-10 drop-shadow-sm">{avatarLetter}</span>
             {/* Effet de brillance amélioré */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-white/25 rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 rounded-2xl" />
           </div>
           
           {/* Streak Badge simplifié */}
@@ -102,9 +102,9 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg"
+              className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg"
             >
-              <FaFire className="text-white text-xs animate-pulse" />
+              <FaFire className="text-white text-[10px] animate-pulse" />
             </motion.div>
           )}
           
@@ -114,7 +114,7 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
-              className={`absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center border border-gray-700`}
+              className={`absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center border border-gray-700`}
             >
               {levelBadge.icon}
             </motion.div>
@@ -122,11 +122,11 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
         </motion.div>
         
         <div>
-          <p className="text-white text-lg font-bold flex items-center gap-2 leading-tight">
+          <p className="text-white text-base font-bold flex items-center gap-1.5 leading-tight">
             {getGreeting()}, {displayName}
-            {userLevel >= 20 && <HiSparkles className="text-yellow-400 text-base animate-pulse" />}
+            {userLevel >= 20 && <HiSparkles className="text-yellow-400 text-sm animate-pulse" />}
           </p>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-0.5">
             <p className="text-gray-300 text-xs font-medium">
               {t('dashboard.level') || 'Niveau'} {userLevel}
             </p>
@@ -146,7 +146,7 @@ const HeroHeader = ({ displayName, userLevel, avatarLetter, streak }) => {
   );
 };
 
-// ➋ DailyQuestBanner - Repositionné et amélioré
+// ➋ DailyQuestBanner - Gradient doré subtil mais distinctif
 const DailyQuestBanner = ({ dailyChallenge, dailyCompleted }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -182,66 +182,76 @@ const DailyQuestBanner = ({ dailyChallenge, dailyCompleted }) => {
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => dailyChallenge && navigate(`/quests/${dailyChallenge.questId}`)}
-      className={`relative ${
+      className={`relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl border ${
         isUrgent 
-          ? 'bg-gradient-to-r from-red-500 via-orange-500 to-pink-500 animate-pulse' 
-          : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
-      } rounded-2xl p-5 shadow-2xl cursor-pointer overflow-hidden transition-all hover:shadow-purple-500/25`}
-      style={{
-        backgroundSize: '200% 100%',
-        animation: isUrgent ? 'gradient 2s ease infinite, pulse 2s infinite' : 'gradient 4s ease infinite'
-      }}
+          ? 'border-orange-500/40 shadow-orange-500/10' 
+          : 'border-yellow-500/30 shadow-yellow-500/10'
+      } rounded-2xl p-4 shadow-xl cursor-pointer overflow-hidden transition-all hover:shadow-yellow-500/20`}
     >
-      {/* Effet de brillance animé */}
+      {/* Gradient doré léger pour différenciation */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${
+        isUrgent 
+          ? 'from-orange-400/[0.08] via-transparent to-red-400/[0.06]' 
+          : 'from-yellow-400/[0.06] via-transparent to-amber-400/[0.04]'
+      }`} />
+      
+      {/* Effet de brillance très subtil */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -skew-x-12"
         animate={{ x: [-200, 200] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
       />
       
-      {/* Particules de fond simplifiées */}
-      <div className="absolute inset-0">
-        <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-      </div>
+      {/* Accent lumineux subtil en haut */}
+      <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${
+        isUrgent ? 'via-orange-400/40' : 'via-yellow-400/30'
+      } to-transparent`} />
       
       <div className="relative flex items-center justify-between">
         <div className="flex items-center gap-3">
           <motion.div 
-            className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center shadow-lg"
+            className={`w-11 h-11 ${
+              isUrgent 
+                ? 'bg-gradient-to-br from-orange-500/20 to-red-500/15' 
+                : 'bg-gradient-to-br from-yellow-500/15 to-amber-500/10'
+            } backdrop-blur rounded-xl flex items-center justify-center shadow-lg border ${
+              isUrgent ? 'border-orange-500/30' : 'border-yellow-500/20'
+            }`}
             animate={{ 
               rotate: isUrgent ? [0, 10, -10, 0] : [0, 5, -5, 0],
-              scale: isUrgent ? [1, 1.05, 1] : 1
+              scale: isUrgent ? [1, 1.03, 1] : 1
             }}
             transition={{ duration: isUrgent ? 0.5 : 2, repeat: Infinity }}
           >
-            <FaBolt className="text-2xl text-yellow-300 drop-shadow-lg" />
+            <FaBolt className={`text-xl ${
+              isUrgent ? 'text-orange-400' : 'text-yellow-400'
+            } drop-shadow-md`} />
           </motion.div>
           <div>
             <h3 className="text-white font-bold text-sm flex items-center gap-2">
               {t('dashboard.daily_challenge') || 'Défi du jour'}
               {isUrgent ? (
-                <span className="text-[10px] bg-red-500 px-1.5 py-0.5 rounded animate-pulse font-bold">
+                <span className="text-[9px] bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 px-1.5 py-0.5 rounded border border-orange-500/30 font-bold animate-pulse">
                   URGENT
                 </span>
               ) : (
-                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">
+                <span className="text-[9px] bg-gradient-to-r from-yellow-500/15 to-amber-500/15 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-500/20">
                   NOUVEAU
                 </span>
               )}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-white/90 text-xs font-medium">
+              <p className="text-gray-300 text-xs font-medium">
                 +{dailyChallenge?.rewards?.xp || 100} XP bonus
               </p>
-              <span className={`text-xs font-mono ${isUrgent ? 'text-yellow-300 font-bold' : 'text-white/70'}`}>
+              <span className={`text-xs font-mono ${isUrgent ? 'text-orange-400 font-semibold' : 'text-gray-400'}`}>
                 • {timeLeft.hours}h {timeLeft.minutes}min
               </span>
             </div>
           </div>
         </div>
         <motion.div 
-          className="w-8 h-8 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center"
+          className="w-8 h-8 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center border border-gray-700/50"
           animate={{ x: [0, 3, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
@@ -252,7 +262,7 @@ const DailyQuestBanner = ({ dailyChallenge, dailyCompleted }) => {
   );
 };
 
-// ➌ LevelProgress - Optimisé avec micro-animations
+// ➌ LevelProgress - Avec couleurs et emojis pour les titres
 const LevelProgress = ({ currentXP, currentLevel, streak }) => {
   const { t } = useLanguage();
   const progress = (currentXP % 1000) / 10;
@@ -279,13 +289,33 @@ const LevelProgress = ({ currentXP, currentLevel, streak }) => {
     setPrevLevel(currentLevel);
   }, [currentLevel, prevLevel]);
 
-  // Titre dynamique selon le niveau
+  // Titre dynamique avec emojis et couleurs
   const getLevelTitle = () => {
-    if (currentLevel >= 50) return { text: t('dashboard.level_titles.financial_master') || '👑 Maître Financier', color: 'from-purple-400 to-purple-600' };
-    if (currentLevel >= 25) return { text: t('dashboard.level_titles.confirmed_expert') || '💎 Expert confirmé', color: 'from-blue-400 to-blue-600' };
-    if (currentLevel >= 10) return { text: t('dashboard.level_titles.advanced_apprentice') || '⭐ Apprenti avancé', color: 'from-green-400 to-green-600' };
-    if (currentLevel >= 5) return { text: t('dashboard.level_titles.ambitious_novice') || '🚀 Novice ambitieux', color: 'from-yellow-400 to-yellow-600' };
-    return { text: t('dashboard.level_titles.motivated_beginner') || '🌱 Débutant motivé', color: 'from-gray-400 to-gray-600' };
+    if (currentLevel >= 50) return { 
+      text: t('dashboard.level_titles.financial_master') || 'Maître Financier', 
+      emoji: '👑',
+      color: 'from-purple-400 to-purple-600' 
+    };
+    if (currentLevel >= 25) return { 
+      text: t('dashboard.level_titles.confirmed_expert') || 'Expert confirmé', 
+      emoji: '💎',
+      color: 'from-blue-400 to-blue-600' 
+    };
+    if (currentLevel >= 10) return { 
+      text: t('dashboard.level_titles.advanced_apprentice') || 'Apprenti avancé', 
+      emoji: '⭐',
+      color: 'from-green-400 to-green-600' 
+    };
+    if (currentLevel >= 5) return { 
+      text: t('dashboard.level_titles.ambitious_novice') || 'Novice ambitieux', 
+      emoji: '🚀',
+      color: 'from-yellow-400 to-yellow-600' 
+    };
+    return { 
+      text: t('dashboard.level_titles.motivated_beginner') || 'Débutant motivé', 
+      emoji: '🌱',
+      color: 'from-emerald-400 to-emerald-600' 
+    };
   };
 
   const levelTitle = getLevelTitle();
@@ -300,17 +330,16 @@ const LevelProgress = ({ currentXP, currentLevel, streak }) => {
       {/* Background decoration ultra subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/[0.02] via-transparent to-purple-600/[0.02] pointer-events-none" />
       
-      {/* Header avec titre et prochain palier */}
+      {/* Header avec titre coloré et emoji */}
       <div className="flex items-center justify-between mb-4">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`text-xs font-bold bg-gradient-to-r ${levelTitle.color} bg-clip-text text-transparent`}
+          className={`text-xs font-bold bg-gradient-to-r ${levelTitle.color} bg-clip-text text-transparent flex items-center gap-1.5`}
         >
+          <span className="text-base">{levelTitle.emoji}</span>
           {levelTitle.text}
         </motion.div>
-        
-
       </div>
       
       <div className="relative">
@@ -401,8 +430,6 @@ const LevelProgress = ({ currentXP, currentLevel, streak }) => {
             >
               {/* Shine effect simplifié */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer" />
-              
-
             </motion.div>
             
             {/* Milestones avec animation */}
@@ -416,8 +443,6 @@ const LevelProgress = ({ currentXP, currentLevel, streak }) => {
               />
             ))}
           </div>
-          
-
         </div>
       </div>
     </motion.section>
@@ -713,8 +738,6 @@ const RecommendedQuests = ({ recommendations }) => {
                   minWidth: '180px'
                 }}
               >
-
-                
                 <div className="flex items-start justify-between mb-2">
                   <span className="text-2xl">{category.emoji}</span>
                   {difficultyStars(difficulty)}
@@ -918,9 +941,9 @@ const DashboardPage = () => {
       </div>
       
       {/* Container optimisé mobile avec ordre UX amélioré */}
-      <div className="relative max-w-lg mx-auto px-4 pt-8 pb-6">
+      <div className="relative max-w-lg mx-auto px-4 pt-6 pb-6">
         <div className="space-y-6">
-          {/* 1. Header - Toujours en premier */}
+          {/* 1. Header - Plus compact */}
           <HeroHeader 
             displayName={userData?.displayName || user?.email?.split('@')[0]}
             userLevel={userLevel}
@@ -928,7 +951,7 @@ const DashboardPage = () => {
             streak={streakDays}
           />
           
-          {/* 2. Daily Quest - Mis en avant s'il existe */}
+          {/* 2. Daily Quest - Gradient doré subtil */}
           {dailyChallenge && !dailyChallenge?.completed && (
             <DailyQuestBanner 
               dailyChallenge={dailyChallenge}
@@ -942,7 +965,7 @@ const DashboardPage = () => {
             navigate={navigate}
           />
           
-          {/* 4. Level Progress - Progression globale */}
+          {/* 4. Level Progress - Avec couleurs et emojis */}
           <LevelProgress 
             currentXP={userPoints}
             currentLevel={userLevel}
