@@ -13,9 +13,9 @@ export const categories = {
     secondaryColor: '#60A5FA',
     order: 1,
     difficulty: 'beginner',
-    totalQuests: 4,
-    totalXP: 400,
-    totalDuration: 60
+    totalQuests: 8, // Updated to include global + country-specific quests
+    totalXP: 800,
+    totalDuration: 120
   },
   saving: {
     id: 'saving',

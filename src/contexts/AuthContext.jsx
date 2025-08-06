@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
           completedQuests: 0,
           isPremium: false,
           lang: 'en',
+          country: 'fr-FR', // Default country
           ...additionalData
         });
       } else {
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register function
-  const register = async (email, password, displayName = null) => {
+  const register = async (email, password, displayName = null, country = 'fr-FR') => {
     try {
       setError(null);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }) => {
       const userData = await createUserDocument(
         userCredential.user.uid, 
         userCredential.user.email,
-        { displayName }
+        { displayName, country }
       );
       
       // Merge Firebase Auth user with Firestore data
@@ -115,7 +116,8 @@ export const AuthProvider = ({ children }) => {
       // Capture PostHog signup event
       posthog.capture('signup', {
         provider: 'email',
-        lang: userData.lang || 'en'
+        lang: userData.lang || 'en',
+        country: userData.country || 'fr-FR'
       });
       
       return userCredential.user;
@@ -160,7 +162,8 @@ export const AuthProvider = ({ children }) => {
         userCredential.user.email,
         { 
           displayName: userCredential.user.displayName,
-          photoURL: userCredential.user.photoURL
+          photoURL: userCredential.user.photoURL,
+          country: 'fr-FR' // Default country for Google signup
         }
       );
       

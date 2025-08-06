@@ -8,7 +8,7 @@ import AchievementShareButton from '../common/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getQuestById } from '../../data/quests';
+import { useLocalQuestDetail } from '../../hooks/useLocalQuests';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logQuestEvent } from '../../utils/analytics';
@@ -27,8 +27,10 @@ const QuestDetail = () => {
   const { t, currentLang } = useLanguage();
   const { user } = useAuth();
   
+  // Use the new local quest detail hook
+  const { quest, loading: questLoading, error: questError } = useLocalQuestDetail(questId);
+  
   // State
-  const [quest, setQuest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [stepAnswers, setStepAnswers] = useState({});
@@ -55,24 +57,23 @@ const QuestDetail = () => {
       try {
         setLoading(true);
         
-        // Get quest from templates
-        const questData = getQuestById(questId, currentLang);
-        
-        if (!questData) {
+        if (questError) {
           toast.error(t('errors.quest_not_found') || 'Quest not found');
           navigate('/quests');
           return;
         }
 
+        if (!quest) {
+          return; // Wait for quest to load
+        }
+
         // Ensure quest has steps
-        if (!questData.steps || questData.steps.length === 0) {
+        if (!quest.steps || quest.steps.length === 0) {
           console.error('Quest has no steps:', questId);
           toast.error('Quest data is incomplete');
           navigate('/quests');
           return;
         }
-
-        setQuest(questData);
         
         if (user) {
           await loadUserProgress();
@@ -82,7 +83,7 @@ const QuestDetail = () => {
         // Capture PostHog quest_start event
         posthog.capture('quest_start', {
           quest_id: questId,
-          category: questData.category
+          category: quest.category
         });
         
         logQuestEvent('quest_view', { questId });
@@ -95,7 +96,7 @@ const QuestDetail = () => {
     };
 
     loadQuest();
-  }, [questId, currentLang, user, navigate, t]);
+  }, [quest, questError, questId, user, navigate, t]);
 
   const loadUserProgress = async () => {
     if (!user) return;
@@ -414,7 +415,7 @@ const QuestDetail = () => {
   if (loading || !quest) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <LoadingSpinner />
+        <LoadingSpinner size="large" />
       </div>
     );
   }

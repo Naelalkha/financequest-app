@@ -135,7 +135,24 @@
       "start_challenge": "Start Challenge",
       "premium_only": "Premium Only",
       "go_premium": "Go Premium",
-      "unlock_premium": "Unlock with Premium"
+      "unlock_premium": "Unlock with Premium",
+      "good_morning": "Good morning",
+      "good_afternoon": "Good afternoon", 
+      "good_evening": "Good evening",
+      "ready_to_learn": "Ready to learn?",
+      "start_journey": "Start your journey",
+      "explore_quests": "Explore",
+      "quest_in_progress": "In progress",
+      "badges": "Badges",
+      "view_more": "View more",
+      "view_all": "View all",
+      "level_titles": {
+        "financial_master": "👑 Financial Master",
+        "confirmed_expert": "💎 Confirmed Expert", 
+        "advanced_apprentice": "⭐ Advanced Apprentice",
+        "ambitious_novice": "🚀 Ambitious Novice",
+        "motivated_beginner": "🌱 Motivated Beginner"
+      }
     },
     
     "quests": {
@@ -744,7 +761,24 @@
       "start_challenge": "Commencer le Défi",
       "premium_only": "Premium Uniquement",
       "go_premium": "Obtenir Premium",
-      "unlock_premium": "Débloquer avec Premium"
+      "unlock_premium": "Débloquer avec Premium",
+      "good_morning": "Bonjour",
+      "good_afternoon": "Bon après-midi",
+      "good_evening": "Bonsoir",
+      "ready_to_learn": "Prêt à apprendre ?",
+      "start_journey": "Commence ton parcours",
+      "explore_quests": "Explorer",
+      "quest_in_progress": "En cours",
+      "badges": "Badges",
+      "view_more": "Voir plus",
+      "view_all": "Voir tout",
+      "level_titles": {
+        "financial_master": "👑 Maître Financier",
+        "confirmed_expert": "💎 Expert confirmé",
+        "advanced_apprentice": "⭐ Apprenti avancé", 
+        "ambitious_novice": "🚀 Novice ambitieux",
+        "motivated_beginner": "🌱 Débutant motivé"
+      }
     },
     
     "quests": {

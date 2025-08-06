@@ -7,6 +7,7 @@ import Dashboard from './components/pages/Dashboard';
 import QuestList from './components/pages/QuestList';
 import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
+import Profile from './components/pages/Profile';
 import BottomNav from './components/BottomNav';
 import LanguageToggle from './components/LanguageToggle';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -31,6 +32,19 @@ function PrivateRoute({ children }) {
   );
   
   return user ? children : <Navigate to="/login" />;
+}
+
+// Premium route wrapper - redirect to profile if user is premium
+function PremiumRoute() {
+  const { user } = useAuth();
+  
+  // Si l'utilisateur est premium, rediriger vers /profile
+  if (user?.isPremium) {
+    return <Navigate to="/profile" replace />;
+  }
+  
+  // Sinon, afficher la page Premium
+  return <Premium />;
 }
 
 // Success redirect handler
@@ -144,7 +158,15 @@ function AppContent() {
             path="/premium" 
             element={
               <PrivateRoute>
-                <Premium />
+                <PremiumRoute />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <PrivateRoute>
+                <Profile />
               </PrivateRoute>
             } 
           />

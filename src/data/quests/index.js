@@ -1,9 +1,16 @@
-// Import des catégories
-import { budgetingQuests } from './budgeting/index.js';
-import { savingQuests } from './saving/index.js';
-import { investingQuests } from './investing/index.js';
-import { debtQuests } from './debt/index.js';
-import { planningQuests } from './planning/index.js';
+// Import des quêtes globales
+import { globalBudgetingQuests } from './global/budgeting/index.js';
+import { globalSavingQuests } from './global/saving/index.js';
+import { globalInvestingQuests } from './global/investing/index.js';
+import { globalDebtQuests } from './global/debt/index.js';
+import { globalPlanningQuests } from './global/planning/index.js';
+
+// Import des quêtes françaises
+import { frBudgetingQuests } from './fr-FR/budgeting/index.js';
+import { frPlanningQuests } from './fr-FR/planning/index.js';
+
+// Import des quêtes américaines
+import { usBudgetingQuests } from './en-US/budgeting/index.js';
 
 // Import des helpers et catégories
 import { categories, categoryOrder } from './categories.js';
@@ -19,13 +26,29 @@ import {
   calculateQuestProgress
 } from './questHelpers.js';
 
+// Combine toutes les quêtes par pays
+export const globalQuests = [
+  ...globalBudgetingQuests,
+  ...globalSavingQuests,
+  ...globalInvestingQuests,
+  ...globalDebtQuests,
+  ...globalPlanningQuests
+];
+
+export const frQuests = [
+  ...frBudgetingQuests,
+  ...frPlanningQuests
+];
+
+export const usQuests = [
+  ...usBudgetingQuests
+];
+
 // Combine toutes les quêtes
 export const allQuests = [
-  ...budgetingQuests,
-  ...savingQuests,
-  ...investingQuests,
-  ...debtQuests,
-  ...planningQuests
+  ...globalQuests,
+  ...frQuests,
+  ...usQuests
 ];
 
 // Cache pour performance
@@ -61,31 +84,73 @@ export const getQuestById = (questId, lang = 'en') => {
  * Récupère les quêtes par catégorie
  * @param {string} category - Catégorie
  * @param {string} lang - Langue (en/fr)
+ * @param {string} country - Pays (global/fr-FR/en-US)
  * @returns {Array} - Quêtes de la catégorie
  */
-export const getQuestsByCategory = (category, lang = 'en') => {
-  const categoryQuests = allQuests.filter(quest => quest.category === category);
+export const getQuestsByCategory = (category, lang = 'en', country = 'global') => {
+  let categoryQuests = [];
+  
+  if (country === 'global') {
+    categoryQuests = globalQuests.filter(quest => quest.category === category);
+  } else if (country === 'fr-FR') {
+    categoryQuests = frQuests.filter(quest => quest.category === category);
+  } else if (country === 'en-US') {
+    categoryQuests = usQuests.filter(quest => quest.category === category);
+  } else {
+    categoryQuests = allQuests.filter(quest => quest.category === category);
+  }
+  
   return categoryQuests.map(quest => localizeQuest(quest, lang));
+};
+
+/**
+ * Récupère les quêtes par pays
+ * @param {string} country - Pays (global/fr-FR/en-US)
+ * @param {string} lang - Langue (en/fr)
+ * @returns {Array} - Quêtes du pays
+ */
+export const getQuestsByCountry = (country, lang = 'en') => {
+  let countryQuests = [];
+  
+  switch (country) {
+    case 'global':
+      countryQuests = globalQuests;
+      break;
+    case 'fr-FR':
+      countryQuests = frQuests;
+      break;
+    case 'en-US':
+      countryQuests = usQuests;
+      break;
+    default:
+      countryQuests = allQuests;
+  }
+  
+  return countryQuests.map(quest => localizeQuest(quest, lang));
 };
 
 /**
  * Récupère les quêtes gratuites
  * @param {string} lang - Langue (en/fr)
+ * @param {string} country - Pays (global/fr-FR/en-US)
  * @returns {Array} - Quêtes gratuites
  */
-export const getFreeQuests = (lang = 'en') => {
-  const freeQuests = allQuests.filter(quest => !quest.isPremium);
-  return freeQuests.map(quest => localizeQuest(quest, lang));
+export const getFreeQuests = (lang = 'en', country = 'global') => {
+  const countryQuests = getQuestsByCountry(country, lang);
+  const freeQuests = countryQuests.filter(quest => !quest.isPremium);
+  return freeQuests;
 };
 
 /**
  * Récupère les quêtes premium
  * @param {string} lang - Langue (en/fr)
+ * @param {string} country - Pays (global/fr-FR/en-US)
  * @returns {Array} - Quêtes premium
  */
-export const getPremiumQuests = (lang = 'en') => {
-  const premiumQuests = allQuests.filter(quest => quest.isPremium);
-  return premiumQuests.map(quest => localizeQuest(quest, lang));
+export const getPremiumQuests = (lang = 'en', country = 'global') => {
+  const countryQuests = getQuestsByCountry(country, lang);
+  const premiumQuests = countryQuests.filter(quest => quest.isPremium);
+  return premiumQuests;
 };
 
 /**
@@ -93,10 +158,12 @@ export const getPremiumQuests = (lang = 'en') => {
  * @param {Array} completedQuestIds - IDs des quêtes complétées
  * @param {number} userLevel - Niveau utilisateur
  * @param {string} lang - Langue (en/fr)
+ * @param {string} country - Pays (global/fr-FR/en-US)
  * @returns {Array} - Quêtes recommandées
  */
-export const getRecommendedQuests = (completedQuestIds = [], userLevel = 1, lang = 'en') => {
-  const availableQuests = allQuests.filter(quest => 
+export const getRecommendedQuests = (completedQuestIds = [], userLevel = 1, lang = 'en', country = 'global') => {
+  const countryQuests = getQuestsByCountry(country, lang);
+  const availableQuests = countryQuests.filter(quest => 
     !completedQuestIds.includes(quest.id) && 
     !quest.isPremium
   );
@@ -117,7 +184,7 @@ export const getRecommendedQuests = (completedQuestIds = [], userLevel = 1, lang
     })
     .slice(0, 5); // Top 5
 
-  return recommended.map(quest => localizeQuest(quest, lang));
+  return recommended;
 };
 
 /**
@@ -138,6 +205,7 @@ export const getGlobalQuestStats = () => {
     freeQuests,
     premiumQuests,
     categories: categoryOrder.length,
+    countries: ['global', 'fr-FR', 'en-US'],
     averageCompletionRate: 0.82,
     averageUserRating: 4.6
   };
@@ -211,7 +279,4 @@ export {
 };
 
 // Export des catégories
-export { categories, categoryOrder };
-
-// Export des quêtes individuelles pour compatibilité
-export { budgetBasics } from './budgeting/budget-basics.js'; 
+export { categories, categoryOrder }; 

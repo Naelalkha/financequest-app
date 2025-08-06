@@ -18,7 +18,8 @@ export const localizeQuest = (quest, lang = 'en') => {
     objectives: quest.content?.[lang]?.objectives || quest[`objectives_${lang}`] || quest.objectives_en || quest.objectives,
     prerequisites: quest.content?.[lang]?.prerequisites || quest[`prerequisites_${lang}`] || quest.prerequisites_en || quest.prerequisites,
     whatYouWillLearn: quest.content?.[lang]?.whatYouWillLearn || quest[`whatYouWillLearn_${lang}`] || quest.whatYouWillLearn_en,
-    realWorldApplication: quest.content?.[lang]?.realWorldApplication || quest[`realWorldApplication_${lang}`] || quest.realWorldApplication_en
+    realWorldApplication: quest.content?.[lang]?.realWorldApplication || quest[`realWorldApplication_${lang}`] || quest.realWorldApplication_en,
+    country: quest.country || 'global'
   };
 
   // Localiser les steps

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock, FaGoogle, FaArrowLeft, FaEye, FaEyeSlash, FaRocket } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaGoogle, FaArrowLeft, FaEye, FaEyeSlash, FaRocket, FaGlobe } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-toastify';
@@ -14,7 +14,8 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    country: 'fr-FR'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,7 +30,7 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.country) {
       toast.error(t('auth.fill_all_fields') || 'Please fill in all fields');
       return false;
     }
@@ -60,7 +61,7 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      await register(formData.email, formData.password, formData.name);
+      await register(formData.email, formData.password, formData.name, formData.country);
       toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
       navigate('/dashboard');
     } catch (err) {
@@ -167,6 +168,34 @@ const Register = () => {
                   disabled={isSubmitting}
                 />
               </div>
+            </div>
+
+            {/* Country Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t('auth.country') || 'Country'}
+              </label>
+              <div className="relative">
+                <FaGlobe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors appearance-none cursor-pointer"
+                  disabled={isSubmitting}
+                >
+                  <option value="fr-FR">🇫🇷 France</option>
+                  <option value="en-US">🇺🇸 United States</option>
+                </select>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('auth.country_hint') || 'This will determine which country-specific quests you see'}
+              </p>
             </div>
 
             {/* Password Field */}
