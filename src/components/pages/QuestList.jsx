@@ -420,48 +420,82 @@ const QuestList = () => {
           duration: 0.4,
           delay: Math.min(index * 0.05, 0.2)
         }}
-              whileHover={{ 
-        scale: 1.02,
-        y: -5,
-        transition: { duration: 0.2, ease: "easeOut" }
-      }}
-      whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+        whileHover={{ 
+          scale: 1.02,
+          y: -5,
+          transition: { duration: 0.2, ease: "easeOut" }
+        }}
+        whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
         onMouseEnter={() => setHoveredQuest(quest.id)}
         onMouseLeave={() => setHoveredQuest(null)}
         className="group relative w-full"
       >
-        {/* Carte avec effet glass morphism gamifié */}
-        <div className={`
-          relative rounded-2xl overflow-hidden w-full
-          bg-gradient-to-br from-white/[0.08] via-white/[0.06] to-white/[0.03]
-          backdrop-blur-xl
-          border border-white/10
-          ${hoveredQuest === quest.id ? 'border-white/30 shadow-2xl shadow-purple-500/20' : ''}
-          ${isCompleted ? 'bg-gradient-to-br from-green-500/[0.08] to-emerald-500/[0.03]' : ''}
-          ${isInProgress ? 'bg-gradient-to-br from-cyan-500/[0.08] to-blue-500/[0.03]' : ''}
-          transition-all duration-500
-        `}>
+        {/* Carte avec effet glass morphism style quêtes complétées */}
+        <div className="relative rounded-2xl overflow-hidden w-full">
           {/* Gradient overlay animé au hover */}
           <motion.div 
-            className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0`}
-            animate={{ opacity: hoveredQuest === quest.id ? 0.08 : 0 }}
+            className={`absolute inset-0 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-emerald-500/20 rounded-2xl blur-lg opacity-0`}
+            animate={{ opacity: hoveredQuest === quest.id ? 1 : 0 }}
             transition={{ duration: 0.3 }}
           />
           
-          {/* Shine effect */}
-          {hoveredQuest === quest.id && (
-            <motion.div
-              className="absolute inset-0 opacity-10"
-              style={{
-                background: 'linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.7) 50%, transparent 60%)',
-              }}
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{ duration: 0.8 }}
-            />
-          )}
+          <div 
+            className={`
+              relative neon-element rounded-2xl p-4 sm:p-6 backdrop-blur-sm shadow-lg
+              ${hoveredQuest === quest.id ? `border-white/30 shadow-2xl ${category.neonGlow}` : ''}
+              transition-all duration-500
+            `}
+            style={{
+              background: isCompleted 
+                ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(16, 185, 129, 0.09) 100%)'
+                : isInProgress 
+                  ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(59, 130, 246, 0.09) 100%)'
+                  : quest.category === 'all'
+                    ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                    : quest.category === 'budgeting'
+                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                      : quest.category === 'saving'
+                        ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(101, 163, 13, 0.08) 100%)'
+                        : quest.category === 'investing'
+                          ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%)'
+                          : quest.category === 'debt'
+                            ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.08) 100%)'
+                            : quest.category === 'planning'
+                              ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.08) 100%)'
+                              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
+              boxShadow: isCompleted 
+                ? '0 10px 25px -3px rgba(34, 197, 94, 0.1), 0 4px 6px -2px rgba(34, 197, 94, 0.05)'
+                : isInProgress 
+                  ? '0 10px 25px -3px rgba(6, 182, 212, 0.1), 0 4px 6px -2px rgba(6, 182, 212, 0.05)'
+                  : quest.category === 'all'
+                    ? '0 10px 25px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05)'
+                    : quest.category === 'budgeting'
+                      ? '0 10px 25px -3px rgba(34, 197, 94, 0.1), 0 4px 6px -2px rgba(34, 197, 94, 0.05)'
+                      : quest.category === 'saving'
+                        ? '0 10px 25px -3px rgba(101, 163, 13, 0.1), 0 4px 6px -2px rgba(101, 163, 13, 0.05)'
+                        : quest.category === 'investing'
+                          ? '0 10px 25px -3px rgba(147, 51, 234, 0.1), 0 4px 6px -2px rgba(147, 51, 234, 0.05)'
+                          : quest.category === 'debt'
+                            ? '0 10px 25px -3px rgba(239, 68, 68, 0.1), 0 4px 6px -2px rgba(239, 68, 68, 0.05)'
+                            : quest.category === 'planning'
+                              ? '0 10px 25px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05)'
+                              : '0 10px 25px -3px rgba(255, 255, 255, 0.05), 0 4px 6px -2px rgba(255, 255, 255, 0.02)'
+            }}
+          >
+            {/* Shine effect */}
+            {hoveredQuest === quest.id && (
+              <motion.div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  background: 'linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.7) 50%, transparent 60%)',
+                }}
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ duration: 0.8 }}
+              />
+            )}
 
-          <div className="relative z-10 p-4 sm:p-6">
+            <div className="relative z-10">
             {/* Header avec icône de catégorie */}
             <div className="mb-3 sm:mb-4">
               <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -474,28 +508,48 @@ const QuestList = () => {
                     {category.icon && <category.icon className={`text-sm sm:text-lg ${category.color}`} />}
                   </div>
                   
-                  {/* Badge de difficulté avec meilleur contraste */}
-                  <div className={`
-                    px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold
+                                     {/* Badge de difficulté - Optimisé */}
+                   <div 
+                     className={`
+                       px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold uppercase tracking-wider
                     ${difficulty.bgStyle} ${difficulty.textColor}
-                  `}>
-                    {difficulty.label}
+                     `}
+                     style={{ 
+                       fontFamily: '"Inter", sans-serif',
+                       fontWeight: 800,
+                       letterSpacing: '0.05em'
+                     }}
+                   >
+                     {difficulty.label}
                   </div>
                   
                   {quest.isPremium && (
-                    <div className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-[9px] sm:text-[10px] font-bold text-purple-300">
+                     <div 
+                       className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 border border-amber-500/30 text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider"
+                       style={{ 
+                         fontFamily: '"Inter", sans-serif',
+                         fontWeight: 800,
+                         letterSpacing: '0.05em'
+                       }}
+                     >
                       PRO
                     </div>
                   )}
                   
                   {quest.isNew && !isCompleted && (
                     <motion.div 
-                      className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-[9px] sm:text-[10px] font-bold text-cyan-300 relative overflow-hidden"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-xs sm:text-sm font-extrabold text-cyan-300 relative overflow-hidden uppercase tracking-wider flex items-center gap-1.5"
                       animate={{ 
                         boxShadow: ["0 0 0px rgba(34, 211, 238, 0)", "0 0 10px rgba(34, 211, 238, 0.5)", "0 0 0px rgba(34, 211, 238, 0)"] 
                       }}
                       transition={{ duration: 2, repeat: Infinity }}
+                      style={{ 
+                        fontFamily: '"Inter", sans-serif',
+                        fontWeight: 800,
+                        letterSpacing: '0.05em'
+                      }}
                     >
+                      <BsStars className="text-xs animate-pulse" />
                       NEW
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
@@ -507,13 +561,18 @@ const QuestList = () => {
 
                   {isCompleted && (
                     <motion.div 
-                      className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-[9px] sm:text-[10px] font-bold text-green-300 flex items-center gap-1"
+                       className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-xs sm:text-sm font-extrabold text-green-300 flex items-center gap-1.5 uppercase tracking-wider"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                       style={{ 
+                         fontFamily: '"Inter", sans-serif',
+                         fontWeight: 800,
+                         letterSpacing: '0.05em'
+                       }}
                     >
-                      <FaCheckCircle className="text-[8px]" />
-                      FINI
+                       <FaCheckCircle className="text-xs" />
+                       TERMINÉ
                     </motion.div>
                   )}
                 </div>
@@ -546,28 +605,59 @@ const QuestList = () => {
                 </motion.button>
               </div>
               
-              {/* Titre stylé et description */}
-              <h3 className="text-white font-bold text-sm sm:text-base mb-1 line-clamp-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-purple-200 group-hover:bg-clip-text transition-all">
+                             {/* Titre stylé et description - Optimisé */}
+               <h3 
+                 className="text-white font-extrabold text-lg sm:text-xl lg:text-2xl mb-2 line-clamp-2 leading-tight group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-purple-200 group-hover:bg-clip-text transition-all duration-300"
+                 style={{ 
+                   fontFamily: '"Inter", "Helvetica Neue", sans-serif',
+                   fontWeight: 800,
+                   letterSpacing: '-0.01em'
+                 }}
+               >
                 {quest.title}
               </h3>
               
-              <p className="text-gray-500 text-xs line-clamp-1">
+               <p 
+                 className="text-gray-400 text-sm sm:text-base line-clamp-2 leading-relaxed"
+                 style={{ 
+                   fontFamily: '"Inter", sans-serif',
+                   fontWeight: 400,
+                   letterSpacing: '0.005em',
+                   lineHeight: '1.5'
+                 }}
+               >
                 {quest.description}
               </p>
             </div>
 
-            {/* Stats simplifiées et mieux organisées */}
-            <div className="flex items-center gap-2 mb-3 sm:mb-4">
-              <div className="flex items-center gap-1 text-xs text-gray-400">
-                <FaClock className="text-cyan-400 text-[9px] sm:text-[10px]" />
-                <span className="font-semibold text-[10px] sm:text-xs">{quest.duration}min</span>
+                         {/* Stats optimisées - Style 2025 */}
+             <div className="flex items-center gap-3 mb-4 sm:mb-5">
+              <div className="flex items-center gap-1.5">
+                 <FaClock className="text-cyan-400 text-sm" />
+                 <span 
+                   className="font-extrabold text-sm text-gray-300"
+                   style={{ 
+                     fontFamily: '"Inter", sans-serif',
+                     fontWeight: 800
+                   }}
+                 >
+                   {quest.duration}min
+                 </span>
               </div>
               
-              <div className="w-px h-3 bg-white/10" />
+              <div className="w-px h-4 bg-white/10" />
               
-              <div className="flex items-center gap-1 text-xs">
-                <GiTwoCoins className="text-yellow-400 text-[10px] sm:text-xs" />
-                <span className="font-bold text-yellow-300 text-[10px] sm:text-xs">+{quest.xp}</span>
+              <div className="flex items-center gap-1.5">
+                 <GiTwoCoins className="text-yellow-400 text-sm" />
+                 <span 
+                   className="font-extrabold text-yellow-300 text-sm"
+                   style={{ 
+                     fontFamily: '"Inter", sans-serif',
+                     fontWeight: 800
+                   }}
+                 >
+                   +{quest.xp}
+                 </span>
               </div>
               
               {isInProgress && (
@@ -659,12 +749,13 @@ const QuestList = () => {
             </Link>
           </div>
         </div>
-      </motion.div>
-    );
+      </div>
+    </motion.div>
+  );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#140118] to-[#1F0A2E] relative overflow-hidden pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1508] to-[#2E1F0A] relative overflow-hidden pb-20">
       {/* Grid pattern overlay */}
       <div className="fixed inset-0 opacity-[0.02]">
         <div 
@@ -679,7 +770,7 @@ const QuestList = () => {
       {/* Animated gradient orbs et particules gamifiées */}
       <div className="fixed inset-0 overflow-hidden">
         <motion.div 
-          className="absolute top-1/4 -left-48 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]"
+          className="absolute top-1/4 -left-48 w-96 h-96 bg-amber-600/20 rounded-full blur-[120px]"
           animate={{ 
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -687,7 +778,7 @@ const QuestList = () => {
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute top-3/4 -right-48 w-96 h-96 bg-cyan-600/20 rounded-full blur-[120px]"
+          className="absolute top-3/4 -right-48 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px]"
           animate={{ 
             x: [0, -100, 0],
             y: [0, 50, 0],
@@ -695,7 +786,7 @@ const QuestList = () => {
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[150px]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-600/10 rounded-full blur-[150px]"
           animate={{ 
             scale: [1, 1.2, 1],
             rotate: [0, 180, 360],
@@ -707,7 +798,7 @@ const QuestList = () => {
         {[...Array(12)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full opacity-20"
+            className="absolute w-1 h-1 bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full opacity-20"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -730,8 +821,8 @@ const QuestList = () => {
         <motion.div
           className="absolute inset-0 opacity-5"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, cyan 1px, transparent 1px),
-                             radial-gradient(circle at 80% 50%, purple 1px, transparent 1px)`,
+                         backgroundImage: `radial-gradient(circle at 20% 50%, gold 1px, transparent 1px),
+                              radial-gradient(circle at 80% 50%, emerald 1px, transparent 1px)`,
             backgroundSize: '100px 100px',
           }}
           animate={{
@@ -747,57 +838,30 @@ const QuestList = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Bloc des quêtes complétées en petit - haut à droite */}
-        <div className="absolute top-4 right-4 z-20">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 rounded-xl blur-lg" />
-              <div className="relative neon-element rounded-xl px-3 py-2 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <GiDiamondTrophy className="text-amber-400 text-sm" />
-                  <div className="text-left">
-                    <div className="text-sm font-black text-white">
-                      {completedQuestsCount}/{quests?.length || 0}
-                    </div>
-                    <div className="text-[8px] text-gray-400 uppercase tracking-wider">Complétées</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        
 
         {/* Header avec effet parallax */}
         <div 
           className="px-2 sm:px-4 pt-6 sm:pt-8 pb-4 sm:pb-6"
         >
           <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
-            {/* Titre néon */}
-            <div className="text-center mb-6 sm:mb-8">
+            {/* Titre ultra lisible style Duolingo/Habitica */}
+            <div className="text-center mb-8 sm:mb-12">
               <motion.h1 
-                className="text-3xl sm:text-4xl lg:text-5xl font-black mb-2"
+                className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-black mb-4 leading-[1.2] tracking-tight"
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
+                style={{ 
+                  fontFamily: '"Inter", "Helvetica Neue", sans-serif',
+                  fontWeight: 900,
+                  letterSpacing: '-0.04em'
+                }}
               >
-                <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient-shift">
-                  Aventure Financière
+                <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400 bg-clip-text text-transparent animate-gradient-shift block drop-shadow-lg">
+                  QUÊTES
                 </span>
               </motion.h1>
-              
-              <motion.p
-                className="text-gray-400 text-xs sm:text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                Découvrez la finance à travers des quêtes interactives
-              </motion.p>
             </div>
 
 
@@ -805,53 +869,61 @@ const QuestList = () => {
         </div>
 
             {/* Filtres optimisés et mobile-friendly */}
-            <div className="mb-6 px-2 sm:px-4">
-              <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
+        <div className="mb-6 px-2 sm:px-4">
+          <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
                 {/* Filtres principaux en accordéon mobile */}
-                <div className="space-y-3">
-                {/* Barre de filtres principale */}
-                <div className="flex flex-col lg:flex-row gap-3">
+            <div className="space-y-3">
+              {/* Barre de filtres principale */}
+              <div className="flex flex-col lg:flex-row gap-3">
                   {/* Recherche - toujours visible */}
-                  <div className="flex-1 relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex-1 relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative neon-element rounded-xl p-3 flex items-center">
                       <FaSearch className="text-gray-400 mr-3 text-sm" />
-                      <input
-                        type="text"
-                        placeholder="Rechercher une quête..."
-                        value={filters.search}
-                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                    <input
+                      type="text"
+                      placeholder="Rechercher une quête..."
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange('search', e.target.value)}
                         className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none text-sm"
-                      />
-                      {filters.search && (
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          onClick={() => handleFilterChange('search', '')}
-                          className="text-gray-400 hover:text-white ml-2 p-1"
-                        >
+                    />
+                    {filters.search && (
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        onClick={() => handleFilterChange('search', '')}
+                        className="text-gray-400 hover:text-white ml-2 p-1"
+                      >
                           <FaTimes className="text-xs" />
-                        </motion.button>
-                      )}
-                    </div>
+                      </motion.button>
+                    )}
                   </div>
-
-                  {/* Bouton filtres avancés sur mobile */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowAdvancedFilters(prev => !prev)}
-                    className="lg:hidden neon-element px-4 py-3 rounded-xl text-white font-semibold bg-transparent hover:bg-white/5 transition-all flex items-center justify-center gap-2"
-                  >
-                    <FaLayerGroup className="text-purple-400 text-sm" />
-                    <span className="text-sm">Filtres</span>
-                    <motion.div
-                      animate={{ rotate: showAdvancedFilters ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <FaArrowRight className="text-xs" />
-                    </motion.div>
-                  </motion.button>
                 </div>
+
+                {/* Bouton filtres avancés sur mobile */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowAdvancedFilters(prev => !prev)}
+                    className="lg:hidden neon-element px-4 py-3 rounded-xl text-white font-semibold bg-transparent hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                >
+                    <FaLayerGroup className="text-amber-400 text-sm" />
+                                         <span 
+                       className="text-sm font-extrabold"
+                       style={{ 
+                         fontFamily: '"Inter", sans-serif',
+                         fontWeight: 800
+                       }}
+                     >
+                       Filtres
+                     </span>
+                  <motion.div
+                    animate={{ rotate: showAdvancedFilters ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                      <FaArrowRight className="text-xs" />
+                  </motion.div>
+                </motion.button>
+              </div>
 
                 {/* Filtres avancés - visible sur desktop, accordéon sur mobile */}
                 <motion.div
@@ -882,14 +954,18 @@ const QuestList = () => {
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleFilterChange('category', key)}
-                                className={`
-                                  relative px-3 py-2 rounded-xl font-semibold text-xs
-                                  transition-all flex items-center gap-2 overflow-hidden
-                                  ${isSelected
-                                    ? `${config.bgColor} ${config.color} border ${config.borderColor}`
-                                    : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
-                                  }
-                                `}
+                                                                 className={`
+                                   relative px-3 py-2 rounded-xl font-extrabold text-xs
+                                   transition-all flex items-center gap-2 overflow-hidden
+                                   ${isSelected
+                                     ? `${config.bgColor} ${config.color} border ${config.borderColor}`
+                                     : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
+                                   }
+                                 `}
+                                 style={{ 
+                                   fontFamily: '"Inter", sans-serif',
+                                   fontWeight: 800
+                                 }}
                               >
                                 {IconComponent && <IconComponent className="text-sm" />}
                                 <span>{config.label}</span>
@@ -1002,10 +1078,10 @@ const QuestList = () => {
                     <div className="space-y-3">
                       {/* Tags rapides gamifiés avec animations */}
                       <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <FaBookmark className="text-purple-400" />
-                          Filtres rapides
-                        </h3>
+                                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                           <FaBookmark className="text-amber-400" />
+                           Filtres rapides
+                         </h3>
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 sm:pb-0">
                           {quickTags.map((tag, index) => {
                             const isSelected = selectedTags.includes(tag.id);
@@ -1081,9 +1157,9 @@ const QuestList = () => {
                     </div>
                   </div>
                 </motion.div>
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
 
         {/* Quest Grid */}
         <div className="px-2 sm:px-4">
@@ -1100,33 +1176,52 @@ const QuestList = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-16"
               >
-                <motion.div 
-                  className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6"
-                  animate={{ 
-                    boxShadow: [
-                      "0 0 0px rgba(167, 139, 250, 0)",
-                      "0 0 30px rgba(167, 139, 250, 0.2)",
-                      "0 0 0px rgba(167, 139, 250, 0)"
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  <FaSearch className="text-5xl text-gray-400" />
-                </motion.div>
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  Aucune quête trouvée
-                </h3>
-                <p className="text-gray-400 mb-6 max-w-sm mx-auto">
+                                 <motion.div 
+                   className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-amber-500/10 to-emerald-500/10 mb-6"
+                   animate={{ 
+                     boxShadow: [
+                       "0 0 0px rgba(245, 158, 11, 0)",
+                       "0 0 30px rgba(245, 158, 11, 0.2)",
+                       "0 0 0px rgba(245, 158, 11, 0)"
+                     ]
+                   }}
+                   transition={{ duration: 3, repeat: Infinity }}
+                 >
+                   <FaSearch className="text-5xl text-gray-400" />
+                 </motion.div>
+                                                  <h3 
+                   className="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight"
+                   style={{ 
+                     fontFamily: '"Inter", "Helvetica Neue", sans-serif',
+                     fontWeight: 800,
+                     letterSpacing: '-0.01em'
+                   }}
+                 >
+                   AUCUNE QUÊTE
+                 </h3>
+                 <p 
+                   className="text-gray-300 text-base sm:text-lg mb-6 max-w-md mx-auto leading-relaxed"
+                   style={{ 
+                     fontFamily: '"Inter", sans-serif',
+                     fontWeight: 400,
+                     letterSpacing: '0.005em'
+                   }}
+                 >
                   Essayez d'ajuster vos filtres ou explorez toutes nos quêtes disponibles
                 </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={clearAllFilters}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-white rounded-xl font-semibold border border-purple-500/30 transition-all"
-                >
-                  Voir toutes les quêtes
-                </motion.button>
+                                 <motion.button
+                   whileHover={{ scale: 1.05 }}
+                   whileTap={{ scale: 0.95 }}
+                   onClick={clearAllFilters}
+                   className="px-8 py-4 bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-white rounded-xl font-extrabold text-base uppercase tracking-wider border border-amber-500/30 transition-all"
+                   style={{ 
+                     fontFamily: '"Inter", sans-serif',
+                     fontWeight: 800,
+                     letterSpacing: '0.05em'
+                   }}
+                 >
+                   Voir toutes les quêtes
+                 </motion.button>
               </motion.div>
             ) : (
               <AnimatePresence mode="wait">
@@ -1174,7 +1269,7 @@ const QuestList = () => {
                                 {filteredQuests.length}
                               </motion.div>
                               <div className="text-[10px] text-gray-400 uppercase tracking-wider">Quêtes</div>
-                            </div>
+          </div>
                           </motion.div>
                           
                           <div className="w-px h-8 sm:h-10 bg-white/10" />

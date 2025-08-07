@@ -9,7 +9,6 @@ import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
 import BottomNav from './components/BottomNav';
-import LanguageToggle from './components/LanguageToggle';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ToastContainer } from 'react-toastify';
@@ -95,10 +94,7 @@ function AppContent() {
     <div className="min-h-screen bg-gray-900 text-white">
 
 
-      {/* Language Toggle - Always visible in top right */}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageToggle />
-      </div>
+
       
       {/* Toast Container with custom dark theme */}
       <ToastContainer
