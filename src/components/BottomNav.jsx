@@ -66,7 +66,7 @@ const BottomNav = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-60 pb-safe">
       {/* Fond glassmorphism aligné au thème QuestList */}
       <div className="px-3 py-2">
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-white/5 lg:backdrop-blur-xl backdrop-blur-xs">
           <div className="flex items-stretch justify-between gap-1 px-2 py-1">
             {navItems.map((item) => {
               const Icon = item.icon;

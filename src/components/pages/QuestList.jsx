@@ -346,10 +346,12 @@ const QuestList = () => {
 
   // Particules stables (positions calculées une seule fois)
   if (!particlesRef.current) {
-    particlesRef.current = Array.from({ length: 12 }).map(() => ({
+    const isNarrow = typeof window !== 'undefined' ? window.matchMedia('(max-width: 1024px)').matches : false;
+    const particleCount = isNarrow ? 6 : 12;
+    particlesRef.current = Array.from({ length: particleCount }).map(() => ({
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      duration: 3 + Math.random() * 2,
+      duration: (isNarrow ? 4 : 3) + Math.random() * 2,
       delay: Math.random() * 2,
     }));
   }
@@ -783,9 +785,9 @@ const QuestList = () => {
       </div>
 
       {/* Animated gradient orbs et particules gamifiées */}
-      <div className="fixed inset-0 overflow-hidden">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none gpu-hint">
         <motion.div 
-          className="absolute top-1/4 -left-48 w-96 h-96 bg-amber-600/20 rounded-full blur-[120px]"
+          className="absolute top-1/4 -left-48 w-96 h-96 bg-amber-600/20 rounded-full lg:blur-[120px] blur-[60px]"
           animate={{ 
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -793,7 +795,7 @@ const QuestList = () => {
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute top-3/4 -right-48 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px]"
+          className="absolute top-3/4 -right-48 w-96 h-96 bg-emerald-600/20 rounded-full lg:blur-[120px] blur-[60px]"
           animate={{ 
             x: [0, -100, 0],
             y: [0, 50, 0],
@@ -801,7 +803,7 @@ const QuestList = () => {
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-600/10 rounded-full blur-[150px]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-600/10 rounded-full lg:blur-[150px] blur-[80px]"
           animate={{ 
             scale: [1, 1.2, 1],
             rotate: [0, 180, 360],

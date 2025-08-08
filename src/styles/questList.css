@@ -136,3 +136,20 @@ select option {
   color: white;
   padding: 10px;
 }
+
+/* Performance: réduire/neutraliser le backdrop-blur sur écrans mobiles pour éviter les saccades (iPhone 11) */
+@media (max-width: 1024px) {
+  .neon-element,
+  .neon-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+}
+
+/* Hints GPU pour calques animés */
+.gpu-hint {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
