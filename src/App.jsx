@@ -91,7 +91,7 @@ function AppContent() {
   const showBottomNav = user && !noNavRoutes.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen text-white relative overflow-hidden bg-gradient-to-br from-[#0A0A0A] via-[#1A1508] to-[#2E1F0A]">
 
 
 
