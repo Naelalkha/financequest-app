@@ -153,3 +153,27 @@ select option {
   will-change: transform, opacity;
   transform: translateZ(0);
 }
+
+/* Fond dynamique léger (radial gradients animés) */
+.bg-finance-flow {
+  background:
+    radial-gradient(60vw 60vw at 20% 20%, rgba(251, 191, 36, 0.06), transparent 60%),
+    radial-gradient(70vw 70vw at 80% 30%, rgba(16, 185, 129, 0.06), transparent 60%),
+    radial-gradient(80vw 80vw at 50% 80%, rgba(59, 130, 246, 0.06), transparent 60%);
+  animation: financeFlow 45s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes financeFlow {
+  0%   { background-position: 0% 0%,    100% 0%,   50% 100%; }
+  50%  { background-position: 50% 40%,  50% 60%,  60% 40%; }
+  100% { background-position: 0% 0%,    100% 0%,   50% 100%; }
+}
+
+@media (max-width: 640px) {
+  .bg-finance-flow { animation-duration: 70s; opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-finance-flow { animation: none; }
+}

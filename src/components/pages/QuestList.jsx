@@ -710,20 +710,20 @@ const QuestList = () => {
               )}
             </div>
 
-             {/* CTA avec micro-animations */}
+             {/* CTA glass teinté par état (gamification légère) */}
              <motion.button
                  className={`
                    w-full sm:w-auto sm:min-w-[150px] py-2.5 sm:py-3 px-4 sm:px-5 rounded-[14px] font-semibold text-[15px]
                    transition-all flex items-center justify-center gap-2 relative overflow-hidden
                    ${isCompleted
-                    ? 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 hover:border-white/15'
-                    : isInProgress
-                    ? `bg-white/5 hover:bg-white/10 text-white border ${category.borderColor || 'border-white/10'} shadow-md hover:shadow-lg group`
-                    : isLocked
-                    ? 'bg-white/5 text-white/70 border border-white/10'
-                    : `bg-white/5 hover:bg-white/10 text-white border ${category.borderColor || 'border-white/10'} shadow-md hover:shadow-lg group`
-                  }
-                `}
+                     ? 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 hover:border-white/15'
+                     : isInProgress
+                       ? 'bg-amber-500/15 hover:bg-amber-500/20 text-white border border-amber-400/30'
+                       : isLocked
+                         ? 'bg-white/5 text-white/70 border border-white/10'
+                         : 'bg-cyan-500/15 hover:bg-cyan-500/20 text-white border border-cyan-400/30'
+                   }
+                 `}
                 whileHover={{ 
                   scale: isLocked ? 1 : 1.02,
                   y: isLocked ? 0 : -1,
@@ -738,6 +738,15 @@ const QuestList = () => {
                  aria-label={isLocked ? `Quête premium: ${quest.title}` : `Ouvrir la quête ${quest.title}`}
                  layoutId={`cta-${quest.id}`}
               >
+                {!isLocked && !isCompleted && (
+                  <span className="pointer-events-none absolute inset-0 opacity-10"
+                    style={{
+                      background: isInProgress
+                        ? 'linear-gradient(135deg, rgba(251,191,36,0.35), rgba(16,185,129,0.3))'
+                        : 'linear-gradient(135deg, rgba(34,211,238,0.35), rgba(59,130,246,0.3))'
+                    }}
+                  />
+                )}
                 <span className="relative z-10 flex items-center gap-2">
                   {isCompleted ? (
                     <>
@@ -773,82 +782,19 @@ const QuestList = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Grid pattern overlay */}
-      <div className="fixed inset-0 opacity-[0.02]">
+      {/* Fond léger animé + grid subtil (sans particules) */}
+      <div className="fixed inset-0">
+        <div className="absolute inset-0 bg-finance-flow" />
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.15) 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.2) 1px, transparent 1px)`,
             backgroundSize: '40px 40px'
           }}
         />
       </div>
 
-      {/* Animated gradient orbs et particules gamifiées */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none gpu-hint">
-        <motion.div 
-          className="absolute top-1/4 -left-48 w-96 h-96 bg-amber-600/20 rounded-full lg:blur-[120px] blur-[60px]"
-          animate={{ 
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute top-3/4 -right-48 w-96 h-96 bg-emerald-600/20 rounded-full lg:blur-[120px] blur-[60px]"
-          animate={{ 
-            x: [0, -100, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-600/10 rounded-full lg:blur-[150px] blur-[80px]"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-        />
-        
-        {/* Particules flottantes gamifiées */}
-        {particlesRef.current.map((p, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full opacity-20"
-            style={{ left: p.left, top: p.top }}
-            animate={reduceMotion ? {} : {
-              y: [0, -20, 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: p.duration,
-              repeat: Infinity,
-              delay: p.delay,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-        
-        {/* Lignes de connexion subtiles */}
-        <motion.div
-          className="absolute inset-0 opacity-5"
-          style={{
-                         backgroundImage: `radial-gradient(circle at 20% 50%, gold 1px, transparent 1px),
-                              radial-gradient(circle at 80% 50%, emerald 1px, transparent 1px)`,
-            backgroundSize: '100px 100px',
-          }}
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-      </div>
+      {/* Calques lourds supprimés (perf mobile) */}
 
       {/* Content */}
       <div className="relative z-10">
