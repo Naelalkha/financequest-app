@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from 'framer-motion';
-import '../../styles/questList.css';
+// Styles globaux unifiés (neon/glass) désormais dans global.css
 import { 
   FaLock, 
   FaClock, 
@@ -22,7 +22,9 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaCalendarAlt,
-  FaCrown
+  FaCrown,
+  FaChevronDown,
+  FaCircle
 } from 'react-icons/fa';
 import { GiDiamondTrophy, GiTwoCoins } from 'react-icons/gi';
 import { BsStars } from 'react-icons/bs';
@@ -37,6 +39,8 @@ import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { usePaywall } from '../../hooks/usePaywall';
 import PaywallModal from '../PaywallModal';
 import posthog from 'posthog-js';
+import AppBackground from '../common/AppBackground';
+import Select from '../common/Select';
 
 // Skeleton futuriste
 const QuestSkeleton = () => {
@@ -146,8 +150,8 @@ const QuestList = () => {
     streak: 0,
     totalQuests: 0
   });
-  const particlesRef = useRef(null);
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   // Use the local quests hook
   const { 
@@ -165,7 +169,18 @@ const QuestList = () => {
     sortBy: 'hot'
   });
 
-  // Tags rapides pour filtrage rapide (non redondants) - Version gamifiée
+  // Déterminer la quête active (la plus avancée parmi celles en cours)
+  const activeQuest = useMemo(() => {
+    if (!quests || quests.length === 0) return null;
+    const activeQuests = quests.filter((q) => userProgress[q.id]?.status === 'active');
+    if (activeQuests.length === 0) return null;
+    const questWithProgress = activeQuests
+      .map((q) => ({ quest: q, progress: userProgress[q.id]?.progress || 0 }))
+      .sort((a, b) => b.progress - a.progress)[0];
+    return questWithProgress?.quest ?? null;
+  }, [quests, userProgress]);
+
+  // Tags rapides pour filtrage rapide (non redondants) - épuré
   const quickTags = [
     { 
       id: 'new', 
@@ -176,23 +191,14 @@ const QuestList = () => {
       border: 'border-cyan-500/30',
       filter: (q) => q.isNew 
     },
-      { 
-        id: 'progress', 
-        label: 'En cours',
-        icon: FaBolt,
+    { 
+      id: 'progress', 
+      label: 'En cours',
+      icon: FaBolt,
       color: 'text-orange-300',
       bg: 'bg-orange-500/20',
       border: 'border-orange-500/30',
       filter: (q) => userProgress[q.id]?.status === 'active'
-    },
-    { 
-      id: 'bookmarked', 
-      label: 'Favoris',
-      icon: FaBookmark,
-      color: 'text-amber-300',
-      bg: 'bg-amber-500/20',
-      border: 'border-amber-500/30',
-      filter: (q) => bookmarkedQuests.includes(q.id)
     }
   ];
 
@@ -344,17 +350,20 @@ const QuestList = () => {
     };
   }, []);
 
-  // Particules stables (positions calculées une seule fois)
-  if (!particlesRef.current) {
-    const isNarrow = typeof window !== 'undefined' ? window.matchMedia('(max-width: 1024px)').matches : false;
-    const particleCount = isNarrow ? 6 : 12;
-    particlesRef.current = Array.from({ length: particleCount }).map(() => ({
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      duration: (isNarrow ? 4 : 3) + Math.random() * 2,
-      delay: Math.random() * 2,
-    }));
-  }
+  // Fond animé global remplacé par AppBackground (voir composant commun)
+
+  // Observer le scroll pour afficher un bouton remonter
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const container = document.getElementById('app-scroll-container');
+    if (!container) return;
+    const onScroll = () => {
+      setShowScrollToTop(container.scrollTop > 600);
+    };
+    onScroll();
+    container.addEventListener('scroll', onScroll);
+    return () => container.removeEventListener('scroll', onScroll);
+  }, []);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
@@ -710,69 +719,78 @@ const QuestList = () => {
               )}
             </div>
 
-             {/* CTA glass teinté par état (gamification légère) */}
+             {/* CTA amélioré (accent or/ambre, glow, micro-effets) */}
              <motion.button
-                 className={`
-                   w-full sm:w-auto sm:min-w-[150px] py-2.5 sm:py-3 px-4 sm:px-5 rounded-[14px] font-semibold text-[15px]
-                   transition-all flex items-center justify-center gap-2 relative overflow-hidden
-                   ${isCompleted
-                     ? 'bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 hover:border-white/15'
+               className={`
+                 group relative overflow-hidden w-full sm:w-auto sm:min-w-[170px] min-h-12 py-3 px-5
+                 rounded-[28px] font-bold text-[16px] tracking-tight font-sans
+                 transition-all flex items-center justify-center gap-2
+                 ${isLocked
+                   ? 'bg-gray-800/70 text-white/70 border border-white/10 backdrop-blur-xs cursor-not-allowed'
+                   : isCompleted
+                     ? 'bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-white/10 hover:from-gray-700 hover:to-gray-600'
                      : isInProgress
-                       ? 'bg-amber-500/15 hover:bg-amber-500/20 text-white border border-amber-400/30'
-                       : isLocked
-                         ? 'bg-white/5 text-white/70 border border-white/10'
-                         : 'bg-cyan-500/15 hover:bg-cyan-500/20 text-white border border-cyan-400/30'
-                   }
-                 `}
-                whileHover={{ 
-                  scale: isLocked ? 1 : 1.02,
-                  y: isLocked ? 0 : -1,
-                  boxShadow: isLocked ? undefined : '0 8px 24px rgba(255,255,255,0.08)',
-                  transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] }
-                }}
-                whileTap={{ 
-                  scale: isLocked ? 1 : 0.98,
-                  transition: { duration: 0.1 }
-                }}
-                 onClick={(e) => onCardActivate(quest, e)}
-                 aria-label={isLocked ? `Quête premium: ${quest.title}` : `Ouvrir la quête ${quest.title}`}
-                 layoutId={`cta-${quest.id}`}
-              >
-                {!isLocked && !isCompleted && (
-                  <span className="pointer-events-none absolute inset-0 opacity-10"
-                    style={{
-                      background: isInProgress
-                        ? 'linear-gradient(135deg, rgba(251,191,36,0.35), rgba(16,185,129,0.3))'
-                        : 'linear-gradient(135deg, rgba(34,211,238,0.35), rgba(59,130,246,0.3))'
-                    }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  {isCompleted ? (
-                    <>
-                      <FaRedoAlt className="text-[14px]" />
-                      <span>Rejouer</span>
-                    </>
-                  ) : isInProgress ? (
-                    <>
-                      <FaArrowRight className="text-[14px]" />
-                      <span>Continuer</span>
-                    </>
-                  ) : isLocked ? (
-                    <>
-                      <FaLock className="text-[14px]" />
-                      <span>Premium</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaPlay className="text-[14px]" />
-                      <span>Commencer</span>
-                    </>
-                  )}
-                </span>
-                
-                 {/* Barre de progression et pourcentage retirés pour un CTA plus simple */}
-               </motion.button>
+                       ? 'text-gray-900 bg-gradient-to-r from-amber-300/90 via-amber-400/90 to-rose-300/90 backdrop-blur-xs border border-amber-300/40 shadow-[0_10px_25px_rgba(251,191,36,0.25),0_6px_12px_rgba(0,0,0,0.35)] hover:shadow-[0_14px_32px_rgba(251,191,36,0.35),0_8px_18px_rgba(0,0,0,0.4)]'
+                       : 'text-gray-900 bg-gradient-to-r from-amber-400/90 via-yellow-400/90 to-emerald-500/90 backdrop-blur-xs border border-amber-200/30 shadow-glow-md hover:shadow-glow-lg'
+                 }
+               `}
+               whileHover={{
+                 scale: isLocked ? 1 : 1.02,
+                 y: isLocked ? 0 : -1,
+                 transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] }
+               }}
+               whileTap={{
+                 scale: isLocked ? 1 : 0.98,
+                 transition: { duration: 0.1 }
+               }}
+               onClick={(e) => onCardActivate(quest, e)}
+               aria-label={isLocked ? `Quête premium: ${quest.title}` : `Ouvrir la quête ${quest.title}`}
+               layoutId={`cta-${quest.id}`}
+             >
+               {/* Anneau lumineux or (non affiché si verrouillé) */}
+               {!isLocked && (
+                 <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-amber-400/60 via-yellow-400/60 to-emerald-400/60" />
+               )}
+               {/* Reflet léger */}
+               {!isLocked && (
+                 <span
+                   className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity"
+                   style={{
+                     background:
+                       'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)'
+                   }}
+                 />
+               )}
+               <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                 {isCompleted ? (
+                   <>
+                     <FaRedoAlt className="text-[14px]" />
+                     <span>Rejouer</span>
+                   </>
+                 ) : isInProgress ? (
+                   <>
+                     <FaArrowRight className="text-[14px]" />
+                     <span>Continuer</span>
+                   </>
+                 ) : isLocked ? (
+                   <>
+                     <FaLock className="text-[14px]" />
+                     <span>Premium</span>
+                   </>
+                 ) : (
+                   <>
+                     <FaPlay className="text-[14px]" />
+                     <span>Commencer</span>
+                   </>
+                 )}
+               </span>
+               {/* Liseré haut subtil */}
+               <span className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50" />
+               {/* Ombre 3D douce en bas pour ancrer dans le thème */}
+               {isInProgress && (
+                 <span className="pointer-events-none absolute left-2 right-2 bottom-1 h-[10px] rounded-full opacity-40 blur-md bg-gradient-to-r from-amber-400/40 via-yellow-400/40 to-rose-400/40" />
+               )}
+             </motion.button>
           </div>
         </div>
       </div>
@@ -781,335 +799,288 @@ const QuestList = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Fond léger animé + grid subtil (sans particules) */}
-      <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-finance-flow" />
-        <div 
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.2) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-      </div>
-
-      {/* Calques lourds supprimés (perf mobile) */}
-
-      {/* Content */}
-      <div className="relative z-10">
+    <AppBackground variant="nebula" grain grid={false} animate>
+      <div className="relative pb-[calc(env(safe-area-inset-bottom)+88px)]">
         
 
-        {/* Header avec effet parallax */}
-        <div 
-          className="px-2 sm:px-4 pt-6 sm:pt-8 pb-4 sm:pb-6"
-        >
-          <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
-            {/* Titre ultra lisible style Duolingo/Habitica */}
-            <div className="text-center mb-8 sm:mb-12">
-              <motion.h1 
-                className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight tracking-tight"
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                style={{ 
-                  fontFamily: '"Inter", "Helvetica Neue", sans-serif',
-                  fontWeight: 900,
-                  letterSpacing: '-0.02em'
-                }}
+        {/* Header optimisé avec design épuré */}
+        <div className="px-4 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8">
+          <div className="w-full max-w-7xl mx-auto">
+            {/* En-tête avec stats utilisateur */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              {/* Titre et sous-titre */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <span className="bg-gradient-to-r from-amber-300 via-yellow-300 to-emerald-300 bg-clip-text text-transparent block drop-shadow">
-                  Quêtes financières
-                </span>
-              </motion.h1>
+                <h1 
+                  className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight"
+                  style={{ 
+                    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+                    fontWeight: 900,
+                    letterSpacing: '-0.03em'
+                  }}
+                >
+                  <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+                    Quêtes
+                  </span>
+                  <span className="text-white ml-2">
+                    Financières
+                  </span>
+                </h1>
+                <p className="text-gray-400 text-sm sm:text-base mt-1">
+                  {filteredQuests.length} quêtes disponibles
+                </p>
+              </motion.div>
+
+              {/* Stats rapides utilisateur */}
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="flex items-center gap-4"
+                >
+                  {/* Streak */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <FaFire className="text-orange-400 text-sm" />
+                    <span className="text-orange-300 font-bold text-sm">{userStats.streak || 0}</span>
+                  </div>
+                  
+                  {/* XP */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <GiTwoCoins className="text-yellow-400 text-sm" />
+                    <span className="text-yellow-300 font-bold text-sm">{userStats.xp || 0} XP</span>
+                  </div>
+                  
+                  {/* Niveau */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <FaTrophy className="text-purple-400 text-sm" />
+                    <span className="text-purple-300 font-bold text-sm">Niv. {userStats.level || 1}</span>
+                  </div>
+                </motion.div>
+              )}
             </div>
-
-
           </div>
         </div>
 
-        {/* Filtres optimisés et mobile-friendly */}
-        <div className="mb-4 px-2 sm:px-4">
-          <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
-                {/* Filtres principaux en accordéon mobile */}
-                   <div className="space-y-3">
-              {/* Barre de filtres principale */}
-              <div className="flex flex-col lg:flex-row gap-3">
-                  {/* Recherche - toujours visible */}
-                <div className="flex-1 relative group mb-2">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                    <div className="relative neon-element rounded-xl p-3 flex items-center w-full max-w-[640px] border border-white/5">
-                      <FaSearch className="text-gray-400 mr-3 text-sm" />
-                   <input
-                      type="text"
-                        placeholder="Budget, retraite, impôts…"
-                      value={rawSearch}
-                      onChange={(e) => setRawSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none text-sm"
-                      aria-label="Rechercher une quête"
-                    />
-                   {rawSearch && (
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                       onClick={() => setRawSearch('')}
-                        className="text-gray-400 hover:text-white ml-2 p-1"
-                      >
+        {/* Bouton discret remonter en haut */}
+        <AnimatePresence>
+          {showScrollToTop && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              onClick={() => {
+                const container = document.getElementById('app-scroll-container');
+                if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="fixed bottom-[calc(env(safe-area-inset-bottom)+78px)] right-4 sm:right-6 z-[70] p-2.5 rounded-full bg-white/[0.07] hover:bg-white/[0.12] border border-white/15 text-white shadow-lg backdrop-blur-md transition-colors"
+              aria-label="Remonter en haut"
+            >
+              <FaArrowRight className="rotate-[-90deg]" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Bannière Continuer (supprimée) */}
+
+        {/* Zone de filtres avec design moderne (non-sticky) */}
+        <div className="px-4 sm:px-6 py-4">
+          <div className="w-full max-w-7xl mx-auto">
+            <div className="space-y-4">
+              {/* Ligne 1: Recherche et bouton filtres */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Barre de recherche modernisée */}
+                <div className="flex-1 relative">
+                  <div className="relative group">
+                    {/* Effet de focus amélioré */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg opacity-0 group-focus-within:opacity-20 blur transition-opacity" />
+                    
+                    <div className="relative flex items-center bg-white/[0.03] backdrop-blur-sm rounded-lg border border-white/10 hover:border-white/20 focus-within:border-amber-500/50 transition-all">
+                      <FaSearch className="text-gray-500 ml-4 text-sm" />
+                      <input
+                        type="text"
+                        placeholder="Rechercher une quête..."
+                        value={rawSearch}
+                        onChange={(e) => setRawSearch(e.target.value)}
+                        className="flex-1 bg-transparent text-white placeholder-gray-500 px-3 py-3 focus:outline-none text-sm"
+                        aria-label="Rechercher une quête"
+                      />
+                      {rawSearch && (
+                        <button
+                          onClick={() => setRawSearch('')}
+                          className="text-gray-500 hover:text-white mr-3 p-1 rounded transition-colors"
+                        >
                           <FaTimes className="text-xs" />
-                      </motion.button>
-                    )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Bouton filtres avancés sur mobile */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                       whileTap={{ scale: 0.98 }}
+                {/* Bouton tri (mobile) */}
+                <button
                   onClick={() => setShowAdvancedFilters(prev => !prev)}
-                    className="lg:hidden neon-element px-4 py-3 rounded-xl text-white font-semibold bg-transparent hover:bg-white/5 transition-all flex items-center justify-center gap-2"
-                       aria-expanded={showAdvancedFilters}
-                       aria-controls="advanced-filters"
+                  className="sm:hidden px-4 py-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                  aria-expanded={showAdvancedFilters}
+                  aria-controls="advanced-filters"
                 >
-                    <FaLayerGroup className="text-amber-400 text-sm" />
-                                         <span 
-                       className="text-sm font-extrabold"
-                       style={{ 
-                         fontFamily: '"Inter", sans-serif',
-                         fontWeight: 800
-                       }}
-                     >
-                       Filtres
-                     </span>
+                  <FaLayerGroup className="text-amber-400 text-sm" />
+                  <span className="text-white text-sm font-semibold">Trier</span>
                   <motion.div
                     animate={{ rotate: showAdvancedFilters ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                      <FaArrowRight className="text-xs" />
+                    <FaArrowRight className="text-xs text-gray-400" />
                   </motion.div>
-                </motion.button>
+                </button>
               </div>
 
-                {/* Filtres avancés - visible sur desktop, accordéon sur mobile */}
-                <motion.div
-                  initial={false}
-                  animate={{ 
-                    height: showAdvancedFilters || isDesktop ? 'auto' : 0,
-                    opacity: showAdvancedFilters || isDesktop ? 1 : 0
-                  }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                  aria-expanded={showAdvancedFilters || isDesktop}
-                  id="advanced-filters"
-                >
-                  <div className="space-y-3 px-[10px]">
-                    {/* Filtres en grille responsive avec boutons modernes */}
-                    <div className="space-y-4">
-                      {/* Catégories */}
-                      <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <FaLayerGroup className="text-purple-400" />
-                          Catégories
-                        </h3>
-                   <div className="flex flex-wrap gap-2">
-                          {Object.entries(categoryConfig).map(([key, config]) => {
-                            const isSelected = filters.category === key;
-                            const IconComponent = config.icon;
-                            return (
-                               <motion.button
-                                key={key}
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleFilterChange('category', key)}
-                                  className={`
-                                   relative px-3 py-2 rounded-xl font-extrabold text-xs
-                                    transition-all flex items-center gap-2 overflow-hidden focus-visible-ring
-                                   ${isSelected
-                                     ? `${config.bgColor} ${config.color} border ${config.borderColor}`
-                                     : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
-                                   }
-                              `}
-                                 style={{ 
-                                   fontFamily: '"Inter", sans-serif',
-                                   fontWeight: 800
-                                 }}
-                                  aria-pressed={isSelected}
-                                  aria-label={`Catégorie: ${config.label}`}
-                                  tabIndex={0}
-                                  role="button"
-                              >
-                                {IconComponent && <IconComponent className="text-sm" />}
-                                <span>{config.label}</span>
-                                {isSelected && (
-                                  <div
-                                    className={`absolute inset-0 bg-gradient-to-r ${config.gradient} opacity-10`}
-                                  />
-                                )}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
+              {/* Ligne 2: Filtres rapides toujours visibles */}
+              <div className="relative -mx-4 sm:-mx-6">
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-1 px-4 sm:px-6">
+                  {/* Tags rapides */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                  {quickTags.map((tag) => {
+                    const isSelected = selectedTags.includes(tag.id);
+                    const IconComponent = tag.icon;
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => handleTagToggle(tag.id)}
+                        className={`
+                          px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap
+                          transition-all flex items-center gap-1.5 flex-shrink-0
+                          ${isSelected
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : 'bg-white/[0.03] text-gray-400 hover:text-gray-300 hover:bg-white/[0.06] border border-white/10'
+                          }
+                        `}
+                      >
+                        <IconComponent className="text-[11px]" />
+                        <span>{tag.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                      {/* Difficulté */}
-                      <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <FaChartLine className="text-emerald-400" />
-                          Difficulté
-                        </h3>
-                         <div className="flex flex-wrap gap-2">
-                          {[
-                            { key: 'all', label: 'Tous', config: { color: 'text-gray-300', bgColor: 'bg-gray-500/20', borderColor: 'border-gray-500/30' }},
-                            { key: 'beginner', label: 'Facile', config: difficultyConfig.beginner },
-                            { key: 'intermediate', label: 'Moyen', config: difficultyConfig.intermediate },
-                            { key: 'advanced', label: 'Difficile', config: difficultyConfig.advanced }
-                          ].map(({ key, label, config }) => {
-                            const isSelected = filters.difficulty === key;
-                            return (
-                              <motion.button
-                                key={key}
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleFilterChange('difficulty', key)}
-                                className={`
-                                  relative px-3 py-2 rounded-xl font-semibold text-xs
-                                  transition-all overflow-hidden
-                                  ${isSelected
-                                    ? `${config.bgStyle || config.bgColor} ${config.textColor || config.color} border ${config.borderColor}`
-                                    : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
-                                  }
-                                  `}
-                                  aria-pressed={isSelected}
-                                  aria-label={`Difficulté: ${label}`}
-                              >
-                                <span>{label}</span>
-                                {isSelected && (
-                                  <div
-                                    className={`absolute inset-0 bg-gradient-to-r ${config.gradient || 'from-gray-400 to-gray-500'} opacity-10`}
-                                  />
-                                )}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                <div className="w-px h-6 bg-white/10 flex-shrink-0" />
+                
+                {/* Catégories en chips horizontales - toutes disponibles */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {Object.entries(categoryConfig).map(([key, config]) => {
+                    const isSelected = filters.category === key;
+                    const IconComponent = config.icon;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => handleFilterChange('category', key)}
+                        className={`
+                          px-3 py-1.5 rounded-full text-xs font-semibold
+                          transition-all flex items-center gap-1.5 flex-shrink-0
+                          ${isSelected
+                            ? `${config.bgColor} ${config.color} border ${config.borderColor}`
+                            : 'bg-white/[0.03] text-gray-400 hover:text-gray-300 hover:bg-white/[0.06] border border-white/10'
+                          }
+                        `}
+                      >
+                        {IconComponent && <IconComponent className="text-[11px]" />}
+                        <span>{config.label}</span>
+                      </button>
+                    );
+                  })}
+                  {/* Spacer pour le padding de fin */}
+                  <div className="w-4 sm:w-6 flex-shrink-0" />
+                </div>
+                </div>
+              </div>
 
-                      {/* Tri */}
-                      <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <FaArrowRight className="text-amber-400" />
-                          Ordre d'affichage
-                        </h3>
-                         <div className="flex flex-wrap gap-2">
-                          {[
-                            { key: 'hot', label: 'Tendance', icon: FaFire, color: 'text-orange-300', bg: 'bg-orange-500/20', border: 'border-orange-500/30', desc: 'Recommandé' },
-                            { key: 'new', label: 'Récent', icon: BsStars, color: 'text-cyan-300', bg: 'bg-cyan-500/20', border: 'border-cyan-500/30', desc: 'Nouveautés' },
-                            { key: 'xp', label: 'XP', icon: GiTwoCoins, color: 'text-yellow-300', bg: 'bg-yellow-500/20', border: 'border-yellow-500/30', desc: 'Gains XP' },
-                            { key: 'quick', label: 'Rapide', icon: FaBolt, color: 'text-purple-300', bg: 'bg-purple-500/20', border: 'border-purple-500/30', desc: 'Durée' }
-                          ].map(({ key, label, icon: IconComponent, color, bg, border, desc }) => {
-                            const isSelected = filters.sortBy === key;
-                            return (
-                              <motion.button
-                                key={key}
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleFilterChange('sortBy', key)}
-                                className={`
-                                  relative px-3 py-2 rounded-xl font-semibold text-xs
-                                  transition-all flex items-center gap-2 overflow-hidden group
-                                  ${isSelected
-                                    ? `${bg} ${color} border ${border}`
-                                    : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
-                                  }
-                                  `}
-                                title={desc}
-                                  aria-pressed={isSelected}
-                                  aria-label={`Trier par: ${label}`}
-                              >
-                                <IconComponent className="text-sm" />
-                                <span>{label}</span>
-                                {isSelected && (
-                                  <div
-                                    className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"
-                                  />
-                                )}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
+              {/* Filtres avancés - visible sur desktop ou via bouton mobile */}
+              <motion.div
+                initial={false}
+                animate={{ 
+                  height: showAdvancedFilters || isDesktop ? 'auto' : 0,
+                  opacity: showAdvancedFilters || isDesktop ? 1 : 0
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-visible"
+                aria-expanded={showAdvancedFilters || isDesktop}
+                id="advanced-filters"
+              >
+                <div className="pt-4 border-t border-white/5 relative z-30">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+                    {/* Difficulté */}
+                    <div className="relative">
+                      <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
+                        Difficulté
+                      </label>
+                      <Select
+                        value={filters.difficulty}
+                        onChange={(val) => handleFilterChange('difficulty', val)}
+                        options={[
+                          { value: 'all', label: 'Toutes' },
+                          { value: 'beginner', label: 'Facile', icon: <FaCircle className="text-emerald-400 text-[9px]" /> },
+                          { value: 'intermediate', label: 'Moyen', icon: <FaCircle className="text-amber-400 text-[9px]" /> },
+                          { value: 'advanced', label: 'Difficile', icon: <FaCircle className="text-red-400 text-[9px]" /> },
+                        ]}
+                      />
                     </div>
 
-                    {/* Tags rapides et actions */}
-                    <div className="space-y-3">
-                      {/* Tags rapides gamifiés avec animations */}
-                      <div>
-                                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                           <FaBookmark className="text-amber-400" />
-                           Filtres rapides
-                         </h3>
-                        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 sm:pb-0">
-                          {quickTags.map((tag, index) => {
-                            const isSelected = selectedTags.includes(tag.id);
-                            const IconComponent = tag.icon;
-                             return (
-                              <motion.button
-                                key={tag.id}
-                                initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
-                                whileHover={{ 
-                                  scale: 1.1, 
-                                  y: -3,
-                                   // Éviter d'animer le box-shadow pour la perf
-                                }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => handleTagToggle(tag.id)}
-                                className={`
-                                  px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap
-                                  transition-all relative overflow-hidden flex-shrink-0 flex items-center gap-2
-                                  ${isSelected
-                                    ? `${tag.bg} ${tag.color} border ${tag.border} shadow-lg`
-                                    : 'bg-white/5 text-gray-400 hover:text-gray-300 hover:bg-white/10 border border-white/10'
-                                  }
-                                `}
-                                  aria-pressed={isSelected}
-                                  aria-label={`Filtre rapide: ${tag.label}`}
-                              >
-                                <IconComponent className="text-sm" />
-                                <span className="relative z-10">{tag.label}</span>
-                                {isSelected && (
-                                  <div
-                                    className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full"
-                                  />
-                                )}
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                    {/* Tri */}
+                    <div className="relative">
+                      <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
+                        Trier par
+                      </label>
+                      <Select
+                        value={filters.sortBy}
+                        onChange={(val) => handleFilterChange('sortBy', val)}
+                        options={[
+                          { value: 'hot', label: 'Tendance', icon: <FaFire className="text-orange-400 text-[12px]" /> },
+                          { value: 'new', label: 'Récent', icon: <BsStars className="text-cyan-300 text-[12px]" /> },
+                          { value: 'xp', label: 'XP Max', icon: <GiTwoCoins className="text-yellow-400 text-[12px]" /> },
+                          { value: 'quick', label: 'Rapide', icon: <FaBolt className="text-purple-300 text-[12px]" /> },
+                        ]}
+                      />
+                    </div>
 
-                      {/* Bouton réinitialiser */}
+                    {/* Catégorie */}
+                    <div className="relative">
+                      <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
+                        Catégorie
+                      </label>
+                      <Select
+                        value={filters.category}
+                        onChange={(val) => handleFilterChange('category', val)}
+                        options={Object.entries(categoryConfig).map(([key, config]) => ({
+                          value: key,
+                          label: config.label,
+                          icon: config.icon ? (
+                            <config.icon className={`text-[12px] ${config.color}`} />
+                          ) : null,
+                        }))}
+                      />
+                    </div>
+
+                    {/* Bouton réinitialiser */}
+                    <div className="flex items-end">
                       {(filters.category !== 'all' || filters.difficulty !== 'all' || selectedTags.length > 0 || debouncedSearch) && (
-                        <div className="flex justify-center">
-                          <motion.button
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            whileHover={{ 
-                              scale: 1.05, 
-                              boxShadow: "0 5px 15px rgba(239, 68, 68, 0.3)",
-                              transition: { duration: 0.2 }
-                            }}
-                            whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}
-                            onClick={clearAllFilters}
-                            className="w-full sm:w-auto sm:min-w-[200px] px-5 py-2.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold flex items-center justify-center gap-2 relative overflow-hidden"
-                          >
-                            <FaTimes className="text-[10px]" />
-                            Réinitialiser
-                          </motion.button>
-                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={clearAllFilters}
+                          className="w-full px-3 py-2.5 rounded-xl bg-gradient-to-b from-red-500/15 to-red-500/10 hover:from-red-500/20 hover:to-red-500/15 text-red-400 border border-red-500/20 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                        >
+                          <FaTimes className="text-xs" />
+                          <span>Réinitialiser</span>
+                        </motion.button>
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -1173,10 +1144,10 @@ const QuestList = () => {
                    whileHover={{ scale: 1.05 }}
                    whileTap={{ scale: 0.95 }}
                    onClick={clearAllFilters}
-                   className="px-8 py-4 bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-white rounded-xl font-extrabold text-base uppercase tracking-wider border border-amber-500/30 transition-all"
+                 className="px-8 py-4 bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 text-white rounded-[28px] font-bold text-base uppercase tracking-wider border border-amber-500/30 transition-all"
                    style={{ 
                      fontFamily: '"Inter", sans-serif',
-                     fontWeight: 800,
+                   fontWeight: 700,
                      letterSpacing: '0.05em'
                    }}
                  >
@@ -1203,22 +1174,21 @@ const QuestList = () => {
             {/* Footer stats supprimé (doublon avec Dashboard) */}
           </div>
         </div>
+        {/* Paywall Modal */}
+        <AnimatePresence>
+          {showPaywall && selectedQuest && (
+            <PaywallModal
+              quest={selectedQuest}
+              variant="A_direct"
+              onClose={() => {
+                setShowPaywall(false);
+                setSelectedQuest(null);
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Paywall Modal */}
-      <AnimatePresence>
-        {showPaywall && selectedQuest && (
-          <PaywallModal
-            quest={selectedQuest}
-            variant="A_direct"
-            onClose={() => {
-              setShowPaywall(false);
-              setSelectedQuest(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    </AppBackground>
   );
 };
 
