@@ -8,9 +8,9 @@ import { toast } from 'react-toastify';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logPremiumEvent } from '../../utils/analytics';
-import LoadingSpinner from '../common/LoadingSpinner';
+import LoadingSpinner from '../app/LoadingSpinner';
 import posthog from 'posthog-js';
-import SubscriptionManager from '../SubscriptionManager';
+import SubscriptionManager from '../app/SubscriptionManager';
 
 // Initialize Stripe with your publishable key
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 

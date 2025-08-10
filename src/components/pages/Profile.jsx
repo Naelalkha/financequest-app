@@ -32,9 +32,9 @@ import { GiTwoCoins, GiDiamondTrophy, GiAchievement } from 'react-icons/gi';
 import { BsStars, BsLightningChargeFill } from 'react-icons/bs';
 import { RiVipCrownFill } from 'react-icons/ri';
 import { toast } from 'react-toastify';
-import LanguageToggle from '../LanguageToggle';
-import LoadingSpinner from '../common/LoadingSpinner';
-import AppBackground from '../common/AppBackground';
+import LanguageToggle from '../app/LanguageToggle';
+import LoadingSpinner from '../app/LoadingSpinner';
+import AppBackground from '../app/AppBackground';
 
 const Profile = () => {
   const { user, updateUserProfile, logout } = useAuth();

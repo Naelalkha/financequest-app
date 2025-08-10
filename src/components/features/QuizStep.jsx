@@ -5,7 +5,7 @@ import {
   FaStar, FaAward, FaInfoCircle, FaClock, FaFire
 } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
-import ProgressBar from '../common/ProgressBar';
+import ProgressBar from '../quest/ProgressBar';
 import posthog from 'posthog-js';
 
 const QuizStep = ({ step, onComplete, questProgress = {} }) => {

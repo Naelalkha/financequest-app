@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
           email,
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
-          points: 0,
+          xp: 0,
           level: 'Novice',
           streaks: 0,
           badges: [],

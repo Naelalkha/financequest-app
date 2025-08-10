@@ -8,7 +8,7 @@ import QuestList from './components/pages/QuestList';
 import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
-import BottomNav from './components/BottomNav';
+import BottomNav from './components/app/BottomNav';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ToastContainer } from 'react-toastify';

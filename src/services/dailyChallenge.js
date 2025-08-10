@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { allQuests } from '../data/quests';
+import { localizeQuest } from '../data/quests/questHelpers';
 
 // Types de défis quotidiens
 const DAILY_CHALLENGE_TYPES = {
@@ -12,26 +13,53 @@ const DAILY_CHALLENGE_TYPES = {
 };
 
 // Générer un défi quotidien basé sur la date
-export const generateDailyChallenge = (date = new Date()) => {
+export const generateDailyChallenge = (date = new Date(), options = {}) => {
+  const { forceRandom, salt, excludeQuestId, lang = 'fr' } = options;
   const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-  const seed = dayOfYear % 365; // Seed basé sur le jour de l'année
+  let seed = forceRandom ? Math.floor(Math.random() * 100000) + (salt || 0) : (dayOfYear % 365);
   
   const challengeTypes = Object.values(DAILY_CHALLENGE_TYPES);
   const challengeType = challengeTypes[seed % challengeTypes.length];
   
   // Sélectionner une quête basée sur le seed
-  const availableQuests = allQuests.filter(q => !q.isPremium);
+  let availableQuests = allQuests.filter(q => !q.isPremium);
+  if (excludeQuestId) {
+    availableQuests = availableQuests.filter(q => q.id !== excludeQuestId);
+  }
+  
+  if (availableQuests.length === 0) {
+    availableQuests = allQuests.filter(q => !q.isPremium); // Fallback si toutes les quêtes sont exclues
+  }
+  
   const selectedQuest = availableQuests[seed % availableQuests.length];
   
+  // Localiser la quête pour obtenir le bon titre
+  console.log('🔍 DEBUG selectedQuest:', { 
+    id: selectedQuest?.id, 
+    content: selectedQuest?.content,
+    title_fr: selectedQuest?.title_fr,
+    title_en: selectedQuest?.title_en,
+    title: selectedQuest?.title
+  });
+  
+  const localizedQuest = localizeQuest(selectedQuest, lang);
+  console.log('🔍 DEBUG localizedQuest:', { 
+    title: localizedQuest?.title,
+    lang: lang 
+  });
+  
+  const questTitle = localizedQuest?.title || selectedQuest?.content?.fr?.title || selectedQuest?.content?.en?.title || selectedQuest?.title_fr || selectedQuest?.title_en || selectedQuest?.title || `Quête ${selectedQuest?.id}`;
+  console.log('🔍 DEBUG questTitle final:', questTitle);
+  
   return {
-    id: `daily_${date.toISOString().split('T')[0]}`,
+    id: `daily_${date.toISOString().split('T')[0]}_${seed}`,  // Add seed to make regenerated challenges unique
     type: challengeType,
-    questId: selectedQuest.id,
-    questTitle: selectedQuest.title_en,
+    questId: selectedQuest?.id,
+    questTitle: questTitle,
     date: date.toISOString().split('T')[0],
     seed: seed,
     rewards: {
-      xp: selectedQuest.xp * 2, // Double XP pour défi quotidien
+      xp: (selectedQuest?.xp || 100) * 2, // Double XP pour défi quotidien
       streak: 1,
       badge: challengeType === 'PERFECTIONIST' ? 'daily_perfectionist' : null
     },
@@ -83,18 +111,27 @@ const getChallengeRequirements = (type, quest) => {
 };
 
 // Vérifier si l'utilisateur a un défi quotidien actif
-export const getUserDailyChallenge = async (userId) => {
+export const getUserDailyChallenge = async (userId, lang = 'fr') => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const challengeRef = doc(db, 'dailyChallenges', `${userId}_${today}`);
     const challengeSnap = await getDoc(challengeRef);
     
     if (challengeSnap.exists()) {
-      return challengeSnap.data();
+      const data = challengeSnap.data();
+      // Si pas de questTitle ou questTitle undefined, recalculer avec la bonne langue
+      if (!data.questTitle || data.questTitle === 'undefined' || data.questTitle.includes('undefined')) {
+        const quest = allQuests.find(q => q.id === data.questId);
+        if (quest) {
+          const localizedQuest = localizeQuest(quest, lang);
+          data.questTitle = localizedQuest?.title || quest?.content?.fr?.title || quest?.content?.en?.title || `Quête ${quest.id}`;
+        }
+      }
+      return data;
     }
     
     // Créer un nouveau défi quotidien
-    const newChallenge = generateDailyChallenge();
+    const newChallenge = generateDailyChallenge(new Date(), { lang });
     const payload = {
       ...newChallenge,
       userId,
@@ -103,7 +140,8 @@ export const getUserDailyChallenge = async (userId) => {
       startedAt: serverTimestamp(),
       completedAt: null
     };
-    await setDoc(challengeRef, payload);
+    const sanitized = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
+    await setDoc(challengeRef, sanitized);
     
     // Retourner un objet avec les champs ajoutés (sans serverTimestamp résolu)
     return {

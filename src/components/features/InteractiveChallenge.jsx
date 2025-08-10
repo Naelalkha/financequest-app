@@ -5,7 +5,7 @@ import {
   FaLightbulb, FaRocket, FaTrophy, FaUndo, FaPlay, FaTimes, FaPlus, FaFire
 } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
-import ProgressBar from '../common/ProgressBar';
+import ProgressBar from '../quest/ProgressBar';
 import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
 

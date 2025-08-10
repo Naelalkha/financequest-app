@@ -208,7 +208,7 @@ export const useQuests = (filters = {}) => {
       const userData = userDoc.data();
 
       await updateDoc(userRef, {
-        totalPoints: (userData.totalPoints || 0) + earnedPoints,
+        xp: (userData.xp || 0) + earnedPoints,
         completedQuests: (userData.completedQuests || 0) + 1,
         lastCompletedQuest: serverTimestamp()
       });

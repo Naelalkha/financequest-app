@@ -4,7 +4,7 @@ import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, Fa
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
 // Import par défaut au lieu d'import nommé
-import AchievementShareButton from '../common/AchievementShareButton';
+import AchievementShareButton from '../quest/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,14 +12,14 @@ import { useLocalQuestDetail } from '../../hooks/useLocalQuests';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logQuestEvent } from '../../utils/analytics';
-import ProgressBar from '../common/ProgressBar';
-import LoadingSpinner from '../common/LoadingSpinner';
+import ProgressBar from '../quest/ProgressBar';
+import LoadingSpinner from '../app/LoadingSpinner';
 import { QuizStep, ActionChallenge, ChallengeStep, InteractiveChallenge } from '../features';
 import SimpleActionStep from '../features/SimpleActionStep';
 import ChecklistStep from '../features/ChecklistStep';
 import posthog from 'posthog-js';
 import { usePaywall } from '../../hooks/usePaywall';
-import PaywallModal from '../PaywallModal';
+import PaywallModal from '../app/PaywallModal';
 import { completeDailyChallenge, getUserDailyChallenge } from '../../services/dailyChallenge';
 
 const QuestDetail = () => {

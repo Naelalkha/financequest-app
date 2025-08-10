@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaFire, 
   FaStar, 
   FaCheckCircle,
-  FaMedal,
   FaArrowRight,
   FaBolt,
   FaRocket,
@@ -31,18 +31,17 @@ import {
 import { 
   GiTwoCoins,
   GiFireGem,
-  GiDiamondTrophy,
   GiAchievement
 } from 'react-icons/gi';
 import { 
   RiVipCrownFill 
 } from 'react-icons/ri';
-import { doc, getDoc, collection, query, where, limit, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, limit, getDocs, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import LoadingSpinner from '../common/LoadingSpinner';
-import AppBackground from '../common/AppBackground';
+import LoadingSpinner from '../app/LoadingSpinner';
+import AppBackground from '../app/AppBackground';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { getUserDailyChallenge, generateDailyChallenge } from '../../services/dailyChallenge';
 
@@ -531,19 +530,19 @@ const DashboardPage = () => {
 
   const fetchDailyChallenge = async () => {
     try {
-      const challenge = await getUserDailyChallenge(user.uid);
+      const challenge = await getUserDailyChallenge(user.uid, currentLang);
       if (challenge && challenge.questId) {
         setDailyChallenge(challenge);
       } else {
         // Fallback local si Firestore renvoie un objet inattendu
-        const fallback = generateDailyChallenge();
+        const fallback = generateDailyChallenge(new Date(), { lang: currentLang });
         setDailyChallenge(fallback);
       }
     } catch (error) {
       console.error('Error fetching daily challenge:', error);
       // Fallback local en cas d'erreur réseau
       try {
-        const fallback = generateDailyChallenge();
+        const fallback = generateDailyChallenge(new Date(), { lang: currentLang });
         setDailyChallenge(fallback);
       } catch (e) {
         // ignore
@@ -554,7 +553,68 @@ const DashboardPage = () => {
   const regenerateDailyChallenge = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const newChallenge = generateDailyChallenge(new Date(), { forceRandom: true });
+      const currentQuestId = dailyChallenge?.questId;
+      
+      console.log('🔍 DEBUG regeneration:', { 
+        currentQuestId, 
+        currentLang, 
+        dailyChallengeTitle: dailyChallenge?.questTitle,
+        questsLength: quests?.length
+      });
+      
+      // Utiliser les quêtes locales filtrées: exclure premium si non-premium, et exclure actives/terminées
+      const disallowedIds = new Set([
+        ...(activeQuestIds || []),
+        ...(completedQuestIds || []),
+        ...(currentQuestId ? [currentQuestId] : [])
+      ]);
+      let availableQuests = (quests || [])
+        .filter(q => (isPremium ? true : !q.isPremium))
+        .filter(q => !disallowedIds.has(q.id));
+      
+      if (availableQuests.length === 0) {
+        toast.error('Aucune quête disponible non commencée pour générer un défi');
+        return;
+      }
+      
+      // Sélectionner une quête aléatoire
+      const randomIndex = Math.floor(Math.random() * availableQuests.length);
+      const selectedQuest = availableQuests[randomIndex];
+      
+      console.log('🔍 DEBUG quête sélectionnée:', { 
+        id: selectedQuest.id, 
+        title: selectedQuest.title,
+        description: selectedQuest.description,
+        availableCount: availableQuests.length
+      });
+      
+      // Créer le défi manuellement
+      const newChallenge = {
+        id: `daily_${today}_${Date.now()}`,
+        type: 'quiz_master', // Type simple pour l'instant
+        questId: selectedQuest.id,
+        questTitle: selectedQuest.title || selectedQuest.description || `Quête ${selectedQuest.id}`,
+        date: today,
+        seed: randomIndex,
+        rewards: {
+          xp: (selectedQuest.xp || 100) * 2,
+          streak: 1,
+          badge: null
+        },
+        requirements: {
+          description: 'Complete the quest successfully',
+          target: 'complete',
+          value: 1
+        },
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      };
+      
+      console.log('🔍 DEBUG nouveau défi créé:', { 
+        questId: newChallenge.questId, 
+        questTitle: newChallenge.questTitle,
+        type: newChallenge.type
+      });
+      
       const challengeRef = doc(db, 'dailyChallenges', `${user.uid}_${today}`);
       const payload = {
         ...newChallenge,
@@ -564,14 +624,12 @@ const DashboardPage = () => {
         startedAt: serverTimestamp(),
         completedAt: null
       };
-      const sanitized = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
-      await setDoc(challengeRef, sanitized);
-      setDailyChallenge({ ...newChallenge, status: 'active', progress: 0 });
+      await setDoc(challengeRef, payload);
+      setDailyChallenge({ ...newChallenge, status: 'active', progress: 0, userId: user.uid, startedAt: new Date().toISOString(), completedAt: null });
+      toast.success(`Nouveau défi: ${newChallenge.questTitle}`);
     } catch (error) {
       console.error('Error regenerating daily challenge:', error);
-      // Fallback local
-      const fallback = generateDailyChallenge(new Date(), { forceRandom: true });
-      setDailyChallenge({ ...fallback, status: 'active', progress: 0 });
+      toast.error('Erreur lors de la régénération du défi');
     }
   };
 
@@ -587,11 +645,31 @@ const DashboardPage = () => {
     );
   }
 
-  const userPoints = userData?.points || 0;
+  // Utilisation d'une seule source de vérité pour l'XP
+  const userPoints = userData?.xp || 0;
   const userLevel = calculateLevel(userPoints);
-  const streakDays = userData?.streaks || userData?.currentStreak || 0;
-  const completedQuests = userData?.completedQuests || 0;
+  const streakDays = userData?.streaks || userData?.loginStreak || 0;
+  const completedQuests = userData?.completedQuests || 0; // completedQuests: 10 - source principale
   const totalQuests = quests?.length || 0;
+
+  // XP gagné récemment (peut être calculé ou utiliser totalXP si c'est l'XP de la semaine)
+  const weeklyXP = userData?.totalXP || Math.min(userPoints, 500); // totalXP: 20 comme XP récent
+
+  // Objectif quêtes cette semaine (basé sur les vraies données)
+  const weeklyQuestGoal = 3; // Objectif fixe 
+  const weeklyQuestsCompleted = Math.min(completedQuests, weeklyQuestGoal);
+
+  // Révisions dues - calcul basé sur les quêtes terminées qui ont besoin de révision
+  // Les quêtes terminées il y a plus de 7 jours nécessitent une révision
+  const activeQuestCount = Object.keys(userProgress).filter(id => userProgress[id]?.status === 'active').length;
+  const reviewsDue = Math.max(0, Math.floor(completedQuests / 3)); // 1 révision pour 3 quêtes terminées
+
+  // Temps d'apprentissage (basé sur totalTimeSpent si disponible)
+  const totalTimeSpentMinutes = userData?.totalTimeSpent || 0; // totalTimeSpent: 0
+  const weeklyLearningTime = totalTimeSpentMinutes || (completedQuests * 25); // Fallback 25min par quête
+
+  // Maîtrise basée sur le niveau et les quêtes terminées
+  const masteryScore = Math.min(100, 60 + (userLevel * 5) + (completedQuests * 2));
 
   // Statuts des quêtes pour filtrage/affichage
   const activeQuestIds = Object.entries(userProgress)
@@ -918,7 +996,19 @@ const DashboardPage = () => {
                 transition={{ delay: 0.6 }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                onClick={() => navigate(`/quests/${dailyChallenge.questId}`)}
+                onClick={() => {
+                  console.log('🔍 DEBUG click défi quotidien:', { 
+                    questId: dailyChallenge.questId,
+                    questTitle: dailyChallenge.questTitle,
+                    url: `/quests/${dailyChallenge.questId}`
+                  });
+                  if (dailyChallenge.questId) {
+                    navigate(`/quests/${dailyChallenge.questId}`);
+                  } else {
+                    console.error('❌ Aucun questId trouvé, redirection vers /quests');
+                    navigate('/quests');
+                  }
+                }}
                 className="relative neon-element rounded-2xl p-6 mb-8 cursor-pointer overflow-hidden group"
               >
                 <motion.div
@@ -957,6 +1047,9 @@ const DashboardPage = () => {
                           {timeLeft.hours}h {timeLeft.minutes}min
                         </span>
                       </div>
+                      {dailyChallenge?.questTitle && (
+                        <p className="mt-1 text-sm text-gray-400 line-clamp-1">{dailyChallenge.questTitle}</p>
+                      )}
                     </div>
                   </div>
                   
@@ -1056,7 +1149,6 @@ const DashboardPage = () => {
                   className="text-lg font-bold text-white flex items-center gap-2"
                   style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                 >
-                  <GiDiamondTrophy className="text-purple-400" />
                   Badges & Accomplissements
                 </h2>
                 <Link 
@@ -1137,72 +1229,7 @@ const DashboardPage = () => {
               </div>
             </motion.div>
 
-            {/* Section Activité Récente - Style unifié */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-              className="mb-8"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 
-                  className="text-lg font-bold text-white flex items-center gap-2"
-                  style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
-                >
-                  <BsStars className="text-cyan-400" />
-                  Activité Récente
-                </h2>
-              </div>
-
-              {recentQuests.length > 0 ? (
-                <div className="space-y-3">
-                  {recentQuests.map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1.1 + index * 0.1 }}
-                      whileHover={{ x: 5 }}
-                      onClick={() => navigate(`/quests/${activity.questId}`)}
-                      className="neon-element rounded-xl p-4 cursor-pointer flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          activity.status === 'completed' 
-                            ? 'bg-emerald-500/20 border border-emerald-500/30'
-                            : 'bg-amber-500/20 border border-amber-500/30'
-                        }`}>
-                          {activity.status === 'completed' ? (
-                            <FaCheckCircle className="text-emerald-400 text-sm" />
-                          ) : (
-                            <FaBolt className="text-amber-400 text-sm" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-white font-semibold text-sm">
-                            {activity.questTitle || 'Quête'}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {activity.status === 'completed' ? 'Terminée' : `En cours - ${activity.progress || 0}%`}
-                          </p>
-                        </div>
-                      </div>
-                      <FaArrowRight className="text-gray-500 group-hover:text-white transition-colors text-sm" />
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="neon-element rounded-xl p-8 text-center">
-                  <p className="text-gray-400">Aucune activité récente</p>
-                  <Link
-                    to="/quests"
-                    className="inline-block mt-4 text-amber-400 font-semibold hover:text-amber-300 transition-colors"
-                  >
-                    Commencer une quête →
-                  </Link>
-                </div>
-              )}
-            </motion.div>
+            {/* Section Activité Récente retirée (redondante avec "Reprendre") */}
 
             {/* Section Quick Stats Summary - Style unifié */}
             <motion.div
@@ -1211,7 +1238,7 @@ const DashboardPage = () => {
               transition={{ delay: 1.2 }}
               className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
             >
-              {/* Cette semaine */}
+              {/* Cette semaine - Objectifs hebdomadaires */}
               <div className="neon-element rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span 
@@ -1224,70 +1251,39 @@ const DashboardPage = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Quêtes</span>
-                    <span className="text-sm font-bold text-white">3</span>
+                    <span className="text-sm text-gray-300">Objectif quêtes</span>
+                    <span className="text-sm font-bold text-white">
+                      {weeklyQuestsCompleted}/{weeklyQuestGoal}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-300">Révisions dues</span>
+                    <span className="text-sm font-bold text-orange-400">
+                      {reviewsDue}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-300">XP gagné</span>
-                    <span className="text-sm font-bold text-yellow-400">+450</span>
+                    <span className="text-sm font-bold text-yellow-400">
+                      +{weeklyXP} XP
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Temps</span>
-                    <span className="text-sm font-bold text-cyan-400">2h 30min</span>
+                    <span className="text-sm text-gray-300">Temps apprentissage</span>
+                    <span className="text-sm font-bold text-cyan-400">
+                      {Math.floor(weeklyLearningTime / 60)}h {weeklyLearningTime % 60}min
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-300">Maîtrise</span>
+                    <span className="text-sm font-bold text-emerald-400">
+                      {Math.round(masteryScore)}%
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Objectifs */}
-              <div className="neon-element rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span 
-                    className="text-xs font-bold text-gray-400 uppercase tracking-wider"
-                    style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}
-                  >
-                    Objectifs
-                  </span>
-                  <FaMedal className="text-amber-400 text-lg" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Niveau 10</span>
-                    <span className="text-sm font-bold text-amber-400">{userLevel}/10</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Streak 30j</span>
-                    <span className="text-sm font-bold text-orange-400">{streakDays}/30</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">50 Quêtes</span>
-                    <span className="text-sm font-bold text-emerald-400">{completedQuests}/50</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rang Global */}
-              <div className="neon-element rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span 
-                    className="text-xs font-bold text-gray-400 uppercase tracking-wider"
-                    style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}
-                  >
-                    Rang Global
-                  </span>
-                  <GiDiamondTrophy className="text-purple-400 text-lg" />
-                </div>
-                <div className="text-center py-2">
-                  <div className="text-3xl font-black text-white mb-1">
-                    #{Math.max(1, 1000 - userLevel * 10)}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Top {Math.max(1, Math.round((1000 - userLevel * 10) / 10))}%
-                  </div>
-                  <div className="mt-3 text-xs text-purple-400 font-semibold">
-                    +{Math.max(5, 50 - userLevel)} places cette semaine
-                  </div>
-                </div>
-              </div>
+              {/* Objectifs et Rang Global retirés */}
             </motion.div>
 
             {/* Footer Actions - Call to Action final */}

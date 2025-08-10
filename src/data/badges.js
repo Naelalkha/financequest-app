@@ -384,7 +384,7 @@ import {
       
       switch (badge.requirement.type) {
         case 'quests_completed':
-          earned = userStats.questsCompleted >= badge.requirement.value;
+          earned = userStats.completedQuests >= badge.requirement.value;
           break;
         case 'streak':
           earned = userStats.currentStreak >= badge.requirement.value || 
@@ -436,7 +436,7 @@ import {
       
       switch (badge.requirement.type) {
         case 'quests_completed':
-          current = userStats.questsCompleted || 0;
+          current = userStats.completedQuests || 0;
           progress = (current / target) * 100;
           break;
         case 'streak':

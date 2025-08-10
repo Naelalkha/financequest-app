@@ -33,14 +33,14 @@ import { collection, getDocs, query, where, doc, getDoc, updateDoc } from 'fireb
 import { db } from '../../services/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import LoadingSpinner from '../common/LoadingSpinner';
+import LoadingSpinner from '../app/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { usePaywall } from '../../hooks/usePaywall';
-import PaywallModal from '../PaywallModal';
+import PaywallModal from '../app/PaywallModal';
 import posthog from 'posthog-js';
-import AppBackground from '../common/AppBackground';
-import Select from '../common/Select';
+import AppBackground from '../app/AppBackground';
+import Select from '../quest/Select';
 
 // Skeleton futuriste
 const QuestSkeleton = () => {

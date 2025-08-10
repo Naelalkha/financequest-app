@@ -21,7 +21,7 @@ import {
 } from 'react-icons/ri';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import AppBackground from '../common/AppBackground';
+import AppBackground from '../app/AppBackground';
 
 // Hero Section Component
 const HeroSection = ({ t }) => {
