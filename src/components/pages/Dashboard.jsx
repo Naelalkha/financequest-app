@@ -554,21 +554,23 @@ const DashboardPage = () => {
   const regenerateDailyChallenge = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const newChallenge = generateDailyChallenge();
+      const newChallenge = generateDailyChallenge(new Date(), { forceRandom: true });
       const challengeRef = doc(db, 'dailyChallenges', `${user.uid}_${today}`);
-      await setDoc(challengeRef, {
+      const payload = {
         ...newChallenge,
         userId: user.uid,
         status: 'active',
         progress: 0,
         startedAt: serverTimestamp(),
         completedAt: null
-      });
+      };
+      const sanitized = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
+      await setDoc(challengeRef, sanitized);
       setDailyChallenge({ ...newChallenge, status: 'active', progress: 0 });
     } catch (error) {
       console.error('Error regenerating daily challenge:', error);
       // Fallback local
-      const fallback = generateDailyChallenge();
+      const fallback = generateDailyChallenge(new Date(), { forceRandom: true });
       setDailyChallenge({ ...fallback, status: 'active', progress: 0 });
     }
   };
@@ -876,9 +878,9 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Mobile carrousel */}
-                <div className="sm:hidden -mx-1 px-1 overflow-x-auto flex gap-3 snap-x snap-mandatory">
+                <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
                   {activeQuestsToRender.map((quest) => (
-                    <div key={quest.id} className="min-w-[85%] snap-start">
+                    <div key={quest.id} className="w-[78vw] max-w-[420px] snap-start flex-none">
                       <QuestCard
                         quest={quest}
                         userProgress={userProgress}
@@ -1004,9 +1006,9 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Mobile carrousel */}
-                <div className="sm:hidden -mx-1 px-1 overflow-x-auto flex gap-3 snap-x snap-mandatory">
+                <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
                   {recommendedToRender.map((quest, index) => (
-                    <div key={quest.id} className="min-w-[85%] snap-start">
+                    <div key={quest.id} className="w-[78vw] max-w-[420px] snap-start flex-none">
                       <QuestCard
                         quest={quest}
                         userProgress={userProgress}
