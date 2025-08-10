@@ -14,11 +14,24 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const [pendingPath, setPendingPath] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [isSmallPhone, setIsSmallPhone] = useState(() => typeof window !== 'undefined' ? window.matchMedia('(max-width: 380px)').matches : false);
 
   // Réinitialiser l'état pending dès que l'URL change
   useEffect(() => {
     setPendingPath(null);
   }, [location.pathname]);
+
+  // Détecter les très petits écrans pour adapter les libellés
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 380px)');
+    const onChange = () => setIsSmallPhone(mq.matches);
+    onChange();
+    mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener('change', onChange) : mq.removeListener(onChange);
+    };
+  }, []);
   
   // Configuration des icônes avec variantes
   const iconConfig = {
@@ -58,7 +71,8 @@ const BottomNav = () => {
       {
         path: '/dashboard',
         icon: FaHome,
-        label: t('nav.dashboard') || 'Dashboard',
+        label: t('nav.dashboard') || 'Accueil',
+        shortLabel: t('nav.dashboard_short') || 'Accueil',
         key: 'dashboard',
         badge: null
       },
@@ -66,6 +80,7 @@ const BottomNav = () => {
         path: '/quests',
         icon: FaCompass,
         label: t('nav.quests') || 'Quêtes',
+        shortLabel: t('nav.quests_short') || 'Quêtes',
         key: 'quests',
         badge: user?.newQuests > 0 ? { count: user.newQuests, type: 'new' } : null
       }
@@ -79,6 +94,7 @@ const BottomNav = () => {
           path: '/profile',
           icon: FaUser,
           label: t('nav.profile') || 'Profil',
+          shortLabel: t('nav.profile_short') || 'Profil',
           key: 'profile',
           badge: null
         }
@@ -91,6 +107,7 @@ const BottomNav = () => {
           path: '/premium',
           icon: FaCrown,
           label: t('nav.premium') || 'Premium',
+          shortLabel: t('nav.premium_short') || 'Pro',
           key: 'premium',
           badge: { type: 'premium' }
         },
@@ -98,6 +115,7 @@ const BottomNav = () => {
           path: '/profile',
           icon: FaUser,
           label: t('nav.profile') || 'Profil',
+          shortLabel: t('nav.profile_short') || 'Profil',
           key: 'profile',
           badge: null
         }
@@ -137,6 +155,7 @@ const BottomNav = () => {
               const config = iconConfig[item.key];
               const currentPath = pendingPath ?? location.pathname;
               const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
+              const displayLabel = isSmallPhone && item.shortLabel ? item.shortLabel : item.label;
 
               return (
                 <Link
@@ -206,31 +225,13 @@ const BottomNav = () => {
                     />
                   )}
 
-                  {/* Indicateur actif en haut */}
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        className={`
-                          absolute top-0 left-1/2 -translate-x-1/2 h-[2px] 
-                          bg-gradient-to-r ${config.gradient}
-                          rounded-full
-                        `}
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: '60%', opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          boxShadow: `0 0 10px ${config.shadow}`
-                        }}
-                      />
-                    )}
-                  </AnimatePresence>
+                  {/* Indicateur actif en haut retiré (doublon visuel) */}
 
                   {/* Contenu avec icône et label */}
                   <div className="relative z-10 flex flex-col items-center justify-center">
                     {/* Container icône avec animation */}
                     <motion.div
-                      className="relative mb-0.5"
+                      className="relative mb-1.5"
                       animate={isActive ? {
                         y: [0, -2, 0],
                         scale: [1, 1.1, 1]
@@ -296,48 +297,20 @@ const BottomNav = () => {
                         </motion.div>
                       )}
                       
-                      {/* Particules animées DERRIÈRE l'icône */}
-                      {isActive && (
-                        <>
-                          {[...Array(3)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              className={`absolute w-1 h-1 ${config.particleColor} rounded-full`}
-                              style={{
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                zIndex: -1
-                              }}
-                              animate={{
-                                y: [-10, -30, -10],
-                                x: [(i - 1) * 15, (i - 1) * 20, (i - 1) * 15],
-                                opacity: [0, 0.8, 0],
-                                scale: [0.5, 1.2, 0.5]
-                              }}
-                              transition={{
-                                duration: 2.5,
-                                repeat: Infinity,
-                                delay: i * 0.4,
-                                ease: "easeOut"
-                              }}
-                            />
-                          ))}
-                        </>
-                      )}
+                      {/* Particules supprimées */}
                     </motion.div>
 
                     {/* Label avec animation */}
                     <motion.span 
                       className={`
-                        text-[11px] font-black tracking-wide uppercase
+                        text-[10px] sm:text-[11px] font-black tracking-wide uppercase whitespace-nowrap leading-none
                         transition-all duration-300
                         ${isActive ? 'opacity-100' : 'opacity-80'}
                       `}
                       style={{ 
                         fontFamily: '"Inter", sans-serif',
                         fontWeight: 900,
-                        letterSpacing: '0.04em'
+                        letterSpacing: '0.03em'
                       }}
                       animate={isActive ? {
                         scale: [1, 1.05, 1]
@@ -347,7 +320,7 @@ const BottomNav = () => {
                         ease: "easeOut"
                       }}
                     >
-                      {item.label}
+                      {displayLabel}
                     </motion.span>
                   </div>
                 </Link>

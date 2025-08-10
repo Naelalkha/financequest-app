@@ -804,10 +804,10 @@ const QuestList = () => {
         
 
         {/* Header optimisé avec design épuré */}
-        <div className="px-4 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8">
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
           <div className="w-full max-w-7xl mx-auto">
             {/* En-tête avec stats utilisateur */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
               {/* Titre et sous-titre */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -829,7 +829,7 @@ const QuestList = () => {
                     Financières
                   </span>
                 </h1>
-                <p className="text-gray-400 text-sm sm:text-base mt-1">
+                <p className="text-gray-400 text-sm sm:text-base mt-0.5">
                   {filteredQuests.length} quêtes disponibles
                 </p>
               </motion.div>
@@ -840,22 +840,22 @@ const QuestList = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="flex items-center gap-4"
+                  className="flex items-center gap-3"
                 >
                   {/* Streak */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
                     <FaFire className="text-orange-400 text-sm" />
                     <span className="text-orange-300 font-bold text-sm">{userStats.streak || 0}</span>
                   </div>
                   
                   {/* XP */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                     <GiTwoCoins className="text-yellow-400 text-sm" />
                     <span className="text-yellow-300 font-bold text-sm">{userStats.xp || 0} XP</span>
                   </div>
                   
                   {/* Niveau */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
                     <FaTrophy className="text-purple-400 text-sm" />
                     <span className="text-purple-300 font-bold text-sm">Niv. {userStats.level || 1}</span>
                   </div>
@@ -887,11 +887,11 @@ const QuestList = () => {
         {/* Bannière Continuer (supprimée) */}
 
         {/* Zone de filtres avec design moderne (non-sticky) */}
-        <div className="px-4 sm:px-6 py-4">
+        <div className="px-4 sm:px-6 py-2.5">
           <div className="w-full max-w-7xl mx-auto">
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Ligne 1: Recherche et bouton filtres */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-2">
                 {/* Barre de recherche modernisée */}
                 <div className="flex-1 relative">
                   <div className="relative group">
@@ -905,7 +905,7 @@ const QuestList = () => {
                         placeholder="Rechercher une quête..."
                         value={rawSearch}
                         onChange={(e) => setRawSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-white placeholder-gray-500 px-3 py-3 focus:outline-none text-sm"
+                        className="flex-1 bg-transparent text-white placeholder-gray-500 px-3 py-2.5 focus:outline-none text-sm"
                         aria-label="Rechercher une quête"
                       />
                       {rawSearch && (
@@ -923,7 +923,7 @@ const QuestList = () => {
                 {/* Bouton tri (mobile) */}
                 <button
                   onClick={() => setShowAdvancedFilters(prev => !prev)}
-                  className="sm:hidden px-4 py-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                  className="sm:hidden px-4 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
                   aria-expanded={showAdvancedFilters}
                   aria-controls="advanced-filters"
                 >
@@ -940,7 +940,7 @@ const QuestList = () => {
 
               {/* Ligne 2: Filtres rapides toujours visibles */}
               <div className="relative -mx-4 sm:-mx-6">
-                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-1 px-4 sm:px-6">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 px-4 sm:px-6">
                   {/* Tags rapides */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                   {quickTags.map((tag) => {
@@ -1009,7 +1009,7 @@ const QuestList = () => {
                 aria-expanded={showAdvancedFilters || isDesktop}
                 id="advanced-filters"
               >
-                <div className="pt-4 border-t border-white/5 relative z-30">
+                <div className="pt-3 border-t border-white/5 relative z-30">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
                     {/* Difficulté */}
@@ -1088,7 +1088,7 @@ const QuestList = () => {
         {/* Divider subtil sous la zone de filtres */}
         <div className="px-2 sm:px-4">
           <div className="w-full max-w-full sm:max-w-[1400px] mx-auto">
-            <div className="h-px bg-white/5 mb-3" />
+            <div className="h-px bg-white/5 mb-2" />
           </div>
         </div>
 

@@ -20,6 +20,7 @@ import ChecklistStep from '../features/ChecklistStep';
 import posthog from 'posthog-js';
 import { usePaywall } from '../../hooks/usePaywall';
 import PaywallModal from '../PaywallModal';
+import { completeDailyChallenge, getUserDailyChallenge } from '../../services/dailyChallenge';
 
 const QuestDetail = () => {
   const { id: questId } = useParams();
@@ -270,6 +271,22 @@ const QuestDetail = () => {
             lastActivityAt: new Date().toISOString(),
             ...(streakUpdate.success && { currentStreak: streakUpdate.appliedValue })
           });
+        }
+
+        // Si la quête complétée est celle du défi quotidien, marquer le défi comme terminé
+        try {
+          const todayChallenge = await getUserDailyChallenge(user.uid);
+          if (todayChallenge && todayChallenge.questId === questId && todayChallenge.status !== 'completed') {
+            await completeDailyChallenge(user.uid, todayChallenge.id, {
+              completed: true,
+              score: score,
+              duration: null,
+              streakMaintained: true,
+              category: quest?.category
+            });
+          }
+        } catch (err) {
+          console.warn('Daily challenge completion skipped or failed:', err);
         }
       }
       

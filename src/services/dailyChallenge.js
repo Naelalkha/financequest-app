@@ -95,16 +95,25 @@ export const getUserDailyChallenge = async (userId) => {
     
     // Créer un nouveau défi quotidien
     const newChallenge = generateDailyChallenge();
-    await setDoc(challengeRef, {
+    const payload = {
       ...newChallenge,
       userId,
       status: 'active',
       progress: 0,
       startedAt: serverTimestamp(),
       completedAt: null
-    });
+    };
+    await setDoc(challengeRef, payload);
     
-    return newChallenge;
+    // Retourner un objet avec les champs ajoutés (sans serverTimestamp résolu)
+    return {
+      ...newChallenge,
+      userId,
+      status: 'active',
+      progress: 0,
+      startedAt: new Date().toISOString(),
+      completedAt: null
+    };
   } catch (error) {
     console.error('Error getting daily challenge:', error);
     throw error;
@@ -178,22 +187,25 @@ const checkChallengeCompletion = (challenge, completionData) => {
   }
 };
 
-// Attribuer les récompenses du défi quotidien
+// Attribuer les récompenses du défi quotidien (incrémentales)
 const awardDailyChallengeRewards = async (userId, challenge) => {
   try {
     const userRef = doc(db, 'users', userId);
-    
-    // Mettre à jour les stats utilisateur
+    const userSnap = await getDoc(userRef);
+
+    const userData = userSnap.exists() ? userSnap.data() : {};
+
+    const currentXp = userData.xp || userData.points || 0;
+    const dailyCompleted = userData.dailyChallengesCompleted || 0;
+
     await updateDoc(userRef, {
-      xp: challenge.rewards.xp,
-      currentStreak: challenge.rewards.streak,
-      dailyChallengesCompleted: 1,
+      xp: currentXp + (challenge.rewards.xp || 0),
+      dailyChallengesCompleted: dailyCompleted + 1,
       lastDailyChallenge: challenge.date
     });
-    
-    // Ajouter le badge si applicable
+
     if (challenge.rewards.badge) {
-      // Logique pour ajouter le badge
+      // Placeholder: intégrer la logique d'ajout de badge si nécessaire
       console.log(`Badge earned: ${challenge.rewards.badge}`);
     }
   } catch (error) {
