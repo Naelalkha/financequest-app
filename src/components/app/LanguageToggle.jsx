@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { FaGlobe } from 'react-icons/fa';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { useAuth } from '../contexts/AuthContext';
+import { db } from '../../services/firebase';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const LanguageToggle = () => {

@@ -4,8 +4,8 @@ import { FaHome, FaCompass, FaCrown, FaUser, FaTrophy, FaFire } from 'react-icon
 import { GiTwoCoins } from 'react-icons/gi';
 import { BsStars } from 'react-icons/bs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const BottomNav = () => {
   const location = useLocation();

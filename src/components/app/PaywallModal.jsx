@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaCrown, FaLock, FaCheck, FaRocket, FaBolt, FaTrophy, FaStar, FaShieldAlt, FaTimes } from 'react-icons/fa';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
-import { PAYWALL_VARIANTS } from '../hooks/usePaywall';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { PAYWALL_VARIANTS } from '../../hooks/usePaywall';
 import posthog from 'posthog-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db } from '../../services/firebase';
 
 const PaywallModal = ({ quest, variant, onClose }) => {
   const { t } = useLanguage();

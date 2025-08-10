@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { FaCrown, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
-import { useSubscription } from '../hooks/useSubscription';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const SubscriptionManager = () => {
