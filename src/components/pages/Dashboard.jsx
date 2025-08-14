@@ -44,6 +44,8 @@ import LoadingSpinner from '../app/LoadingSpinner';
 import AppBackground from '../app/AppBackground';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { getUserDailyChallenge, generateDailyChallenge } from '../../services/dailyChallenge';
+import { getBadgeById } from '../../data/badges';
+import QuestCardShared from '../quest/QuestCard';
 
 // Animation de compteur fluide
 const CountUp = ({ end, duration = 1000, prefix = '', suffix = '' }) => {
@@ -550,6 +552,9 @@ const DashboardPage = () => {
     }
   };
 
+  // Statut premium de l'utilisateur (déclaré avant toute utilisation)
+  const isPremium = userData?.isPremium || false;
+
   const regenerateDailyChallenge = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -652,24 +657,62 @@ const DashboardPage = () => {
   const completedQuests = userData?.completedQuests || 0; // completedQuests: 10 - source principale
   const totalQuests = quests?.length || 0;
 
-  // XP gagné récemment (peut être calculé ou utiliser totalXP si c'est l'XP de la semaine)
-  const weeklyXP = userData?.totalXP || Math.min(userPoints, 500); // totalXP: 20 comme XP récent
+  // Fenêtre glissante de 7 jours
+  const toDate = (value) => {
+    if (!value) return null;
+    if (typeof value.toDate === 'function') return value.toDate();
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const nowTs = new Date();
+  const sevenDaysAgo = new Date(nowTs);
+  sevenDaysAgo.setDate(nowTs.getDate() - 7);
 
-  // Objectif quêtes cette semaine (basé sur les vraies données)
-  const weeklyQuestGoal = 3; // Objectif fixe 
-  const weeklyQuestsCompleted = Math.min(completedQuests, weeklyQuestGoal);
+  // Entrées de progression structurées
+  const progressEntries = Object.entries(userProgress || {}).map(([questId, p]) => ({ questId, ...p }));
 
-  // Révisions dues - calcul basé sur les quêtes terminées qui ont besoin de révision
-  // Les quêtes terminées il y a plus de 7 jours nécessitent une révision
-  const activeQuestCount = Object.keys(userProgress).filter(id => userProgress[id]?.status === 'active').length;
-  const reviewsDue = Math.max(0, Math.floor(completedQuests / 3)); // 1 révision pour 3 quêtes terminées
+  // Quêtes terminées cette semaine
+  const completedThisWeek = progressEntries.filter((p) => {
+    if (p?.status !== 'completed') return false;
+    const d = toDate(p?.completedAt);
+    return d && d >= sevenDaysAgo && d <= nowTs;
+  });
 
-  // Temps d'apprentissage (basé sur totalTimeSpent si disponible)
-  const totalTimeSpentMinutes = userData?.totalTimeSpent || 0; // totalTimeSpent: 0
-  const weeklyLearningTime = totalTimeSpentMinutes || (completedQuests * 25); // Fallback 25min par quête
+  // Objectif quêtes cette semaine
+  const weeklyQuestGoal = 3; // Objectif fixe
+  const weeklyQuestsCompleted = completedThisWeek.length;
 
-  // Maîtrise basée sur le niveau et les quêtes terminées
-  const masteryScore = Math.min(100, 60 + (userLevel * 5) + (completedQuests * 2));
+  // XP gagné cette semaine (somme des XP des quêtes terminées sur 7 jours)
+  const weeklyXP = completedThisWeek.reduce((sum, p) => {
+    const questMeta = (quests || []).find((q) => q.id === p.questId);
+    return sum + (questMeta?.xp || 0);
+  }, 0);
+
+  // Temps d'apprentissage hebdo (fallback: somme des durations des quêtes terminées)
+  const weeklyLearningTime = completedThisWeek.reduce((sum, p) => {
+    const questMeta = (quests || []).find((q) => q.id === p.questId);
+    return sum + (questMeta?.duration || 0);
+  }, 0);
+
+  // Révisions dues: quêtes terminées il y a plus de 7 jours
+  const reviewsDue = progressEntries.filter((p) => {
+    if (p?.status !== 'completed') return false;
+    const d = toDate(p?.completedAt);
+    return d && d < sevenDaysAgo;
+  }).length;
+
+  // Compte quêtes actives (peut servir ailleurs)
+  const activeQuestCount = progressEntries.filter((p) => p?.status === 'active').length;
+
+  // Maîtrise hebdomadaire: moyenne des scores des quêtes terminées sur les 7 derniers jours
+  const completedThisWeekScores = completedThisWeek
+    .map((p) => (typeof p?.score === 'number' ? p.score : 0))
+    .filter((s) => typeof s === 'number');
+  const masteryScore = completedThisWeekScores.length > 0
+    ? Math.min(100, Math.max(0, Math.round(
+        completedThisWeekScores.reduce((acc, s) => acc + s, 0) / completedThisWeekScores.length
+      )))
+    : 0;
 
   // Statuts des quêtes pour filtrage/affichage
   const activeQuestIds = Object.entries(userProgress)
@@ -678,8 +721,13 @@ const DashboardPage = () => {
   const completedQuestIds = Object.entries(userProgress)
     .filter(([_, p]) => p?.status === 'completed')
     .map(([id]) => id);
-  const hasActiveQuests = activeQuestIds.length > 0;
+  // Quêtes actives réellement commencées (progression > 0)
+  const visibleActiveQuestIds = Object.entries(userProgress)
+    .filter(([_, p]) => p?.status === 'active' && (p?.progress || 0) > 0)
+    .map(([id]) => id);
+  const hasVisibleActiveQuests = visibleActiveQuestIds.length > 0;
   const showDailyChallenge = Boolean(dailyChallenge && dailyChallenge.status !== 'completed');
+  const shouldShowStarterCTA = !hasVisibleActiveQuests && completedQuests === 0;
 
   const activeQuestsDetailed = activeQuestIds.map((id) => {
     const questMeta = quests?.find(q => q.id === id);
@@ -694,11 +742,12 @@ const DashboardPage = () => {
     };
   });
 
-  // Objets de quêtes actives complets pour affichage (ordonnés par progression desc)
-  const activeQuestObjects = (quests || [])
-    .filter(q => activeQuestIds.includes(q.id))
+  // Objets de quêtes actives visibles pour affichage (progression > 0)
+  const visibleActiveQuestObjects = (quests || [])
+    .filter(q => visibleActiveQuestIds.includes(q.id))
     .sort((a, b) => (userProgress[b.id]?.progress || 0) - (userProgress[a.id]?.progress || 0));
-  const activeQuestsToRender = activeQuestObjects.slice(0, 3);
+  const activeQuestsToRender = visibleActiveQuestObjects.slice(0, 3);
+  const isSingleActiveQuest = activeQuestsToRender.length === 1;
 
   // Recommandations filtrées: exclure actives/terminées, éviter premium si non-premium
   const baseRecommended = !questsLoading ? getRecommendedQuestsForUser(completedQuestIds, userLevel) : [];
@@ -706,14 +755,13 @@ const DashboardPage = () => {
     .filter(q => !completedQuestIds.includes(q.id))
     .filter(q => !activeQuestIds.includes(q.id))
     .filter(q => (isPremium ? true : !q.isPremium));
-  const recommendedCount = hasActiveQuests ? 2 : 6;
+  const recommendedCount = hasVisibleActiveQuests ? 2 : 6;
   const recommendedToRender = filteredRecommended.slice(0, recommendedCount).map((quest, index) => ({
     ...quest,
     isNew: index < 2
   }));
   const displayName = userData?.displayName || user?.email?.split('@')[0];
   const avatarLetter = userData?.displayName?.[0] || user?.email?.[0]?.toUpperCase();
-  const isPremium = userData?.isPremium || false;
   
   // Calculs pour la progression
   const xpInLevel = userPoints % 1000;
@@ -943,8 +991,8 @@ const DashboardPage = () => {
             </motion.div>
             </motion.div>
 
-            {/* Reprendre (si quêtes actives) */}
-            {hasActiveQuests && activeQuestsToRender.length > 0 && (
+            {/* Reprendre (si quêtes actives réellement commencées) */}
+            {hasVisibleActiveQuests && activeQuestsToRender.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 
@@ -955,36 +1003,134 @@ const DashboardPage = () => {
                   </h2>
                 </div>
 
-                {/* Mobile carrousel */}
-                <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
-                  {activeQuestsToRender.map((quest) => (
-                    <div key={quest.id} className="w-[78vw] max-w-[420px] snap-start flex-none">
-                      <QuestCard
-                        quest={quest}
-                        userProgress={userProgress}
-                        isPremium={isPremium}
-                        onNavigate={navigate}
-                        hoveredQuest={hoveredQuest}
-                        setHoveredQuest={setHoveredQuest}
-                      />
-                    </div>
-                  ))}
+            {/* Mobile carrousel */}
+            <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
+              {activeQuestsToRender.map((quest) => (
+                <div
+                  key={quest.id}
+                  className={`${isSingleActiveQuest ? 'w-full' : 'w-[74vw] max-w-[400px]'} snap-start flex-none`}
+                >
+                  <QuestCardShared
+                    quest={quest}
+                    progressData={userProgress[quest.id]}
+                    isPremiumUser={isPremium}
+                    onClick={() => navigate(`/quests/${quest.id}`)}
+                  />
                 </div>
+              ))}
+            </div>
 
-                {/* Desktop grid */}
-                <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  {activeQuestsToRender.map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      userProgress={userProgress}
-                      isPremium={isPremium}
-                      onNavigate={navigate}
-                      hoveredQuest={hoveredQuest}
-                      setHoveredQuest={setHoveredQuest}
-                    />
-                  ))}
-                </div>
+            {/* Desktop grid */}
+            <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeQuestsToRender.map((quest) => (
+                <QuestCardShared
+                  key={quest.id}
+                  quest={quest}
+                  progressData={userProgress[quest.id]}
+                  isPremiumUser={isPremium}
+                  onClick={() => navigate(`/quests/${quest.id}`)}
+                />
+              ))}
+            </div>
+              </div>
+            )}
+
+            {shouldShowStarterCTA && (
+              <div className="mb-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative rounded-3xl overflow-hidden cursor-pointer group"
+                  onClick={() => navigate('/quests')}
+                >
+                  {/* Background gradient animé */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-yellow-600/20" />
+                  
+                  {/* Effet de brillance animé */}
+                  <motion.div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-20"
+                    style={{
+                      background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.8) 50%, transparent 70%)',
+                    }}
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  />
+                  
+                  {/* Border gradient */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/30 via-orange-400/20 to-yellow-400/30 p-[1px]">
+                    <div className="w-full h-full rounded-3xl bg-gray-900/40 backdrop-blur-sm" />
+                  </div>
+                  
+                  <div className="relative p-6 sm:p-8">
+                    <div className="flex flex-col sm:flex-row items-center gap-6">
+                      {/* Icône avec effet glow */}
+                      <motion.div
+                        className="relative"
+                        animate={{ 
+                          rotate: [0, -3, 3, 0],
+                          scale: [1, 1.05, 1]
+                        }}
+                        transition={{ duration: 4, repeat: Infinity }}
+                      >
+                        <div className="absolute inset-0 w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl blur-xl opacity-60" />
+                        <div className="relative w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                          <FaRocket className="text-gray-900 text-2xl" />
+                        </div>
+                        {/* Particules flottantes */}
+                        <motion.div
+                          className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full"
+                          animate={{ 
+                            y: [-3, -8, -3],
+                            opacity: [0.7, 1, 0.7]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div
+                          className="absolute -bottom-1 -left-1 w-2 h-2 bg-orange-400 rounded-full"
+                          animate={{ 
+                            y: [0, -5, 0],
+                            opacity: [0.5, 1, 0.5]
+                          }}
+                          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                        />
+                      </motion.div>
+                      
+                      {/* Contenu */}
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 
+                          className="text-white font-black text-xl sm:text-2xl mb-2 bg-gradient-to-r from-white to-amber-100 bg-clip-text text-transparent"
+                          style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}
+                        >
+                          Commence ton aventure
+                        </h3>
+                        <p className="text-gray-300 text-sm sm:text-base opacity-90">
+                          Choisis ta première quête et découvre l'univers FinanceQuest
+                        </p>
+                      </div>
+                      
+                      {/* CTA Button */}
+                      <motion.button
+                        type="button"
+                        className="relative group/btn px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-gray-900 font-bold shadow-2xl overflow-hidden"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity" />
+                        <span className="relative flex items-center gap-2 font-extrabold">
+                          Explorer
+                          <motion.div
+                            animate={{ x: [0, 3, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <FaArrowRight className="text-sm" />
+                          </motion.div>
+                        </span>
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             )}
 
@@ -1101,14 +1247,15 @@ const DashboardPage = () => {
                 {/* Mobile carrousel */}
                 <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
                   {recommendedToRender.map((quest, index) => (
-                    <div key={quest.id} className="w-[78vw] max-w-[420px] snap-start flex-none">
-                      <QuestCard
+                    <div
+                      key={quest.id}
+                      className={`${recommendedToRender.length === 1 ? 'w-full' : 'w-[74vw] max-w-[400px]'} snap-start flex-none`}
+                    >
+                      <QuestCardShared
                         quest={quest}
-                        userProgress={userProgress}
-                        isPremium={isPremium}
-                        onNavigate={navigate}
-                        hoveredQuest={hoveredQuest}
-                        setHoveredQuest={setHoveredQuest}
+                        progressData={userProgress[quest.id]}
+                        isPremiumUser={isPremium}
+                        onClick={() => navigate(`/quests/${quest.id}`)}
                       />
                     </div>
                   ))}
@@ -1123,13 +1270,11 @@ const DashboardPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 + index * 0.1 }}
                     >
-                      <QuestCard
+                      <QuestCardShared
                         quest={quest}
-                        userProgress={userProgress}
-                        isPremium={isPremium}
-                        onNavigate={navigate}
-                        hoveredQuest={hoveredQuest}
-                        setHoveredQuest={setHoveredQuest}
+                        progressData={userProgress[quest.id]}
+                        isPremiumUser={isPremium}
+                        onClick={() => navigate(`/quests/${quest.id}`)}
                       />
                     </motion.div>
                   ))}
@@ -1159,74 +1304,49 @@ const DashboardPage = () => {
                   <FaArrowRight className="text-xs" />
                 </Link>
               </div>
+               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                 {(() => {
+                   const earnedBadgeIds = userData?.badges || [];
+                   const badgeLang = (currentLang || 'en').startsWith('fr') ? 'fr' : 'en';
+                   const earnedBadges = earnedBadgeIds
+                     .map((id) => getBadgeById(id, badgeLang))
+                     .filter(Boolean)
+                     .slice(0, 4);
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {/* Badge 1: Première Quête */}
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="neon-element rounded-2xl p-4 text-center relative overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-green-500/5 opacity-50" />
-                  <div className="relative">
-                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                      <FaStar className="text-emerald-400 text-xl" />
-                    </div>
-                    <p className="text-xs font-bold text-white">Première Victoire</p>
-                    <p className="text-[10px] text-gray-400 mt-1">1 quête terminée</p>
-                  </div>
-                </motion.div>
+                   if (earnedBadges.length === 0) {
+                     return (
+                       <div className="col-span-2 sm:col-span-4 neon-element rounded-2xl p-4 text-center">
+                         <p className="text-sm text-gray-400">Aucun badge débloqué pour le moment</p>
+                       </div>
+                     );
+                   }
 
-                {/* Badge 2: Streak */}
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="neon-element rounded-2xl p-4 text-center relative overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/5 opacity-50" />
-                  <div className="relative">
-                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-                      <FaFire className="text-orange-400 text-xl" />
-                    </div>
-                    <p className="text-xs font-bold text-white">En Feu</p>
-                    <p className="text-[10px] text-gray-400 mt-1">7 jours de suite</p>
-                  </div>
-                </motion.div>
-
-                {/* Badge 3: XP Master */}
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="neon-element rounded-2xl p-4 text-center relative overflow-hidden opacity-50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 opacity-50" />
-                  <div className="relative">
-                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-700/50 border border-gray-600/50 flex items-center justify-center">
-                      <FaLock className="text-gray-500 text-lg" />
-                    </div>
-                    <p className="text-xs font-bold text-gray-400">XP Master</p>
-                    <p className="text-[10px] text-gray-500 mt-1">1000 XP requis</p>
-                  </div>
-                </motion.div>
-
-                {/* Badge 4: Premium */}
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className={`neon-element rounded-2xl p-4 text-center relative overflow-hidden ${!isPremium ? 'opacity-50' : ''}`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/5 opacity-50" />
-                  <div className="relative">
-                    <div className={`w-12 h-12 mx-auto mb-2 rounded-full ${isPremium ? 'bg-purple-500/20 border-purple-500/30' : 'bg-gray-700/50 border-gray-600/50'} border flex items-center justify-center`}>
-                      {isPremium ? (
-                        <FaCrown className="text-purple-400 text-xl" />
-                      ) : (
-                        <FaLock className="text-gray-500 text-lg" />
-                      )}
-                    </div>
-                    <p className={`text-xs font-bold ${isPremium ? 'text-white' : 'text-gray-400'}`}>Membre VIP</p>
-                    <p className={`text-[10px] ${isPremium ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-                      {isPremium ? 'Actif' : 'Premium requis'}
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
+                   return earnedBadges.map((badge) => {
+                     const Icon = badge.icon;
+                     return (
+                       <motion.div
+                         key={badge.id}
+                         whileHover={{ scale: 1.05, y: -2 }}
+                         className="neon-element rounded-2xl p-4 text-center relative overflow-hidden"
+                       >
+                         <div className="absolute inset-0 bg-white/0" />
+                         <div className="relative">
+                           <div className={`w-12 h-12 mx-auto mb-2 rounded-full border flex items-center justify-center ${badge.color || 'bg-white/5 border-white/10'}`}
+                           >
+                             {Icon ? (
+                               <Icon className="text-xl text-white" />
+                             ) : (
+                               <FaStar className="text-xl text-white" />
+                             )}
+                           </div>
+                           <p className="text-xs font-bold text-white">{badge.name}</p>
+                           <p className="text-[10px] text-gray-400 mt-1">{badge.description}</p>
+                         </div>
+                       </motion.div>
+                     );
+                   });
+                 })()}
+               </div>
             </motion.div>
 
             {/* Section Activité Récente retirée (redondante avec "Reprendre") */}
@@ -1286,37 +1406,39 @@ const DashboardPage = () => {
               {/* Objectifs et Rang Global retirés */}
             </motion.div>
 
-            {/* Footer Actions - Call to Action final */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3 }}
-              className="text-center py-8"
-            >
-              <p className="text-gray-400 mb-6">
-                Continue ton aventure financière et débloque de nouveaux accomplissements
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/quests"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-full font-bold shadow-glow-md hover:shadow-glow-lg transform hover:scale-105 transition-all"
-                  style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
-                >
-                  <FaRocket />
-                  Explorer les Quêtes
-                </Link>
-                {!isPremium && (
+            {/* Footer Actions - Call to Action final (affiché uniquement si pas de CTA de démarrage en haut) */}
+            {!shouldShowStarterCTA && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.3 }}
+                className="text-center py-8"
+              >
+                <p className="text-gray-400 mb-6">
+                  Continue ton aventure financière et débloque de nouveaux accomplissements
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
-                    to="/premium"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-white rounded-full font-bold border border-purple-500/30 transition-all"
-                    style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
+                    to="/quests"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-full font-bold shadow-glow-md hover:shadow-glow-lg transform hover:scale-105 transition-all"
+                    style={{ fontFamily: '\"Inter\", sans-serif', fontWeight: 800 }}
                   >
-                    <FaCrown />
-                    Passer Premium
+                    <FaRocket />
+                    Explorer les Quêtes
                   </Link>
-                )}
-              </div>
-            </motion.div>
+                  {!isPremium && (
+                    <Link
+                      to="/premium"
+                      className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-white rounded-full font-bold border border-purple-500/30 transition-all"
+                      style={{ fontFamily: '\"Inter\", sans-serif', fontWeight: 800 }}
+                    >
+                      <FaCrown />
+                      Passer Premium
+                    </Link>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
           </div>
         </div>

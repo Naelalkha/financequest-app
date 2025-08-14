@@ -5,6 +5,8 @@ import './index.css'
 import './styles/global.css'
 
 import posthog from 'posthog-js'
+import { AuthProvider } from './contexts/AuthContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 // Initialise **avant** le rendu React
 posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
@@ -18,6 +20,10 @@ window.posthog = posthog
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
+    </AuthProvider>
   </React.StrictMode>,
 )

@@ -8,10 +8,39 @@ const LanguageContext = createContext();
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  if (context) return context;
+  // Fallback sûr si le Provider n'est pas encore monté (HMR, tests, rendu isolé)
+  const fallbackT = (key, params = {}) => {
+    try {
+      const keys = key.split('.');
+      let translation = translations.en;
+      for (const k of keys) {
+        if (translation && translation[k]) {
+          translation = translation[k];
+        } else {
+          return key;
+        }
+      }
+      if (typeof translation === 'string') {
+        Object.keys(params).forEach(param => {
+          translation = translation.replace(new RegExp(`{{${param}}}`, 'g'), params[param]);
+        });
+        return translation;
+      }
+      return translation || key;
+    } catch {
+      return key;
+    }
+  };
+  return {
+    currentLang: 'en',
+    setCurrentLang: () => {},
+    language: 'en',
+    setLanguage: () => {},
+    t: fallbackT,
+    translations,
+    isLoading: false
+  };
 };
 
 export const LanguageProvider = ({ children }) => {

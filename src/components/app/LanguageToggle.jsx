@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaGlobe } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -11,6 +11,8 @@ const LanguageToggle = () => {
   const { user } = useAuth();
   const [isChanging, setIsChanging] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
+  const containerRef = useRef(null);
 
   const languages = [
     { code: 'en', label: 'English', flag: '🇬🇧', active: true },
@@ -71,25 +73,43 @@ const LanguageToggle = () => {
 
   const currentLangData = languages.find(l => l.code === currentLang) || languages[0];
 
+  // Decide whether to open the menu upward to avoid overlapping the bottom nav
+  useEffect(() => {
+    if (!showMenu) return;
+    const estimateMenuHeight = 260; // px (approx 4 items)
+    const safeBottom = 88; // px (bottom nav + safe area)
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    setOpenUpwards(spaceBelow < estimateMenuHeight + safeBottom);
+  }, [showMenu]);
+
   return (
-    <div className="relative">
-      {/* Toggle Button */}
+    <div ref={containerRef} className="relative">
+      {/* Toggle Button styled like country select */}
       <button
         onClick={() => setShowMenu(!showMenu)}
         disabled={isChanging}
         className={`
-          flex items-center gap-2 px-4 py-2 
-          bg-gray-800 border border-gray-700 rounded-xl
-          text-white hover:border-yellow-500 
-          transition-all duration-300 group
-          ${isChanging ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
-          ${showMenu ? 'border-yellow-500 shadow-lg shadow-yellow-500/20' : ''}
+          flex flex-col sm:flex-row sm:items-center sm:justify-between w-full
+          text-white hover:bg-white/[0.02] transition-colors
+          ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}
         `}
         aria-label="Change language"
       >
-        <FaGlobe className={`text-lg ${showMenu ? 'text-yellow-400' : 'text-gray-400'} group-hover:text-yellow-400 transition-colors`} />
-        <span className="font-medium">{currentLangData.flag} {currentLangData.code.toUpperCase()}</span>
-        <span className={`text-xs transition-transform ${showMenu ? 'rotate-180' : ''}`}>▼</span>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+            <FaGlobe className="text-blue-400" />
+          </div>
+          <div className="min-w-0 text-left">
+            <p className="text-white font-semibold">Langue</p>
+            <p className="text-sm text-gray-400 whitespace-nowrap">{t('profilePage.language_sub') || 'Interface et contenu'}</p>
+          </div>
+        </div>
+        <div className="w-full sm:w-64 sm:ml-3 mt-3 sm:mt-0 flex items-center justify-between sm:justify-center gap-2 px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-base flex-shrink-0">
+          <span className="font-medium">{currentLangData.flag} {currentLangData.label}</span>
+          <span className={`text-sm transition-transform ${showMenu ? 'rotate-180' : ''}`}>▼</span>
+        </div>
       </button>
 
       {/* Language Menu */}
@@ -102,7 +122,7 @@ const LanguageToggle = () => {
           />
           
           {/* Menu */}
-          <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-slideDown">
+          <div className={`absolute left-0 right-0 ${openUpwards ? 'bottom-full mb-2' : 'top-full mt-2'} w-full sm:w-64 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-[120] animate-slideDown text-base`}>
             {languages.map((lang) => (
               <button
                 key={lang.code}
@@ -136,7 +156,7 @@ const LanguageToggle = () => {
       {/* Loading overlay */}
       {isChanging && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded-xl">
-          <div className="animate-spin rounded-full h-5 w-5 border-2 border-yellow-400 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent"></div>
         </div>
       )}
     </div>

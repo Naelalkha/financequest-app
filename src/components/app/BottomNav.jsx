@@ -127,8 +127,7 @@ const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-[60] pb-safe">
-      {/* Ombre portée pour séparer de la page */}
-      <div className="absolute inset-x-0 -top-4 h-4 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+      {/* Ombre portée pour séparer de la page (supprimée pour éviter la ligne translucide) */}
       
       {/* Container principal avec padding */}
       <div className="px-2 sm:px-3 py-2">

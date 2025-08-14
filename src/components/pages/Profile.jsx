@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import posthog from 'posthog-js';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
@@ -17,8 +18,6 @@ import {
   FaCalendarAlt,
   FaEnvelope,
   FaFlag,
-  FaPalette,
-  FaBell,
   FaShieldAlt,
   FaCoins,
   FaStar,
@@ -26,23 +25,33 @@ import {
   FaMedal,
   FaGem,
   FaRocket,
-  FaLock
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { GiTwoCoins, GiDiamondTrophy, GiAchievement } from 'react-icons/gi';
 import { BsStars, BsLightningChargeFill } from 'react-icons/bs';
 import { RiVipCrownFill } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 import LanguageToggle from '../app/LanguageToggle';
+import CountryToggle from '../app/CountryToggle';
 import LoadingSpinner from '../app/LoadingSpinner';
 import AppBackground from '../app/AppBackground';
+import { auth, db } from '../../services/firebase';
+import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 const Profile = () => {
-  const { user, updateUserProfile, logout } = useAuth();
+  const { user, updateUserProfile, logout, resetPassword } = useAuth();
   const { t, currentLang } = useLanguage();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updatingCountry, setUpdatingCountry] = useState(false);
   const [activeSection, setActiveSection] = useState('account');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSending, setResetSending] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteSending, setDeleteSending] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -69,25 +78,24 @@ const Profile = () => {
     }
 
     try {
+      posthog.capture('portal_open_click');
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          customerId: user.stripeCustomerId || user.uid
-        })
+        body: JSON.stringify({ userId: user.uid })
       });
 
       if (response.ok) {
         const { url } = await response.json();
         window.location.href = url;
       } else {
-        window.open('https://billing.stripe.com/p/login/test_28E14p0n96mxbd0aiLcjS00', '_blank');
+        toast.error('Impossible d’ouvrir le portail client');
       }
     } catch (error) {
       console.error('Erreur portail Stripe:', error);
-      window.open('https://billing.stripe.com/p/login/test_28E14p0n96mxbd0aiLcjS00', '_blank');
+      toast.error('Erreur lors de l’ouverture du portail');
     }
   };
 
@@ -181,10 +189,9 @@ const Profile = () => {
   ];
 
   const menuItems = [
-    { id: 'account', label: 'Compte', icon: FaUser },
-    { id: 'preferences', label: 'Préférences', icon: FaCog },
-    { id: 'subscription', label: 'Abonnement', icon: FaCrown },
-    { id: 'security', label: 'Sécurité', icon: FaShieldAlt }
+    { id: 'account', label: t('profilePage.menu.account') || 'Compte', icon: FaUser },
+    { id: 'preferences', label: t('profilePage.menu.preferences') || 'Préférences', icon: FaCog },
+    { id: 'subscription', label: t('profilePage.menu.subscription') || 'Abonnement', icon: FaCrown }
   ];
 
   return (
@@ -192,7 +199,7 @@ const Profile = () => {
       <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+88px)]">
         
         {/* Header Hero avec effet néon */}
-        <div className="relative px-4 sm:px-6 pt-8 sm:pt-12 pb-8">
+        <div className="relative px-4 sm:px-6 pt-6 sm:pt-8 pb-6">
           {/* Gradient overlay animé */}
           <motion.div 
             className="absolute inset-0 bg-gradient-to-b from-purple-600/10 via-transparent to-transparent"
@@ -207,10 +214,10 @@ const Profile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-8"
+              className="text-center mb-6"
             >
               {/* Avatar avec effet glow */}
-              <div className="relative inline-block mb-6">
+              <div className="relative inline-block mb-4">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-amber-400 via-purple-400 to-cyan-400 rounded-full blur-xl opacity-50"
                   animate={{ 
@@ -223,7 +230,7 @@ const Profile = () => {
                     ease: "linear"
                   }}
                 />
-                <div className="relative w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-glow-md">
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-glow-md">
                   <span className="text-4xl sm:text-5xl font-black text-gray-900">
                     {userData?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                   </span>
@@ -250,12 +257,12 @@ const Profile = () => {
               </p>
 
               {/* Badge Premium ou bouton upgrade */}
-              {userData?.isPremium ? (
+                {userData?.isPremium ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
                 >
                   <FaGem className="text-purple-400" />
                   <span className="text-purple-300 font-bold text-sm">Membre Premium</span>
@@ -263,39 +270,15 @@ const Profile = () => {
               ) : (
                 <Link
                   to="/premium"
-                  className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 font-bold hover:shadow-glow-md transform hover:scale-105 transition-all"
+                    className="inline-flex items-center gap-2 mt-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 font-bold hover:shadow-glow-md transform hover:scale-105 transition-all"
                 >
                   <FaCrown />
-                  <span>Passer Premium</span>
+                  <span>{t('profilePage.go_premium') || 'Passer Premium'}</span>
                 </Link>
               )}
             </motion.div>
 
-            {/* Stats cards avec style gaming */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {statsConfig.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`relative neon-element rounded-2xl p-4 ${stat.bg} border ${stat.border} group hover:scale-105 transition-transform cursor-pointer`}
-                >
-                  {/* Glow effect on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 group-hover:opacity-10 rounded-2xl blur-xl transition-opacity`} />
-                  
-                  <div className="relative z-10">
-                    <stat.icon className={`${stat.color} text-2xl mb-2`} />
-                    <div className={`text-2xl font-black ${stat.color}`}>
-                      {stat.value}
-                    </div>
-                    <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-                      {stat.label}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {/* Section stats retirée pour réduire la redondance avec le dashboard */}
           </div>
         </div>
 
@@ -340,25 +323,25 @@ const Profile = () => {
                   <div className="neon-card rounded-2xl p-6">
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                       <FaUser className="text-cyan-400" />
-                      Informations du compte
+                      {t('profilePage.account_info_title') || 'Informations du compte'}
                     </h2>
                     
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                          Nom d'affichage
-                        </label>
+                          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            {t('profilePage.username_label') || "Nom d'utilisateur"}
+                          </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
-                            {userData?.displayName || 'Non défini'}
+                            {userData?.displayName || userData?.username || (user?.email ? user.email.split('@')[0] : 'Utilisateur')}
                           </p>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                          Email
-                        </label>
+                          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            {t('profilePage.email_label') || 'Email'}
+                          </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
                             {user?.email}
@@ -367,46 +350,60 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                          Membre depuis
-                        </label>
+                          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            {t('profilePage.member_since_label') || 'Membre depuis'}
+                          </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
                             {userData?.createdAt ? new Date(userData.createdAt.toDate?.() || userData.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
                           </p>
                         </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                          ID Utilisateur
-                        </label>
-                        <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10 font-mono">
-                          <p className="text-white text-sm truncate">
-                            {user?.uid}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Achievements preview */}
+                  {/* Sécurité du compte */}
                   <div className="neon-card rounded-2xl p-6">
-                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <GiDiamondTrophy className="text-amber-400" />
-                      Derniers succès
-                    </h3>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div
-                          key={i}
-                          className="aspect-square rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 flex items-center justify-center"
-                        >
-                          <FaMedal className="text-2xl text-gray-600" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <FaShieldAlt className="text-green-400" />
+                      {t('profilePage.security_title') || 'Sécurité du compte'}
+                    </h2>
+
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => {
+                          setResetEmail(user?.email || '');
+                          setShowPasswordModal(true);
+                        }}
+                        className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all"
+                      >
+                        {t('profilePage.change_password') || 'Changer le mot de passe'}
+                      </button>
+ 
+                       <div className="pt-4 mt-2 border-t border-white/10 flex flex-col sm:flex-row gap-2 items-start">
+                          <button
+                           onClick={handleLogout}
+                           className="w-full sm:w-auto px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 text-white rounded-xl font-semibold transition-all"
+                         >
+                            {t('profilePage.logout') || 'Se déconnecter'}
+                         </button>
+                         {user?.providerData?.[0]?.providerId === 'password' ? (
+                           <button
+                             onClick={() => setShowDeleteModal(true)}
+                             className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-semibold transition-all"
+                           >
+                              {t('profilePage.delete_account') || 'Supprimer le compte'}
+                           </button>
+                         ) : (
+                            <div className="text-xs text-gray-500 sm:ml-auto">
+                              {t('profilePage.linked_accounts_note', { provider: (user?.providerData?.[0]?.providerId === 'google.com' ? 'Google' : user?.providerData?.[0]?.providerId === 'apple.com' ? 'Apple' : t('profilePage.external_provider') || 'fournisseur externe') })}
+                            </div>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+
+                  {/* Bloc séparé supprimé: actions regroupées ci-dessus */}
                 </motion.div>
               )}
 
@@ -423,77 +420,18 @@ const Profile = () => {
                   <div className="neon-card rounded-2xl p-6">
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                       <FaCog className="text-blue-400" />
-                      Préférences
+                      {t('profilePage.preferences_title') || 'Préférences'}
                     </h2>
 
                     <div className="space-y-6">
                       {/* Langue */}
-                      <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-                            <FaGlobe className="text-blue-400" />
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold">Langue</p>
-                            <p className="text-sm text-gray-400">Interface et contenu</p>
-                          </div>
-                        </div>
+                      <div className="p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
                         <LanguageToggle />
                       </div>
 
                       {/* Pays */}
-                      <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                            <FaFlag className="text-green-400" />
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold">Pays</p>
-                            <p className="text-sm text-gray-400">Quêtes spécifiques</p>
-                          </div>
-                        </div>
-                        <select
-                          value={userData?.country || 'fr-FR'}
-                          onChange={(e) => handleCountryChange(e.target.value)}
-                          disabled={updatingCountry}
-                          className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-amber-500/50 transition-colors disabled:opacity-50"
-                        >
-                          <option value="fr-FR">🇫🇷 France</option>
-                          <option value="en-US">🇺🇸 United States</option>
-                        </select>
-                      </div>
-
-                      {/* Notifications */}
-                      <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
-                            <FaBell className="text-purple-400" />
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold">Notifications</p>
-                            <p className="text-sm text-gray-400">Rappels de streak</p>
-                          </div>
-                        </div>
-                        <button className="relative w-14 h-8 bg-gray-700 rounded-full transition-colors">
-                          <div className="absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition-transform" />
-                        </button>
-                      </div>
-
-                      {/* Thème */}
-                      <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
-                            <FaPalette className="text-amber-400" />
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold">Thème</p>
-                            <p className="text-sm text-gray-400">Mode sombre</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <span>Toujours actif</span>
-                          <FaLock className="text-gray-500" />
-                        </div>
+                      <div className="p-4 bg-white/[0.02] rounded-xl border border-white/10 hover:bg-white/[0.04] transition-colors">
+                        <CountryToggle />
                       </div>
                     </div>
                   </div>
@@ -528,40 +466,36 @@ const Profile = () => {
                             repeat: Infinity,
                             ease: "easeInOut"
                           }}
-                          className="inline-block mb-6"
+                          className="inline-block mb-4"
                         >
                           <RiVipCrownFill className="text-6xl text-amber-400" />
                         </motion.div>
-                        
-                        <h3 className="text-3xl font-black text-white mb-4">
-                          Débloquez Premium
-                        </h3>
-                        
-                        <p className="text-gray-300 mb-8 max-w-md mx-auto">
-                          Accédez à toutes les quêtes, défis exclusifs et fonctionnalités avancées
+
+                        {/* ROI badge retiré pour compacité */}
+
+                        <p className="text-white text-xl font-extrabold mb-1.5" style={{letterSpacing:'-0.02em'}}>
+                          {t('premium.value_prop_headline')}
+                        </p>
+                        <p className="text-gray-300 mb-4 max-w-xl mx-auto">
+                          {t('premium.value_prop_sub')}
                         </p>
 
-                        <div className="grid sm:grid-cols-2 gap-4 mb-8 max-w-lg mx-auto">
-                          {[
-                            '🎯 Toutes les quêtes',
-                            '⚡ Défis exclusifs',
-                            '🏆 Badges premium',
-                            '📊 Statistiques avancées'
-                          ].map((feature, i) => (
-                            <div key={i} className="flex items-center gap-2 text-left">
-                              <FaCheck className="text-green-400 text-sm flex-shrink-0" />
-                              <span className="text-gray-300 text-sm">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
+                        {/* Avantages retirés pour éviter le doublon avec la page Premium */}
 
                         <Link
                           to="/premium"
                           className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-full font-bold text-lg hover:shadow-glow-lg transform hover:scale-105 transition-all"
                         >
                           <FaRocket />
-                          <span>Commencer l'essai gratuit</span>
+                          <span>{t('premium.start_free_trial')}</span>
                         </Link>
+
+                        <div className="mt-3 text-xs text-gray-400">
+                          {t('premium.copy_line')}
+                        </div>
+                        <div className="mt-1.5 text-[11px] text-gray-500">
+                          {t('premium.legal_disclaimer')}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -570,7 +504,7 @@ const Profile = () => {
                       <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
                           <FaCrown className="text-amber-400" />
-                          Abonnement Premium
+                          {t('profilePage.subscription_title') || 'Abonnement Premium'}
                         </h2>
                         <div className="px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                           <span className="text-green-400 text-sm font-bold">Actif</span>
@@ -580,11 +514,11 @@ const Profile = () => {
                       <div className="space-y-4">
                         <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">Plan actuel</span>
-                            <span className="text-white font-bold">Premium Mensuel</span>
+                            <span className="text-gray-400 text-sm">{t('profilePage.current_plan') || 'Plan actuel'}</span>
+                            <span className="text-white font-bold">{t('profilePage.monthly_premium') || 'Premium Mensuel'}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-400 text-sm">Prochaine facturation</span>
+                            <span className="text-gray-400 text-sm">{t('profilePage.next_billing') || 'Prochaine facturation'}</span>
                             <span className="text-white font-bold">
                               {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}
                             </span>
@@ -596,104 +530,123 @@ const Profile = () => {
                           className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
                         >
                           <FaCog />
-                          <span>Gérer l'abonnement</span>
+                          <span>{t('profilePage.manage_subscription') || "Gérer l'abonnement"}</span>
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Avantages Premium */}
-                  <div className="neon-card rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4">
-                      Avantages Premium
-                    </h3>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {[
-                        { icon: FaBolt, label: 'Accès illimité', desc: 'Toutes les quêtes' },
-                        { icon: FaStar, label: 'Contenu exclusif', desc: 'Défis premium' },
-                        { icon: FaChartLine, label: 'Analytics', desc: 'Stats détaillées' },
-                        { icon: FaMedal, label: 'Badges', desc: 'Récompenses uniques' }
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 bg-white/[0.02] rounded-lg">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
-                            <item.icon className="text-amber-400 text-sm" />
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold text-sm">{item.label}</p>
-                            <p className="text-gray-400 text-xs">{item.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Avantages Premium supprimés pour éviter le doublon avec la page Premium */}
                 </motion.div>
               )}
 
-              {/* Section Sécurité */}
-              {activeSection === 'security' && (
-                <motion.div
-                  key="security"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <div className="neon-card rounded-2xl p-6">
-                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                      <FaShieldAlt className="text-green-400" />
-                      Sécurité & Confidentialité
-                    </h2>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white/[0.02] rounded-xl border border-white/10">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-gray-400 text-sm">Dernière connexion</span>
-                          <span className="text-white text-sm font-medium">Aujourd'hui</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-400 text-sm">Authentification</span>
-                          <span className="text-white text-sm font-medium">Email / Mot de passe</span>
-                        </div>
-                      </div>
-
-                      <button className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all">
-                        Changer le mot de passe
-                      </button>
-
-                      <button className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all">
-                        Activer l'authentification à deux facteurs
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Actions dangereuses */}
-                  <div className="neon-card rounded-2xl p-6 border-red-500/20">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <FaExclamationTriangle className="text-red-400" />
-                      Zone de danger
-                    </h3>
-
-                    <div className="space-y-3">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full px-6 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                      >
-                        <FaSignOutAlt />
-                        <span>Se déconnecter</span>
-                      </button>
-
-                      <button className="w-full px-6 py-3 bg-white/[0.02] hover:bg-white/[0.04] border border-white/10 text-gray-400 rounded-xl font-semibold transition-all opacity-50 cursor-not-allowed">
-                        Supprimer le compte
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              {/* Section Sécurité supprimée (contenu déplacé dans Compte) */}
             </AnimatePresence>
           </div>
         </div>
       </div>
+
+      {/* Modal de réinitialisation du mot de passe */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md bg-gray-900 rounded-2xl border border-white/10 p-6">
+            <h4 className="text-white text-lg font-bold mb-4">Changer le mot de passe</h4>
+            <p className="text-gray-400 text-sm mb-4">Un email de réinitialisation sera envoyé à cette adresse.</p>
+            <div className="w-full px-4 py-3 rounded-lg bg-white/[0.04] border border-white/10 text-white mb-4">
+              <p className="text-sm">{user?.email || "Aucun email"}</p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.06]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setResetSending(true);
+                    // Utiliser l'email de l'utilisateur connecté
+                    await resetPassword(user?.email);
+                    toast.success('Email de réinitialisation envoyé');
+                    setShowPasswordModal(false);
+                  } catch (e) {
+                    console.error('Erreur reset password:', e);
+                    toast.error("Échec de l'envoi de l'email");
+                  } finally {
+                    setResetSending(false);
+                  }
+                }}
+                disabled={resetSending || !user?.email}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 font-bold disabled:opacity-50"
+              >
+                {resetSending ? 'Envoi…' : 'Envoyer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de suppression de compte */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md bg-gray-900 rounded-2xl border border-white/10 p-6">
+            <h4 className="text-white text-lg font-bold mb-2">Supprimer le compte</h4>
+            <p className="text-gray-400 text-sm mb-4">Cette action est irréversible. Confirmez votre identité pour continuer.</p>
+            {user?.providerData?.[0]?.providerId === 'password' ? (
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-red-400/40 mb-4"
+                placeholder="Mot de passe"
+              />
+            ) : (
+              <div className="text-xs text-gray-400 mb-4">Compte lié à un fournisseur ({user?.providerData?.[0]?.providerId}). Une fenêtre de connexion s’ouvrira pour confirmer.</div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.06]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setDeleteSending(true);
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) throw new Error('Utilisateur non connecté');
+                    // Réauthentification
+                    const providerId = user?.providerData?.[0]?.providerId;
+                    if (providerId === 'password') {
+                      const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
+                      await reauthenticateWithCredential(currentUser, cred);
+                    } else if (providerId === 'google.com') {
+                      await reauthenticateWithPopup(currentUser, new GoogleAuthProvider());
+                    }
+                    // Supprimer doc Firestore puis compte
+                    await deleteDoc(doc(db, 'users', currentUser.uid));
+                    await deleteUser(currentUser);
+                    toast.success('Compte supprimé');
+                    setShowDeleteModal(false);
+                  } catch (e) {
+                    console.error(e);
+                    toast.error("Échec de la suppression. Vérifiez votre identité.");
+                  } finally {
+                    setDeleteSending(false);
+                  }
+                }}
+                disabled={deleteSending || (user?.providerData?.[0]?.providerId === 'password' && !deletePassword)}
+                className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold disabled:opacity-50"
+              >
+                {deleteSending ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </AppBackground>
   );
 };

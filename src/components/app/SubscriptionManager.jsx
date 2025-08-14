@@ -4,6 +4,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import posthog from 'posthog-js';
 
 const SubscriptionManager = () => {
   const { t } = useLanguage();
@@ -13,14 +14,32 @@ const SubscriptionManager = () => {
     loading
   } = useSubscription();
 
-  const handleManageSubscription = () => {
+  const handleManageSubscription = async () => {
     if (!user) {
       toast.error(t('auth.login_required') || 'Please login to manage subscription');
       return;
     }
 
-    // Rediriger directement vers le portail Stripe configuré
-    window.open('https://billing.stripe.com/p/login/test_28E14p0n96mxbd0aiLcjS00', '_blank');
+    try {
+      posthog.capture('portal_open_click');
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.uid })
+      });
+
+      if (response.ok) {
+        const { url } = await response.json();
+        window.location.href = url;
+      } else {
+        toast.error('Impossible d’ouvrir le portail client');
+      }
+    } catch (error) {
+      console.error('Erreur portail Stripe:', error);
+      toast.error('Erreur lors de l’ouverture du portail');
+    }
   };
 
   const formatDate = (dateString) => {

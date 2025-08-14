@@ -1,5 +1,26 @@
 // /api/create-portal-session.js
 import Stripe from 'stripe';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Initialise Firebase Admin une seule fois
+let app;
+if (!getApps().length) {
+  try {
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+      console.error('FIREBASE_SERVICE_ACCOUNT is not defined');
+      throw new Error('Firebase service account not configured');
+    }
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    app = initializeApp({ credential: cert(serviceAccount) });
+  } catch (error) {
+    console.error('Error initializing Firebase Admin:', error);
+  }
+} else {
+  app = getApps()[0];
+}
+
+const db = app ? getFirestore(app) : null;
 
 export default async function handler(req, res) {
   console.log('=== DEBUT CREATE-PORTAL-SESSION ===');
@@ -12,14 +33,9 @@ export default async function handler(req, res) {
 
   try {
     console.log('Body:', req.body);
-    const { customerId, userId } = req.body;
-
-    if (!customerId || !userId) {
-      console.error('Missing required fields:', { customerId, userId });
-      return res.status(400).json({ 
-        error: 'Missing required fields',
-        received: { customerId, userId }
-      });
+    const { userId, customerId: customerIdInput } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
     }
 
     // Initialiser Stripe
@@ -36,6 +52,29 @@ export default async function handler(req, res) {
         error: 'Failed to initialize Stripe',
         details: stripeError.message
       });
+    }
+
+    // Résoudre le customerId depuis Firestore si non fourni
+    let customerId = customerIdInput;
+    if (!customerId) {
+      if (!db) {
+        return res.status(500).json({ error: 'Firestore not initialized' });
+      }
+      try {
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        const userData = userDoc.data();
+        customerId = userData.stripeCustomerId;
+      } catch (err) {
+        console.error('Error fetching user from Firestore:', err);
+        return res.status(500).json({ error: 'Failed to fetch user' });
+      }
+    }
+
+    if (!customerId) {
+      return res.status(404).json({ error: 'Stripe customer not found for user' });
     }
 
     console.log('Creating portal session for customer:', customerId);

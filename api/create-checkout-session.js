@@ -36,8 +36,8 @@ export default async function handler(req, res) {
       });
     }
 
-    const { priceId, userId, email } = req.body;
-    console.log('Params:', { priceId, userId, email });
+    const { priceId, userId, email, plan } = req.body;
+    console.log('Params:', { priceId, userId, email, plan });
 
     if (!userId || !email || !priceId) {
       return res.status(400).json({ 
@@ -48,6 +48,8 @@ export default async function handler(req, res) {
 
     console.log('Creating session...');
     
+    const origin = process.env.ORIGIN || 'https://financequest-app.vercel.app';
+
     const sessionParams = {
       payment_method_types: ['card'],
       line_items: [{
@@ -55,11 +57,16 @@ export default async function handler(req, res) {
         quantity: 1,
       }],
       mode: 'subscription',
-      success_url: 'https://financequest-app.vercel.app/premium?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'https://financequest-app.vercel.app/premium',
+      success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/premium`,
       customer_email: email,
       metadata: {
         userId: userId,
+        priceId: priceId,
+        plan: plan || 'monthly'
+      },
+      subscription_data: {
+        trial_period_days: 7
       }
     };
     

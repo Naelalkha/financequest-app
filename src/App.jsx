@@ -9,25 +9,24 @@ import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
 import BottomNav from './components/app/BottomNav';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useAuth } from './contexts/AuthContext';
+import { useLanguage } from './contexts/LanguageContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/animations.css';
+import LoadingSpinner from './components/app/LoadingSpinner';
+import AppBackground from './components/app/AppBackground';
 
 // Private route wrapper
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
   
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="relative">
-        <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-700 border-t-yellow-400"></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-10 w-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse"></div>
-        </div>
+    <AppBackground variant="nebula" grain grid={false} animate>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" label="" />
       </div>
-    </div>
+    </AppBackground>
   );
   
   return user ? children : <Navigate to="/login" />;
@@ -70,19 +69,18 @@ function AppContent() {
   // Show loading screen
   if (loading || langLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <div className="relative mb-8">
-            <div className="animate-spin rounded-full h-24 w-24 border-4 border-gray-700 border-t-yellow-400"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-12 w-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse"></div>
+      <AppBackground variant="nebula" grain grid={false} animate>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="mb-6 flex items-center justify-center">
+              <LoadingSpinner size="lg" />
             </div>
+            <p className="text-gray-400 text-lg font-medium">
+              {t('ui.loading_app') || 'Loading FinanceQuest...'}
+            </p>
           </div>
-          <p className="text-gray-400 animate-pulse text-lg font-medium">
-            {t('ui.loading_app') || 'Loading FinanceQuest...'}
-          </p>
         </div>
-      </div>
+      </AppBackground>
     );
   }
 
@@ -93,8 +91,8 @@ function AppContent() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden bg-gradient-to-br from-[#0A0A0A] via-[#1A1508] to-[#2E1F0A]">
 
-
-
+      
+      
       
       {/* Toast Container with custom dark theme */}
       <ToastContainer
@@ -193,13 +191,9 @@ function AppContent() {
 // Main App component
 function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </LanguageProvider>
-    </AuthProvider>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

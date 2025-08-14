@@ -306,60 +306,70 @@
       "free_member": "Free Member",
       "view_premium": "View Premium Benefits"
     },
+
+    "profilePage": {
+      "menu": {
+        "account": "Account",
+        "preferences": "Preferences",
+        "subscription": "Subscription"
+      },
+      "account_info_title": "Account information",
+      "username_label": "Username",
+      "email_label": "Email",
+      "member_since_label": "Member since",
+      "security_title": "Account security",
+      "change_password": "Change password",
+      "logout": "Logout",
+      "delete_account": "Delete account",
+      "linked_accounts_note": "Deletion hidden for linked accounts ({{provider}}).",
+      "external_provider": "external provider",
+      "preferences_title": "Preferences",
+      "subscription_title": "Premium subscription",
+      "current_plan": "Current plan",
+      "monthly_premium": "Monthly Premium",
+      "next_billing": "Next billing",
+      "manage_subscription": "Manage subscription"
+      ,
+      "go_premium": "Go Premium",
+      "language_sub": "Interface and content",
+      "country_sub": "Country-specific quests"
+    },
     
     "premium": {
       "title": "Unlock Premium",
       "subtitle": "Get unlimited access to all quests and features",
       "monthly_plan": "Monthly",
       "yearly_plan": "Yearly",
-      "selected": "Selected",
-      "cancel_anytime": "Cancel anytime",
-      "instant_access": "Instant access",
-      "best_value": "Best value",
-      "save_percent": "Save {{percent}}%",
-      "months_free": "{{months}} months free",
-      "features_title": "Everything in Premium",
-      "subscribe_button": "Get Premium Now",
-      "money_back": "30-day money-back guarantee",
+      "per_month": "per month",
+      "per_year": "per year",
+      "effective_per_month": "that’s {{amount}}/month",
+      "start_free_trial": "Start 7-day free trial",
+      "copy_line": "7-day free trial • Cancel anytime • €4.99/month after trial",
+      "continue_free": "Continue for free",
       "secure_payment": "Secure payment powered by Stripe",
-      "unlock_quest": "Unlock this quest with Premium",
-      "quest_locked": "Premium Quest",
-      "subscribe_success": "Welcome to Premium!",
-      "unlock_all": "Unlock All Quests",
-      "get_access": "Get unlimited access to all premium quests",
-      "upgrade_now": "Upgrade Now",
-      
-      "already_premium_title": "You're a Premium Member!",
-      "already_premium_desc": "Enjoy unlimited access to all features",
-      "your_benefits": "Your Premium Benefits",
-      "member_since": "Premium Member Since",
-      "thank_you": "Thank you for supporting FinanceQuest!",
-      
+      "secured_by": "Payments secured by",
+      "value_prop_headline": "€4.99/month — a plan that pays for itself.",
+      "value_prop_sub": "Apply our quests (budget, fees, subscriptions, debt) and uncover real everyday savings.",
       "features": {
-        "unlimited_quests": "Unlimited quest access",
-        "unlimited_quests_desc": "Access all 100+ quests across all categories",
-        "advanced_tracking": "Advanced progress tracking",
-        "advanced_tracking_desc": "Detailed analytics and insights on your learning",
-        "exclusive_content": "Exclusive premium content",
-        "exclusive_content_desc": "New quests and challenges added monthly",
-        "offline_mode": "Offline mode",
-        "offline_mode_desc": "Download quests and learn anywhere",
-        "priority_support": "Priority support",
-        "priority_support_desc": "Get help when you need it",
-        "custom_goals": "Custom financial goals",
-        "custom_goals_desc": "Set and track personalized objectives",
-        "no_ads": "Ad-free experience",
-        "no_ads_desc": "Enjoy learning without interruptions",
-        "early_access": "Early access to new features",
-        "early_access_desc": "Be the first to try new quests and tools",
-        "custom_challenges": "Custom challenges",
-        "custom_challenges_desc": "Create personalized learning paths",
-        "export_data": "Export your data",
-        "export_data_desc": "Download your progress and achievements"
+        "full_access": "Access all premium quests",
+        "advanced_cats": "Advanced categories unlocked (Crypto Intro, Tax Optimization, Real Estate basics)",
+        "trial": "7-day free trial • Cancel anytime",
+        "updates": "New content added regularly",
+        "support_dev": "Support the app’s development"
       },
-      
-      "manage_subscription": "Manage Subscription",
-      "continue_learning": "Continue Learning"
+      "faq": {
+        "title": "Frequently asked questions",
+        "cancel_anytime_q": "Can I cancel anytime?",
+        "cancel_anytime_a": "Yes, you can cancel your subscription anytime from your account.",
+        "free_trial_q": "Is there a free trial?",
+        "free_trial_a": "Yes! Enjoy a 7-day free trial with no commitment.",
+        "switch_plan_q": "Can I switch plan?",
+        "switch_plan_a": "Yes, you can switch between monthly and yearly anytime."
+      },
+      "final_cta_title": "Ready to transform your finances?",
+      "final_cta_sub": "Join thousands who already improved their finances with Premium",
+      "subscribe_button": "Get Premium Now",
+      "disclaimer": "Educational content only, not personalized financial advice."
     },
     
     "settings": {
@@ -621,6 +631,22 @@
       "page_not_found": "Page not found",
       "404": "404",
       "locked": "Locked"
+    },
+    "edu": {
+      "title": "Why financial education matters",
+      "card1": {
+        "title": "School rarely teaches money",
+        "text": "Many never learned budgeting, fees, or debt basics."
+      },
+      "card2": {
+        "title": "Small choices, big outcomes",
+        "text": "Subs, fees, interest compound every month."
+      },
+      "card3": {
+        "title": "Game makes it stick",
+        "text": "Short quests + XP/streaks keep you moving."
+      },
+      "disclaimer": "Educational content only, not personalized financial advice."
     }
   },
   
@@ -931,60 +957,70 @@
       "free_member": "Membre Gratuit",
       "view_premium": "Voir les Avantages Premium"
     },
+
+    "profilePage": {
+      "menu": {
+        "account": "Compte",
+        "preferences": "Préférences",
+        "subscription": "Abonnement"
+      },
+      "account_info_title": "Informations du compte",
+      "username_label": "Nom d'utilisateur",
+      "email_label": "Email",
+      "member_since_label": "Membre depuis",
+      "security_title": "Sécurité du compte",
+      "change_password": "Changer le mot de passe",
+      "logout": "Se déconnecter",
+      "delete_account": "Supprimer le compte",
+      "linked_accounts_note": "Suppression masquée pour les comptes liés ({{provider}}).",
+      "external_provider": "fournisseur externe",
+      "preferences_title": "Préférences",
+      "subscription_title": "Abonnement Premium",
+      "current_plan": "Plan actuel",
+      "monthly_premium": "Premium Mensuel",
+      "next_billing": "Prochaine facturation",
+      "manage_subscription": "Gérer l'abonnement"
+      ,
+      "go_premium": "Passer Premium",
+      "language_sub": "Interface et contenu",
+      "country_sub": "Quêtes spécifiques"
+    },
     
     "premium": {
       "title": "Débloquer Premium",
       "subtitle": "Obtenez un accès illimité à toutes les quêtes et fonctionnalités",
       "monthly_plan": "Mensuel",
       "yearly_plan": "Annuel",
-      "selected": "Sélectionné",
-      "cancel_anytime": "Annulez à tout moment",
-      "instant_access": "Accès instantané",
-      "best_value": "Meilleure valeur",
-      "save_percent": "Économisez {{percent}}%",
-      "months_free": "{{months}} mois gratuits",
-      "features_title": "Tout dans Premium",
-      "subscribe_button": "Obtenir Premium Maintenant",
-      "money_back": "Garantie de remboursement de 30 jours",
+      "per_month": "par mois",
+      "per_year": "par an",
+      "effective_per_month": "soit {{amount}}/mois",
+      "start_free_trial": "Commencer l'essai gratuit de 7 jours",
+      "copy_line": "Essai gratuit 7 jours • Annulable à tout moment • 4,99 €/mois après essai",
+      "continue_free": "Continuer gratuitement",
       "secure_payment": "Paiement sécurisé par Stripe",
-      "unlock_quest": "Débloquez cette quête avec Premium",
-      "quest_locked": "Quête Premium",
-      "subscribe_success": "Bienvenue dans Premium !",
-      "unlock_all": "Débloquer Toutes les Quêtes",
-      "get_access": "Obtenez un accès illimité à toutes les quêtes premium",
-      "upgrade_now": "Mettre à Niveau Maintenant",
-      
-      "already_premium_title": "Vous êtes Membre Premium !",
-      "already_premium_desc": "Profitez d'un accès illimité à toutes les fonctionnalités",
-      "your_benefits": "Vos Avantages Premium",
-      "member_since": "Membre Premium Depuis",
-      "thank_you": "Merci de soutenir FinanceQuest !",
-      
+      "secured_by": "Paiements sécurisés par",
+      "value_prop_headline": "4,99 €/mois — un plan qui se rembourse tout seul.",
+      "value_prop_sub": "Appliquez nos quêtes (budget, frais, abonnements, dettes) et identifiez des économies réelles au quotidien.",
       "features": {
-        "unlimited_quests": "Accès illimité aux quêtes",
-        "unlimited_quests_desc": "Accédez à plus de 100 quêtes dans toutes les catégories",
-        "advanced_tracking": "Suivi avancé des progrès",
-        "advanced_tracking_desc": "Analyses détaillées et aperçus de votre apprentissage",
-        "exclusive_content": "Contenu premium exclusif",
-        "exclusive_content_desc": "Nouvelles quêtes et défis ajoutés mensuellement",
-        "offline_mode": "Mode hors ligne",
-        "offline_mode_desc": "Téléchargez les quêtes et apprenez n'importe où",
-        "priority_support": "Support prioritaire",
-        "priority_support_desc": "Obtenez de l'aide quand vous en avez besoin",
-        "custom_goals": "Objectifs financiers personnalisés",
-        "custom_goals_desc": "Définissez et suivez des objectifs personnalisés",
-        "no_ads": "Expérience sans publicité",
-        "no_ads_desc": "Apprenez sans interruptions",
-        "early_access": "Accès anticipé aux nouvelles fonctionnalités",
-        "early_access_desc": "Soyez le premier à essayer les nouvelles quêtes et outils",
-        "custom_challenges": "Défis personnalisés",
-        "custom_challenges_desc": "Créez des parcours d'apprentissage personnalisés",
-        "export_data": "Exportez vos données",
-        "export_data_desc": "Téléchargez vos progrès et réalisations"
+        "full_access": "Accès à toutes les quêtes premium",
+        "advanced_cats": "Catégories avancées débloquées (Crypto Intro, Optimisation fiscale, Immobilier – bases)",
+        "trial": "Essai gratuit 7 jours • Annulable à tout moment",
+        "updates": "Nouveau contenu ajouté régulièrement",
+        "support_dev": "Soutiens le développement de l’app"
       },
-      
-      "manage_subscription": "Gérer l'Abonnement",
-      "continue_learning": "Continuer l'Apprentissage"
+      "faq": {
+        "title": "Questions fréquentes",
+        "cancel_anytime_q": "Puis-je annuler à tout moment ?",
+        "cancel_anytime_a": "Oui ! Vous pouvez annuler votre abonnement à tout moment depuis votre espace membre.",
+        "free_trial_q": "Y a-t-il une période d'essai ?",
+        "free_trial_a": "Oui ! Profitez de 7 jours d'essai gratuit sans engagement.",
+        "switch_plan_q": "Puis-je changer de forfait ?",
+        "switch_plan_a": "Oui, vous pouvez passer du mensuel à l'annuel (ou inversement) à tout moment."
+      },
+      "final_cta_title": "Prêt à transformer vos finances ?",
+      "final_cta_sub": "Rejoignez des milliers de membres qui ont déjà amélioré leurs finances avec Premium",
+      "subscribe_button": "Obtenir Premium Maintenant",
+      "disclaimer": "Contenu éducatif, pas de conseil financier personnalisé."
     },
     
     "settings": {
@@ -1247,6 +1283,22 @@
       "page_not_found": "Page non trouvée",
       "404": "404",
       "locked": "Verrouillé"
+    },
+    "edu": {
+      "title": "Pourquoi l’éducation financière compte",
+      "card1": {
+        "title": "À l’école, on n’apprend pas l’argent",
+        "text": "Beaucoup de jeunes n’ont jamais reçu les bases (budget, frais, dette)."
+      },
+      "card2": {
+        "title": "Petites décisions, gros effets",
+        "text": "Abos, frais, intérêts : les micro-choix s’additionnent chaque mois."
+      },
+      "card3": {
+        "title": "Le jeu rend l’apprentissage durable",
+        "text": "Quêtes courtes + XP/streaks = motivation et habitudes concrètes."
+      },
+      "disclaimer": "Contenu éducatif, pas de conseil financier personnalisé."
     }
   }
 }
