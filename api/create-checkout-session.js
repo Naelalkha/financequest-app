@@ -1,58 +1,13 @@
-// /api/create-checkout-session.js
-import Stripe from 'stripe';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-
-// Initialiser Firebase Admin une seule fois
-let app;
-if (!getApps().length) {
-  try {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      throw new Error('Firebase service account not configured');
-    }
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    app = initializeApp({ credential: cert(serviceAccount) });
-  } catch (error) {
-    console.error('Error initializing Firebase Admin:', error);
-  }
-} else {
-  app = getApps()[0];
-}
-
-const auth = app ? getAuth(app) : null;
-
-// Fonction pour vérifier le token Firebase
-async function verifyFirebaseToken(authHeader) {
-  if (!auth) {
-    throw new Error('Firebase Auth not initialized');
-  }
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('Missing or invalid Authorization header');
-  }
-  
-  const token = authHeader.substring(7);
-  try {
-    const decodedToken = await auth.verifyIdToken(token);
-    return decodedToken;
-  } catch (error) {
-    throw new Error('Invalid Firebase token');
-  }
-}
-
+// /api/create-checkout-session.js - VERSION DEBUG
 export default async function handler(req, res) {
-  // CORS headers - restreint en production
-  const allowedOrigins = process.env.NODE_ENV === 'production' 
-    ? [process.env.ORIGIN || 'https://financequest-app.vercel.app']
-    : ['http://localhost:3000', 'http://localhost:5173', 'https://financequest-app.vercel.app'];
+  console.log('=== DEBUT CREATE-CHECKOUT-SESSION ===');
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
   
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -63,38 +18,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Vérifier la clé Stripe
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY is not defined');
-      return res.status(500).json({ error: 'Stripe not configured' });
-    }
-
-    // Authentifier l'utilisateur
-    let userToken;
-    try {
-      userToken = await verifyFirebaseToken(req.headers.authorization);
-    } catch (authError) {
-      console.error('Authentication failed:', authError.message);
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    // Initialiser Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-    const { priceId, plan } = req.body;
+    console.log('Body:', req.body);
     
-    // Utiliser les données du token Firebase, pas du body
-    const userId = userToken.uid;
-    const email = userToken.email;
-
-    if (!priceId) {
-      return res.status(400).json({ error: 'Missing priceId' });
+    // Test 1: Vérifier si Stripe est importé
+    let stripe;
+    try {
+      const Stripe = await import('stripe');
+      console.log('Stripe importé avec succès');
+      stripe = new Stripe.default(process.env.STRIPE_SECRET_KEY || 'sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482');
+      console.log('Stripe initialisé');
+    } catch (stripeError) {
+      console.error('Erreur import Stripe:', stripeError);
+      return res.status(500).json({ 
+        error: 'Failed to import Stripe',
+        details: stripeError.message,
+        stack: stripeError.stack
+      });
     }
 
-    if (!email) {
-      return res.status(400).json({ error: 'User email not found' });
+    const { priceId, userId, email, plan } = req.body;
+    console.log('Params:', { priceId, userId, email, plan });
+
+    if (!userId || !email || !priceId) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        received: { priceId, userId, email }
+      });
     }
 
+    console.log('Creating session...');
+    
     const origin = process.env.ORIGIN || 'https://financequest-app.vercel.app';
 
     const sessionParams = {
@@ -116,16 +69,27 @@ export default async function handler(req, res) {
         trial_period_days: 7
       }
     };
+    
+    console.log('Session params:', sessionParams);
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
+    console.log('Session created:', session.id);
+
     return res.status(200).json({ sessionId: session.id });
   } catch (error) {
-    console.error('Checkout session error:', error.message);
+    console.error('=== ERREUR COMPLETE ===');
+    console.error('Message:', error.message);
+    console.error('Type:', error.type);
+    console.error('Stack:', error.stack);
+    console.error('Raw:', error);
     
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred'
+      message: error.message,
+      type: error.type,
+      // Ne pas exposer le stack en prod
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
