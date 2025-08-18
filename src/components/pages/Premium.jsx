@@ -34,6 +34,7 @@ import { RiVipCrownFill } from 'react-icons/ri';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../../services/firebase';
 import { toast } from 'react-toastify';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
@@ -151,14 +152,11 @@ const Premium = () => {
 
     setLoading(true);
     
-    const priceId = plan === 'monthly' 
-      ? (import.meta.env.VITE_STRIPE_PRICE_MONTHLY || 'price_1ABC123DEF456GHI789JKL')
-      : (import.meta.env.VITE_STRIPE_PRICE_YEARLY || 'price_1XYZ789ABC123DEF456GHI');
-    
     try {
+      // Analytics
       posthog.capture('checkout_start', {
-        price_id: priceId,
-        plan: plan
+        plan: plan,
+        price: plan === 'monthly' ? 4.99 : 39.99
       });
       
       logPremiumEvent('premium_subscribe_attempt', { 
@@ -167,7 +165,12 @@ const Premium = () => {
       });
 
       // Obtenir le token Firebase pour l'authentification
-      const idToken = await user.getIdToken();
+      // Utiliser auth.currentUser pour s'assurer d'avoir les méthodes Firebase Auth
+      const idToken = await auth.currentUser?.getIdToken();
+      
+      if (!idToken) {
+        throw new Error('No authentication token available');
+      }
       
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -176,17 +179,30 @@ const Premium = () => {
           'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
-          priceId: priceId,
-          plan: plan
+          plan: plan,
+          userId: user.uid,
+          email: user.email
         }),
       });
 
       if (!response.ok) {
-        console.error('API response not ok:', response.status, response.statusText);
-        throw new Error(`Failed to create checkout session: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API response not ok:', response.status, response.statusText, errorData);
+        
+        if (response.status === 401) {
+          toast.error('🔐 ' + (t('auth.session_expired') || 'Session expired. Please login again.'));
+          navigate('/login');
+          return;
+        }
+        
+        throw new Error(`Failed to create checkout session: ${response.status} - ${errorData.error || response.statusText}`);
       }
 
       const { sessionId } = await response.json();
+
+      if (!sessionId) {
+        throw new Error('No session ID received from server');
+      }
 
       const stripe = await stripePromise;
       if (!stripe) {
@@ -194,16 +210,27 @@ const Premium = () => {
       }
 
       const { error } = await stripe.redirectToCheckout({ sessionId });
-      console.log('Redirect result:', { error });
-
+      
       if (error) {
         console.error('Stripe redirect error:', error);
-        throw error;
+        if (error.type === 'card_error' || error.type === 'validation_error') {
+          toast.error('❌ ' + (error.message || 'Payment error occurred'));
+        } else {
+          throw error;
+        }
       }
 
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      toast.error('❌ ' + (t('errors.subscription_failed') || 'Failed to start subscription'));
+      
+      // Messages d'erreur plus spécifiques
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        toast.error('🌐 ' + (t('errors.network_error') || 'Network error. Please check your connection.'));
+      } else if (error.message.includes('Stripe not initialized')) {
+        toast.error('⚙️ ' + (t('errors.config_error') || 'Payment system not configured. Please try again later.'));
+      } else {
+        toast.error('❌ ' + (t('errors.subscription_failed') || 'Failed to start subscription. Please try again.'));
+      }
     } finally {
       setLoading(false);
     }
@@ -220,16 +247,25 @@ const Premium = () => {
         plan: selectedPlan
       });
       
+      logPremiumEvent('premium_subscribe_success', { 
+        plan: selectedPlan,
+        sessionId: sessionId
+      });
+      
       toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
       
       // Le statut premium sera mis à jour par le webhook Stripe
       // Pas besoin de le faire manuellement côté client
+      // Mais on peut rafraîchir le statut après un délai
+      setTimeout(() => {
+        checkPremiumStatus();
+      }, 2000);
       
       window.history.replaceState({}, document.title, '/premium');
       
     } catch (error) {
       console.error('Error handling Stripe return:', error);
-      toast.error('Error processing subscription');
+      toast.error('❌ ' + (t('errors.subscription_processing') || 'Error processing subscription. Please contact support.'));
     }
   };
 
@@ -242,8 +278,14 @@ const Premium = () => {
     try {
       posthog.capture('portal_open_click');
       setLoading(true);
+      
       // Obtenir le token Firebase pour l'authentification
-      const idToken = await user.getIdToken();
+      // Utiliser auth.currentUser pour s'assurer d'avoir les méthodes Firebase Auth
+      const idToken = await auth.currentUser?.getIdToken();
+      
+      if (!idToken) {
+        throw new Error('No authentication token available');
+      }
       
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
@@ -253,14 +295,35 @@ const Premium = () => {
         },
         body: JSON.stringify({})
       });
+      
       if (!response.ok) {
-        throw new Error('Failed to create portal session');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Portal session error:', response.status, errorData);
+        
+        if (response.status === 401) {
+          toast.error('🔐 ' + (t('auth.session_expired') || 'Session expired. Please login again.'));
+          navigate('/login');
+          return;
+        }
+        
+        throw new Error(`Failed to create portal session: ${response.status} - ${errorData.error || response.statusText}`);
       }
+      
       const { url } = await response.json();
+      
+      if (!url) {
+        throw new Error('No portal URL received from server');
+      }
+      
       window.location.href = url;
-    } catch (e) {
-      console.error(e);
-      toast.error('Erreur lors de l’ouverture du portail');
+    } catch (error) {
+      console.error('Error creating portal session:', error);
+      
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        toast.error('🌐 ' + (t('errors.network_error') || 'Network error. Please check your connection.'));
+      } else {
+        toast.error('❌ ' + (t('errors.portal_error') || 'Error opening subscription portal. Please try again.'));
+      }
     } finally {
       setLoading(false);
     }

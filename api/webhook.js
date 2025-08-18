@@ -1,192 +1,183 @@
 // /api/webhook.js
+// Vercel Serverless Function (Node 18+)
+// Vérifie la signature + met à jour Firestore: isPremium pendant trial/active
+
 import Stripe from 'stripe';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
-// Vérifier la clé Stripe
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined');
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+});
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Initialiser Firebase Admin
-let app;
-if (!getApps().length) {
+function parseServiceAccount() {
+  const raw = process.env.VITE_FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) throw new Error('Missing VITE_FIREBASE_SERVICE_ACCOUNT');
   try {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      throw new Error('Firebase service account not configured');
+    // JSON direct
+    const json = JSON.parse(raw);
+    if (json.private_key?.includes('\\n')) {
+      json.private_key = json.private_key.replace(/\\n/g, '\n');
     }
-    
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    app = initializeApp({
-      credential: cert(serviceAccount)
-    });
-  } catch (error) {
-    console.error('Error initializing Firebase Admin:', error);
-    throw error;
+    return json;
+  } catch {
+    // Peut-être base64
+    const decoded = Buffer.from(raw, 'base64').toString('utf8');
+    const json = JSON.parse(decoded);
+    if (json.private_key?.includes('\\n')) {
+      json.private_key = json.private_key.replace(/\\n/g, '\n');
+    }
+    return json;
   }
-} else {
-  app = getApps()[0];
 }
 
-const db = getFirestore(app);
-
-// Config pour désactiver le bodyParser
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// Fonction pour lire le body brut (retourne un Buffer)
-const getRawBody = (req) => {
-  return new Promise((resolve, reject) => {
-    let bodyChunks = [];
-    req.on('data', (chunk) => {
-      bodyChunks.push(chunk);
-    });
-    req.on('end', () => {
-      // Retourner le Buffer directement, pas de toString()
-      const rawBody = Buffer.concat(bodyChunks);
-      resolve(rawBody);
-    });
-    req.on('error', reject);
+if (!admin.apps.length) {
+  const sa = parseServiceAccount();
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: sa.project_id,
+      clientEmail: sa.client_email,
+      privateKey: sa.private_key,
+    }),
   });
-};
+}
+
+const db = admin.firestore();
+
+async function getRawBody(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
+
+// Utilitaires Firestore
+async function saveStripeCustomerLink(customerId, userId) {
+  if (!customerId || !userId) return;
+  await db.collection('stripe_customers').doc(customerId).set(
+    { userId, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+}
+
+async function findUserIdByCustomer(customerId) {
+  if (!customerId) return null;
+  const snap = await db.collection('stripe_customers').doc(customerId).get();
+  return snap.exists ? snap.data().userId : null;
+}
+
+async function setPremiumForUser(userId, data) {
+  if (!userId) return;
+  const ref = db.collection('users').doc(userId);
+  // isPremium = TRUE si trialing ou active
+  const isPremium = ['trialing', 'active'].includes(data.status || '');
+  const payload = {
+    isPremium,
+    premiumStatus: data.status || null,
+    stripeCustomerId: data.customer || null,
+    stripeSubscriptionId: data.subscriptionId || null,
+    currentPeriodEnd: data.current_period_end
+      ? new Date(data.current_period_end * 1000).toISOString()
+      : null,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+  await ref.set(payload, { merge: true });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', 'POST');
+    return res.status(405).send('Method Not Allowed');
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('Missing STRIPE_WEBHOOK_SECRET');
+    return res.status(500).send('Server misconfigured');
+  }
+
+  let event;
+  try {
+    const rawBody = await getRawBody(req);
+    const sig = req.headers['stripe-signature'];
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   try {
-    // Vérifier que Firebase est initialisé
-    if (!app) {
-      throw new Error('Firebase not initialized');
-    }
-
-    const sig = req.headers['stripe-signature'];
-    
-    // Vérifier le secret webhook
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('STRIPE_WEBHOOK_SECRET is not defined');
-      return res.status(500).json({ error: 'Webhook secret not configured' });
-    }
-
-    if (!sig) {
-      console.error('Missing stripe signature');
-      return res.status(400).json({ error: 'Missing signature' });
-    }
-
-    let event;
-    let rawBody;
-
-    try {
-      rawBody = await getRawBody(req);
-      // Utiliser le Buffer directement pour constructEvent
-      event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err.message);
-      return res.status(400).json({ error: `Webhook Error: ${err.message}` });
-    }
-
-    console.log('Webhook event type:', event.type);
-
     switch (event.type) {
+      // 1) Session de checkout terminée : on mappe le customer <-> user et on met Premium si besoin
       case 'checkout.session.completed': {
         const session = event.data.object;
-        console.log('Checkout session completed:', session.id);
-        
-        const userId = session.metadata?.userId || session.client_reference_id;
-        
-        if (!userId) {
-          console.error('No userId found in session metadata');
-          return res.status(400).json({ error: 'No userId in metadata' });
+        const customerId = session.customer;
+        const subscriptionId = session.subscription;
+        const userId = session.client_reference_id || null;
+
+        if (customerId && userId) {
+          await saveStripeCustomerLink(customerId, userId);
         }
 
-        console.log(`Activating premium for user: ${userId}`);
+        if (subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const uidFromMeta = sub.metadata?.userId || userId || (await findUserIdByCustomer(sub.customer));
+          await saveStripeCustomerLink(sub.customer, uidFromMeta);
 
-        await db.collection('users').doc(userId).update({ 
-          isPremium: true,
-          premiumStartDate: new Date().toISOString(),
-          premiumEndDate: null, // Pas de date de fin pour un abonnement actif
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-          stripeSessionId: session.id,
-          subscriptionCancelled: false,
-          lastUpdated: new Date().toISOString()
-        });
-        
-        console.log(`Premium activated for user ${userId}`);
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        
-        const usersSnapshot = await db.collection('users')
-          .where('stripeSubscriptionId', '==', subscription.id)
-          .limit(1)
-          .get();
-        
-        if (!usersSnapshot.empty) {
-          const userDoc = usersSnapshot.docs[0];
-          await userDoc.ref.update({ 
-            isPremium: false,
-            premiumEndDate: new Date().toISOString(),
-            subscriptionDeleted: true,
-            lastUpdated: new Date().toISOString()
+          await setPremiumForUser(uidFromMeta, {
+            status: sub.status,
+            customer: sub.customer,
+            subscriptionId: sub.id,
+            current_period_end: sub.current_period_end,
           });
-          console.log(`Premium cancelled for user ${userDoc.id}`);
         }
         break;
       }
 
+      // 2) Création/MàJ de l’abonnement : source de vérité pour l’accès
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const subscription = event.data.object;
-        
-        const usersSnapshot = await db.collection('users')
-          .where('stripeSubscriptionId', '==', subscription.id)
-          .limit(1)
-          .get();
-        
-        if (!usersSnapshot.empty) {
-          const userDoc = usersSnapshot.docs[0];
-          const updates = {
-            lastUpdated: new Date().toISOString()
-          };
+        const sub = event.data.object;
+        const uidFromMeta = sub.metadata?.userId || (await findUserIdByCustomer(sub.customer));
+        await saveStripeCustomerLink(sub.customer, uidFromMeta);
 
-          // Si l'abonnement est annulé à la fin de la période
-          if (subscription.cancel_at_period_end) {
-            const endDate = new Date(subscription.current_period_end * 1000);
-            updates.premiumEndDate = endDate.toISOString();
-            updates.subscriptionCancelled = true;
-            console.log(`Subscription cancelled for user ${userDoc.id}, ends at ${endDate}`);
-          }
+        await setPremiumForUser(uidFromMeta, {
+          status: sub.status,
+          customer: sub.customer,
+          subscriptionId: sub.id,
+          current_period_end: sub.current_period_end,
+        });
+        break;
+      }
 
-          // Si l'abonnement est réactivé
-          if (!subscription.cancel_at_period_end && subscription.status === 'active') {
-            updates.premiumEndDate = null;
-            updates.subscriptionCancelled = false;
-            console.log(`Subscription reactivated for user ${userDoc.id}`);
-          }
+      // 3) Suppression d’abonnement : retirer l’accès
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object;
+        const uidFromMeta = sub.metadata?.userId || (await findUserIdByCustomer(sub.customer));
+        await setPremiumForUser(uidFromMeta, {
+          status: 'canceled',
+          customer: sub.customer,
+          subscriptionId: sub.id,
+          current_period_end: sub.current_period_end,
+        });
+        break;
+      }
 
-          await userDoc.ref.update(updates);
-        }
+      // (Optionnel) Paiement échoué : tu peux marquer un flag, envoyer un email, etc.
+      case 'invoice.payment_failed': {
+        // const invoice = event.data.object;
+        // const customerId = invoice.customer;
+        // const userId = await findUserIdByCustomer(customerId);
+        // -> notifier user, etc. (ne coupe pas l’accès tant que la sub n’est pas canceled)
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        // console.log('Unhandled event type:', event.type);
+        break;
     }
 
-    res.status(200).json({ received: true });
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred'
-    });
+    return res.status(200).send('ok');
+  } catch (err) {
+    console.error('Webhook handler error:', err);
+    return res.status(500).send('Webhook handler error');
   }
 }

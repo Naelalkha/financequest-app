@@ -1,126 +1,89 @@
 // /api/create-portal-session.js
 import Stripe from 'stripe';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
+import * as admin from 'firebase-admin';
 
-// Initialiser Firebase Admin une seule fois
-let app;
-if (!getApps().length) {
-  try {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      throw new Error('Firebase service account not configured');
+// --- Helpers: init Firebase Admin ---
+function initAdmin() {
+  if (!admin.apps.length) {
+    const raw = process.env.VITE_FIREBASE_SERVICE_ACCOUNT;
+    if (!raw) throw new Error('Missing VITE_FIREBASE_SERVICE_ACCOUNT');
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(raw);
+    } catch {
+      throw new Error('Invalid VITE_FIREBASE_SERVICE_ACCOUNT JSON');
     }
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    app = initializeApp({ credential: cert(serviceAccount) });
-  } catch (error) {
-    console.error('Error initializing Firebase Admin:', error);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
   }
-} else {
-  app = getApps()[0];
+  return {
+    db: admin.firestore(),
+    auth: admin.auth(),
+  };
 }
 
-const db = app ? getFirestore(app) : null;
-const auth = app ? getAuth(app) : null;
-
-// Fonction pour vérifier le token Firebase
-async function verifyFirebaseToken(authHeader) {
-  if (!auth) {
-    throw new Error('Firebase Auth not initialized');
-  }
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('Missing or invalid Authorization header');
-  }
-  
-  const token = authHeader.substring(7);
-  try {
-    const decodedToken = await auth.verifyIdToken(token);
-    return decodedToken;
-  } catch (error) {
-    throw new Error('Invalid Firebase token');
-  }
+function setCORS(res, origin) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
+function getOrigin(req) {
+  return process.env.ORIGIN || req.headers.origin || 'http://localhost:5173';
+}
+
+const STRIPE_SECRET =
+  process.env.STRIPE_SECRET_KEY || process.env.VITE_STRIPE_SECRET_KEY;
+const stripe = new Stripe(STRIPE_SECRET || 'sk_test_missing', {
+  apiVersion: '2024-06-20',
+});
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const origin = getOrigin(req);
+  setCORS(res, origin);
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   try {
-    // Vérifier la clé Stripe
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY is not defined');
-      return res.status(500).json({ error: 'Stripe not configured' });
-    }
+    // 1) Vérifier le token Firebase
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'Missing auth token' });
 
-    // Authentifier l'utilisateur
-    let userToken;
-    try {
-      userToken = await verifyFirebaseToken(req.headers.authorization);
-    } catch (authError) {
-      console.error('Authentication failed:', authError.message);
-      return res.status(401).json({ error: 'Authentication required' });
-    }
+    const { db, auth } = initAdmin();
+    const decoded = await auth.verifyIdToken(token);
+    const userId = decoded.uid;
 
-    // Utiliser l'userId du token Firebase, pas du body
-    const userId = userToken.uid;
+    // 2) Récupérer / créer le customer Stripe
+    const userRef = db.collection('users').doc(userId);
+    const snap = await userRef.get();
+    const data = snap.exists ? snap.data() : {};
 
-    // Initialiser Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-    // Récupérer le customerId depuis Firestore
-    if (!db) {
-      return res.status(500).json({ error: 'Firestore not initialized' });
-    }
-
-    let customerId;
-    try {
-      const userDoc = await db.collection('users').doc(userId).get();
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      const userData = userDoc.data();
-      customerId = userData.stripeCustomerId;
-    } catch (err) {
-      console.error('Error fetching user from Firestore:', err);
-      return res.status(500).json({ error: 'Failed to fetch user' });
-    }
-
+    let customerId = data?.stripeCustomerId;
     if (!customerId) {
-      return res.status(404).json({ error: 'Stripe customer not found for user' });
-    }
-
-    // Vérifier que le customer existe
-    try {
-      await stripe.customers.retrieve(customerId);
-    } catch (customerError) {
-      console.error('Customer not found:', customerError);
-      return res.status(404).json({ 
-        error: 'Customer not found',
-        customerId: customerId
+      // Créer un customer au besoin
+      const customer = await stripe.customers.create({
+        email: decoded.email || data?.email,
+        metadata: { userId },
       });
+      customerId = customer.id;
+      await userRef.set(
+        { stripeCustomerId: customerId, lastUpdated: new Date().toISOString() },
+        { merge: true }
+      );
     }
 
-    // Créer la session du portail client
-    const returnUrl = `${process.env.ORIGIN || 'https://financequest-app.vercel.app'}/premium`;
-    
-    const portalSession = await stripe.billingPortal.sessions.create({
+    // 3) Créer la session du portail
+    const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: returnUrl,
+      return_url: `${origin}/premium`,
     });
 
-    return res.status(200).json({ 
-      url: portalSession.url,
-      sessionId: portalSession.id
-    });
-
-  } catch (error) {
-    console.error('Portal session error:', error.message);
-    
-    return res.status(500).json({ 
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred'
-    });
+    return res.status(200).json({ url: portal.url });
+  } catch (err) {
+    console.error('create-portal-session error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
-} 
+}

@@ -1,95 +1,81 @@
-// /api/create-checkout-session.js - VERSION DEBUG
+// /api/create-checkout-session.js
+// Vercel Serverless Function (Node 18+)
+
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+});
+
+function getOrigin(req) {
+  return (
+    req.headers?.origin ||
+    process.env.FRONTEND_URL ||
+    'http://localhost:5173'
+  );
+}
+
+async function readJsonBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const raw = Buffer.concat(chunks).toString('utf8') || '{}';
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
 export default async function handler(req, res) {
-  console.log('=== DEBUT CREATE-CHECKOUT-SESSION ===');
-  console.log('Method:', req.method);
-  console.log('Headers:', req.headers);
-  
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    console.log('Body:', req.body);
-    
-    // Test 1: Vérifier si Stripe est importé
-    let stripe;
-    try {
-      const Stripe = await import('stripe');
-      console.log('Stripe importé avec succès');
-      stripe = new Stripe.default(process.env.STRIPE_SECRET_KEY || 'sk_test_51RnceePEdl4W6QSBMc4OlzTmMDM7ta64GPMF7kSCdsGUnStPGiJo5fM2h8L49KK01A0WuHHw6W5RwznMogVf3SIj00g99xK482');
-      console.log('Stripe initialisé');
-    } catch (stripeError) {
-      console.error('Erreur import Stripe:', stripeError);
-      return res.status(500).json({ 
-        error: 'Failed to import Stripe',
-        details: stripeError.message,
-        stack: stripeError.stack
-      });
+    const body = await readJsonBody(req);
+    const origin = getOrigin(req);
+
+    // Ne fais pas confiance au priceId venant du client.
+    // Mappe le plan côté serveur -> ENV.
+    const plan = (body.plan === 'yearly' || body.plan === 'monthly') ? body.plan : 'monthly';
+    const priceId = plan === 'yearly'
+      ? process.env.VITE_STRIPE_PRICE_YEARLY
+      : process.env.VITE_STRIPE_PRICE_MONTHLY;
+
+    if (!priceId) {
+      return res.status(400).json({ error: 'Missing Stripe price id in env' });
     }
 
-    const { priceId, userId, email, plan } = req.body;
-    console.log('Params:', { priceId, userId, email, plan });
+    const userId = body.userId || '';   // UID Firebase (obligatoire pour bien mapper)
+    const email  = body.email  || '';   // Email (facilite la création du customer)
 
-    if (!userId || !email || !priceId) {
-      return res.status(400).json({ 
-        error: 'Missing required fields',
-        received: { priceId, userId, email }
-      });
-    }
-
-    console.log('Creating session...');
-    
-    const origin = process.env.ORIGIN || 'https://financequest-app.vercel.app';
-
-    const sessionParams = {
-      payment_method_types: ['card'],
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
+    // Session Checkout avec essai gratuit 7 jours
+    const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: email || undefined,
+      client_reference_id: userId || undefined,
+      allow_promotion_codes: true,
+
+      // 👉 Essai gratuit 7 jours via Checkout
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          userId,
+          plan,
+          app: 'financequest-pwa'
+        },
+      },
+
+      // Par défaut, Checkout collecte la carte même avec trial (meilleure conversion post-trial).
+      // Si tu veux NE PAS collecter la CB pendant le trial, dé-commente :
+      // payment_method_collection: 'if_required',
+
       success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/premium`,
-      customer_email: email,
-      metadata: {
-        userId: userId,
-        priceId: priceId,
-        plan: plan || 'monthly'
-      },
-      subscription_data: {
-        trial_period_days: 7
-      }
-    };
-    
-    console.log('Session params:', sessionParams);
-
-    const session = await stripe.checkout.sessions.create(sessionParams);
-
-    console.log('Session created:', session.id);
+    });
 
     return res.status(200).json({ sessionId: session.id });
-  } catch (error) {
-    console.error('=== ERREUR COMPLETE ===');
-    console.error('Message:', error.message);
-    console.error('Type:', error.type);
-    console.error('Stack:', error.stack);
-    console.error('Raw:', error);
-    
-    return res.status(500).json({ 
-      error: 'Internal server error',
-      message: error.message,
-      type: error.type,
-      // Ne pas exposer le stack en prod
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+  } catch (err) {
+    console.error('create-checkout-session error:', err);
+    return res.status(500).json({ error: 'Failed to create session' });
   }
 }
