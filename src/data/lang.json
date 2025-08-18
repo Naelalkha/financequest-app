@@ -435,6 +435,7 @@
       "subscription_processing": "Error processing subscription. Please contact support.",
       "portal_error": "Error opening subscription portal. Please try again.",
       "config_error": "Payment system not configured. Please try again later.",
+      "processing_subscription": "Processing your subscription... Please refresh the page in a few minutes.",
       "language_change_failed": "Failed to change language",
       "step_type_unknown": "Unknown step type",
       "bookmark_failed": "Failed to update bookmark"
@@ -1119,6 +1120,7 @@
       "subscription_processing": "Erreur lors du traitement de l'abonnement. Veuillez contacter le support.",
       "portal_error": "Erreur lors de l'ouverture du portail d'abonnement. Veuillez réessayer.",
       "config_error": "Système de paiement non configuré. Veuillez réessayer plus tard.",
+      "processing_subscription": "Traitement de votre abonnement... Veuillez actualiser la page dans quelques minutes.",
       "language_change_failed": "Échec du changement de langue",
       "step_type_unknown": "Type d'étape inconnu",
       "bookmark_failed": "Échec de la mise à jour du favori"

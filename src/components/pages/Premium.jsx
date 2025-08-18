@@ -131,15 +131,64 @@ const Premium = () => {
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        setIsPremium(!!userData.isPremium);
+        const newPremiumStatus = !!userData.isPremium;
+        setIsPremium(newPremiumStatus);
+        
+        // Si on a un stripeSubscriptionId mais que isPremium est false, 
+        // on peut essayer de vérifier directement avec Stripe
+        if (userData.stripeSubscriptionId && !newPremiumStatus) {
+          console.log('Found subscription ID but premium is false, checking with Stripe...');
+          await checkSubscriptionWithStripe(userData.stripeSubscriptionId);
+        }
+        
+        return newPremiumStatus;
       } else {
         setIsPremium(false);
+        return false;
       }
     } catch (error) {
       console.error('Error checking premium status:', error);
       setIsPremium(false);
+      return false;
     } finally {
       setCheckingStatus(false);
+    }
+  };
+
+  // Fonction de fallback pour vérifier directement avec Stripe
+  const checkSubscriptionWithStripe = async (subscriptionId) => {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) return;
+
+      const response = await fetch('/api/check-subscription-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          subscriptionId: subscriptionId
+        }),
+      });
+
+      if (response.ok) {
+        const { isActive } = await response.json();
+        if (isActive) {
+          console.log('Subscription is active, updating premium status...');
+          setIsPremium(true);
+          
+          // Mettre à jour Firestore
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            isPremium: true,
+            premiumStatus: 'active',
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking subscription with Stripe:', error);
     }
   };
 
@@ -242,24 +291,39 @@ const Premium = () => {
     try {
       console.log('Handling Stripe return for session:', sessionId);
       
-      posthog.capture('checkout_success', {
-        session_id: sessionId,
-        plan: selectedPlan
-      });
+      // Vérifier immédiatement le statut de la session
+      await checkPremiumStatus();
       
-      logPremiumEvent('premium_subscribe_success', { 
-        plan: selectedPlan,
-        sessionId: sessionId
-      });
-      
-      toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
-      
-      // Le statut premium sera mis à jour par le webhook Stripe
-      // Pas besoin de le faire manuellement côté client
-      // Mais on peut rafraîchir le statut après un délai
-      setTimeout(() => {
-        checkPremiumStatus();
-      }, 2000);
+      // Si pas encore premium, attendre et réessayer plusieurs fois
+      let attempts = 0;
+      const maxAttempts = 5;
+      const checkInterval = setInterval(async () => {
+        attempts++;
+        console.log(`Checking premium status attempt ${attempts}/${maxAttempts}`);
+        
+        await checkPremiumStatus();
+        
+        if (isPremium || attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          
+          if (isPremium) {
+            posthog.capture('checkout_success', {
+              session_id: sessionId,
+              plan: selectedPlan
+            });
+            
+            logPremiumEvent('premium_subscribe_success', { 
+              plan: selectedPlan,
+              sessionId: sessionId
+            });
+            
+            toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
+          } else {
+            console.warn('Premium status not updated after checkout, webhook may have failed');
+            toast.info('⏳ ' + (t('premium.processing_subscription') || 'Processing your subscription... Please refresh the page in a few minutes.'));
+          }
+        }
+      }, 3000); // Vérifier toutes les 3 secondes
       
       window.history.replaceState({}, document.title, '/premium');
       

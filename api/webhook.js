@@ -66,9 +66,11 @@ async function findUserIdByCustomer(customerId) {
 
 async function setPremiumForUser(userId, data) {
   if (!userId) return;
+  
   const ref = db.collection('users').doc(userId);
   // isPremium = TRUE si trialing ou active
   const isPremium = ['trialing', 'active'].includes(data.status || '');
+  
   const payload = {
     isPremium,
     premiumStatus: data.status || null,
@@ -79,7 +81,12 @@ async function setPremiumForUser(userId, data) {
       : null,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
+  
+  console.log('Setting premium for user:', { userId, isPremium, status: data.status, payload });
+  
   await ref.set(payload, { merge: true });
+  
+  console.log('Premium status updated successfully for user:', userId);
 }
 
 export default async function handler(req, res) {
@@ -113,6 +120,8 @@ export default async function handler(req, res) {
         const subscriptionId = session.subscription;
         const userId = session.client_reference_id || null;
 
+        console.log('Checkout session completed:', { sessionId: session.id, customerId, subscriptionId, userId });
+
         if (customerId && userId) {
           await saveStripeCustomerLink(customerId, userId);
         }
@@ -120,6 +129,14 @@ export default async function handler(req, res) {
         if (subscriptionId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
           const uidFromMeta = sub.metadata?.userId || userId || (await findUserIdByCustomer(sub.customer));
+          
+          console.log('Processing subscription:', { 
+            subscriptionId: sub.id, 
+            status: sub.status, 
+            userId: uidFromMeta,
+            trialEnd: sub.trial_end 
+          });
+          
           await saveStripeCustomerLink(sub.customer, uidFromMeta);
 
           await setPremiumForUser(uidFromMeta, {
