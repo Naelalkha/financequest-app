@@ -166,15 +166,17 @@ const Premium = () => {
         price: plan === 'monthly' ? 4.99 : 39.99 
       });
 
+      // Obtenir le token Firebase pour l'authentification
+      const idToken = await user.getIdToken();
+      
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
           priceId: priceId,
-          userId: user.uid,
-          email: user.email,
           plan: plan
         }),
       });
@@ -202,20 +204,6 @@ const Premium = () => {
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast.error('❌ ' + (t('errors.subscription_failed') || 'Failed to start subscription'));
-      
-      // Fallback pour la démo
-      toast.info(`Demo mode: Simulating successful subscription`);
-      setTimeout(() => {
-        posthog.capture('checkout_success', {
-          price_id: priceId,
-          plan: plan
-        });
-        
-        updateUserPremiumStatus(true);
-        
-        toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
-        setIsPremium(true);
-      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -227,21 +215,21 @@ const Premium = () => {
     try {
       console.log('Handling Stripe return for session:', sessionId);
       
-      await updateUserPremiumStatus(true);
-      
       posthog.capture('checkout_success', {
         session_id: sessionId,
         plan: selectedPlan
       });
       
       toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
-      setIsPremium(true);
+      
+      // Le statut premium sera mis à jour par le webhook Stripe
+      // Pas besoin de le faire manuellement côté client
       
       window.history.replaceState({}, document.title, '/premium');
       
     } catch (error) {
       console.error('Error handling Stripe return:', error);
-      toast.error('Error activating premium status');
+      toast.error('Error processing subscription');
     }
   };
 
@@ -254,10 +242,16 @@ const Premium = () => {
     try {
       posthog.capture('portal_open_click');
       setLoading(true);
+      // Obtenir le token Firebase pour l'authentification
+      const idToken = await user.getIdToken();
+      
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({})
       });
       if (!response.ok) {
         throw new Error('Failed to create portal session');
@@ -272,20 +266,7 @@ const Premium = () => {
     }
   };
 
-  const updateUserPremiumStatus = async (isPremiumStatus) => {
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        isPremium: isPremiumStatus,
-        premiumStartDate: isPremiumStatus ? new Date().toISOString() : null,
-        lastUpdated: new Date().toISOString()
-      });
-      
-      console.log('Premium status updated in Firebase:', isPremiumStatus);
-    } catch (error) {
-      console.error('Error updating premium status:', error);
-    }
-  };
+
 
   // Calcul des économies
   const monthlyPrice = 4.99;
