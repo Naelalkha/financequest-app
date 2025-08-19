@@ -174,7 +174,7 @@ service cloud.firestore {
       // Création : seulement pour soi-même
       allow create: if isSignedIn() 
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId', 'questId', 'createdAt']);
+        && request.resource.data.keys().hasAll(['userId', 'questId', 'createdAt', 'startedAt']);
       
       // Mise à jour : seulement ses propres défis
       allow update: if isSignedIn() 

@@ -626,7 +626,7 @@ const DashboardPage = () => {
         userId: user.uid,
         status: 'active',
         progress: 0,
-        startedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
         completedAt: null
       };
       await setDoc(challengeRef, payload);
