@@ -3,6 +3,7 @@ import { FaCrown, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { auth } from '../../services/firebase'; // AJOUT : import auth
 import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
 
@@ -22,23 +23,47 @@ const SubscriptionManager = () => {
 
     try {
       posthog.capture('portal_open_click');
+      
+      // IMPORTANT : Obtenir le token Firebase
+      if (!auth.currentUser) {
+        toast.error('Session expirée. Veuillez rafraîchir la page.');
+        return;
+      }
+      
+      const idToken = await auth.currentUser.getIdToken(true); // true = force refresh
+      
+      if (!idToken) {
+        throw new Error('Impossible d\'obtenir le token d\'authentification');
+      }
+      
+      console.log('Opening portal with token for user:', user.uid);
+      
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}` // AJOUT : Token dans les headers
         },
-        body: JSON.stringify({ userId: user.uid })
+        body: JSON.stringify({}) // Body vide (l'API n'a besoin que du token)
       });
 
       if (response.ok) {
         const { url } = await response.json();
         window.location.href = url;
       } else {
-        toast.error('Impossible d’ouvrir le portail client');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Portal error:', response.status, errorData);
+        
+        if (response.status === 401) {
+          toast.error('Session expirée. Veuillez vous reconnecter.');
+          return;
+        }
+        
+        toast.error('Impossible d\'ouvrir le portail client');
       }
     } catch (error) {
       console.error('Erreur portail Stripe:', error);
-      toast.error('Erreur lors de l’ouverture du portail');
+      toast.error('Erreur lors de l\'ouverture du portail');
     }
   };
 
@@ -94,12 +119,19 @@ const SubscriptionManager = () => {
               {t('subscription.title') || 'Premium Subscription'}
             </h3>
             <p className="text-green-400 text-sm">
-              {t('subscription.active') || 'Active'}
+              {subscription.premiumStatus === 'trialing' 
+                ? t('subscription.trial_period') || 'Trial Period'
+                : t('subscription.active') || 'Active'
+              }
             </p>
           </div>
         </div>
-        <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-          ACTIVE
+        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+          subscription.premiumStatus === 'trialing' 
+            ? 'bg-blue-500/20 text-blue-400' 
+            : 'bg-green-500/20 text-green-400'
+        }`}>
+          {subscription.premiumStatus === 'trialing' ? 'TRIAL' : 'ACTIVE'}
         </div>
       </div>
 
@@ -109,11 +141,14 @@ const SubscriptionManager = () => {
           <div className="flex items-center gap-2 mb-2">
             <FaCalendarAlt className="text-yellow-400" />
             <span className="text-sm font-medium text-gray-300">
-              {t('subscription.start_date') || 'Start Date'}
+              {subscription.premiumStatus === 'trialing'
+                ? t('subscription.trial_ends') || 'Trial Ends'
+                : t('subscription.next_billing') || 'Next Billing'
+              }
             </span>
           </div>
           <p className="text-white">
-            {formatDate(subscription.premiumStartDate)}
+            {formatDate(subscription.currentPeriodEnd)}
           </p>
         </div>
 
@@ -125,7 +160,7 @@ const SubscriptionManager = () => {
             </span>
           </div>
           <p className="text-white capitalize">
-            {subscription.plan}
+            {subscription.plan || 'Premium'}
           </p>
         </div>
       </div>
@@ -146,4 +181,4 @@ const SubscriptionManager = () => {
   );
 };
 
-export default SubscriptionManager; 
+export default SubscriptionManager;
