@@ -1,10 +1,10 @@
 // /api/create-checkout-session.js
-// Version avec logs détaillés pour identifier l'erreur 500
+// Version corrigée avec import firebase-admin fixé
 
 import Stripe from 'stripe';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin'; // Import par défaut, pas avec *
 
-// Log immédiat pour debug
+// Log de démarrage
 console.log('=== FUNCTION COLD START ===');
 console.log('Environment check:');
 console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'Present' : 'MISSING');
@@ -16,6 +16,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
 });
 
+// Variable globale pour éviter les réinitialisations
+let adminApp = null;
+
 // Helper pour parser le service account
 function parseServiceAccount() {
   const raw = process.env.VITE_FIREBASE_SERVICE_ACCOUNT;
@@ -23,7 +26,6 @@ function parseServiceAccount() {
     throw new Error('VITE_FIREBASE_SERVICE_ACCOUNT is not defined');
   }
 
-  // Log pour debug
   console.log('Service Account raw length:', raw.length);
   console.log('First 50 chars:', raw.substring(0, 50));
   
@@ -81,23 +83,45 @@ function parseServiceAccount() {
 
 // Init Firebase Admin
 function initAdmin() {
-  if (!admin.apps.length) {
-    const serviceAccount = parseServiceAccount();
-    
-    try {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log('Firebase Admin initialized successfully');
-    } catch (error) {
-      console.error('Firebase Admin init error:', error);
-      throw error;
+  // Si déjà initialisé, retourner l'instance existante
+  if (adminApp) {
+    return {
+      db: adminApp.firestore(),
+      auth: adminApp.auth(),
+    };
+  }
+  
+  // Vérifier si une app existe déjà (au cas où)
+  try {
+    const apps = admin.apps || [];
+    if (apps.length > 0) {
+      console.log('Firebase Admin already initialized');
+      adminApp = apps[0];
+      return {
+        db: adminApp.firestore(),
+        auth: adminApp.auth(),
+      };
     }
+  } catch (e) {
+    console.log('No existing Firebase apps');
+  }
+  
+  // Parser et initialiser
+  const serviceAccount = parseServiceAccount();
+  
+  try {
+    adminApp = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('Firebase Admin initialized successfully');
+  } catch (error) {
+    console.error('Firebase Admin init error:', error);
+    throw error;
   }
   
   return {
-    db: admin.firestore(),
-    auth: admin.auth(),
+    db: adminApp.firestore(),
+    auth: adminApp.auth(),
   };
 }
 
@@ -144,7 +168,7 @@ export default async function handler(req, res) {
       throw new Error('STRIPE_SECRET_KEY not configured');
     }
     
-    // Test if Stripe key is valid (test vs live)
+    // IMPORTANT: Vérifier le mismatch test/live
     const isTestMode = process.env.STRIPE_SECRET_KEY.startsWith('sk_test_');
     const priceMonthly = process.env.VITE_STRIPE_PRICE_MONTHLY;
     const priceYearly = process.env.VITE_STRIPE_PRICE_YEARLY;
@@ -152,12 +176,19 @@ export default async function handler(req, res) {
     console.log('Stripe mode:', isTestMode ? 'TEST' : 'LIVE');
     console.log('Price IDs:', { monthly: priceMonthly, yearly: priceYearly });
     
-    // Vérifier que les prix correspondent au mode
-    if (isTestMode && priceMonthly && !priceMonthly.includes('test')) {
-      console.warn('WARNING: Using test Stripe key with live price IDs');
-    }
-    if (!isTestMode && priceMonthly && priceMonthly.includes('test')) {
-      console.warn('WARNING: Using live Stripe key with test price IDs');
+    // ERREUR CRITIQUE: Tu utilises des clés de TEST avec des price IDs de PRODUCTION !
+    if (isTestMode) {
+      // En mode test, on doit utiliser des price IDs de test
+      // Tu dois créer des produits de TEST dans Stripe Dashboard
+      console.error('CRITICAL: Using TEST Stripe key but price IDs look like production!');
+      console.error('You need to create TEST products in Stripe Dashboard (test mode)');
+      
+      // Pour l'instant, on continue mais ça va échouer
+      return res.status(503).json({ 
+        error: 'Stripe configuration mismatch',
+        details: 'Test mode active but using production price IDs. Please create test products in Stripe Dashboard.',
+        solution: 'Go to Stripe Dashboard, switch to TEST mode, create products with 4.99€/month and 39.99€/year prices, then update VITE_STRIPE_PRICE_MONTHLY and VITE_STRIPE_PRICE_YEARLY in Vercel'
+      });
     }
 
     // Get auth token
@@ -229,7 +260,7 @@ export default async function handler(req, res) {
         console.log('Creating new user in Firestore');
         await userRef.set({
           email: userEmail,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.FieldValue.serverTimestamp(),
         });
       }
     } catch (firestoreError) {
