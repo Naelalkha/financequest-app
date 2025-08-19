@@ -76,26 +76,50 @@ const Profile = () => {
       toast.error('Veuillez vous connecter pour gérer votre abonnement');
       return;
     }
-
+  
     try {
       posthog.capture('portal_open_click');
+      
+      // IMPORTANT: Obtenir le token Firebase pour l'authentification
+      if (!auth.currentUser) {
+        toast.error('Session expirée. Veuillez rafraîchir la page.');
+        return;
+      }
+      
+      const idToken = await auth.currentUser.getIdToken(true); // true = force refresh
+      
+      if (!idToken) {
+        throw new Error('Impossible d\'obtenir le token d\'authentification');
+      }
+      
+      console.log('Opening portal with token for user:', user.uid);
+      
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}` // AJOUT: Token dans les headers
         },
-        body: JSON.stringify({ userId: user.uid })
+        body: JSON.stringify({}) // Body vide (l'API récupère le userId du token)
       });
-
+  
       if (response.ok) {
         const { url } = await response.json();
         window.location.href = url;
       } else {
-        toast.error('Impossible d’ouvrir le portail client');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Portal error:', response.status, errorData);
+        
+        if (response.status === 401) {
+          toast.error('Session expirée. Veuillez vous reconnecter.');
+          return;
+        }
+        
+        toast.error('Impossible d\'ouvrir le portail client');
       }
     } catch (error) {
       console.error('Erreur portail Stripe:', error);
-      toast.error('Erreur lors de l’ouverture du portail');
+      toast.error('Erreur lors de l\'ouverture du portail');
     }
   };
 
