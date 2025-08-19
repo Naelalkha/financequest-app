@@ -1,8 +1,8 @@
 // /api/create-checkout-session.js
-// Version corrigée avec import firebase-admin fixé
+// Version corrigée - enlève la fausse vérification test/live
 
 import Stripe from 'stripe';
-import admin from 'firebase-admin'; // Import par défaut, pas avec *
+import admin from 'firebase-admin'; // Import correct (pas avec * as)
 
 // Log de démarrage
 console.log('=== FUNCTION COLD START ===');
@@ -27,7 +27,6 @@ function parseServiceAccount() {
   }
 
   console.log('Service Account raw length:', raw.length);
-  console.log('First 50 chars:', raw.substring(0, 50));
   
   let serviceAccount;
   
@@ -45,26 +44,13 @@ function parseServiceAccount() {
       console.log('Service Account parsed as base64');
     } catch (e2) {
       console.log('Base64 parse failed:', e2.message);
-      
-      // Essai 3: Peut-être que c'est échappé
-      try {
-        const unescaped = raw.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-        serviceAccount = JSON.parse(unescaped);
-        console.log('Service Account parsed as escaped JSON');
-      } catch (e3) {
-        console.log('Escaped JSON parse failed:', e3.message);
-        throw new Error('Could not parse service account in any format');
-      }
+      throw new Error('Could not parse service account in any format');
     }
   }
   
   // Vérifier que le service account a les champs requis
   if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
-    console.error('Service account missing required fields:', {
-      has_project_id: !!serviceAccount.project_id,
-      has_private_key: !!serviceAccount.private_key,
-      has_client_email: !!serviceAccount.client_email
-    });
+    console.error('Service account missing required fields');
     throw new Error('Service account is missing required fields');
   }
   
@@ -91,7 +77,7 @@ function initAdmin() {
     };
   }
   
-  // Vérifier si une app existe déjà (au cas où)
+  // Vérifier si une app existe déjà
   try {
     const apps = admin.apps || [];
     if (apps.length > 0) {
@@ -134,7 +120,6 @@ function setCORS(res, origin) {
 
 function getOrigin(req) {
   const origin = req.headers.origin || 'https://financequest-app.vercel.app';
-  console.log('Request origin:', origin);
   return origin;
 }
 
@@ -142,63 +127,42 @@ export default async function handler(req, res) {
   console.log('\n=== REQUEST START ===');
   console.log('Method:', req.method);
   console.log('Path:', req.url);
-  console.log('Headers:', {
-    'content-type': req.headers['content-type'],
-    'authorization': req.headers.authorization ? 'Present' : 'Missing',
-    'origin': req.headers.origin
-  });
   
   const origin = getOrigin(req);
   setCORS(res, origin);
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request');
     return res.status(204).end();
   }
   
   if (req.method !== 'POST') {
-    console.log('Invalid method:', req.method);
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    // Test Stripe first
+    // Vérifier Stripe
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error('STRIPE_SECRET_KEY not configured');
     }
     
-    // IMPORTANT: Vérifier le mismatch test/live
     const isTestMode = process.env.STRIPE_SECRET_KEY.startsWith('sk_test_');
     const priceMonthly = process.env.VITE_STRIPE_PRICE_MONTHLY;
     const priceYearly = process.env.VITE_STRIPE_PRICE_YEARLY;
     
     console.log('Stripe mode:', isTestMode ? 'TEST' : 'LIVE');
-    console.log('Price IDs:', { monthly: priceMonthly, yearly: priceYearly });
+    console.log('Using prices:', { monthly: priceMonthly, yearly: priceYearly });
     
-    // ERREUR CRITIQUE: Tu utilises des clés de TEST avec des price IDs de PRODUCTION !
-    if (isTestMode) {
-      // En mode test, on doit utiliser des price IDs de test
-      // Tu dois créer des produits de TEST dans Stripe Dashboard
-      console.error('CRITICAL: Using TEST Stripe key but price IDs look like production!');
-      console.error('You need to create TEST products in Stripe Dashboard (test mode)');
-      
-      // Pour l'instant, on continue mais ça va échouer
-      return res.status(503).json({ 
-        error: 'Stripe configuration mismatch',
-        details: 'Test mode active but using production price IDs. Please create test products in Stripe Dashboard.',
-        solution: 'Go to Stripe Dashboard, switch to TEST mode, create products with 4.99€/month and 39.99€/year prices, then update VITE_STRIPE_PRICE_MONTHLY and VITE_STRIPE_PRICE_YEARLY in Vercel'
-      });
+    if (!priceMonthly || !priceYearly) {
+      throw new Error('Stripe price IDs not configured');
     }
 
     // Get auth token
     const authHeader = req.headers.authorization || '';
-    console.log('Auth header present:', !!authHeader);
     
     if (!authHeader) {
       return res.status(401).json({ 
-        error: 'Missing authorization header',
-        code: 'NO_AUTH_HEADER'
+        error: 'Missing authorization header'
       });
     }
     
@@ -206,12 +170,11 @@ export default async function handler(req, res) {
     
     if (!token || token === 'undefined' || token === 'null') {
       return res.status(401).json({ 
-        error: 'Invalid token',
-        code: 'INVALID_TOKEN'
+        error: 'Invalid token'
       });
     }
     
-    console.log('Token extracted, length:', token.length);
+    console.log('Token received, length:', token.length);
 
     // Initialize Firebase Admin
     console.log('Initializing Firebase Admin...');
@@ -222,30 +185,25 @@ export default async function handler(req, res) {
     let decoded;
     try {
       decoded = await auth.verifyIdToken(token);
-      console.log('Token verified successfully for uid:', decoded.uid);
+      console.log('Token verified for uid:', decoded.uid);
     } catch (verifyError) {
       console.error('Token verification failed:', verifyError);
       return res.status(401).json({ 
         error: 'Token verification failed',
-        code: verifyError.code || 'TOKEN_VERIFY_ERROR',
         details: verifyError.message
       });
     }
     
     const userId = decoded.uid;
     const userEmail = decoded.email;
-    console.log('User:', { userId, email: userEmail });
+    console.log('Processing for user:', { userId, email: userEmail });
 
     // Parse request body
     const body = req.body || {};
     const plan = body.plan === 'yearly' ? 'yearly' : 'monthly';
     const priceId = plan === 'yearly' ? priceYearly : priceMonthly;
     
-    if (!priceId) {
-      throw new Error(`Price ID not configured for plan: ${plan}`);
-    }
-    
-    console.log('Creating checkout for:', { plan, priceId });
+    console.log('Plan selected:', { plan, priceId });
 
     // Check/create user in Firestore
     let stripeCustomerId;
@@ -255,17 +213,16 @@ export default async function handler(req, res) {
       
       if (userSnap.exists) {
         stripeCustomerId = userSnap.data().stripeCustomerId;
-        console.log('User exists in Firestore, customerId:', stripeCustomerId || 'none');
+        console.log('Existing user, customerId:', stripeCustomerId || 'none');
       } else {
-        console.log('Creating new user in Firestore');
+        console.log('Creating new user document');
         await userRef.set({
           email: userEmail,
           createdAt: admin.FieldValue.serverTimestamp(),
         });
       }
     } catch (firestoreError) {
-      console.error('Firestore error (non-fatal):', firestoreError);
-      // Continue without customer ID
+      console.error('Firestore error (continuing):', firestoreError.message);
     }
 
     // Create Stripe checkout session
@@ -300,47 +257,40 @@ export default async function handler(req, res) {
       sessionConfig.customer_email = userEmail;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-    console.log('Checkout session created:', session.id);
+    try {
+      const session = await stripe.checkout.sessions.create(sessionConfig);
+      console.log('✅ Checkout session created:', session.id);
 
-    return res.status(200).json({ 
-      sessionId: session.id,
-      success: true
-    });
+      return res.status(200).json({ 
+        sessionId: session.id,
+        success: true
+      });
+    } catch (stripeError) {
+      console.error('Stripe error:', stripeError);
+      throw stripeError;
+    }
     
   } catch (error) {
     console.error('=== ERROR CAUGHT ===');
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    console.error('Error:', error.message);
     
-    // Determiner le type d'erreur pour un meilleur message
-    if (error.message && error.message.includes('STRIPE_SECRET_KEY')) {
-      return res.status(503).json({ 
-        error: 'Payment system not configured',
-        code: 'STRIPE_NOT_CONFIGURED'
+    if (error.type === 'StripeInvalidRequestError') {
+      return res.status(400).json({ 
+        error: 'Stripe configuration error',
+        details: error.message
       });
     }
     
     if (error.message && error.message.includes('service account')) {
       return res.status(503).json({ 
-        error: 'Authentication system misconfigured',
-        code: 'FIREBASE_CONFIG_ERROR'
-      });
-    }
-    
-    if (error.type === 'StripeInvalidRequestError') {
-      return res.status(400).json({ 
-        error: 'Invalid payment configuration',
-        code: 'STRIPE_CONFIG_ERROR',
+        error: 'Firebase configuration error',
         details: error.message
       });
     }
     
     return res.status(500).json({ 
       error: 'Internal server error',
-      code: 'INTERNAL_ERROR',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: error.message
     });
   }
 }

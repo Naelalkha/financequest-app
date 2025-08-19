@@ -1,6 +1,6 @@
 // /api/create-portal-session.js
 import Stripe from 'stripe';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 // --- Helpers: init Firebase Admin ---
 function initAdmin() {
