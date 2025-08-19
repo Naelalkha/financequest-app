@@ -51,7 +51,11 @@ async function getRawBody(req) {
 
 // Utilitaires Firestore
 async function saveStripeCustomerLink(customerId, userId) {
-  if (!customerId || !userId) return;
+  if (!customerId || !userId) {
+    console.log('Cannot save customer link, missing data:', { customerId, userId });
+    return;
+  }
+  console.log('Saving customer link:', { customerId, userId });
   await db.collection('stripe_customers').doc(customerId).set(
     { userId, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
     { merge: true }
@@ -61,13 +65,29 @@ async function saveStripeCustomerLink(customerId, userId) {
 async function findUserIdByCustomer(customerId) {
   if (!customerId) return null;
   const snap = await db.collection('stripe_customers').doc(customerId).get();
-  return snap.exists ? snap.data().userId : null;
+  const userId = snap.exists ? snap.data().userId : null;
+  console.log('Found userId by customer:', { customerId, userId });
+  return userId;
 }
 
 async function setPremiumForUser(userId, data) {
-  if (!userId) return;
+  if (!userId) {
+    console.error('Cannot set premium: no userId provided');
+    return;
+  }
   
   const ref = db.collection('users').doc(userId);
+  
+  // Vérifier si l'utilisateur existe
+  const userSnap = await ref.get();
+  if (!userSnap.exists) {
+    console.error('User document does not exist:', userId);
+    // Créer le document utilisateur s'il n'existe pas
+    await ref.set({
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+  
   // isPremium = TRUE si trialing ou active
   const isPremium = ['trialing', 'active'].includes(data.status || '');
   
@@ -82,7 +102,12 @@ async function setPremiumForUser(userId, data) {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
   
-  console.log('Setting premium for user:', { userId, isPremium, status: data.status, payload });
+  console.log('Setting premium for user:', { 
+    userId, 
+    isPremium, 
+    status: data.status, 
+    subscriptionId: data.subscriptionId 
+  });
   
   await ref.set(payload, { merge: true });
   
@@ -111,35 +136,125 @@ export default async function handler(req, res) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  console.log('Received webhook event:', event.type);
+
   try {
     switch (event.type) {
-      // 1) Session de checkout terminée : on mappe le customer <-> user et on met Premium si besoin
+      // 1) Session de checkout terminée
       case 'checkout.session.completed': {
         const session = event.data.object;
         const customerId = session.customer;
         const subscriptionId = session.subscription;
-        const userId = session.client_reference_id || null;
+        const userId = session.client_reference_id || session.metadata?.userId || null;
 
-        console.log('Checkout session completed:', { sessionId: session.id, customerId, subscriptionId, userId });
+        console.log('Checkout session completed:', { 
+          sessionId: session.id, 
+          customerId, 
+          subscriptionId, 
+          userId,
+          metadata: session.metadata 
+        });
 
-        if (customerId && userId) {
-          await saveStripeCustomerLink(customerId, userId);
+        if (!userId) {
+          console.error('No userId found in checkout session!');
+          // Essayer de retrouver via l'email
+          if (session.customer_email) {
+            try {
+              const userRecord = await admin.auth().getUserByEmail(session.customer_email);
+              if (userRecord) {
+                console.log('Found user by email:', userRecord.uid);
+                const foundUserId = userRecord.uid;
+                
+                // Sauvegarder le lien et mettre à jour premium
+                if (customerId && foundUserId) {
+                  await saveStripeCustomerLink(customerId, foundUserId);
+                }
+                
+                if (subscriptionId) {
+                  const sub = await stripe.subscriptions.retrieve(subscriptionId);
+                  await setPremiumForUser(foundUserId, {
+                    status: sub.status,
+                    customer: sub.customer,
+                    subscriptionId: sub.id,
+                    current_period_end: sub.current_period_end,
+                  });
+                }
+              }
+            } catch (e) {
+              console.error('Could not find user by email:', e);
+            }
+          }
+        } else {
+          // On a le userId, on procède normalement
+          if (customerId && userId) {
+            await saveStripeCustomerLink(customerId, userId);
+          }
+
+          if (subscriptionId) {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            console.log('Retrieved subscription:', { 
+              id: sub.id, 
+              status: sub.status,
+              trial_end: sub.trial_end,
+              metadata: sub.metadata 
+            });
+            
+            // Toujours utiliser le userId de la session en priorité
+            const finalUserId = userId || sub.metadata?.userId;
+            
+            if (finalUserId) {
+              await setPremiumForUser(finalUserId, {
+                status: sub.status,
+                customer: sub.customer,
+                subscriptionId: sub.id,
+                current_period_end: sub.current_period_end,
+              });
+            } else {
+              console.error('No userId found for subscription!');
+            }
+          }
         }
+        break;
+      }
 
-        if (subscriptionId) {
-          const sub = await stripe.subscriptions.retrieve(subscriptionId);
-          const uidFromMeta = sub.metadata?.userId || userId || (await findUserIdByCustomer(sub.customer));
-          
-          console.log('Processing subscription:', { 
-            subscriptionId: sub.id, 
-            status: sub.status, 
-            userId: uidFromMeta,
-            trialEnd: sub.trial_end 
-          });
-          
-          await saveStripeCustomerLink(sub.customer, uidFromMeta);
-
-          await setPremiumForUser(uidFromMeta, {
+      // 2) Création/MàJ de l'abonnement
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated': {
+        const sub = event.data.object;
+        console.log('Subscription event:', { 
+          type: event.type,
+          id: sub.id, 
+          status: sub.status,
+          metadata: sub.metadata 
+        });
+        
+        // Chercher le userId depuis les metadata ou le mapping customer
+        let userId = sub.metadata?.userId;
+        
+        if (!userId) {
+          userId = await findUserIdByCustomer(sub.customer);
+        }
+        
+        if (!userId) {
+          console.error('Cannot find userId for subscription:', sub.id);
+          // Essayer de retrouver via l'email du customer
+          try {
+            const customer = await stripe.customers.retrieve(sub.customer);
+            if (customer.email) {
+              const userRecord = await admin.auth().getUserByEmail(customer.email);
+              if (userRecord) {
+                userId = userRecord.uid;
+                console.log('Found user by customer email:', userId);
+                await saveStripeCustomerLink(sub.customer, userId);
+              }
+            }
+          } catch (e) {
+            console.error('Could not find user by customer email:', e);
+          }
+        }
+        
+        if (userId) {
+          await setPremiumForUser(userId, {
             status: sub.status,
             customer: sub.customer,
             subscriptionId: sub.id,
@@ -149,46 +264,37 @@ export default async function handler(req, res) {
         break;
       }
 
-      // 2) Création/MàJ de l’abonnement : source de vérité pour l’accès
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const sub = event.data.object;
-        const uidFromMeta = sub.metadata?.userId || (await findUserIdByCustomer(sub.customer));
-        await saveStripeCustomerLink(sub.customer, uidFromMeta);
-
-        await setPremiumForUser(uidFromMeta, {
-          status: sub.status,
-          customer: sub.customer,
-          subscriptionId: sub.id,
-          current_period_end: sub.current_period_end,
-        });
-        break;
-      }
-
-      // 3) Suppression d’abonnement : retirer l’accès
+      // 3) Suppression d'abonnement
       case 'customer.subscription.deleted': {
         const sub = event.data.object;
-        const uidFromMeta = sub.metadata?.userId || (await findUserIdByCustomer(sub.customer));
-        await setPremiumForUser(uidFromMeta, {
-          status: 'canceled',
-          customer: sub.customer,
-          subscriptionId: sub.id,
-          current_period_end: sub.current_period_end,
+        console.log('Subscription deleted:', { 
+          id: sub.id,
+          metadata: sub.metadata 
         });
+        
+        let userId = sub.metadata?.userId || (await findUserIdByCustomer(sub.customer));
+        
+        if (userId) {
+          await setPremiumForUser(userId, {
+            status: 'canceled',
+            customer: sub.customer,
+            subscriptionId: sub.id,
+            current_period_end: sub.current_period_end,
+          });
+        }
         break;
       }
 
-      // (Optionnel) Paiement échoué : tu peux marquer un flag, envoyer un email, etc.
-      case 'invoice.payment_failed': {
-        // const invoice = event.data.object;
-        // const customerId = invoice.customer;
-        // const userId = await findUserIdByCustomer(customerId);
-        // -> notifier user, etc. (ne coupe pas l’accès tant que la sub n’est pas canceled)
+      // 4) Trial will end (optionnel - pour notifier l'utilisateur)
+      case 'customer.subscription.trial_will_end': {
+        const sub = event.data.object;
+        console.log('Trial will end soon:', sub.id);
+        // Tu peux envoyer un email de rappel ici
         break;
       }
 
       default:
-        // console.log('Unhandled event type:', event.type);
+        console.log('Unhandled event type:', event.type);
         break;
     }
 

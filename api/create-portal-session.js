@@ -29,6 +29,7 @@ function setCORS(res, origin) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
+
 function getOrigin(req) {
   return process.env.ORIGIN || req.headers.origin || 'http://localhost:5173';
 }
@@ -50,11 +51,16 @@ export default async function handler(req, res) {
     // 1) Vérifier le token Firebase
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!token) return res.status(401).json({ error: 'Missing auth token' });
+    if (!token) {
+      console.error('Missing auth token in create-portal-session');
+      return res.status(401).json({ error: 'Missing auth token' });
+    }
 
     const { db, auth } = initAdmin();
     const decoded = await auth.verifyIdToken(token);
     const userId = decoded.uid;
+
+    console.log('Creating portal session for user:', userId);
 
     // 2) Récupérer / créer le customer Stripe
     const userRef = db.collection('users').doc(userId);
@@ -63,6 +69,7 @@ export default async function handler(req, res) {
 
     let customerId = data?.stripeCustomerId;
     if (!customerId) {
+      console.log('Creating new Stripe customer for portal');
       // Créer un customer au besoin
       const customer = await stripe.customers.create({
         email: decoded.email || data?.email,
@@ -70,16 +77,29 @@ export default async function handler(req, res) {
       });
       customerId = customer.id;
       await userRef.set(
-        { stripeCustomerId: customerId, lastUpdated: new Date().toISOString() },
+        { 
+          stripeCustomerId: customerId, 
+          updatedAt: admin.firestore.FieldValue.serverTimestamp() 
+        },
+        { merge: true }
+      );
+      
+      // Sauvegarder aussi le lien
+      await db.collection('stripe_customers').doc(customerId).set(
+        { userId, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
         { merge: true }
       );
     }
+
+    console.log('Using Stripe customer:', customerId);
 
     // 3) Créer la session du portail
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/premium`,
     });
+
+    console.log('Portal session created:', portal.id);
 
     return res.status(200).json({ url: portal.url });
   } catch (err) {
