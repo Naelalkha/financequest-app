@@ -216,10 +216,10 @@ export default async function handler(req, res) {
         console.log('Existing user, customerId:', stripeCustomerId || 'none');
       } else {
         console.log('Creating new user document');
-        await userRef.set({
-          email: userEmail,
-          createdAt: admin.FieldValue.serverTimestamp(),
-        });
+                 await userRef.set({
+           email: userEmail,
+           createdAt: admin.firestore.FieldValue.serverTimestamp(),
+         });
       }
     } catch (firestoreError) {
       console.error('Firestore error (continuing):', firestoreError.message);

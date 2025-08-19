@@ -1,5 +1,5 @@
 // /api/webhook.js
-// Version corrigée pour Vercel - désactive le bodyParser
+// Version finale corrigée - FieldValue correct
 
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
@@ -7,7 +7,7 @@ import admin from 'firebase-admin';
 // IMPORTANT: Désactiver le body parser de Vercel
 export const config = {
   api: {
-    bodyParser: false, // CRUCIAL pour les webhooks Stripe !
+    bodyParser: false,
   },
 };
 
@@ -66,7 +66,7 @@ function initAdmin() {
   return { db };
 }
 
-// Buffer helper pour lire le raw body correctement
+// Buffer helper pour lire le raw body
 async function buffer(readable) {
   const chunks = [];
   for await (const chunk of readable) {
@@ -83,7 +83,6 @@ export default async function handler(req, res) {
     return res.status(405).send('Method Not Allowed');
   }
 
-  // Check webhook secret
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
     console.error('❌ Missing STRIPE_WEBHOOK_SECRET!');
@@ -97,31 +96,20 @@ export default async function handler(req, res) {
   }
 
   let event;
-  let rawBody;
   
   try {
-    // Lire le raw body CORRECTEMENT pour Vercel
-    rawBody = await buffer(req);
+    const rawBody = await buffer(req);
     const bodyString = rawBody.toString('utf8');
     
     console.log('📝 Raw body length:', rawBody.length);
     console.log('🔐 Signature present:', !!sig);
     console.log('🔑 Secret starts with:', webhookSecret.substring(0, 10));
     
-    // Vérifier la signature
     event = stripe.webhooks.constructEvent(bodyString, sig, webhookSecret);
     console.log('✅ Signature verified! Event:', event.type);
     
   } catch (err) {
     console.error('❌ Webhook error:', err.message);
-    
-    // Log plus de détails pour debug
-    if (err.message.includes('No signatures found')) {
-      console.error('Signature mismatch - check STRIPE_WEBHOOK_SECRET');
-      console.error('Expected secret format: whsec_...');
-      console.error('Actual secret starts with:', webhookSecret?.substring(0, 10));
-    }
-    
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -155,7 +143,6 @@ export default async function handler(req, res) {
         
         console.log('👤 UserId:', userId);
         
-        // Si la session a une subscription, récupérer les détails
         if (session.subscription) {
           console.log('📊 Fetching subscription details...');
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
@@ -174,17 +161,21 @@ export default async function handler(req, res) {
               ? new Date(subscription.current_period_end * 1000).toISOString()
               : null,
             lastWebhookUpdate: new Date().toISOString(),
-            updatedAt: admin.FieldValue.serverTimestamp()
+            // CORRECTION ICI : admin.firestore.FieldValue au lieu de admin.FieldValue
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
           };
           
-          console.log('💾 Updating user with:', updateData);
+          console.log('💾 Updating user with:', {
+            ...updateData,
+            updatedAt: 'serverTimestamp'
+          });
           
           await db.collection('users').doc(userId).set(updateData, { merge: true });
           
           console.log('✅ User updated successfully!');
-          console.log(`isPremium set to: ${isPremium} (status: ${subscription.status})`);
+          console.log(`✨ isPremium set to: ${isPremium} (status: ${subscription.status})`);
         } else {
-          console.log('⚠️ No subscription in session (payment may not be complete)');
+          console.log('⚠️ No subscription in session');
         }
         
         break;
@@ -212,12 +203,11 @@ export default async function handler(req, res) {
             currentPeriodEnd: subscription.current_period_end 
               ? new Date(subscription.current_period_end * 1000).toISOString()
               : null,
-            updatedAt: admin.FieldValue.serverTimestamp()
+            // CORRECTION ICI AUSSI
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
           
           console.log(`✅ User ${userId} updated: isPremium=${isPremium}`);
-        } else {
-          console.log('⚠️ No userId in subscription metadata');
         }
         
         break;
@@ -233,7 +223,8 @@ export default async function handler(req, res) {
           await db.collection('users').doc(userId).set({
             isPremium: false,
             premiumStatus: 'canceled',
-            updatedAt: admin.FieldValue.serverTimestamp()
+            // CORRECTION ICI AUSSI
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
         }
         
@@ -248,6 +239,7 @@ export default async function handler(req, res) {
     
   } catch (err) {
     console.error('❌ Processing error:', err);
+    console.error('Stack:', err.stack);
     return res.status(500).send('Processing error');
   }
 }
