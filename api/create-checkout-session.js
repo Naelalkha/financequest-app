@@ -1,28 +1,100 @@
 // /api/create-checkout-session.js
-// Vercel Serverless Function (Node 18+)
+// Version avec logs détaillés pour identifier l'erreur 500
 
 import Stripe from 'stripe';
 import * as admin from 'firebase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+// Log immédiat pour debug
+console.log('=== FUNCTION COLD START ===');
+console.log('Environment check:');
+console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'Present' : 'MISSING');
+console.log('- VITE_FIREBASE_SERVICE_ACCOUNT:', process.env.VITE_FIREBASE_SERVICE_ACCOUNT ? `Present (${process.env.VITE_FIREBASE_SERVICE_ACCOUNT.length} chars)` : 'MISSING');
+console.log('- VITE_STRIPE_PRICE_MONTHLY:', process.env.VITE_STRIPE_PRICE_MONTHLY || 'MISSING');
+console.log('- VITE_STRIPE_PRICE_YEARLY:', process.env.VITE_STRIPE_PRICE_YEARLY || 'MISSING');
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
 });
 
-// --- Helpers: init Firebase Admin ---
+// Helper pour parser le service account
+function parseServiceAccount() {
+  const raw = process.env.VITE_FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) {
+    throw new Error('VITE_FIREBASE_SERVICE_ACCOUNT is not defined');
+  }
+
+  // Log pour debug
+  console.log('Service Account raw length:', raw.length);
+  console.log('First 50 chars:', raw.substring(0, 50));
+  
+  let serviceAccount;
+  
+  // Essai 1: JSON direct
+  try {
+    serviceAccount = JSON.parse(raw);
+    console.log('Service Account parsed as direct JSON');
+  } catch (e1) {
+    console.log('Direct JSON parse failed:', e1.message);
+    
+    // Essai 2: Base64
+    try {
+      const decoded = Buffer.from(raw, 'base64').toString('utf8');
+      serviceAccount = JSON.parse(decoded);
+      console.log('Service Account parsed as base64');
+    } catch (e2) {
+      console.log('Base64 parse failed:', e2.message);
+      
+      // Essai 3: Peut-être que c'est échappé
+      try {
+        const unescaped = raw.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        serviceAccount = JSON.parse(unescaped);
+        console.log('Service Account parsed as escaped JSON');
+      } catch (e3) {
+        console.log('Escaped JSON parse failed:', e3.message);
+        throw new Error('Could not parse service account in any format');
+      }
+    }
+  }
+  
+  // Vérifier que le service account a les champs requis
+  if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+    console.error('Service account missing required fields:', {
+      has_project_id: !!serviceAccount.project_id,
+      has_private_key: !!serviceAccount.private_key,
+      has_client_email: !!serviceAccount.client_email
+    });
+    throw new Error('Service account is missing required fields');
+  }
+  
+  // Nettoyer la private key
+  if (serviceAccount.private_key && serviceAccount.private_key.includes('\\n')) {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  }
+  
+  console.log('Service Account validated:', {
+    project_id: serviceAccount.project_id,
+    client_email: serviceAccount.client_email
+  });
+  
+  return serviceAccount;
+}
+
+// Init Firebase Admin
 function initAdmin() {
   if (!admin.apps.length) {
-    const raw = process.env.VITE_FIREBASE_SERVICE_ACCOUNT;
-    if (!raw) throw new Error('Missing VITE_FIREBASE_SERVICE_ACCOUNT');
-    let serviceAccount;
+    const serviceAccount = parseServiceAccount();
+    
     try {
-      serviceAccount = JSON.parse(raw);
-    } catch {
-      throw new Error('Invalid VITE_FIREBASE_SERVICE_ACCOUNT JSON');
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log('Firebase Admin initialized successfully');
+    } catch (error) {
+      console.error('Firebase Admin init error:', error);
+      throw error;
     }
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
   }
+  
   return {
     db: admin.firestore(),
     auth: admin.auth(),
@@ -37,115 +109,207 @@ function setCORS(res, origin) {
 }
 
 function getOrigin(req) {
-  return process.env.ORIGIN || req.headers.origin || 'http://localhost:5173';
+  const origin = req.headers.origin || 'https://financequest-app.vercel.app';
+  console.log('Request origin:', origin);
+  return origin;
 }
 
 export default async function handler(req, res) {
+  console.log('\n=== REQUEST START ===');
+  console.log('Method:', req.method);
+  console.log('Path:', req.url);
+  console.log('Headers:', {
+    'content-type': req.headers['content-type'],
+    'authorization': req.headers.authorization ? 'Present' : 'Missing',
+    'origin': req.headers.origin
+  });
+  
   const origin = getOrigin(req);
   setCORS(res, origin);
 
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
+    return res.status(204).end();
+  }
+  
+  if (req.method !== 'POST') {
+    console.log('Invalid method:', req.method);
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
   try {
-    // 1) IMPORTANT: Vérifier le token Firebase pour obtenir le vrai userId
+    // Test Stripe first
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY not configured');
+    }
+    
+    // Test if Stripe key is valid (test vs live)
+    const isTestMode = process.env.STRIPE_SECRET_KEY.startsWith('sk_test_');
+    const priceMonthly = process.env.VITE_STRIPE_PRICE_MONTHLY;
+    const priceYearly = process.env.VITE_STRIPE_PRICE_YEARLY;
+    
+    console.log('Stripe mode:', isTestMode ? 'TEST' : 'LIVE');
+    console.log('Price IDs:', { monthly: priceMonthly, yearly: priceYearly });
+    
+    // Vérifier que les prix correspondent au mode
+    if (isTestMode && priceMonthly && !priceMonthly.includes('test')) {
+      console.warn('WARNING: Using test Stripe key with live price IDs');
+    }
+    if (!isTestMode && priceMonthly && priceMonthly.includes('test')) {
+      console.warn('WARNING: Using live Stripe key with test price IDs');
+    }
+
+    // Get auth token
     const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!token) {
-      console.error('Missing auth token in create-checkout-session');
-      return res.status(401).json({ error: 'Missing auth token' });
+    console.log('Auth header present:', !!authHeader);
+    
+    if (!authHeader) {
+      return res.status(401).json({ 
+        error: 'Missing authorization header',
+        code: 'NO_AUTH_HEADER'
+      });
     }
+    
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    
+    if (!token || token === 'undefined' || token === 'null') {
+      return res.status(401).json({ 
+        error: 'Invalid token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+    
+    console.log('Token extracted, length:', token.length);
 
+    // Initialize Firebase Admin
+    console.log('Initializing Firebase Admin...');
     const { db, auth } = initAdmin();
-    const decoded = await auth.verifyIdToken(token);
-    const userId = decoded.uid; // Le vrai userId depuis Firebase
+    
+    // Verify token
+    console.log('Verifying Firebase token...');
+    let decoded;
+    try {
+      decoded = await auth.verifyIdToken(token);
+      console.log('Token verified successfully for uid:', decoded.uid);
+    } catch (verifyError) {
+      console.error('Token verification failed:', verifyError);
+      return res.status(401).json({ 
+        error: 'Token verification failed',
+        code: verifyError.code || 'TOKEN_VERIFY_ERROR',
+        details: verifyError.message
+      });
+    }
+    
+    const userId = decoded.uid;
     const userEmail = decoded.email;
+    console.log('User:', { userId, email: userEmail });
 
-    console.log('Creating checkout session for user:', { userId, email: userEmail });
-
-    // 2) Lire le body pour le plan
+    // Parse request body
     const body = req.body || {};
-    const plan = (body.plan === 'yearly' || body.plan === 'monthly') ? body.plan : 'monthly';
-    const priceId = plan === 'yearly'
-      ? process.env.VITE_STRIPE_PRICE_YEARLY
-      : process.env.VITE_STRIPE_PRICE_MONTHLY;
-
+    const plan = body.plan === 'yearly' ? 'yearly' : 'monthly';
+    const priceId = plan === 'yearly' ? priceYearly : priceMonthly;
+    
     if (!priceId) {
-      console.error('Missing Stripe price id in env');
-      return res.status(400).json({ error: 'Missing Stripe price id in env' });
+      throw new Error(`Price ID not configured for plan: ${plan}`);
+    }
+    
+    console.log('Creating checkout for:', { plan, priceId });
+
+    // Check/create user in Firestore
+    let stripeCustomerId;
+    try {
+      const userRef = db.collection('users').doc(userId);
+      const userSnap = await userRef.get();
+      
+      if (userSnap.exists) {
+        stripeCustomerId = userSnap.data().stripeCustomerId;
+        console.log('User exists in Firestore, customerId:', stripeCustomerId || 'none');
+      } else {
+        console.log('Creating new user in Firestore');
+        await userRef.set({
+          email: userEmail,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (firestoreError) {
+      console.error('Firestore error (non-fatal):', firestoreError);
+      // Continue without customer ID
     }
 
-    // 3) Créer ou récupérer le customer Stripe
-    const userRef = db.collection('users').doc(userId);
-    const userSnap = await userRef.get();
-    const userData = userSnap.exists ? userSnap.data() : {};
-    
-    let stripeCustomerId = userData.stripeCustomerId;
-    
-    // Si pas de customer, on le créera via Checkout
-    if (!stripeCustomerId) {
-      console.log('No existing Stripe customer, will be created by Checkout');
-    }
-
-    // 4) Créer la session Checkout avec le userId dans les metadata
+    // Create Stripe checkout session
+    console.log('Creating Stripe checkout session...');
     const sessionConfig = {
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      client_reference_id: userId, // IMPORTANT: Le userId Firebase
+      line_items: [{ 
+        price: priceId, 
+        quantity: 1 
+      }],
+      client_reference_id: userId,
       allow_promotion_codes: true,
-      
-      // Essai gratuit 7 jours
       subscription_data: {
         trial_period_days: 7,
         metadata: {
-          userId: userId, // IMPORTANT: Aussi dans les metadata de la subscription
+          userId: userId,
           plan: plan,
           app: 'financequest-pwa'
         },
       },
-
       success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/premium`,
-      
-      // Metadata de la session elle-même
       metadata: {
         userId: userId,
         plan: plan
       }
     };
 
-    // Si on a déjà un customer, on le réutilise
     if (stripeCustomerId) {
       sessionConfig.customer = stripeCustomerId;
-      console.log('Using existing Stripe customer:', stripeCustomerId);
-    } else {
-      // Sinon on demande à Stripe de créer un nouveau customer avec l'email
-      sessionConfig.customer_email = userEmail || undefined;
-      console.log('Creating new Stripe customer with email:', userEmail);
+    } else if (userEmail) {
+      sessionConfig.customer_email = userEmail;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
+    console.log('Checkout session created:', session.id);
 
-    console.log('Checkout session created:', {
+    return res.status(200).json({ 
       sessionId: session.id,
-      userId: userId,
-      customerId: stripeCustomerId || 'will be created',
-      plan: plan
+      success: true
     });
-
-    return res.status(200).json({ sessionId: session.id });
     
-  } catch (err) {
-    console.error('create-checkout-session error:', err);
+  } catch (error) {
+    console.error('=== ERROR CAUGHT ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     
-    if (err.code === 'auth/id-token-expired') {
-      return res.status(401).json({ error: 'Token expired' });
+    // Determiner le type d'erreur pour un meilleur message
+    if (error.message && error.message.includes('STRIPE_SECRET_KEY')) {
+      return res.status(503).json({ 
+        error: 'Payment system not configured',
+        code: 'STRIPE_NOT_CONFIGURED'
+      });
     }
     
-    if (err.code === 'auth/argument-error') {
-      return res.status(401).json({ error: 'Invalid token' });
+    if (error.message && error.message.includes('service account')) {
+      return res.status(503).json({ 
+        error: 'Authentication system misconfigured',
+        code: 'FIREBASE_CONFIG_ERROR'
+      });
     }
     
-    return res.status(500).json({ error: 'Failed to create session' });
+    if (error.type === 'StripeInvalidRequestError') {
+      return res.status(400).json({ 
+        error: 'Invalid payment configuration',
+        code: 'STRIPE_CONFIG_ERROR',
+        details: error.message
+      });
+    }
+    
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }
