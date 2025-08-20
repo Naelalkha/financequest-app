@@ -1,10 +1,9 @@
 // /api/webhook.js
-// Version finale corrigée - FieldValue correct
+// Version corrigée avec currentPeriodEnd toujours sauvegardé
 
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
-// IMPORTANT: Désactiver le body parser de Vercel
 export const config = {
   api: {
     bodyParser: false,
@@ -66,13 +65,69 @@ function initAdmin() {
   return { db };
 }
 
-// Buffer helper pour lire le raw body
 async function buffer(readable) {
   const chunks = [];
   for await (const chunk of readable) {
     chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks);
+}
+
+// Fonction helper pour sauvegarder les données d'abonnement
+async function updateSubscriptionData(userId, subscription) {
+  if (!userId || !subscription) return;
+  
+  const { db } = initAdmin();
+  
+  // Déterminer le statut exact
+  let premiumStatus = subscription.status;
+  let isPremium = false;
+  
+  if (subscription.status === 'canceled') {
+    // Abonnement complètement terminé
+    isPremium = false;
+    premiumStatus = 'canceled';
+  } else if (subscription.cancel_at_period_end) {
+    // Abonnement annulé mais encore actif jusqu'à la fin
+    isPremium = true;
+    premiumStatus = 'canceling';
+  } else if (['trialing', 'active'].includes(subscription.status)) {
+    // Abonnement actif normal
+    isPremium = true;
+    premiumStatus = subscription.status;
+  }
+  
+  const updateData = {
+    isPremium: isPremium,
+    premiumStatus: premiumStatus,
+    stripeSubscriptionId: subscription.id,
+    stripeCustomerId: subscription.customer,
+    // TOUJOURS sauvegarder currentPeriodEnd
+    currentPeriodEnd: subscription.current_period_end 
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : null,
+    // Sauvegarder aussi trial_end si en période d'essai
+    trialEnd: subscription.trial_end 
+      ? new Date(subscription.trial_end * 1000).toISOString()
+      : null,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+    canceledAt: subscription.canceled_at 
+      ? new Date(subscription.canceled_at * 1000).toISOString()
+      : null,
+    lastWebhookUpdate: new Date().toISOString(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+  
+  console.log('💾 Updating subscription data:', {
+    userId,
+    isPremium,
+    premiumStatus,
+    currentPeriodEnd: updateData.currentPeriodEnd
+  });
+  
+  await db.collection('users').doc(userId).set(updateData, { merge: true });
+  
+  console.log('✅ Subscription data updated successfully');
 }
 
 export default async function handler(req, res) {
@@ -100,24 +155,14 @@ export default async function handler(req, res) {
   try {
     const rawBody = await buffer(req);
     const bodyString = rawBody.toString('utf8');
-    
-    console.log('📝 Raw body length:', rawBody.length);
-    console.log('🔐 Signature present:', !!sig);
-    console.log('🔑 Secret starts with:', webhookSecret.substring(0, 10));
-    
     event = stripe.webhooks.constructEvent(bodyString, sig, webhookSecret);
     console.log('✅ Signature verified! Event:', event.type);
-    
   } catch (err) {
     console.error('❌ Webhook error:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Initialize Firebase
-  const { db } = initAdmin();
-
   console.log('📦 Processing event:', event.type);
-  console.log('Event ID:', event.id);
 
   try {
     switch (event.type) {
@@ -130,8 +175,7 @@ export default async function handler(req, res) {
           customer: session.customer,
           subscription: session.subscription,
           client_reference_id: session.client_reference_id,
-          payment_status: session.payment_status,
-          status: session.status
+          payment_status: session.payment_status
         });
         
         const userId = session.client_reference_id || session.metadata?.userId;
@@ -141,41 +185,12 @@ export default async function handler(req, res) {
           return res.status(200).send('No userId');
         }
         
-        console.log('👤 UserId:', userId);
-        
         if (session.subscription) {
           console.log('📊 Fetching subscription details...');
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
           
-          console.log('Subscription status:', subscription.status);
-          
-          // IMPORTANT: isPremium = true pour "trialing" ET "active"
-          const isPremium = ['trialing', 'active'].includes(subscription.status);
-          
-          const updateData = {
-            isPremium: isPremium,
-            premiumStatus: subscription.status,
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer,
-            currentPeriodEnd: subscription.current_period_end 
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : null,
-            lastWebhookUpdate: new Date().toISOString(),
-            // CORRECTION ICI : admin.firestore.FieldValue au lieu de admin.FieldValue
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          };
-          
-          console.log('💾 Updating user with:', {
-            ...updateData,
-            updatedAt: 'serverTimestamp'
-          });
-          
-          await db.collection('users').doc(userId).set(updateData, { merge: true });
-          
-          console.log('✅ User updated successfully!');
-          console.log(`✨ isPremium set to: ${isPremium} (status: ${subscription.status})`);
-        } else {
-          console.log('⚠️ No subscription in session');
+          // Utiliser la fonction helper qui sauvegarde toujours currentPeriodEnd
+          await updateSubscriptionData(userId, subscription);
         }
         
         break;
@@ -189,25 +204,14 @@ export default async function handler(req, res) {
         console.log('📊 Subscription event:', {
           type: event.type,
           status: subscription.status,
-          userId: userId
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          current_period_end: subscription.current_period_end
         });
         
         if (userId) {
-          const isPremium = ['trialing', 'active'].includes(subscription.status);
-          
-          await db.collection('users').doc(userId).set({
-            isPremium: isPremium,
-            premiumStatus: subscription.status,
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer,
-            currentPeriodEnd: subscription.current_period_end 
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : null,
-            // CORRECTION ICI AUSSI
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-          
-          console.log(`✅ User ${userId} updated: isPremium=${isPremium}`);
+          await updateSubscriptionData(userId, subscription);
+        } else {
+          console.log('⚠️ No userId in subscription metadata');
         }
         
         break;
@@ -217,17 +221,31 @@ export default async function handler(req, res) {
         const subscription = event.data.object;
         const userId = subscription.metadata?.userId;
         
-        console.log('❌ Subscription canceled for user:', userId);
+        console.log('❌ Subscription deleted for user:', userId);
         
         if (userId) {
+          const { db } = initAdmin();
+          
+          // Quand l'abonnement est supprimé, on garde l'info de quand ça s'est terminé
           await db.collection('users').doc(userId).set({
             isPremium: false,
             premiumStatus: 'canceled',
-            // CORRECTION ICI AUSSI
+            currentPeriodEnd: subscription.current_period_end 
+              ? new Date(subscription.current_period_end * 1000).toISOString()
+              : new Date().toISOString(), // Si pas de date, c'est terminé maintenant
+            canceledAt: new Date().toISOString(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
         }
         
+        break;
+      }
+      
+      // Événement quand l'essai va se terminer (optionnel)
+      case 'customer.subscription.trial_will_end': {
+        const subscription = event.data.object;
+        console.log('⏰ Trial will end soon for subscription:', subscription.id);
+        // Tu peux envoyer un email de rappel ici
         break;
       }
       
@@ -239,7 +257,6 @@ export default async function handler(req, res) {
     
   } catch (err) {
     console.error('❌ Processing error:', err);
-    console.error('Stack:', err.stack);
     return res.status(500).send('Processing error');
   }
 }

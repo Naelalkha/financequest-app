@@ -354,13 +354,23 @@
       "preferences_title": "Preferences",
       "subscription_title": "Premium subscription",
       "current_plan": "Current plan",
+      "premium": "Premium",
       "monthly_premium": "Monthly Premium",
       "next_billing": "Next billing",
-      "manage_subscription": "Manage subscription"
-      ,
+      "manage_subscription": "Manage subscription",
+      "reactivate_subscription": "Reactivate subscription",
+      "trial_ends": "Trial ends",
+      "access_until": "Access until",
+      "subscription_canceled_info": "Your subscription has been canceled. You retain Premium access until the end of the paid period.",
       "go_premium": "Go Premium",
       "language_sub": "Interface and content",
       "country_sub": "Country-specific quests"
+    },
+    
+    "subscription": {
+      "trial": "Trial",
+      "active": "Active",
+      "canceled": "Canceled"
     },
     
     "premium": {
@@ -1039,13 +1049,23 @@
       "preferences_title": "Préférences",
       "subscription_title": "Abonnement Premium",
       "current_plan": "Plan actuel",
+      "premium": "Premium",
       "monthly_premium": "Premium Mensuel",
       "next_billing": "Prochaine facturation",
-      "manage_subscription": "Gérer l'abonnement"
-      ,
+      "manage_subscription": "Gérer l'abonnement",
+      "reactivate_subscription": "Réactiver l'abonnement",
+      "trial_ends": "Fin de l'essai",
+      "access_until": "Accès jusqu'au",
+      "subscription_canceled_info": "Votre abonnement a été annulé. Vous conservez l'accès Premium jusqu'à la fin de la période payée.",
       "go_premium": "Passer Premium",
       "language_sub": "Interface et contenu",
       "country_sub": "Quêtes spécifiques"
+    },
+    
+    "subscription": {
+      "trial": "Essai",
+      "active": "Actif",
+      "canceled": "Annulé"
     },
     
     "premium": {

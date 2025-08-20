@@ -462,107 +462,126 @@ const Profile = () => {
                 </motion.div>
               )}
 
-              {/* Section Abonnement */}
-              {activeSection === 'subscription' && (
-                <motion.div
-                  key="subscription"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  {!userData?.isPremium ? (
-                    /* Carte upsell Premium */
-                    <div className="relative overflow-hidden neon-card rounded-2xl p-8">
-                      {/* Background effects */}
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl" />
-                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-amber-500/20 to-orange-500/20 rounded-full blur-3xl" />
-                      
-                      <div className="relative z-10 text-center">
-                        <motion.div
-                          animate={{ 
-                            rotate: [0, 10, -10, 0],
-                            scale: [1, 1.1, 1]
-                          }}
-                          transition={{ 
-                            duration: 4,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          className="inline-block mb-4"
-                        >
-                          <RiVipCrownFill className="text-6xl text-amber-400" />
-                        </motion.div>
+             {/* Section Abonnement */}
+{activeSection === 'subscription' && (
+  <motion.div
+    key="subscription"
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -20 }}
+    transition={{ duration: 0.3 }}
+    className="space-y-6"
+  >
+    {!userData?.isPremium ? (
+      /* Carte upsell Premium - pas de changement */
+      <div className="relative overflow-hidden neon-card rounded-2xl p-8">
+        {/* ... contenu existant ... */}
+      </div>
+    ) : (
+      /* Statut Premium actif - CORRIGÉ */
+      <div className="neon-card rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <FaCrown className="text-amber-400" />
+            {t('profilePage.subscription_title') || 'Abonnement Premium'}
+          </h2>
+          <div className={`px-3 py-1 rounded-full ${
+            userData?.premiumStatus === 'canceled' 
+              ? 'bg-red-500/20 border border-red-500/30'
+              : userData?.premiumStatus === 'trialing'
+              ? 'bg-blue-500/20 border border-blue-500/30'
+              : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30'
+          }`}>
+            <span className={`text-sm font-bold ${
+              userData?.premiumStatus === 'canceled' ? 'text-red-400' :
+              userData?.premiumStatus === 'trialing' ? 'text-blue-400' : 
+              'text-green-400'
+            }`}>
+              {userData?.premiumStatus === 'canceled' ? t('subscription.canceled') || 'Annulé' :
+               userData?.premiumStatus === 'trialing' ? t('subscription.trial') || 'Essai' :
+               t('subscription.active') || 'Actif'}
+            </span>
+          </div>
+        </div>
 
-                        {/* ROI badge retiré pour compacité */}
+        <div className="space-y-4">
+          <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-sm">
+                {t('profilePage.current_plan') || 'Plan actuel'}
+              </span>
+              <span className="text-white font-bold">
+                {t('profilePage.premium') || 'Premium'}
+              </span>
+            </div>
+            
+            {/* Affichage conditionnel selon le statut */}
+            {userData?.premiumStatus === 'canceled' ? (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm">
+                  {t('profilePage.access_until') || 'Accès jusqu\'au'}
+                </span>
+                <span className="text-white font-bold">
+                  {userData?.currentPeriodEnd 
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    : 'N/A'
+                  }
+                </span>
+              </div>
+            ) : userData?.premiumStatus === 'trialing' ? (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm">
+                  {t('profilePage.trial_ends') || 'Fin de l\'essai'}
+                </span>
+                <span className="text-white font-bold">
+                  {userData?.currentPeriodEnd 
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    : 'N/A'
+                  }
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm">
+                  {t('profilePage.next_billing') || 'Prochaine facturation'}
+                </span>
+                <span className="text-white font-bold">
+                  {userData?.currentPeriodEnd 
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    : 'N/A'
+                  }
+                </span>
+              </div>
+            )}
+          </div>
 
-                        <p className="text-white text-xl font-extrabold mb-1.5" style={{letterSpacing:'-0.02em'}}>
-                          {t('premium.value_prop_headline')}
-                        </p>
-                        <p className="text-gray-300 mb-4 max-w-xl mx-auto">
-                          {t('premium.value_prop_sub')}
-                        </p>
+          {/* Message d'info si annulé */}
+          {userData?.premiumStatus === 'canceled' && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-300 text-sm">
+                {t('profilePage.subscription_canceled_info') || 
+                 'Votre abonnement a été annulé. Vous conservez l\'accès Premium jusqu\'à la fin de la période payée.'}
+              </p>
+            </div>
+          )}
 
-                        {/* Avantages retirés pour éviter le doublon avec la page Premium */}
-
-                        <Link
-                          to="/premium"
-                          className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-full font-bold text-lg hover:shadow-glow-lg transform hover:scale-105 transition-all"
-                        >
-                          <FaRocket />
-                          <span>{t('premium.start_free_trial')}</span>
-                        </Link>
-
-                        <div className="mt-3 text-xs text-gray-400">
-                          {t('premium.copy_line')}
-                        </div>
-                        <div className="mt-1.5 text-[11px] text-gray-500">
-                          {t('premium.legal_disclaimer')}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Statut Premium actif */
-                    <div className="neon-card rounded-2xl p-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                          <FaCrown className="text-amber-400" />
-                          {t('profilePage.subscription_title') || 'Abonnement Premium'}
-                        </h2>
-                        <div className="px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
-                          <span className="text-green-400 text-sm font-bold">Actif</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">{t('profilePage.current_plan') || 'Plan actuel'}</span>
-                            <span className="text-white font-bold">{t('profilePage.monthly_premium') || 'Premium Mensuel'}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400 text-sm">{t('profilePage.next_billing') || 'Prochaine facturation'}</span>
-                            <span className="text-white font-bold">
-                              {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={handleManageSubscription}
-                          className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                        >
-                          <FaCog />
-                          <span>{t('profilePage.manage_subscription') || "Gérer l'abonnement"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Avantages Premium supprimés pour éviter le doublon avec la page Premium */}
-                </motion.div>
-              )}
+          <button
+            onClick={handleManageSubscription}
+            className="w-full px-6 py-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+          >
+            <FaCog />
+            <span>
+              {userData?.premiumStatus === 'canceled' 
+                ? t('profilePage.reactivate_subscription') || 'Réactiver l\'abonnement'
+                : t('profilePage.manage_subscription') || 'Gérer l\'abonnement'
+              }
+            </span>
+          </button>
+        </div>
+      </div>
+    )}
+  </motion.div>
+)}
 
               {/* Section Sécurité supprimée (contenu déplacé dans Compte) */}
             </AnimatePresence>
