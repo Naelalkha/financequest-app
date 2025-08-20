@@ -655,36 +655,61 @@ const Profile = () => {
                 Annuler
               </button>
               <button
-                onClick={async () => {
-                  try {
-                    setDeleteSending(true);
-                    const currentUser = auth.currentUser;
-                    if (!currentUser) throw new Error('Utilisateur non connecté');
-                    // Réauthentification
-                    const providerId = user?.providerData?.[0]?.providerId;
-                    if (providerId === 'password') {
-                      const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
-                      await reauthenticateWithCredential(currentUser, cred);
-                    } else if (providerId === 'google.com') {
-                      await reauthenticateWithPopup(currentUser, new GoogleAuthProvider());
-                    }
-                    // Supprimer doc Firestore puis compte
-                    await deleteDoc(doc(db, 'users', currentUser.uid));
-                    await deleteUser(currentUser);
-                    toast.success('Compte supprimé');
-                    setShowDeleteModal(false);
-                  } catch (e) {
-                    console.error(e);
-                    toast.error("Échec de la suppression. Vérifiez votre identité.");
-                  } finally {
-                    setDeleteSending(false);
-                  }
-                }}
-                disabled={deleteSending || (user?.providerData?.[0]?.providerId === 'password' && !deletePassword)}
-                className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold disabled:opacity-50"
-              >
-                {deleteSending ? 'Suppression…' : 'Supprimer définitivement'}
-              </button>
+  onClick={async () => {
+    try {
+      setDeleteSending(true);
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error('Utilisateur non connecté');
+      
+      // Réauthentification
+      const providerId = user?.providerData?.[0]?.providerId;
+      if (providerId === 'password') {
+        const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
+        await reauthenticateWithCredential(currentUser, cred);
+      } else if (providerId === 'google.com') {
+        await reauthenticateWithPopup(currentUser, new GoogleAuthProvider());
+      }
+      
+      // IMPORTANT: Supprimer d'abord le document Firestore AVANT le compte Auth
+      try {
+        await deleteDoc(doc(db, 'users', currentUser.uid));
+        console.log('Document Firestore supprimé');
+      } catch (firestoreError) {
+        console.error('Erreur suppression Firestore:', firestoreError);
+        // Continuer même si la suppression Firestore échoue
+      }
+      
+      // PUIS supprimer le compte Auth
+      await deleteUser(currentUser);
+      console.log('Compte Auth supprimé');
+      
+      toast.success('Compte supprimé avec succès');
+      
+      // Rediriger après suppression
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+      
+    } catch (e) {
+      console.error('Erreur suppression compte:', e);
+      
+      if (e.code === 'auth/wrong-password') {
+        toast.error('Mot de passe incorrect');
+      } else if (e.code === 'auth/requires-recent-login') {
+        toast.error('Veuillez vous reconnecter avant de supprimer votre compte');
+      } else {
+        toast.error('Échec de la suppression. Vérifiez votre identité.');
+      }
+    } finally {
+      setDeleteSending(false);
+      setShowDeleteModal(false);
+    }
+  }}
+  disabled={deleteSending || (user?.providerData?.[0]?.providerId === 'password' && !deletePassword)}
+  className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold disabled:opacity-50"
+>
+  {deleteSending ? 'Suppression…' : 'Supprimer définitivement'}
+</button>
             </div>
           </div>
         </div>

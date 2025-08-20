@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Create or update user document in Firestore
   const createUserDocument = async (uid, email, additionalData = {}) => {
     const userRef = doc(db, 'users', uid);
     
@@ -36,8 +35,8 @@ export const AuthProvider = ({ children }) => {
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
-        // Create new user document
-        await setDoc(userRef, {
+        // Create new user document SANS les champs protégés
+        const newUserData = {
           uid,
           email,
           createdAt: serverTimestamp(),
@@ -48,21 +47,39 @@ export const AuthProvider = ({ children }) => {
           badges: [],
           totalQuests: 0,
           completedQuests: 0,
-          isPremium: false,
+          // NE PAS inclure : isPremium, premiumStatus, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd
           lang: 'en',
-          country: 'fr-FR', // Default country
+          country: 'fr-FR',
           ...additionalData
-        });
+        };
+        
+        // Retirer les champs protégés s'ils sont dans additionalData
+        delete newUserData.isPremium;
+        delete newUserData.premiumStatus;
+        delete newUserData.stripeCustomerId;
+        delete newUserData.stripeSubscriptionId;
+        delete newUserData.currentPeriodEnd;
+        
+        console.log('Creating user document with data:', newUserData);
+        await setDoc(userRef, newUserData);
+        
+        // Retourner avec les valeurs par défaut pour l'affichage
+        return {
+          ...newUserData,
+          isPremium: false // Valeur par défaut pour l'UI seulement
+        };
       } else {
         // Update last login
         await setDoc(userRef, {
           lastLogin: serverTimestamp()
         }, { merge: true });
+        
+        const updatedSnap = await getDoc(userRef);
+        return {
+          ...updatedSnap.data(),
+          isPremium: updatedSnap.data()?.isPremium || false
+        };
       }
-      
-      // Fetch and return the user data
-      const updatedSnap = await getDoc(userRef);
-      return updatedSnap.data();
     } catch (error) {
       console.error('Error creating/updating user document:', error);
       throw error;

@@ -5,22 +5,14 @@ service cloud.firestore {
     // HELPER FUNCTIONS
     // ==========================================
     
-    // Vérifie si l'utilisateur est connecté
     function isSignedIn() { 
       return request.auth != null; 
     }
     
-    // Vérifie si l'utilisateur est le propriétaire du document
     function isOwner(uid) { 
       return isSignedIn() && request.auth.uid == uid; 
     }
     
-    // Vérifie si c'est une requête serveur (admin SDK)
-    function isServer() {
-      return false; // Les requêtes admin passent toujours les règles
-    }
-    
-    // Liste des champs protégés (modifiables uniquement côté serveur)
     function protectedFields() {
       return [
         'isPremium',
@@ -38,14 +30,12 @@ service cloud.firestore {
       ];
     }
     
-    // Vérifie qu'aucun champ protégé n'est modifié
     function noProtectedFieldsChanged() {
       return !request.resource.data.diff(resource.data)
         .changedKeys()
         .hasAny(protectedFields());
     }
     
-    // Vérifie qu'aucun champ protégé n'est créé
     function noProtectedFieldsInCreate() {
       return !request.resource.data.keys().hasAny(protectedFields());
     }
@@ -54,41 +44,40 @@ service cloud.firestore {
     // USERS COLLECTION
     // ==========================================
     match /users/{userId} {
-      // Lecture : seulement son propre profil
+      // Lecture : son propre profil
       allow read: if isOwner(userId);
       
-      // Création : autorisée sans champs protégés
+      // Création : SIMPLIFIÉE - retirer l'exigence de createdAt
       allow create: if isOwner(userId) 
-        && noProtectedFieldsInCreate()
-        && request.resource.data.keys().hasAll(['createdAt']); // Champ obligatoire
+        && noProtectedFieldsInCreate();
       
-      // Mise à jour : autorisée sans modifier les champs protégés
+      // Mise à jour : sans modifier les champs protégés
       allow update: if isOwner(userId) 
         && noProtectedFieldsChanged();
       
-      // Suppression : interdite côté client
-      allow delete: if false;
+      // Suppression : pour son propre compte
+      allow delete: if isOwner(userId);
     }
     
     // ==========================================
     // USER QUESTS (Progression des quêtes)
     // ==========================================
     match /userQuests/{questId} {
-      // Lecture : seulement ses propres progressions
+      // Lecture : CORRIGÉE - permettre la lecture si connecté et propriétaire
       allow read: if isSignedIn() 
-        && resource.data.userId == request.auth.uid;
+        && (resource == null || resource.data.userId == request.auth.uid);
       
-      // Création : seulement pour soi-même
+      // Création : pour soi-même avec champs requis
       allow create: if isSignedIn() 
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId', 'questId', 'startedAt']);
       
-      // Mise à jour : seulement ses propres progressions
+      // Mise à jour : ses propres progressions
       allow update: if isSignedIn() 
         && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid; // Empêche de changer userId
+        && request.resource.data.userId == request.auth.uid;
       
-      // Suppression : autorisée pour ses propres progressions
+      // Suppression : ses propres progressions
       allow delete: if isSignedIn() 
         && resource.data.userId == request.auth.uid;
     }
@@ -97,132 +86,101 @@ service cloud.firestore {
     // QUESTS (Contenu pédagogique)
     // ==========================================
     match /quests/{questId} {
-      // Lecture : publique (tout le monde peut voir les quêtes)
       allow read: if true;
-      
-      // Écriture : interdite côté client (gestion admin uniquement)
       allow write: if false;
     }
     
     // ==========================================
-    // STRIPE CUSTOMERS (Mapping Stripe)
+    // STRIPE CUSTOMERS
     // ==========================================
     match /stripe_customers/{customerId} {
-      // Tout interdit côté client (serveur uniquement)
       allow read: if false;
       allow write: if false;
     }
     
     // ==========================================
-    // CATEGORIES (Si tu en as)
+    // CATEGORIES
     // ==========================================
     match /categories/{categoryId} {
-      // Lecture : publique
       allow read: if true;
-      
-      // Écriture : interdite côté client
       allow write: if false;
     }
     
     // ==========================================
-    // USER STATS (Statistiques agrégées)
+    // USER STATS
     // ==========================================
     match /userStats/{userId} {
-      // Lecture : seulement ses propres stats
+      // Lecture : CORRIGÉE - permettre même si le document n'existe pas
       allow read: if isOwner(userId);
       
-      // Création : autorisée pour soi-même
+      // Création : pour soi-même
       allow create: if isOwner(userId)
         && request.resource.data.userId == request.auth.uid;
       
-      // Mise à jour : limitée aux champs autorisés
+      // Mise à jour : limitée
       allow update: if isOwner(userId)
-        && request.resource.data.userId == resource.data.userId // Empêche de changer userId
+        && request.resource.data.userId == resource.data.userId
         && !request.resource.data.diff(resource.data)
           .changedKeys()
-          .hasAny(['totalXP', 'level']); // Ces champs sont calculés côté serveur
+          .hasAny(['totalXP', 'level']);
       
-      // Suppression : interdite
-      allow delete: if false;
+      // Suppression : pour son propre document
+      allow delete: if isOwner(userId);
     }
     
     // ==========================================
-    // FEEDBACK (Si tu veux permettre du feedback)
-    // ==========================================
-    match /feedback/{feedbackId} {
-      // Lecture : interdite (privé)
-      allow read: if false;
-      
-      // Création : autorisée pour les utilisateurs connectés
-      allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId', 'message', 'createdAt']);
-      
-      // Mise à jour/Suppression : interdites
-      allow update: if false;
-      allow delete: if false;
-    }
-    
-    // ==========================================
-    // DAILY CHALLENGES (Nouvelle collection)
+    // DAILY CHALLENGES
     // ==========================================
     match /dailyChallenges/{challengeId} {
-      // Lecture : seulement ses propres défis
+      // Lecture : CORRIGÉE - permettre même si le document n'existe pas
       allow read: if isSignedIn() 
-        && resource.data.userId == request.auth.uid;
+        && (resource == null || resource.data.userId == request.auth.uid);
       
-      // Création : seulement pour soi-même
+      // Création : pour soi-même
       allow create: if isSignedIn() 
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId', 'questId', 'createdAt', 'startedAt']);
       
-      // Mise à jour : seulement ses propres défis
+      // Mise à jour : ses propres défis
       allow update: if isSignedIn() 
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == request.auth.uid;
       
-      // Suppression : autorisée pour ses propres défis
+      // Suppression : ses propres défis
       allow delete: if isSignedIn() 
         && resource.data.userId == request.auth.uid;
     }
     
     // ==========================================
-    // STREAK INCIDENTS (Protection des streaks)
+    // FEEDBACK
     // ==========================================
-    match /streakIncidents/{incidentId} {
-      // Lecture : seulement ses propres incidents
-      allow read: if isSignedIn() 
-        && resource.data.userId == request.auth.uid;
+    match /feedback/{feedbackId} {
+      allow read: if false;
       
-      // Création : seulement pour soi-même
-      allow create: if isSignedIn() 
+      allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId', 'timestamp']);
+        && request.resource.data.keys().hasAll(['userId', 'message', 'createdAt']);
       
-      // Mise à jour/Suppression : interdites
       allow update: if false;
       allow delete: if false;
     }
     
     // ==========================================
-    // ACHIEVEMENT SHARES (Partages d'achievements)
+    // ACHIEVEMENT SHARES
     // ==========================================
     match /achievement_shares/{shareId} {
-      // Lecture : publique (pour les liens de partage)
       allow read: if true;
       
-      // Création : autorisée pour les utilisateurs connectés
       allow create: if isSignedIn() 
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId', 'questId', 'timestamp']);
       
-      // Mise à jour/Suppression : interdites
       allow update: if false;
       allow delete: if false;
     }
     
     // ==========================================
-    // CATCH-ALL : Tout le reste est interdit
+    // CATCH-ALL
     // ==========================================
     match /{document=**} {
       allow read: if false;
