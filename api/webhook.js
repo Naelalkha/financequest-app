@@ -73,28 +73,56 @@ async function buffer(readable) {
   return Buffer.concat(chunks);
 }
 
-// Fonction helper pour sauvegarder les données d'abonnement
 async function updateSubscriptionData(userId, subscription) {
   if (!userId || !subscription) return;
   
   const { db } = initAdmin();
   
-  // Déterminer le statut exact
+  // Déterminer le statut exact avec plus de précision
   let premiumStatus = subscription.status;
   let isPremium = false;
   
-  if (subscription.status === 'canceled') {
-    // Abonnement complètement terminé
-    isPremium = false;
-    premiumStatus = 'canceled';
-  } else if (subscription.cancel_at_period_end) {
-    // Abonnement annulé mais encore actif jusqu'à la fin
-    isPremium = true;
-    premiumStatus = 'canceling';
-  } else if (['trialing', 'active'].includes(subscription.status)) {
-    // Abonnement actif normal
-    isPremium = true;
-    premiumStatus = subscription.status;
+  switch(subscription.status) {
+    case 'active':
+      isPremium = true;
+      premiumStatus = 'active';
+      break;
+    case 'trialing':
+      isPremium = true;
+      premiumStatus = 'trialing';
+      break;
+    case 'past_due':
+      isPremium = true; // Accès maintenu temporairement
+      premiumStatus = 'past_due';
+      break;
+    case 'incomplete':
+      isPremium = false;
+      premiumStatus = 'incomplete';
+      break;
+    case 'incomplete_expired':
+      isPremium = false;
+      premiumStatus = 'expired';
+      break;
+    case 'canceled':
+      isPremium = false;
+      premiumStatus = 'canceled';
+      break;
+    case 'unpaid':
+      isPremium = false;
+      premiumStatus = 'unpaid';
+      break;
+    default:
+      isPremium = false;
+      premiumStatus = subscription.status;
+  }
+  
+  // Si annulé mais toujours dans la période payée
+  if (subscription.cancel_at_period_end && subscription.current_period_end) {
+    const periodEnd = new Date(subscription.current_period_end * 1000);
+    if (periodEnd > new Date()) {
+      isPremium = true;
+      premiumStatus = 'canceling';
+    }
   }
   
   const updateData = {
@@ -102,17 +130,19 @@ async function updateSubscriptionData(userId, subscription) {
     premiumStatus: premiumStatus,
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: subscription.customer,
-    // TOUJOURS sauvegarder currentPeriodEnd
     currentPeriodEnd: subscription.current_period_end 
       ? new Date(subscription.current_period_end * 1000).toISOString()
       : null,
-    // Sauvegarder aussi trial_end si en période d'essai
     trialEnd: subscription.trial_end 
       ? new Date(subscription.trial_end * 1000).toISOString()
       : null,
     cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
     canceledAt: subscription.canceled_at 
       ? new Date(subscription.canceled_at * 1000).toISOString()
+      : null,
+    // Nouveau : sauver la prochaine tentative de paiement
+    nextPaymentAttempt: subscription.next_pending_invoice_item_invoice
+      ? new Date(subscription.next_pending_invoice_item_invoice * 1000).toISOString()
       : null,
     lastWebhookUpdate: new Date().toISOString(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -122,7 +152,8 @@ async function updateSubscriptionData(userId, subscription) {
     userId,
     isPremium,
     premiumStatus,
-    currentPeriodEnd: updateData.currentPeriodEnd
+    currentPeriodEnd: updateData.currentPeriodEnd,
+    trialEnd: updateData.trialEnd
   });
   
   await db.collection('users').doc(userId).set(updateData, { merge: true });
@@ -189,7 +220,6 @@ export default async function handler(req, res) {
           console.log('📊 Fetching subscription details...');
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
           
-          // Utiliser la fonction helper qui sauvegarde toujours currentPeriodEnd
           await updateSubscriptionData(userId, subscription);
         }
         
@@ -226,13 +256,12 @@ export default async function handler(req, res) {
         if (userId) {
           const { db } = initAdmin();
           
-          // Quand l'abonnement est supprimé, on garde l'info de quand ça s'est terminé
           await db.collection('users').doc(userId).set({
             isPremium: false,
             premiumStatus: 'canceled',
             currentPeriodEnd: subscription.current_period_end 
               ? new Date(subscription.current_period_end * 1000).toISOString()
-              : new Date().toISOString(), // Si pas de date, c'est terminé maintenant
+              : new Date().toISOString(),
             canceledAt: new Date().toISOString(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
@@ -241,11 +270,116 @@ export default async function handler(req, res) {
         break;
       }
       
-      // Événement quand l'essai va se terminer (optionnel)
       case 'customer.subscription.trial_will_end': {
         const subscription = event.data.object;
-        console.log('⏰ Trial will end soon for subscription:', subscription.id);
-        // Tu peux envoyer un email de rappel ici
+        const userId = subscription.metadata?.userId;
+        
+        console.log('⏰ Trial ending in 3 days for user:', userId);
+        
+        if (userId) {
+          const { db } = initAdmin();
+          
+          await db.collection('users').doc(userId).set({
+            trialEndingSoon: true,
+            trialEndReminder: new Date().toISOString(),
+            lastWebhookUpdate: new Date().toISOString(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          
+          console.log('📧 Should send trial ending reminder email');
+        }
+        
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        const subscriptionId = invoice.subscription;
+        
+        console.log('💰 Payment succeeded for subscription:', subscriptionId);
+        
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const userId = subscription.metadata?.userId;
+          
+          if (userId) {
+            // Utiliser updateSubscriptionData pour avoir toutes les infos à jour
+            await updateSubscriptionData(userId, subscription);
+            
+            // Ajouter info spécifique au paiement réussi
+            const { db } = initAdmin();
+            await db.collection('users').doc(userId).set({
+              lastPaymentDate: new Date().toISOString(),
+              lastPaymentAmount: invoice.amount_paid / 100, // Convertir de cents
+              lastInvoiceId: invoice.id
+            }, { merge: true });
+            
+            console.log('✅ Payment recorded for user');
+          }
+        }
+        
+        break;
+      }
+      
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        const subscriptionId = invoice.subscription;
+        
+        console.log('❌ Payment failed for subscription:', subscriptionId);
+        
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const userId = subscription.metadata?.userId;
+          
+          if (userId) {
+            const { db } = initAdmin();
+            
+            await db.collection('users').doc(userId).set({
+              isPremium: true, // Encore accès temporairement
+              premiumStatus: 'past_due',
+              lastPaymentFailure: new Date().toISOString(),
+              paymentFailureReason: invoice.last_payment_error?.message || 'Payment failed',
+              nextRetryAt: invoice.next_payment_attempt 
+                ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+                : null,
+              lastWebhookUpdate: new Date().toISOString(),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            console.log('⚠️ User marked as past_due after payment failure');
+          }
+        }
+        
+        break;
+      }
+      
+      case 'payment_method.attached': {
+        const paymentMethod = event.data.object;
+        const customerId = paymentMethod.customer;
+        
+        console.log('💳 Payment method attached to customer:', customerId);
+        
+        // Récupérer l'userId depuis le customerId stocké dans users
+        const { db } = initAdmin();
+        const usersSnapshot = await db.collection('users')
+          .where('stripeCustomerId', '==', customerId)
+          .limit(1)
+          .get();
+        
+        if (!usersSnapshot.empty) {
+          const userId = usersSnapshot.docs[0].id;
+          
+          await db.collection('users').doc(userId).set({
+            hasPaymentMethod: true,
+            lastPaymentMethodUpdate: new Date().toISOString(),
+            paymentMethodType: paymentMethod.type,
+            paymentMethodLast4: paymentMethod.card?.last4 || null,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          
+          console.log('✅ Payment method status updated for user');
+        }
+        
         break;
       }
       
