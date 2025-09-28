@@ -8,6 +8,7 @@ import QuestList from './components/pages/QuestList';
 import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
+import Onboarding from './components/pages/Onboarding';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
@@ -18,8 +19,9 @@ import LoadingSpinner from './components/app/LoadingSpinner';
 import AppBackground from './components/app/AppBackground';
 
 // Private route wrapper
-function PrivateRoute({ children }) {
+function PrivateRoute({ children, skipOnboarding = false }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   
   if (loading) return (
     <AppBackground variant="nebula" grain grid={false} animate>
@@ -29,7 +31,14 @@ function PrivateRoute({ children }) {
     </AppBackground>
   );
   
-  return user ? children : <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
+  
+  // Vérifier si l'onboarding est complété (sauf pour la route onboarding elle-même)
+  if (!skipOnboarding && user.onboardingCompleted === false && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" />;
+  }
+  
+  return children;
 }
 
 // Premium route wrapper - redirect to profile if user is premium
@@ -85,7 +94,7 @@ function AppContent() {
   }
 
   // Routes that don't show bottom nav
-  const noNavRoutes = ['/', '/login', '/register'];
+  const noNavRoutes = ['/', '/login', '/register', '/onboarding'];
   const showBottomNav = user && !noNavRoutes.includes(location.pathname);
 
   return (
@@ -124,6 +133,14 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route 
+            path="/onboarding" 
+            element={
+              <PrivateRoute skipOnboarding={true}>
+                <Onboarding />
+              </PrivateRoute>
+            } 
+          />
           <Route 
             path="/dashboard" 
             element={

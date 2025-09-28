@@ -70,12 +70,11 @@ const QuestSkeleton = () => {
   );
 };
 
-// Configuration des catégories avec style néon unifié
-const categoryConfig = {
+// Configuration des catégories avec style néon unifié (labels seront définis dans le composant)
+const baseCategoryConfig = {
   all: { 
     gradient: 'from-violet-400 via-purple-400 to-pink-400',
     neonGlow: 'shadow-[0_0_20px_rgba(167,139,250,0.3)]',
-    label: 'Toutes', 
     color: 'text-violet-300',
     bgColor: 'bg-violet-500/20',
     borderColor: 'border-violet-500/30',
@@ -84,7 +83,6 @@ const categoryConfig = {
   budgeting: { 
     gradient: 'from-cyan-400 via-sky-400 to-teal-400',
     neonGlow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]',
-    label: 'Budget', 
     color: 'text-cyan-300',
     bgColor: 'bg-cyan-500/20',
     borderColor: 'border-cyan-500/30',
@@ -93,7 +91,6 @@ const categoryConfig = {
   saving: { 
     gradient: 'from-green-400 via-lime-400 to-emerald-400',
     neonGlow: 'shadow-[0_0_20px_rgba(74,222,128,0.3)]',
-    label: 'Épargne', 
     color: 'text-green-300',
     bgColor: 'bg-green-500/20',
     borderColor: 'border-green-500/30',
@@ -102,7 +99,6 @@ const categoryConfig = {
   investing: { 
     gradient: 'from-blue-400 via-indigo-400 to-purple-400',
     neonGlow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]',
-    label: 'Investissement', 
     color: 'text-blue-300',
     bgColor: 'bg-blue-500/20',
     borderColor: 'border-blue-500/30',
@@ -111,7 +107,6 @@ const categoryConfig = {
   debt: { 
     gradient: 'from-red-400 via-rose-400 to-pink-400',
     neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
-    label: 'Dette', 
     color: 'text-red-300',
     bgColor: 'bg-red-500/20',
     borderColor: 'border-red-500/30',
@@ -120,7 +115,6 @@ const categoryConfig = {
   planning: { 
     gradient: 'from-amber-400 via-orange-400 to-red-400',
     neonGlow: 'shadow-[0_0_20px_rgba(251,146,60,0.3)]',
-    label: 'Planification', 
     color: 'text-amber-300',
     bgColor: 'bg-amber-500/20',
     borderColor: 'border-amber-500/30',
@@ -154,6 +148,34 @@ const QuestList = () => {
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
+  // Configuration des catégories avec labels traduits
+  const categoryConfig = useMemo(() => ({
+    all: { 
+      ...baseCategoryConfig.all,
+      label: t('questList.all') || 'Toutes'
+    },
+    budgeting: { 
+      ...baseCategoryConfig.budgeting,
+      label: t('questList.budgeting') || 'Budget'
+    },
+    saving: { 
+      ...baseCategoryConfig.saving,
+      label: t('questList.saving') || 'Épargne'
+    },
+    investing: { 
+      ...baseCategoryConfig.investing,
+      label: t('questList.investing') || 'Investissement'
+    },
+    debt: { 
+      ...baseCategoryConfig.debt,
+      label: t('questList.debt') || 'Dette'
+    },
+    planning: { 
+      ...baseCategoryConfig.planning,
+      label: t('questList.planning') || 'Planification'
+    }
+  }), [t]);
+
   // Use the local quests hook
   const { 
     quests, 
@@ -182,10 +204,10 @@ const QuestList = () => {
   }, [quests, userProgress]);
 
   // Tags rapides pour filtrage rapide (non redondants) - épuré
-  const quickTags = [
+  const quickTags = useMemo(() => [
     { 
       id: 'new', 
-      label: 'Nouveau',
+      label: t('questList.new') || 'Nouveau',
       icon: BsStars,
       color: 'text-cyan-300',
       bg: 'bg-cyan-500/20',
@@ -194,14 +216,14 @@ const QuestList = () => {
     },
     { 
       id: 'progress', 
-      label: 'En cours',
+      label: t('questList.in_progress') || 'En cours',
       icon: FaBolt,
       color: 'text-orange-300',
       bg: 'bg-orange-500/20',
       border: 'border-orange-500/30',
       filter: (q) => userProgress[q.id]?.status === 'active'
     }
-  ];
+  ], [t, userProgress]);
 
   useEffect(() => {
     if (!user) {
@@ -385,7 +407,7 @@ const QuestList = () => {
     e?.stopPropagation();
     
       if (!user) {
-        toast.info('🔒 Connectez-vous pour enregistrer');
+        toast.info(t('questList.login_to_save') || '🔒 Connectez-vous pour enregistrer');
       return;
     }
 
@@ -401,7 +423,7 @@ const QuestList = () => {
       });
       
       if (!bookmarkedQuests.includes(questId)) {
-        toast.success('✨ Saved!', {
+        toast.success(t('questList.saved') || '✨ Saved!', {
           position: "bottom-center",
           autoClose: 1500
         });
@@ -456,21 +478,21 @@ const QuestList = () => {
   // Configuration de difficulté avec meilleur contraste
   const difficultyConfig = {
     beginner: { 
-      label: 'Facile', 
+      label: t?.('questList.easy') || 'Facile', 
       color: 'text-emerald-300',
       bgStyle: 'bg-emerald-500/20 border border-emerald-500/30',
       textColor: 'text-emerald-300',
       gradient: 'from-emerald-400 to-green-400'
     },
     intermediate: { 
-      label: 'Moyen', 
+      label: t?.('questList.medium') || 'Moyen', 
       color: 'text-amber-300',
       bgStyle: 'bg-amber-500/20 border border-amber-500/30',
       textColor: 'text-amber-300',
       gradient: 'from-amber-400 to-orange-400'
     },
     advanced: { 
-      label: 'Difficile', 
+      label: t?.('questList.hard') || 'Difficile', 
       color: 'text-red-300',
       bgStyle: 'bg-red-500/20 border border-red-500/30',
       textColor: 'text-red-300',
@@ -524,14 +546,14 @@ const QuestList = () => {
                   }}
                 >
                   <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-                    Quêtes
+{t('questList.quests') || 'Quêtes'}
                   </span>
                   <span className="text-white ml-2">
-                    Financières
+{t('questList.financial') || 'Financières'}
                   </span>
                 </h1>
                 <p className="text-gray-400 text-sm sm:text-base mt-0.5">
-                  {filteredQuests.length} quêtes disponibles
+                  {t('questList.quests_available', { count: filteredQuests.length }) || `${filteredQuests.length} quêtes disponibles`}
                 </p>
               </motion.div>
 
@@ -558,7 +580,7 @@ const QuestList = () => {
                   {/* Niveau */}
                   <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
                     <FaTrophy className="text-purple-400 text-sm" />
-                    <span className="text-purple-300 font-bold text-sm">Niv. {userStats.level || 1}</span>
+                    <span className="text-purple-300 font-bold text-sm">{t('questList.level_short') || 'Niv.'} {userStats.level || 1}</span>
                   </div>
                 </motion.div>
               )}
@@ -603,11 +625,11 @@ const QuestList = () => {
                       <FaSearch className="text-gray-500 ml-4 text-sm" />
                       <input
                         type="text"
-                        placeholder="Rechercher une quête..."
+                        placeholder={t('questList.search_placeholder') || 'Rechercher une quête...'}
                         value={rawSearch}
                         onChange={(e) => setRawSearch(e.target.value)}
                         className="flex-1 bg-transparent text-white placeholder-gray-500 px-3 py-2.5 focus:outline-none text-sm"
-                        aria-label="Rechercher une quête"
+                        aria-label={t('questList.search_placeholder') || 'Rechercher une quête'}
                       />
                       {rawSearch && (
                         <button
@@ -629,7 +651,7 @@ const QuestList = () => {
                   aria-controls="advanced-filters"
                 >
                   <FaLayerGroup className="text-amber-400 text-sm" />
-                  <span className="text-white text-sm font-semibold">Trier</span>
+                  <span className="text-white text-sm font-semibold">{t('questList.sort') || 'Trier'}</span>
                   <motion.div
                     animate={{ rotate: showAdvancedFilters ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -716,16 +738,16 @@ const QuestList = () => {
                     {/* Difficulté */}
                     <div className="relative">
                       <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
-                        Difficulté
+                        {t('questList.difficulty') || 'Difficulté'}
                       </label>
                       <Select
                         value={filters.difficulty}
                         onChange={(val) => handleFilterChange('difficulty', val)}
                         options={[
-                          { value: 'all', label: 'Toutes' },
-                          { value: 'beginner', label: 'Facile', icon: <FaCircle className="text-emerald-400 text-[9px]" /> },
-                          { value: 'intermediate', label: 'Moyen', icon: <FaCircle className="text-amber-400 text-[9px]" /> },
-                          { value: 'advanced', label: 'Difficile', icon: <FaCircle className="text-red-400 text-[9px]" /> },
+                          { value: 'all', label: t('questList.all_difficulties') || 'Toutes' },
+                          { value: 'beginner', label: t('questList.easy') || 'Facile', icon: <FaCircle className="text-emerald-400 text-[9px]" /> },
+                          { value: 'intermediate', label: t('questList.medium') || 'Moyen', icon: <FaCircle className="text-amber-400 text-[9px]" /> },
+                          { value: 'advanced', label: t('questList.hard') || 'Difficile', icon: <FaCircle className="text-red-400 text-[9px]" /> },
                         ]}
                       />
                     </div>
@@ -733,16 +755,16 @@ const QuestList = () => {
                     {/* Tri */}
                     <div className="relative">
                       <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
-                        Trier par
+{t('questList.sort_by') || 'Trier par'}
                       </label>
                       <Select
                         value={filters.sortBy}
                         onChange={(val) => handleFilterChange('sortBy', val)}
                         options={[
-                          { value: 'hot', label: 'Tendance', icon: <FaFire className="text-orange-400 text-[12px]" /> },
-                          { value: 'new', label: 'Récent', icon: <BsStars className="text-cyan-300 text-[12px]" /> },
+                          { value: 'hot', label: t('questList.trending') || 'Tendance', icon: <FaFire className="text-orange-400 text-[12px]" /> },
+                          { value: 'new', label: t('questList.recent') || 'Récent', icon: <BsStars className="text-cyan-300 text-[12px]" /> },
                           { value: 'xp', label: 'XP Max', icon: <GiTwoCoins className="text-yellow-400 text-[12px]" /> },
-                          { value: 'quick', label: 'Rapide', icon: <FaBolt className="text-purple-300 text-[12px]" /> },
+                          { value: 'quick', label: t('questList.quick') || 'Rapide', icon: <FaBolt className="text-purple-300 text-[12px]" /> },
                         ]}
                       />
                     </div>
@@ -750,7 +772,7 @@ const QuestList = () => {
                     {/* Catégorie */}
                     <div className="relative">
                       <label className="text-[11px] font-medium text-gray-400 mb-1.5 block">
-                        Catégorie
+                        {t('questList.category') || 'Catégorie'}
                       </label>
                       <Select
                         value={filters.category}
@@ -775,7 +797,7 @@ const QuestList = () => {
                           className="w-full px-3 py-2.5 rounded-xl bg-gradient-to-b from-red-500/15 to-red-500/10 hover:from-red-500/20 hover:to-red-500/15 text-red-400 border border-red-500/20 text-sm font-semibold transition-all flex items-center justify-center gap-2"
                         >
                           <FaTimes className="text-xs" />
-                          <span>Réinitialiser</span>
+                          <span>{t('questList.reset') || 'Réinitialiser'}</span>
                         </motion.button>
                       )}
                     </div>
@@ -829,7 +851,7 @@ const QuestList = () => {
                      letterSpacing: '-0.01em'
                    }}
                  >
-                   AUCUNE QUÊTE
+                   {t('questList.no_quests') || 'AUCUNE QUÊTE'}
                  </h3>
                  <p 
                    className="text-gray-300 text-base sm:text-lg mb-6 max-w-md mx-auto leading-relaxed"
@@ -839,7 +861,7 @@ const QuestList = () => {
                      letterSpacing: '0.005em'
                    }}
                  >
-                  Essayez d'ajuster vos filtres ou explorez toutes nos quêtes disponibles
+                  {t('questList.adjust_filters') || 'Essayez d\'ajuster vos filtres ou explorez toutes nos quêtes disponibles'}
                 </p>
                                  <motion.button
                    whileHover={{ scale: 1.05 }}
@@ -852,7 +874,7 @@ const QuestList = () => {
                      letterSpacing: '0.05em'
                    }}
                  >
-                   Voir toutes les quêtes
+                   {t('questList.view_all_quests') || 'Voir toutes les quêtes'}
                  </motion.button>
               </motion.div>
              ) : (

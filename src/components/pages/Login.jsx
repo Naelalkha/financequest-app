@@ -71,9 +71,15 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
-      await loginWithGoogle();
+      const result = await loginWithGoogle();
       toast.success(t('auth.login_success') || 'Welcome back! 🎉');
-      navigate('/dashboard');
+      
+      // Si c'est un nouveau compte Google ou si l'onboarding n'est pas complété
+      if (result.isNewGoogleUser || !result.onboardingCompleted) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Google login error:', err);
       toast.error(t('auth.google_login_error') || 'Failed to login with Google');

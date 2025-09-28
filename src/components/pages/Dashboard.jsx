@@ -266,7 +266,7 @@ const QuestCard = ({ quest, userProgress, isPremium, onNavigate, hoveredQuest, s
                         style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800, letterSpacing: '0.05em' }}
                       >
                         <FaCheckCircle className="text-[12px]" />
-                        Terminé
+                        {t('dashboard.completed') || 'Terminé'}
                       </div>
                     </>
                   )}
@@ -386,22 +386,22 @@ const QuestCard = ({ quest, userProgress, isPremium, onNavigate, hoveredQuest, s
                 {isCompleted ? (
                   <>
                     <FaRedoAlt className="text-[14px]" />
-                    <span>Rejouer</span>
+                    <span>{t('dashboard.replay') || 'Rejouer'}</span>
                   </>
                 ) : isInProgress ? (
                   <>
                     <FaArrowRight className="text-[14px]" />
-                    <span>Continuer</span>
+                    <span>{t('dashboard.continue') || 'Continuer'}</span>
                   </>
                 ) : isLocked ? (
                   <>
                     <FaLock className="text-[14px]" />
-                    <span>Premium</span>
+                    <span>{t('dashboard.premium') || 'Premium'}</span>
                   </>
                 ) : (
                   <>
                     <FaPlay className="text-[14px]" />
-                    <span>Commencer</span>
+                    <span>{t('dashboard.start') || 'Commencer'}</span>
                   </>
                 )}
               </span>
@@ -578,7 +578,7 @@ const DashboardPage = () => {
         .filter(q => !disallowedIds.has(q.id));
       
       if (availableQuests.length === 0) {
-        toast.error('Aucune quête disponible non commencée pour générer un défi');
+        toast.error(t('dashboard.no_quest_available') || 'Aucune quête disponible non commencée pour générer un défi');
         return;
       }
       
@@ -631,10 +631,10 @@ const DashboardPage = () => {
       };
       await setDoc(challengeRef, payload);
       setDailyChallenge({ ...newChallenge, status: 'active', progress: 0, userId: user.uid, startedAt: new Date().toISOString(), completedAt: null });
-      toast.success(`Nouveau défi: ${newChallenge.questTitle}`);
+      toast.success(t('dashboard.new_challenge', { title: newChallenge.questTitle }) || `Nouveau défi: ${newChallenge.questTitle}`);
     } catch (error) {
       console.error('Error regenerating daily challenge:', error);
-      toast.error('Erreur lors de la régénération du défi');
+      toast.error(t('dashboard.regeneration_error') || 'Erreur lors de la régénération du défi');
     }
   };
 
@@ -770,16 +770,20 @@ const DashboardPage = () => {
   
   // Titre de niveau
   const getLevelTitle = () => {
-    if (userLevel >= 50) return { text: 'Maître Financier', emoji: '👑', color: 'text-purple-400' };
-    if (userLevel >= 25) return { text: 'Expert Confirmé', emoji: '💎', color: 'text-blue-400' };
-    if (userLevel >= 10) return { text: 'Apprenti Avancé', emoji: '⭐', color: 'text-yellow-400' };
-    if (userLevel >= 5) return { text: 'Novice Ambitieux', emoji: '🚀', color: 'text-green-400' };
-    return { text: 'Débutant Motivé', emoji: '🌱', color: 'text-gray-400' };
+    if (userLevel >= 50) return { text: t('dashboard.level_titles.financial_master') || 'Maître Financier', emoji: '👑', color: 'text-purple-400' };
+    if (userLevel >= 25) return { text: t('dashboard.level_titles.confirmed_expert') || 'Expert Confirmé', emoji: '💎', color: 'text-blue-400' };
+    if (userLevel >= 10) return { text: t('dashboard.level_titles.advanced_apprentice') || 'Apprenti Avancé', emoji: '⭐', color: 'text-yellow-400' };
+    if (userLevel >= 5) return { text: t('dashboard.level_titles.ambitious_novice') || 'Novice Ambitieux', emoji: '🚀', color: 'text-green-400' };
+    return { text: t('dashboard.level_titles.motivated_beginner') || 'Débutant Motivé', emoji: '🌱', color: 'text-gray-400' };
   };
   
   const levelTitle = getLevelTitle();
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greeting = hour < 12 
+    ? (t('dashboard.good_morning') || 'Bonjour')
+    : hour < 18 
+      ? (t('dashboard.good_afternoon') || 'Bon après-midi')
+      : (t('dashboard.good_evening') || 'Bonsoir');
 
   return (
     <AppBackground variant="nebula" grain grid={false} animate>
@@ -864,7 +868,7 @@ const DashboardPage = () => {
                           transition={{ duration: 2, repeat: Infinity }}
                         >
                           <FaFire className="text-orange-400 text-xs" />
-                          <span className="text-xs font-bold text-orange-400">{streakDays} jours</span>
+                          <span className="text-xs font-bold text-orange-400">{streakDays} {t('dashboard.days') || 'jours'}</span>
                         </motion.span>
                       )}
                     </div>
@@ -877,7 +881,7 @@ const DashboardPage = () => {
                     to="/quests"
                     className="px-4 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all"
                   >
-                    Voir les quêtes
+                    {t('dashboard.view_quests') || 'Voir les quêtes'}
                   </Link>
                   {!isPremium && (
                     <Link
@@ -885,7 +889,7 @@ const DashboardPage = () => {
                       className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 font-semibold text-sm transition-all flex items-center gap-2"
                     >
                       <FaCrown className="text-xs" />
-                      Premium
+                      {t('dashboard.premium') || 'Premium'}
                     </Link>
                   )}
                 </div>
@@ -899,17 +903,17 @@ const DashboardPage = () => {
                 transition={{ delay: 0.3 }}
                 whileHover={{ scale: 1.01 }}
                 className="rounded-xl p-3 bg-white/[0.03] border border-white/10 flex items-center gap-3"
-                aria-label={`${streakDays} jours de série`}
+                aria-label={`${streakDays} ${t('dashboard.days') || 'jours'} ${t('dashboard.streak') || 'de série'}`}
               >
                 <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center">
                   <FaFire className="text-orange-400 text-base" />
                 </div>
                 <div>
                   <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}>
-                    Série
+                    {t('dashboard.streak') || 'Série'}
                   </div>
                   <div className="text-sm font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
-                    {streakDays} <span className="text-gray-300 font-semibold">jours</span>
+                    {streakDays} <span className="text-gray-300 font-semibold">{t('dashboard.days') || 'jours'}</span>
                   </div>
                 </div>
               </motion.div>
@@ -926,7 +930,7 @@ const DashboardPage = () => {
                 </div>
                 <div>
                   <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}>
-                    Quêtes terminées
+                    {t('dashboard.quests_completed') || 'Quêtes terminées'}
                   </div>
                   <div className="text-sm font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
                     <CountUp end={completedQuests} />/{totalQuests}
@@ -948,10 +952,10 @@ const DashboardPage = () => {
                   style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                 >
                   <BsLightningChargeFill className="text-amber-400" />
-                  Progression
+{t('dashboard.progression') || 'Progression'}
                 </h2>
                 <span className="text-base sm:text-lg font-extrabold text-white">
-                  Niveau {userLevel}
+                  {t('dashboard.level') || 'Niveau'} {userLevel}
                 </span>
               </div>
               
@@ -985,7 +989,7 @@ const DashboardPage = () => {
                 </div>
                 
                 <div className="text-xs text-center text-gray-500">
-                  Plus que <span className="font-bold text-amber-400">{xpToNext} XP</span> pour le niveau suivant
+                  {t('dashboard.xp_to_next', { xp: xpToNext }) || `Plus que ${xpToNext} XP pour le niveau suivant`}
                 </div>
               </div>
             </motion.div>
@@ -999,7 +1003,7 @@ const DashboardPage = () => {
                     className="text-lg font-bold text-white flex items-center gap-2"
                     style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                   >
-                    Reprendre
+                    {t('dashboard.continue_quest') || 'Reprendre'}
                   </h2>
                 </div>
 
@@ -1103,10 +1107,10 @@ const DashboardPage = () => {
                           className="text-white font-black text-xl sm:text-2xl mb-2 bg-gradient-to-r from-white to-amber-100 bg-clip-text text-transparent"
                           style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}
                         >
-                          Commence ton aventure
+                          {t('dashboard.start_journey') || 'Commence ton aventure'}
                         </h3>
                         <p className="text-gray-300 text-sm sm:text-base opacity-90">
-                          Choisis ta première quête et découvre l'univers FinanceQuest
+                          {t('dashboard.choose_first_quest') || 'Choisis ta première quête et découvre l\'univers FinanceQuest'}
                         </p>
                       </div>
                       
@@ -1119,7 +1123,7 @@ const DashboardPage = () => {
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity" />
                         <span className="relative flex items-center gap-2 font-extrabold">
-                          Explorer
+                          {t('dashboard.explore') || 'Explorer'}
                           <motion.div
                             animate={{ x: [0, 3, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
@@ -1181,7 +1185,7 @@ const DashboardPage = () => {
                         className="text-white font-bold text-lg flex items-center gap-2"
                         style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                       >
-                        Défi Quotidien
+{t('dashboard.daily_challenge') || 'Défi Quotidien'}
                       </h3>
                       <div className="flex items-center gap-4 mt-1">
                         <span className="text-sm text-gray-300 flex items-center gap-1">
@@ -1217,7 +1221,7 @@ const DashboardPage = () => {
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white transition-colors"
                   aria-label="Régénérer le défi quotidien"
                 >
-                  Régénérer
+{t('dashboard.regenerate') || 'Régénérer'}
                 </button>
               </div>
             )}
@@ -1233,13 +1237,13 @@ const DashboardPage = () => {
                     style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                   >
                     <HiSparkles className="text-yellow-400" />
-                    Recommandé pour toi
+{t('dashboard.recommended_for_you') || 'Recommandé pour toi'}
                   </h2>
                   <Link 
                     to="/quests" 
                     className="text-amber-400 text-sm font-bold hover:text-amber-300 transition-colors flex items-center gap-1"
                   >
-                    Tout voir
+                    {t('dashboard.view_all') || 'Tout voir'}
                     <FaArrowRight className="text-xs" />
                   </Link>
                 </div>
@@ -1294,7 +1298,7 @@ const DashboardPage = () => {
                   className="text-lg font-bold text-white flex items-center gap-2"
                   style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                 >
-                  Badges & Accomplissements
+                  {t('dashboard.badges') || 'Badges'} & {t('dashboard.achievements') || 'Accomplissements'}
                 </h2>
                 <Link 
                   to="/achievements" 
@@ -1316,7 +1320,7 @@ const DashboardPage = () => {
                    if (earnedBadges.length === 0) {
                      return (
                        <div className="col-span-2 sm:col-span-4 neon-element rounded-2xl p-4 text-center">
-                         <p className="text-sm text-gray-400">Aucun badge débloqué pour le moment</p>
+                         <p className="text-sm text-gray-400">{t('dashboard.no_badges') || 'Aucun badge débloqué pour le moment'}</p>
                        </div>
                      );
                    }
@@ -1365,37 +1369,37 @@ const DashboardPage = () => {
                     className="text-xs font-bold text-gray-400 uppercase tracking-wider"
                     style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}
                   >
-                    Cette semaine
+                    {t('dashboard.this_week') || 'Cette semaine'}
                   </span>
                   <BsStars className="text-cyan-400 text-lg" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Objectif quêtes</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.quest_goal') || 'Objectif quêtes'}</span>
                     <span className="text-sm font-bold text-white">
                       {weeklyQuestsCompleted}/{weeklyQuestGoal}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Révisions dues</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.reviews_due') || 'Révisions dues'}</span>
                     <span className="text-sm font-bold text-orange-400">
                       {reviewsDue}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">XP gagné</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.xp_earned') || 'XP gagné'}</span>
                     <span className="text-sm font-bold text-yellow-400">
                       +{weeklyXP} XP
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Temps apprentissage</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.learning_time') || 'Temps apprentissage'}</span>
                     <span className="text-sm font-bold text-cyan-400">
                       {Math.floor(weeklyLearningTime / 60)}h {weeklyLearningTime % 60}min
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">Maîtrise</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.mastery') || 'Maîtrise'}</span>
                     <span className="text-sm font-bold text-emerald-400">
                       {Math.round(masteryScore)}%
                     </span>
@@ -1415,7 +1419,7 @@ const DashboardPage = () => {
                 className="text-center py-8"
               >
                 <p className="text-gray-400 mb-6">
-                  Continue ton aventure financière et débloque de nouveaux accomplissements
+                  {t('dashboard.continue_journey') || 'Continue ton aventure financière et débloque de nouveaux accomplissements'}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
@@ -1424,7 +1428,7 @@ const DashboardPage = () => {
                     style={{ fontFamily: '\"Inter\", sans-serif', fontWeight: 800 }}
                   >
                     <FaRocket />
-                    Explorer les Quêtes
+                    {t('dashboard.explore_quests') || 'Explorer les Quêtes'}
                   </Link>
                   {!isPremium && (
                     <Link
@@ -1433,7 +1437,7 @@ const DashboardPage = () => {
                       style={{ fontFamily: '\"Inter\", sans-serif', fontWeight: 800 }}
                     >
                       <FaCrown />
-                      Passer Premium
+                      {t('dashboard.go_premium') || 'Passer Premium'}
                     </Link>
                   )}
                 </div>

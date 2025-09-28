@@ -37,7 +37,7 @@ import LoadingSpinner from '../app/LoadingSpinner';
 import AppBackground from '../app/AppBackground';
 import { auth, db } from '../../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 
 const Profile = () => {
   const { user, updateUserProfile, logout, resetPassword } = useAuth();
@@ -73,7 +73,7 @@ const Profile = () => {
 
   const handleManageSubscription = async () => {
     if (!user) {
-      toast.error('Veuillez vous connecter pour gérer votre abonnement');
+      toast.error(t('profilePage.toast.login_required_subscription') || 'Veuillez vous connecter pour gérer votre abonnement');
       return;
     }
   
@@ -82,7 +82,7 @@ const Profile = () => {
       
       // IMPORTANT: Obtenir le token Firebase pour l'authentification
       if (!auth.currentUser) {
-        toast.error('Session expirée. Veuillez rafraîchir la page.');
+        toast.error(t('profilePage.toast.session_expired_refresh') || 'Session expirée. Veuillez rafraîchir la page.');
         return;
       }
       
@@ -111,15 +111,15 @@ const Profile = () => {
         console.error('Portal error:', response.status, errorData);
         
         if (response.status === 401) {
-          toast.error('Session expirée. Veuillez vous reconnecter.');
+          toast.error(t('profilePage.toast.session_expired_relogin') || 'Session expirée. Veuillez vous reconnecter.');
           return;
         }
         
-        toast.error('Impossible d\'ouvrir le portail client');
+        toast.error(t('profilePage.toast.portal_open_failed') || 'Impossible d\'ouvrir le portail client');
       }
     } catch (error) {
       console.error('Erreur portail Stripe:', error);
-      toast.error('Erreur lors de l\'ouverture du portail');
+      toast.error(t('profilePage.toast.portal_error') || 'Erreur lors de l\'ouverture du portail');
     }
   };
 
@@ -137,13 +137,13 @@ const Profile = () => {
         country: newCountry
       }));
       
-      toast.success('✨ Pays mis à jour !', {
+      toast.success(t('profilePage.toast.country_updated') || '✨ Pays mis à jour !', {
         position: "bottom-center",
         autoClose: 2000
       });
     } catch (error) {
       console.error('Error updating country:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(t('profilePage.toast.update_error') || 'Erreur lors de la mise à jour');
     } finally {
       setUpdatingCountry(false);
     }
@@ -152,13 +152,71 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success('👋 À bientôt !', {
+      toast.success(t('profilePage.toast.logout_success') || '👋 À bientôt !', {
         position: "bottom-center",
         autoClose: 2000
       });
     } catch (error) {
       console.error('Error logging out:', error);
-      toast.error('Erreur lors de la déconnexion');
+      toast.error(t('profilePage.toast.logout_error') || 'Erreur lors de la déconnexion');
+    }
+  };
+
+  // Fonction pour nettoyer toutes les données utilisateur dans Firestore
+  const cleanupUserData = async (userId) => {
+    const batch = writeBatch(db);
+    
+    try {
+      console.log('Nettoyage des données utilisateur...');
+      
+      // 1. Supprimer le profil utilisateur principal
+      batch.delete(doc(db, 'users', userId));
+      
+      // 2. Supprimer la progression des quêtes (userProgress)
+      try {
+        const progressDoc = doc(db, 'userProgress', userId);
+        batch.delete(progressDoc);
+      } catch (e) {
+        console.log('Pas de userProgress à supprimer');
+      }
+      
+      // 3. Supprimer toutes les quêtes individuelles (userQuests)
+      const userQuestsQuery = query(
+        collection(db, 'userQuests'),
+        where('userId', '==', userId)
+      );
+      const userQuestsSnapshot = await getDocs(userQuestsQuery);
+      userQuestsSnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      // 4. Supprimer les défis quotidiens (dailyChallenges)
+      const dailyChallengesQuery = query(
+        collection(db, 'dailyChallenges'),
+        where('userId', '==', userId)
+      );
+      const dailyChallengesSnapshot = await getDocs(dailyChallengesQuery);
+      dailyChallengesSnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      // 5. Supprimer les incidents de streak (streakIncidents)
+      const streakIncidentsQuery = query(
+        collection(db, 'streakIncidents'),
+        where('userId', '==', userId)
+      );
+      const streakIncidentsSnapshot = await getDocs(streakIncidentsQuery);
+      streakIncidentsSnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      // Exécuter toutes les suppressions en batch
+      await batch.commit();
+      console.log('Données utilisateur nettoyées avec succès');
+      
+    } catch (error) {
+      console.error('Erreur lors du nettoyage des données:', error);
+      throw error;
     }
   };
 
@@ -176,7 +234,7 @@ const Profile = () => {
   const statsConfig = [
     { 
       icon: FaFire, 
-      label: 'Streak', 
+      label: t('profilePage.stats.streak') || 'Streak', 
       value: userData?.streak || 0,
       color: 'text-orange-400',
       bg: 'bg-orange-500/10',
@@ -185,7 +243,7 @@ const Profile = () => {
     },
     { 
       icon: GiTwoCoins, 
-      label: 'XP Total', 
+      label: t('profilePage.stats.total_xp') || 'XP Total', 
       value: userData?.xp || 0,
       color: 'text-yellow-400',
       bg: 'bg-yellow-500/10',
@@ -194,7 +252,7 @@ const Profile = () => {
     },
     { 
       icon: FaTrophy, 
-      label: 'Niveau', 
+      label: t('profilePage.stats.level') || 'Niveau', 
       value: userData?.level || 1,
       color: 'text-purple-400',
       bg: 'bg-purple-500/10',
@@ -203,7 +261,7 @@ const Profile = () => {
     },
     { 
       icon: GiAchievement, 
-      label: 'Quêtes', 
+      label: t('profilePage.stats.quests') || 'Quêtes', 
       value: userData?.completedQuests || 0,
       color: 'text-cyan-400',
       bg: 'bg-cyan-500/10',
@@ -289,7 +347,7 @@ const Profile = () => {
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
                 >
                   <FaGem className="text-purple-400" />
-                  <span className="text-purple-300 font-bold text-sm">Membre Premium</span>
+                  <span className="text-purple-300 font-bold text-sm">{t('profilePage.premium_member') || 'Membre Premium'}</span>
                 </motion.div>
               ) : (
                 <Link
@@ -357,7 +415,7 @@ const Profile = () => {
                           </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
-                            {userData?.displayName || userData?.username || (user?.email ? user.email.split('@')[0] : 'Utilisateur')}
+                            {userData?.displayName || userData?.username || (user?.email ? user.email.split('@')[0] : t('profilePage.default_username') || 'Utilisateur')}
                           </p>
                         </div>
                       </div>
@@ -379,7 +437,7 @@ const Profile = () => {
                           </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
-                            {userData?.createdAt ? new Date(userData.createdAt.toDate?.() || userData.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
+                            {userData?.createdAt ? new Date(userData.createdAt.toDate?.() || userData.createdAt).toLocaleDateString('fr-FR') : t('profilePage.not_available') || 'N/A'}
                           </p>
                         </div>
                       </div>
@@ -411,18 +469,13 @@ const Profile = () => {
                          >
                             {t('profilePage.logout') || 'Se déconnecter'}
                          </button>
-                         {user?.providerData?.[0]?.providerId === 'password' ? (
-                           <button
-                             onClick={() => setShowDeleteModal(true)}
-                             className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-semibold transition-all"
-                           >
-                              {t('profilePage.delete_account') || 'Supprimer le compte'}
-                           </button>
-                         ) : (
-                            <div className="text-xs text-gray-500 sm:ml-auto">
-                              {t('profilePage.linked_accounts_note', { provider: (user?.providerData?.[0]?.providerId === 'google.com' ? 'Google' : user?.providerData?.[0]?.providerId === 'apple.com' ? 'Apple' : t('profilePage.external_provider') || 'fournisseur externe') })}
-                            </div>
-                         )}
+                         <button
+                           onClick={() => setShowDeleteModal(true)}
+                           className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                         >
+                            <FaExclamationTriangle className="text-xs" />
+                            {t('profilePage.delete_account') || 'Supprimer le compte'}
+                         </button>
                        </div>
                      </div>
                    </div>
@@ -473,9 +526,74 @@ const Profile = () => {
     className="space-y-6"
   >
     {!userData?.isPremium ? (
-      /* Carte upsell Premium - pas de changement */
+      /* Carte upsell Premium */
       <div className="relative overflow-hidden neon-card rounded-2xl p-8">
-        {/* ... contenu existant ... */}
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        
+        {/* Content */}
+        <div className="relative">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full mb-4 shadow-glow-md"
+            >
+              <FaCrown className="text-2xl text-gray-900" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {t('profilePage.upgrade_to_premium') || 'Passez à Premium'}
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {t('profilePage.unlock_full_potential') || 'Débloquez tout le potentiel de FinanceQuest'}
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center gap-3 text-white">
+              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                <FaCheck className="text-green-400 text-xs" />
+              </div>
+              <span className="text-sm">{t('profilePage.premium_feature_unlimited') || 'Quêtes illimitées'}</span>
+            </div>
+            <div className="flex items-center gap-3 text-white">
+              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                <FaCheck className="text-green-400 text-xs" />
+              </div>
+              <span className="text-sm">{t('profilePage.premium_feature_advanced') || 'Outils avancés de suivi'}</span>
+            </div>
+            <div className="flex items-center gap-3 text-white">
+              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                <FaCheck className="text-green-400 text-xs" />
+              </div>
+              <span className="text-sm">{t('profilePage.premium_feature_priority') || 'Support prioritaire'}</span>
+            </div>
+            <div className="flex items-center gap-3 text-white">
+              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                <FaCheck className="text-green-400 text-xs" />
+              </div>
+              <span className="text-sm">{t('profilePage.premium_feature_exclusive') || 'Contenu exclusif'}</span>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <Link
+              to="/premium"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-xl font-bold hover:from-amber-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-glow-md"
+            >
+              <FaRocket />
+              <span>{t('profilePage.upgrade_now') || 'Passer à Premium'}</span>
+            </Link>
+            <p className="text-xs text-gray-500 mt-3">
+              {t('profilePage.cancel_anytime') || 'Annulable à tout moment'}
+            </p>
+          </div>
+        </div>
       </div>
     ) : (
       /* Statut Premium actif - CORRIGÉ */
@@ -524,7 +642,7 @@ const Profile = () => {
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
                     ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
-                    : 'N/A'
+                    : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
               </div>
@@ -536,7 +654,7 @@ const Profile = () => {
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
                     ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
-                    : 'N/A'
+                    : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
               </div>
@@ -548,7 +666,7 @@ const Profile = () => {
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
                     ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
-                    : 'N/A'
+                    : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
               </div>
@@ -593,17 +711,17 @@ const Profile = () => {
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md bg-gray-900 rounded-2xl border border-white/10 p-6">
-            <h4 className="text-white text-lg font-bold mb-4">Changer le mot de passe</h4>
-            <p className="text-gray-400 text-sm mb-4">Un email de réinitialisation sera envoyé à cette adresse.</p>
+            <h4 className="text-white text-lg font-bold mb-4">{t('profilePage.change_password_modal_title') || 'Changer le mot de passe'}</h4>
+            <p className="text-gray-400 text-sm mb-4">{t('profilePage.change_password_modal_description') || 'Un email de réinitialisation sera envoyé à cette adresse.'}</p>
             <div className="w-full px-4 py-3 rounded-lg bg-white/[0.04] border border-white/10 text-white mb-4">
-              <p className="text-sm">{user?.email || "Aucun email"}</p>
+              <p className="text-sm">{user?.email || t('profilePage.change_password_modal_no_email') || "Aucun email"}</p>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowPasswordModal(false)}
                 className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.06]"
               >
-                Annuler
+                {t('profilePage.change_password_modal_cancel') || 'Annuler'}
               </button>
               <button
                 onClick={async () => {
@@ -611,11 +729,11 @@ const Profile = () => {
                     setResetSending(true);
                     // Utiliser l'email de l'utilisateur connecté
                     await resetPassword(user?.email);
-                    toast.success('Email de réinitialisation envoyé');
+                    toast.success(t('profilePage.change_password_modal_success') || 'Email de réinitialisation envoyé');
                     setShowPasswordModal(false);
                   } catch (e) {
                     console.error('Erreur reset password:', e);
-                    toast.error("Échec de l'envoi de l'email");
+                    toast.error(t('profilePage.change_password_modal_failed') || "Échec de l'envoi de l'email");
                   } finally {
                     setResetSending(false);
                   }
@@ -623,7 +741,7 @@ const Profile = () => {
                 disabled={resetSending || !user?.email}
                 className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 font-bold disabled:opacity-50"
               >
-                {resetSending ? 'Envoi…' : 'Envoyer'}
+                {resetSending ? (t('profilePage.change_password_modal_sending') || 'Envoi…') : (t('profilePage.change_password_modal_send') || 'Envoyer')}
               </button>
             </div>
           </div>
@@ -633,26 +751,65 @@ const Profile = () => {
       {/* Modal de suppression de compte */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md bg-gray-900 rounded-2xl border border-white/10 p-6">
-            <h4 className="text-white text-lg font-bold mb-2">Supprimer le compte</h4>
-            <p className="text-gray-400 text-sm mb-4">Cette action est irréversible. Confirmez votre identité pour continuer.</p>
+          <div className="w-full max-w-md bg-gray-900 rounded-2xl border border-red-500/30 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                <FaExclamationTriangle className="text-red-400" />
+              </div>
+              <div>
+                <h4 className="text-white text-lg font-bold">{t('profilePage.delete_account_modal_title') || 'Supprimer le compte'}</h4>
+                <p className="text-red-300 text-xs font-medium">{t('profilePage.delete_account_modal_warning') || 'Action irréversible'}</p>
+              </div>
+            </div>
+            
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
+              <p className="text-red-200 text-sm mb-2 font-medium">
+                {t('profilePage.delete_account_modal_data_warning') || 'Toutes vos données seront supprimées :'}
+              </p>
+              <ul className="text-red-300 text-xs space-y-1 list-disc list-inside">
+                <li>{t('profilePage.delete_account_modal_data_profile') || 'Profil utilisateur'}</li>
+                <li>{t('profilePage.delete_account_modal_data_progress') || 'Progression des quêtes'}</li>
+                <li>{t('profilePage.delete_account_modal_data_achievements') || 'Succès et badges'}</li>
+                <li>{t('profilePage.delete_account_modal_data_settings') || 'Préférences et paramètres'}</li>
+              </ul>
+            </div>
+
             {user?.providerData?.[0]?.providerId === 'password' ? (
-              <input
-                type="password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-red-400/40 mb-4"
-                placeholder="Mot de passe"
-              />
+              <div>
+                <p className="text-gray-400 text-sm mb-3">
+                  {t('profilePage.delete_account_modal_password_instruction') || 'Saisissez votre mot de passe pour confirmer :'}
+                </p>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-white/[0.04] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-red-400/40 mb-4"
+                  placeholder={t('profilePage.delete_account_modal_password_placeholder') || "Votre mot de passe"}
+                  disabled={deleteSending}
+                />
+              </div>
             ) : (
-              <div className="text-xs text-gray-400 mb-4">Compte lié à un fournisseur ({user?.providerData?.[0]?.providerId}). Une fenêtre de connexion s’ouvrira pour confirmer.</div>
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-blue-400">
+                    {user?.providerData?.[0]?.providerId === 'google.com' && '🔗 Google'}
+                  </div>
+                  <span className="text-blue-300 text-sm font-medium">
+                    {t('profilePage.delete_account_modal_oauth_title') || 'Compte externe'}
+                  </span>
+                </div>
+                <p className="text-blue-200 text-xs">
+                  {t('profilePage.delete_account_modal_oauth_instruction') || 
+                   'Une fenêtre s\'ouvrira pour confirmer votre identité via votre fournisseur de connexion.'}
+                </p>
+              </div>
             )}
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.06]"
               >
-                Annuler
+                {t('profilePage.delete_account_modal_cancel') || 'Annuler'}
               </button>
               <button
   onClick={async () => {
@@ -661,54 +818,74 @@ const Profile = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error('Utilisateur non connecté');
       
-      // Réauthentification
+      // Étape 1: Réauthentification OBLIGATOIRE
       const providerId = user?.providerData?.[0]?.providerId;
+      console.log('Réauthentification pour provider:', providerId);
+      
       if (providerId === 'password') {
+        if (!deletePassword) {
+          toast.error(t('profilePage.delete_account_modal_password_required') || 'Mot de passe requis');
+          return;
+        }
         const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
         await reauthenticateWithCredential(currentUser, cred);
+        console.log('Réauthentification email/password réussie');
       } else if (providerId === 'google.com') {
-        await reauthenticateWithPopup(currentUser, new GoogleAuthProvider());
+        const provider = new GoogleAuthProvider();
+        await reauthenticateWithPopup(currentUser, provider);
+        console.log('Réauthentification Google réussie');
+      } else {
+        throw new Error(`Provider non supporté: ${providerId}`);
       }
       
-      // IMPORTANT: Supprimer d'abord le document Firestore AVANT le compte Auth
-      try {
-        await deleteDoc(doc(db, 'users', currentUser.uid));
-        console.log('Document Firestore supprimé');
-      } catch (firestoreError) {
-        console.error('Erreur suppression Firestore:', firestoreError);
-        // Continuer même si la suppression Firestore échoue
-      }
+      // Étape 2: Nettoyer TOUTES les données Firestore AVANT de supprimer Auth
+      console.log('Nettoyage des données Firestore...');
+      await cleanupUserData(currentUser.uid);
       
-      // PUIS supprimer le compte Auth
+      // Étape 3: Supprimer le compte Firebase Auth
+      console.log('Suppression du compte Auth...');
       await deleteUser(currentUser);
-      console.log('Compte Auth supprimé');
       
-      toast.success('Compte supprimé avec succès');
+      toast.success(t('profilePage.delete_account_modal_success') || 'Compte et données supprimés avec succès');
       
-      // Rediriger après suppression
+      // Rediriger vers la page d'accueil après suppression
       setTimeout(() => {
         window.location.href = '/';
-      }, 1000);
+      }, 1500);
       
     } catch (e) {
       console.error('Erreur suppression compte:', e);
       
+      let errorMessage = t('profilePage.delete_account_modal_failed') || 'Échec de la suppression';
+      
       if (e.code === 'auth/wrong-password') {
-        toast.error('Mot de passe incorrect');
+        errorMessage = t('profilePage.delete_account_modal_wrong_password') || 'Mot de passe incorrect';
       } else if (e.code === 'auth/requires-recent-login') {
-        toast.error('Veuillez vous reconnecter avant de supprimer votre compte');
-      } else {
-        toast.error('Échec de la suppression. Vérifiez votre identité.');
+        errorMessage = t('profilePage.delete_account_modal_requires_recent_login') || 'Réauthentification requise. Veuillez fermer cette fenêtre et réessayer.';
+      } else if (e.code === 'auth/popup-closed-by-user') {
+        errorMessage = t('profilePage.delete_account_modal_popup_closed') || 'Authentification annulée. Veuillez réessayer.';
+      } else if (e.code === 'auth/network-request-failed') {
+        errorMessage = t('profilePage.delete_account_modal_network_error') || 'Erreur réseau. Vérifiez votre connexion.';
       }
+      
+      toast.error(errorMessage);
     } finally {
       setDeleteSending(false);
       setShowDeleteModal(false);
+      setDeletePassword(''); // Reset du mot de passe
     }
   }}
   disabled={deleteSending || (user?.providerData?.[0]?.providerId === 'password' && !deletePassword)}
-  className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold disabled:opacity-50"
+  className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold disabled:opacity-50 transition-all"
 >
-  {deleteSending ? 'Suppression…' : 'Supprimer définitivement'}
+  {deleteSending ? (
+    <div className="flex items-center gap-2">
+      <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+      {t('profilePage.delete_account_modal_deleting') || 'Suppression…'}
+    </div>
+  ) : (
+    t('profilePage.delete_account_modal_confirm') || 'Supprimer définitivement'
+  )}
 </button>
             </div>
           </div>

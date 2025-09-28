@@ -85,7 +85,8 @@ export const LanguageProvider = ({ children }) => {
 
   // Change language function
   const changeLanguage = (newLang) => {
-    if (newLang && (newLang === 'en' || newLang === 'fr')) {
+    if (newLang && (newLang === 'en' || newLang === 'fr') && newLang !== currentLang) {
+      console.log('LanguageContext: Changing language from', currentLang, 'to', newLang);
       setCurrentLang(newLang);
       localStorage.setItem('financequest_language', newLang);
     }
@@ -111,7 +112,8 @@ export const LanguageProvider = ({ children }) => {
               const userData = docSnap.data();
               const userLang = userData.lang || userData.language || 'en';
               
-              if (userLang === 'en' || userLang === 'fr') {
+              if ((userLang === 'en' || userLang === 'fr') && userLang !== currentLang) {
+                console.log('LanguageContext: Firebase listener updating language from', currentLang, 'to', userLang);
                 setCurrentLang(userLang);
                 localStorage.setItem('financequest_language', userLang);
               }

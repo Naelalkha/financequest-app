@@ -36,10 +36,7 @@ const LanguageToggle = () => {
     setShowMenu(false);
 
     try {
-      // Update language in context
-      setLanguage(newLang);
-      
-      // Update in Firebase if user is logged in
+      // Update in Firebase FIRST if user is logged in
       if (user?.uid) {
         try {
           const userRef = doc(db, 'users', user.uid);
@@ -47,10 +44,15 @@ const LanguageToggle = () => {
             lang: newLang,
             language: newLang // Store both for compatibility
           });
+          console.log('Language updated in Firebase:', newLang);
         } catch (firebaseError) {
           console.error('Error updating language in Firebase:', firebaseError);
-          // Continue even if Firebase update fails
+          // Fallback to local update if Firebase fails
+          setLanguage(newLang);
         }
+      } else {
+        // Update language in context for non-logged users
+        setLanguage(newLang);
       }
       
       // Show success message
@@ -66,6 +68,8 @@ const LanguageToggle = () => {
     } catch (error) {
       console.error('Error changing language:', error);
       toast.error('Failed to change language');
+      // Fallback to local update
+      setLanguage(newLang);
     } finally {
       setTimeout(() => setIsChanging(false), 500);
     }
@@ -102,7 +106,7 @@ const LanguageToggle = () => {
             <FaGlobe className="text-blue-400" />
           </div>
           <div className="min-w-0 text-left">
-            <p className="text-white font-semibold">Langue</p>
+            <p className="text-white font-semibold">{t('profilePage.language_label') || 'Langue'}</p>
             <p className="text-sm text-gray-400 whitespace-nowrap">{t('profilePage.language_sub') || 'Interface et contenu'}</p>
           </div>
         </div>

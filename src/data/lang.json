@@ -180,7 +180,28 @@
         "advanced_apprentice": "Advanced Apprentice",
         "ambitious_novice": "Ambitious Novice",
         "motivated_beginner": "Motivated Beginner"
-      }
+      },
+      "progression": "Progress",
+      "recommended_for_you": "Recommended for you",
+      "regenerate": "Regenerate",
+      "no_quest_available": "No available unstarted quest to generate a challenge",
+      "new_challenge": "New challenge: {{title}}",
+      "regeneration_error": "Error during challenge regeneration",
+      "this_week": "This week",
+      "quest_goal": "Quest goal",
+      "reviews_due": "Reviews due",
+      "xp_earned": "XP earned",
+      "learning_time": "Learning time",
+      "mastery": "Mastery",
+      "continue_journey": "Continue your financial journey and unlock new achievements",
+      "no_badges": "No badges unlocked yet",
+      "achievements": "Achievements",
+      "view_quests": "View quests",
+      "replay": "Replay",
+      "continue": "Continue",
+      "start": "Start",
+      "explore": "Explore",
+      "choose_first_quest": "Choose your first quest and discover the FinanceQuest universe"
     },
     
     "quests": {
@@ -347,8 +368,27 @@
       "member_since_label": "Member since",
       "security_title": "Account security",
       "change_password": "Change password",
+      "change_password_modal_title": "Change password",
+      "change_password_modal_description": "A password reset email will be sent to this address.",
+      "change_password_modal_no_email": "No email",
+      "change_password_modal_cancel": "Cancel",
+      "change_password_modal_send": "Send",
+      "change_password_modal_sending": "Sending...",
+      "change_password_modal_success": "Password reset email sent",
+      "change_password_modal_failed": "Failed to send email",
       "logout": "Logout",
       "delete_account": "Delete account",
+      "delete_account_modal_title": "Delete account",
+      "delete_account_modal_description": "This action is irreversible. Confirm your identity to continue.",
+      "delete_account_modal_password_placeholder": "Password",
+      "delete_account_modal_linked_account_note": "Linked account ({{provider}}). A login window will open to confirm.",
+      "delete_account_modal_cancel": "Cancel",
+      "delete_account_modal_confirm": "Delete permanently",
+      "delete_account_modal_deleting": "Deleting...",
+      "delete_account_modal_success": "Account deleted successfully",
+      "delete_account_modal_wrong_password": "Incorrect password",
+      "delete_account_modal_requires_recent_login": "Please log in again before deleting your account",
+      "delete_account_modal_failed": "Deletion failed. Please verify your identity.",
       "linked_accounts_note": "Deletion hidden for linked accounts ({{provider}}).",
       "external_provider": "external provider",
       "preferences_title": "Preferences",
@@ -363,8 +403,82 @@
       "access_until": "Access until",
       "subscription_canceled_info": "Your subscription has been canceled. You retain Premium access until the end of the paid period.",
       "go_premium": "Go Premium",
+      "premium_member": "Premium Member",
+      "default_username": "User",
+      "not_available": "N/A",
+      "delete_account_modal_warning": "Irreversible action",
+      "delete_account_modal_data_warning": "All your data will be deleted:",
+      "delete_account_modal_data_profile": "User profile",
+      "delete_account_modal_data_progress": "Quest progress",
+      "delete_account_modal_data_achievements": "Achievements and badges",
+      "delete_account_modal_data_settings": "Preferences and settings",
+      "delete_account_modal_password_instruction": "Enter your password to confirm:",
+      "delete_account_modal_password_required": "Password required",
+      "delete_account_modal_oauth_title": "External account",
+      "delete_account_modal_oauth_instruction": "A window will open to confirm your identity via your login provider.",
+      "delete_account_modal_popup_closed": "Authentication canceled. Please try again.",
+      "delete_account_modal_network_error": "Network error. Check your connection.",
+      "upgrade_to_premium": "Upgrade to Premium",
+      "unlock_full_potential": "Unlock the full potential of FinanceQuest",
+      "premium_feature_unlimited": "Unlimited quests",
+      "premium_feature_advanced": "Advanced tracking tools",
+      "premium_feature_priority": "Priority support",
+      "premium_feature_exclusive": "Exclusive content",
+      "upgrade_now": "Upgrade Now",
+      "cancel_anytime": "Cancel anytime",
+      "toast": {
+        "login_required_subscription": "Please login to manage your subscription",
+        "session_expired_refresh": "Session expired. Please refresh the page.",
+        "session_expired_relogin": "Session expired. Please login again.",
+        "portal_open_failed": "Unable to open customer portal",
+        "portal_error": "Error opening portal",
+        "country_updated": "✨ Country updated!",
+        "update_error": "Error during update",
+        "logout_success": "👋 See you soon!",
+        "logout_error": "Error during logout"
+      },
+      "stats": {
+        "streak": "Streak",
+        "total_xp": "Total XP",
+        "level": "Level",
+        "quests": "Quests"
+      },
       "language_sub": "Interface and content",
-      "country_sub": "Country-specific quests"
+      "country_sub": "Country-specific quests",
+      "language_label": "Language"
+    },
+
+    "questList": {
+      "sort": "Sort",
+      "sort_by": "Sort by",
+      "all": "All",
+      "new": "New",
+      "in_progress": "In Progress",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "difficulty": "Difficulty",
+      "category": "Category",
+      "budgeting": "Budgeting",
+      "saving": "Saving",
+      "investing": "Investing",
+      "debt": "Debt",
+      "planning": "Planning",
+      "trending": "Trending",
+      "recent": "Recent",
+      "quick": "Quick",
+      "reset": "Reset",
+      "adjust_filters": "Try adjusting your filters or explore all our available quests",
+      "view_all_quests": "View all quests",
+      "all_difficulties": "All",
+      "quests_available": "{{count}} quests available",
+      "search_placeholder": "Search for a quest...",
+      "login_to_save": "🔒 Login to save",
+      "saved": "✨ Saved!",
+      "no_quests": "NO QUESTS",
+      "level_short": "Lvl.",
+      "quests": "Quests",
+      "financial": "Financial"
     },
     
     "subscription": {
@@ -449,6 +563,67 @@
       "language_change_failed": "Failed to change language",
       "step_type_unknown": "Unknown step type",
       "bookmark_failed": "Failed to update bookmark"
+    },
+
+    "onboarding": {
+      "step": "Step",
+      "of": "of",
+      "skip": "Skip for now",
+      "continue": "Continue",
+      "complete": "Start Your Journey",
+      "success": "Welcome aboard! Your journey begins now 🚀",
+      "error": "Failed to complete setup. Please try again.",
+      "welcome": {
+        "title": "Welcome to FinanceQuest!",
+        "subtitle": "Let's customize your experience"
+      },
+      "country": {
+        "label": "Your Country"
+      },
+      "language": {
+        "label": "Preferred Language"
+      },
+      "goals": {
+        "title": "What are your financial goals?",
+        "subtitle": "Select all that apply",
+        "budgeting": {
+          "title": "Master Budgeting",
+          "desc": "Track expenses and create a budget"
+        },
+        "saving": {
+          "title": "Build Savings",
+          "desc": "Create an emergency fund and save money"
+        },
+        "debt": {
+          "title": "Manage Debt & Credit",
+          "desc": "Understand and improve your credit score, manage debt"
+        },
+        "investing": {
+          "title": "Start Investing",
+          "desc": "Learn investment basics and strategies"
+        },
+        "planning": {
+          "title": "Financial Planning",
+          "desc": "Plan your long-term financial future"
+        }
+      },
+      "levels": {
+        "novice": {
+          "title": "Novice",
+          "desc": "I'm new to personal finance"
+        },
+        "intermediate": {
+          "title": "Intermediate",
+          "desc": "I have some financial knowledge"
+        },
+        "advanced": {
+          "title": "Advanced",
+          "desc": "I'm experienced with finances"
+        }
+      },
+      "level": {
+        "title": "Your experience level"
+      }
     },
     
     "share": {
@@ -875,7 +1050,28 @@
         "advanced_apprentice": "Apprenti avancé", 
         "ambitious_novice": "Novice ambitieux",
         "motivated_beginner": "Débutant motivé"
-      }
+      },
+      "progression": "Progression",
+      "recommended_for_you": "Recommandé pour toi",
+      "regenerate": "Régénérer",
+      "no_quest_available": "Aucune quête disponible non commencée pour générer un défi",
+      "new_challenge": "Nouveau défi : {{title}}",
+      "regeneration_error": "Erreur lors de la régénération du défi",
+      "this_week": "Cette semaine",
+      "quest_goal": "Objectif quêtes",
+      "reviews_due": "Révisions dues",
+      "xp_earned": "XP gagné",
+      "learning_time": "Temps apprentissage",
+      "mastery": "Maîtrise",
+      "continue_journey": "Continue ton aventure financière et débloque de nouveaux accomplissements",
+      "no_badges": "Aucun badge débloqué pour le moment",
+      "achievements": "Accomplissements",
+      "view_quests": "Voir les quêtes",
+      "replay": "Rejouer",
+      "continue": "Continuer",
+      "start": "Commencer",
+      "explore": "Explorer",
+      "choose_first_quest": "Choisis ta première quête et découvre l'univers FinanceQuest"
     },
     
     "quests": {
@@ -1042,8 +1238,27 @@
       "member_since_label": "Membre depuis",
       "security_title": "Sécurité du compte",
       "change_password": "Changer le mot de passe",
+      "change_password_modal_title": "Changer le mot de passe",
+      "change_password_modal_description": "Un email de réinitialisation sera envoyé à cette adresse.",
+      "change_password_modal_no_email": "Aucun email",
+      "change_password_modal_cancel": "Annuler",
+      "change_password_modal_send": "Envoyer",
+      "change_password_modal_sending": "Envoi...",
+      "change_password_modal_success": "Email de réinitialisation envoyé",
+      "change_password_modal_failed": "Échec de l'envoi de l'email",
       "logout": "Se déconnecter",
       "delete_account": "Supprimer le compte",
+      "delete_account_modal_title": "Supprimer le compte",
+      "delete_account_modal_description": "Cette action est irréversible. Confirmez votre identité pour continuer.",
+      "delete_account_modal_password_placeholder": "Mot de passe",
+      "delete_account_modal_linked_account_note": "Compte lié ({{provider}}). Une fenêtre de connexion s'ouvrira pour confirmer.",
+      "delete_account_modal_cancel": "Annuler",
+      "delete_account_modal_confirm": "Supprimer définitivement",
+      "delete_account_modal_deleting": "Suppression...",
+      "delete_account_modal_success": "Compte supprimé avec succès",
+      "delete_account_modal_wrong_password": "Mot de passe incorrect",
+      "delete_account_modal_requires_recent_login": "Veuillez vous reconnecter avant de supprimer votre compte",
+      "delete_account_modal_failed": "Échec de la suppression. Vérifiez votre identité.",
       "linked_accounts_note": "Suppression masquée pour les comptes liés ({{provider}}).",
       "external_provider": "fournisseur externe",
       "preferences_title": "Préférences",
@@ -1058,8 +1273,82 @@
       "access_until": "Accès jusqu'au",
       "subscription_canceled_info": "Votre abonnement a été annulé. Vous conservez l'accès Premium jusqu'à la fin de la période payée.",
       "go_premium": "Passer Premium",
+      "premium_member": "Membre Premium",
+      "default_username": "Utilisateur",
+      "not_available": "N/A",
+      "delete_account_modal_warning": "Action irréversible",
+      "delete_account_modal_data_warning": "Toutes vos données seront supprimées :",
+      "delete_account_modal_data_profile": "Profil utilisateur",
+      "delete_account_modal_data_progress": "Progression des quêtes",
+      "delete_account_modal_data_achievements": "Succès et badges",
+      "delete_account_modal_data_settings": "Préférences et paramètres",
+      "delete_account_modal_password_instruction": "Saisissez votre mot de passe pour confirmer :",
+      "delete_account_modal_password_required": "Mot de passe requis",
+      "delete_account_modal_oauth_title": "Compte externe",
+      "delete_account_modal_oauth_instruction": "Une fenêtre s'ouvrira pour confirmer votre identité via votre fournisseur de connexion.",
+      "delete_account_modal_popup_closed": "Authentification annulée. Veuillez réessayer.",
+      "delete_account_modal_network_error": "Erreur réseau. Vérifiez votre connexion.",
+      "upgrade_to_premium": "Passez à Premium",
+      "unlock_full_potential": "Débloquez tout le potentiel de FinanceQuest",
+      "premium_feature_unlimited": "Quêtes illimitées",
+      "premium_feature_advanced": "Outils avancés de suivi",
+      "premium_feature_priority": "Support prioritaire",
+      "premium_feature_exclusive": "Contenu exclusif",
+      "upgrade_now": "Passer à Premium",
+      "cancel_anytime": "Annulable à tout moment",
+      "toast": {
+        "login_required_subscription": "Veuillez vous connecter pour gérer votre abonnement",
+        "session_expired_refresh": "Session expirée. Veuillez rafraîchir la page.",
+        "session_expired_relogin": "Session expirée. Veuillez vous reconnecter.",
+        "portal_open_failed": "Impossible d'ouvrir le portail client",
+        "portal_error": "Erreur lors de l'ouverture du portail",
+        "country_updated": "✨ Pays mis à jour !",
+        "update_error": "Erreur lors de la mise à jour",
+        "logout_success": "👋 À bientôt !",
+        "logout_error": "Erreur lors de la déconnexion"
+      },
+      "stats": {
+        "streak": "Série",
+        "total_xp": "XP Total",
+        "level": "Niveau",
+        "quests": "Quêtes"
+      },
       "language_sub": "Interface et contenu",
-      "country_sub": "Quêtes spécifiques"
+      "country_sub": "Quêtes spécifiques",
+      "language_label": "Langue"
+    },
+
+    "questList": {
+      "sort": "Trier",
+      "sort_by": "Trier par",
+      "all": "Toutes",
+      "new": "Nouveau",
+      "in_progress": "En cours",
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile",
+      "difficulty": "Difficulté",
+      "category": "Catégorie",
+      "budgeting": "Budget",
+      "saving": "Épargne",
+      "investing": "Investissement",
+      "debt": "Dette",
+      "planning": "Planification",
+      "trending": "Tendance",
+      "recent": "Récent",
+      "quick": "Rapide",
+      "reset": "Réinitialiser",
+      "adjust_filters": "Essayez d'ajuster vos filtres ou explorez toutes nos quêtes disponibles",
+      "view_all_quests": "Voir toutes les quêtes",
+      "all_difficulties": "Toutes",
+      "quests_available": "{{count}} quêtes disponibles",
+      "search_placeholder": "Rechercher une quête...",
+      "login_to_save": "🔒 Connectez-vous pour enregistrer",
+      "saved": "✨ Sauvegardé !",
+      "no_quests": "AUCUNE QUÊTE",
+      "level_short": "Niv.",
+      "quests": "Quêtes",
+      "financial": "Financières"
     },
     
     "subscription": {
@@ -1144,6 +1433,67 @@
       "language_change_failed": "Échec du changement de langue",
       "step_type_unknown": "Type d'étape inconnu",
       "bookmark_failed": "Échec de la mise à jour du favori"
+    },
+
+    "onboarding": {
+      "step": "Étape",
+      "of": "sur",
+      "skip": "Passer pour l'instant",
+      "continue": "Continuer",
+      "complete": "Commencer l'aventure",
+      "success": "Bienvenue à bord ! Votre aventure commence maintenant 🚀",
+      "error": "Échec de la configuration. Veuillez réessayer.",
+      "welcome": {
+        "title": "Bienvenue sur FinanceQuest !",
+        "subtitle": "Personnalisons votre expérience"
+      },
+      "country": {
+        "label": "Votre pays"
+      },
+      "language": {
+        "label": "Langue préférée"
+      },
+      "goals": {
+        "title": "Quels sont vos objectifs financiers ?",
+        "subtitle": "Sélectionnez tous ceux qui s'appliquent",
+        "budgeting": {
+          "title": "Maîtriser le budget",
+          "desc": "Suivre les dépenses et créer un budget"
+        },
+        "saving": {
+          "title": "Construire l'épargne",
+          "desc": "Créer un fonds d'urgence et économiser"
+        },
+        "debt": {
+          "title": "Gérer Dettes & Crédit",
+          "desc": "Comprendre et améliorer votre score de crédit, gérer les dettes"
+        },
+        "investing": {
+          "title": "Commencer à investir",
+          "desc": "Apprendre les bases de l'investissement"
+        },
+        "planning": {
+          "title": "Planification Financière",
+          "desc": "Planifier votre avenir financier à long terme"
+        }
+      },
+      "levels": {
+        "novice": {
+          "title": "Débutant",
+          "desc": "Je suis nouveau en finances personnelles"
+        },
+        "intermediate": {
+          "title": "Intermédiaire",
+          "desc": "J'ai quelques connaissances financières"
+        },
+        "advanced": {
+          "title": "Avancé",
+          "desc": "J'ai de l'expérience avec les finances"
+        }
+      },
+      "level": {
+        "title": "Votre niveau d'expérience"
+      }
     },
     
     "share": {

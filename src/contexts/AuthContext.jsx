@@ -35,6 +35,32 @@ export const AuthProvider = ({ children }) => {
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
+        // Détection automatique de la locale du navigateur
+        let detectedLang = 'en';
+        let detectedCountry = 'fr-FR';
+        
+        try {
+          // Détection de la langue depuis le navigateur
+          const browserLang = navigator.language || navigator.userLanguage || 'en';
+          const langCode = browserLang.split('-')[0];
+          if (langCode === 'fr' || langCode === 'en') {
+            detectedLang = langCode;
+          }
+          
+          // Détection du pays depuis la locale
+          const locale = Intl.DateTimeFormat().resolvedOptions().locale || browserLang;
+          const region = new Intl.Locale(locale).region || locale.split('-')[1] || null;
+          
+          // Mapper la région vers nos codes pays supportés
+          if (region === 'US') {
+            detectedCountry = 'en-US';
+          } else if (region === 'FR' || !region) {
+            detectedCountry = 'fr-FR';
+          }
+        } catch (error) {
+          console.log('Locale detection failed, using defaults:', error);
+        }
+        
         // Create new user document SANS les champs protégés
         const newUserData = {
           uid,
@@ -47,9 +73,10 @@ export const AuthProvider = ({ children }) => {
           badges: [],
           totalQuests: 0,
           completedQuests: 0,
+          onboardingCompleted: false,
           // NE PAS inclure : isPremium, premiumStatus, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd
-          lang: 'en',
-          country: 'fr-FR',
+          lang: additionalData.lang || detectedLang,
+          country: additionalData.country || detectedCountry,
           ...additionalData
         };
         
@@ -171,32 +198,41 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      
+      // Vérifier si c'est un nouveau compte
+      const isNewUser = result._tokenResponse?.isNewUser || false;
       
       // Create or update user document
       const userData = await createUserDocument(
-        userCredential.user.uid, 
-        userCredential.user.email,
+        result.user.uid, 
+        result.user.email,
         { 
-          displayName: userCredential.user.displayName,
-          photoURL: userCredential.user.photoURL,
-          country: 'fr-FR' // Default country for Google signup
+          displayName: result.user.displayName,
+          photoURL: result.user.photoURL,
+          // Ne pas forcer le country, laisser la détection automatique le faire
         }
       );
       
       // Merge Firebase Auth user with Firestore data
-      setUser({
-        ...userCredential.user,
-        ...userData
-      });
+      const mergedUser = {
+        ...result.user,
+        ...userData,
+        isNewGoogleUser: isNewUser // Ajouter cette info pour le composant appelant
+      };
       
-      // Capture PostHog signup event
-      posthog.capture('signup', {
-        provider: 'google',
-        lang: userData.lang || 'en'
-      });
+      setUser(mergedUser);
       
-      return userCredential.user;
+      // Capture PostHog signup event seulement pour les nouveaux utilisateurs
+      if (isNewUser) {
+        posthog.capture('signup', {
+          provider: 'google',
+          lang: userData.lang || 'en',
+          country: userData.country || 'fr-FR'
+        });
+      }
+      
+      return mergedUser;
     } catch (error) {
       setError(error.message);
       throw error;

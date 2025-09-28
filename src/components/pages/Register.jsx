@@ -13,12 +13,27 @@ const Register = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   
+  // Détection du pays par défaut
+  const getDefaultCountry = () => {
+    try {
+      const locale = Intl.DateTimeFormat().resolvedOptions().locale || navigator.language || 'fr-FR';
+      const region = new Intl.Locale(locale).region || locale.split('-')[1] || null;
+      
+      if (region === 'US') {
+        return 'en-US';
+      }
+      return 'fr-FR'; // Par défaut
+    } catch {
+      return 'fr-FR';
+    }
+  };
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    country: 'fr-FR'
+    country: getDefaultCountry()
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -66,7 +81,7 @@ const Register = () => {
     try {
       await register(formData.email, formData.password, formData.name, formData.country);
       toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
-      navigate('/dashboard');
+      navigate('/onboarding'); // Toujours aller à l'onboarding après inscription
     } catch (err) {
       console.error('Registration error:', err);
       
@@ -89,9 +104,15 @@ const Register = () => {
   const handleGoogleSignup = async () => {
     setIsSubmitting(true);
     try {
-      await loginWithGoogle();
+      const result = await loginWithGoogle();
       toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
-      navigate('/dashboard');
+      
+      // Si c'est un nouveau compte Google ou si l'onboarding n'est pas complété
+      if (result.isNewGoogleUser || !result.onboardingCompleted) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Google signup error:', err);
       toast.error(t('auth.google_signup_error') || 'Failed to sign up with Google');

@@ -166,6 +166,45 @@ service cloud.firestore {
     }
     
     // ==========================================
+    // USER PROGRESS (Progression globale)
+    // ==========================================
+    match /userProgress/{userId} {
+      // Lecture : son propre profil de progression
+      allow read: if isOwner(userId);
+      
+      // Création : pour soi-même
+      allow create: if isOwner(userId);
+      
+      // Mise à jour : ses propres données de progression
+      allow update: if isOwner(userId);
+      
+      // Suppression : pour son propre document
+      allow delete: if isOwner(userId);
+    }
+    
+    // ==========================================
+    // STREAK INCIDENTS
+    // ==========================================
+    match /streakIncidents/{incidentId} {
+      // Lecture : ses propres incidents
+      allow read: if isSignedIn() 
+        && (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Création : pour soi-même
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Mise à jour : ses propres incidents
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Suppression : ses propres incidents
+      allow delete: if isSignedIn() 
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // ==========================================
     // ACHIEVEMENT SHARES
     // ==========================================
     match /achievement_shares/{shareId} {
