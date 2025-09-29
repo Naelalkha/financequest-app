@@ -1,99 +1,84 @@
 // Starter pack de quêtes recommandées selon les objectifs et le niveau de l'utilisateur
+// IMPORTANT: Le starter pack contient exactement 3 quêtes GRATUITES
 
 export const getStarterPack = (goals, level, country) => {
-  const starterQuests = [];
+  const allPossibleQuests = [];
   
-  // Quêtes de base pour tous les nouveaux utilisateurs
-  const basicQuests = [
-    'budget-basics', // Pour tout le monde
-    'basic-banking', // Pour tout le monde
+  // Quêtes de base obligatoires (toujours gratuites et adaptées aux débutants)
+  const mandatoryQuests = [
+    'budget-basics', // Fondamental pour tous
   ];
   
-  // Ajouter les quêtes de base
-  starterQuests.push(...basicQuests);
+  // Pool de quêtes gratuites par objectif
+  const freeQuestsByGoal = {
+    budgeting: ['expense-tracking', 'basic-banking'],
+    saving: ['emergency-fund-101', 'saving-strategies'],
+    debt: ['credit-score-basics'],
+    investing: ['investing-basics'],
+    planning: ['money-mindset']
+  };
   
-  // Quêtes spécifiques selon les objectifs (alignées sur les 5 catégories)
-  if (goals.includes('budgeting')) {
-    starterQuests.push('expense-tracking');
-    if (level !== 'novice') {
-      starterQuests.push('side-hustle-finance');
+  // Pool de quêtes gratuites spécifiques au pays
+  const countrySpecificFreeQuests = {
+    'fr-FR': {
+      saving: ['livret-a'],
+    },
+    'en-US': {
+      investing: ['401k-basics'],
+    }
+  };
+  
+  // Ajouter la quête obligatoire
+  allPossibleQuests.push(...mandatoryQuests);
+  
+  // Ajouter des quêtes selon les objectifs prioritaires
+  const primaryGoal = goals[0]; // Objectif principal
+  if (primaryGoal && freeQuestsByGoal[primaryGoal]) {
+    const goalQuests = freeQuestsByGoal[primaryGoal];
+    // Prendre la première quête de l'objectif principal
+    if (goalQuests.length > 0) {
+      allPossibleQuests.push(goalQuests[0]);
     }
   }
   
-  if (goals.includes('saving')) {
-    starterQuests.push('emergency-fund-101');
-    if (level === 'intermediate' || level === 'advanced') {
-      starterQuests.push('saving-strategies');
-    }
-  }
-  
-  if (goals.includes('debt')) {
-    starterQuests.push('credit-score-basics');
-    if (level !== 'novice') {
-      starterQuests.push('debt-avalanche');
-    }
-  }
-  
-  if (goals.includes('investing')) {
-    if (level === 'novice') {
-      starterQuests.push('investing-basics');
-    } else {
-      starterQuests.push('investing-basics');
-      starterQuests.push('real-estate-basics');
-    }
-    
-    if (level === 'advanced') {
-      starterQuests.push('crypto-intro');
-    }
-  }
-  
-  if (goals.includes('planning')) {
-    starterQuests.push('money-mindset');
-    if (level === 'intermediate' || level === 'advanced') {
-      starterQuests.push('insurance-essentials');
-    }
-    if (level === 'advanced') {
-      starterQuests.push('fire-movement');
-      starterQuests.push('tax-optimization');
-    }
-  }
-  
-  // Ajouter des quêtes spécifiques au pays
-  if (country === 'fr-FR') {
-    // Quêtes spécifiques à la France
-    if (goals.includes('saving')) {
-      starterQuests.push('livret-a');
-    }
-    if (goals.includes('budgeting') && level !== 'novice') {
-      starterQuests.push('pel');
-    }
-    if (goals.includes('planning') && level === 'advanced') {
-      starterQuests.push('retraite-france');
-    }
-  } else if (country === 'en-US') {
-    // Quêtes spécifiques aux USA
-    if (goals.includes('investing')) {
-      starterQuests.push('401k-basics');
-      if (level !== 'novice') {
-        starterQuests.push('roth-ira');
+  // Ajouter une quête d'un objectif secondaire si disponible
+  if (goals.length > 1) {
+    const secondaryGoal = goals[1];
+    if (secondaryGoal && freeQuestsByGoal[secondaryGoal]) {
+      const goalQuests = freeQuestsByGoal[secondaryGoal];
+      if (goalQuests.length > 0) {
+        allPossibleQuests.push(goalQuests[0]);
       }
     }
   }
   
-  // Quêtes avancées générales (si planning n'est pas sélectionné)
-  if (level === 'advanced' && !goals.includes('planning')) {
-    starterQuests.push('tax-optimization');
-    starterQuests.push('fire-movement');
+  // Si on n'a pas encore 3 quêtes, ajouter des quêtes générales recommandées
+  const generalFreeQuests = [
+    'basic-banking',
+    'expense-tracking',
+    'emergency-fund-101',
+    'credit-score-basics',
+    'money-mindset'
+  ];
+  
+  // Enlever les doublons
+  const uniqueQuests = [...new Set(allPossibleQuests)];
+  
+  // S'assurer qu'on a exactement 3 quêtes
+  if (uniqueQuests.length < 3) {
+    // Ajouter des quêtes générales jusqu'à atteindre 3
+    for (const quest of generalFreeQuests) {
+      if (!uniqueQuests.includes(quest)) {
+        uniqueQuests.push(quest);
+        if (uniqueQuests.length === 3) break;
+      }
+    }
+  } else if (uniqueQuests.length > 3) {
+    // Si on a trop de quêtes, prendre les 3 premières
+    return uniqueQuests.slice(0, 3);
   }
   
-  // Quêtes intermédiaires générales (si planning n'est pas sélectionné)
-  if ((level === 'intermediate' || level === 'advanced') && !goals.includes('planning')) {
-    starterQuests.push('insurance-essentials');
-    starterQuests.push('money-mindset');
-  }
-  
-  // Retourner un set unique de quêtes (éviter les doublons)
-  return [...new Set(starterQuests)];
+  return uniqueQuests;
 };
 
 // Note: Les quêtes du starter pack sont maintenant simplement stockées comme IDs

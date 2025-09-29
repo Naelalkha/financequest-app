@@ -637,6 +637,29 @@
       "available": "Available"
     },
     
+    "starterPack": {
+      "title": "Your Starter Pack",
+      "subtitle": "Complete these 3 free quests to begin your financial journey",
+      "completed": "completed",
+      "loadError": "Failed to load starter pack",
+      "completePrevious": "Please complete the previous quest first",
+      "questCompleted": "Completed",
+      "questInProgress": "In Progress",
+      "encouragement": "Complete all 3 quests to unlock your personalized financial roadmap!",
+      "completion": {
+        "title": "Starter Pack Completed! 🎉",
+        "subtitle": "You've mastered the basics. Ready to level up your financial journey?",
+        "premiumTitle": "Continue Your Journey",
+        "premiumSubtitle": "Unlock advanced quests & personalized guidance",
+        "benefit1": "Access to 50+ premium quests",
+        "benefit2": "Advanced financial strategies",
+        "benefit3": "Country-specific expert content",
+        "trialCTA": "Start 7-Day Free Trial",
+        "exploreFree": "Explore free quests instead"
+      },
+      "backToStarterPack": "Back to Starter Pack"
+    },
+    
     "filters": {
       "recommended": "Recommended",
       "difficulty": "Difficulty",
@@ -1505,6 +1528,29 @@
       "in_progress": "Actives",
       "total_xp": "XP",
       "available": "Disponibles"
+    },
+    
+    "starterPack": {
+      "title": "Votre Pack de Démarrage",
+      "subtitle": "Complétez ces 3 quêtes gratuites pour commencer votre parcours financier",
+      "completed": "complétées",
+      "loadError": "Échec du chargement du pack de démarrage",
+      "completePrevious": "Veuillez d'abord terminer la quête précédente",
+      "questCompleted": "Terminée",
+      "questInProgress": "En cours",
+      "encouragement": "Complétez les 3 quêtes pour débloquer votre feuille de route financière personnalisée !",
+      "completion": {
+        "title": "Pack de Démarrage Terminé ! 🎉",
+        "subtitle": "Vous maîtrisez les bases. Prêt à passer au niveau supérieur ?",
+        "premiumTitle": "Continuez Votre Parcours",
+        "premiumSubtitle": "Débloquez des quêtes avancées et des conseils personnalisés",
+        "benefit1": "Accès à plus de 50 quêtes premium",
+        "benefit2": "Stratégies financières avancées",
+        "benefit3": "Contenu expert spécifique à votre pays",
+        "trialCTA": "Commencer l'Essai Gratuit 7 Jours",
+        "exploreFree": "Explorer les quêtes gratuites"
+      },
+      "backToStarterPack": "Retour au Pack de Démarrage"
     },
     
     "filters": {

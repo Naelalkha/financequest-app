@@ -143,11 +143,15 @@ const Onboarding = () => {
       
       console.log('Onboarding completed successfully for user:', user?.uid);
       console.log('Starter pack assigned:', starterQuestIds);
+      console.log('User onboardingCompleted status:', user?.onboardingCompleted);
 
       toast.success(t('onboarding.success') || 'Welcome aboard! Your journey begins now 🚀');
       
-      // Rediriger vers le dashboard
-      navigate('/dashboard');
+      // Petit délai pour s'assurer que l'état utilisateur est mis à jour
+      setTimeout(() => {
+        console.log('Redirecting to starter pack...');
+        navigate('/starter-pack', { replace: true });
+      }, 500);
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error(t('onboarding.error') || 'Failed to complete setup. Please try again.');

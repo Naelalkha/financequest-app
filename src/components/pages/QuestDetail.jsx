@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle, FaCalculator } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
@@ -25,6 +25,7 @@ import { completeDailyChallenge, getUserDailyChallenge } from '../../services/da
 const QuestDetail = () => {
   const { id: questId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, currentLang } = useLanguage();
   const { user } = useAuth();
   
@@ -57,6 +58,19 @@ const QuestDetail = () => {
     const loadQuest = async () => {
       try {
         setLoading(true);
+        
+        // Détecter le contexte d'où vient l'utilisateur
+        const searchParams = new URLSearchParams(location.search);
+        const fromStarterPack = searchParams.get('from') === 'starter-pack';
+        
+        console.log('🔍 QuestDetail context debug:', {
+          questId,
+          userId: user?.uid,
+          fromStarterPack,
+          searchParams: location.search,
+          starterPackQuests: user?.starterPackQuests,
+          isStarterPackQuest: user?.starterPackQuests?.includes(questId)
+        });
         
         if (questError) {
           toast.error(t('errors.quest_not_found') || 'Quest not found');
@@ -778,12 +792,34 @@ const QuestDetail = () => {
                 />
               )}
               
-              <Link
-                to="/quests"
-                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
-              >
-                {t('ui.back_to_quests') || 'Back to Quests'}
-              </Link>
+              {(() => {
+                // Détecter le contexte d'où vient l'utilisateur
+                const searchParams = new URLSearchParams(location.search);
+                const fromStarterPack = searchParams.get('from') === 'starter-pack';
+                const redirectTo = fromStarterPack ? "/starter-pack" : "/quests";
+                const buttonText = fromStarterPack 
+                  ? (t('starterPack.backToStarterPack') || 'Back to Starter Pack')
+                  : (t('ui.back_to_quests') || 'Back to Quests');
+                
+                return (
+                  <Link
+                    to={redirectTo}
+                    className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                    onClick={() => {
+                      console.log('🔍 Quest completion redirect debug:', {
+                        questId,
+                        fromStarterPack,
+                        searchParams: location.search,
+                        userStarterPackQuests: user?.starterPackQuests,
+                        isStarterPackQuest: user?.starterPackQuests?.includes(questId),
+                        redirectTo
+                      });
+                    }}
+                  >
+                    {buttonText}
+                  </Link>
+                );
+              })()}
             </div>
           </div>
         )}

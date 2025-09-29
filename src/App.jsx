@@ -9,6 +9,7 @@ import QuestDetail from './components/pages/QuestDetail';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
 import Onboarding from './components/pages/Onboarding';
+import StarterPackHub from './components/pages/StarterPackHub';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
@@ -35,8 +36,11 @@ function PrivateRoute({ children, skipOnboarding = false }) {
   
   // Vérifier si l'onboarding est complété (sauf pour la route onboarding elle-même)
   if (!skipOnboarding && user.onboardingCompleted === false && location.pathname !== '/onboarding') {
+    console.log('🔄 PrivateRoute: Redirecting to onboarding. User:', user?.uid, 'onboardingCompleted:', user?.onboardingCompleted, 'path:', location.pathname);
     return <Navigate to="/onboarding" />;
   }
+  
+  console.log('✅ PrivateRoute: Access granted. User:', user?.uid, 'onboardingCompleted:', user?.onboardingCompleted, 'path:', location.pathname);
   
   return children;
 }
@@ -94,7 +98,7 @@ function AppContent() {
   }
 
   // Routes that don't show bottom nav
-  const noNavRoutes = ['/', '/login', '/register', '/onboarding'];
+  const noNavRoutes = ['/', '/login', '/register', '/onboarding', '/starter-pack'];
   const showBottomNav = user && !noNavRoutes.includes(location.pathname);
 
   return (
@@ -138,6 +142,14 @@ function AppContent() {
             element={
               <PrivateRoute skipOnboarding={true}>
                 <Onboarding />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/starter-pack" 
+            element={
+              <PrivateRoute>
+                <StarterPackHub />
               </PrivateRoute>
             } 
           />
