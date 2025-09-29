@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
         delete newUserData.currentPeriodEnd;
         
         console.log('Creating user document with data:', newUserData);
-        await setDoc(userRef, newUserData);
+        await setDoc(userRef, newUserData, { merge: true });
         
         // Retourner avec les valeurs par défaut pour l'affichage
         return {
@@ -96,10 +96,14 @@ export const AuthProvider = ({ children }) => {
           isPremium: false // Valeur par défaut pour l'UI seulement
         };
       } else {
-        // Update last login
-        await setDoc(userRef, {
-          lastLogin: serverTimestamp()
-        }, { merge: true });
+        // Update last login - ne pas faire échouer si ça échoue
+        try {
+          await setDoc(userRef, {
+            lastLogin: serverTimestamp()
+          }, { merge: true });
+        } catch (updateError) {
+          console.warn('Failed to update last login, but continuing:', updateError);
+        }
         
         const updatedSnap = await getDoc(userRef);
         return {
@@ -141,15 +145,32 @@ export const AuthProvider = ({ children }) => {
       
       // Update display name if provided
       if (displayName) {
-        await updateProfile(userCredential.user, { displayName });
+        try {
+          await updateProfile(userCredential.user, { displayName });
+        } catch (profileError) {
+          console.warn('Failed to update profile, but continuing:', profileError);
+        }
       }
       
-      // Create user document
-      const userData = await createUserDocument(
-        userCredential.user.uid, 
-        userCredential.user.email,
-        { displayName, country }
-      );
+      // Create user document - ne pas faire échouer l'inscription si ça échoue
+      let userData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName,
+        country,
+        isPremium: false
+      };
+      
+      try {
+        userData = await createUserDocument(
+          userCredential.user.uid, 
+          userCredential.user.email,
+          { displayName, country }
+        );
+      } catch (firestoreError) {
+        console.error('Failed to create user document, but user is authenticated:', firestoreError);
+        // L'utilisateur est créé dans Firebase Auth, on continue avec des données par défaut
+      }
       
       // Merge Firebase Auth user with Firestore data
       setUser({
@@ -158,16 +179,27 @@ export const AuthProvider = ({ children }) => {
       });
       
       // Capture PostHog signup event
-      posthog.capture('signup', {
-        provider: 'email',
-        lang: userData.lang || 'en',
-        country: userData.country || 'fr-FR'
-      });
+      try {
+        posthog.capture('signup', {
+          provider: 'email',
+          lang: userData.lang || 'en',
+          country: userData.country || 'fr-FR'
+        });
+      } catch (posthogError) {
+        console.warn('PostHog tracking failed:', posthogError);
+      }
       
       return userCredential.user;
     } catch (error) {
-      setError(error.message);
-      throw error;
+      // Seulement faire échouer si l'authentification Firebase échoue
+      if (error.code && error.code.startsWith('auth/')) {
+        setError(error.message);
+        throw error;
+      } else {
+        // Pour les autres erreurs, logger mais ne pas faire échouer
+        console.error('Non-auth error during registration:', error);
+        return null;
+      }
     }
   };
 
@@ -203,16 +235,29 @@ export const AuthProvider = ({ children }) => {
       // Vérifier si c'est un nouveau compte
       const isNewUser = result._tokenResponse?.isNewUser || false;
       
-      // Create or update user document
-      const userData = await createUserDocument(
-        result.user.uid, 
-        result.user.email,
-        { 
-          displayName: result.user.displayName,
-          photoURL: result.user.photoURL,
-          // Ne pas forcer le country, laisser la détection automatique le faire
-        }
-      );
+      // Create or update user document - ne pas faire échouer si ça échoue
+      let userData = {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName,
+        photoURL: result.user.photoURL,
+        isPremium: false
+      };
+      
+      try {
+        userData = await createUserDocument(
+          result.user.uid, 
+          result.user.email,
+          { 
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+            // Ne pas forcer le country, laisser la détection automatique le faire
+          }
+        );
+      } catch (firestoreError) {
+        console.error('Failed to create/update user document, but user is authenticated:', firestoreError);
+        // L'utilisateur est authentifié, on continue avec des données par défaut
+      }
       
       // Merge Firebase Auth user with Firestore data
       const mergedUser = {
@@ -225,11 +270,15 @@ export const AuthProvider = ({ children }) => {
       
       // Capture PostHog signup event seulement pour les nouveaux utilisateurs
       if (isNewUser) {
-        posthog.capture('signup', {
-          provider: 'google',
-          lang: userData.lang || 'en',
-          country: userData.country || 'fr-FR'
-        });
+        try {
+          posthog.capture('signup', {
+            provider: 'google',
+            lang: userData.lang || 'en',
+            country: userData.country || 'fr-FR'
+          });
+        } catch (posthogError) {
+          console.warn('PostHog tracking failed:', posthogError);
+        }
       }
       
       return mergedUser;

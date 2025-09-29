@@ -79,9 +79,17 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      await register(formData.email, formData.password, formData.name, formData.country);
-      toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
-      navigate('/onboarding'); // Toujours aller à l'onboarding après inscription
+      const result = await register(formData.email, formData.password, formData.name, formData.country);
+      
+      // Si l'inscription a réussi (même partiellement)
+      if (result !== null) {
+        toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
+        navigate('/onboarding'); // Toujours aller à l'onboarding après inscription
+      } else {
+        // Cas où l'auth a réussi mais il y a eu des erreurs non-critiques
+        toast.success(t('auth.register_success') || 'Welcome to FinanceQuest! 🚀');
+        navigate('/onboarding');
+      }
     } catch (err) {
       console.error('Registration error:', err);
       
