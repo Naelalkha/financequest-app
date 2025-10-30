@@ -19,8 +19,19 @@ import {
   FaLock,
   FaClock,
   FaRedoAlt,
-  FaTrophy
+  FaTrophy,
+  FaCreditCard,
+  FaShieldAlt,
+  FaFileInvoiceDollar
 } from 'react-icons/fa';
+
+// Import des illustrations personnalisées
+import streakIcon from '../../assets/streak.png';
+import continuerIcon from '../../assets/continuer.png';
+import premiumIcon from '../../assets/premium.png';
+import progressionIcon from '../../assets/progression.png';
+import checkIcon from '../../assets/check.png';
+import couronneIcon from '../../assets/couronne.png';
 import { HiSparkles } from 'react-icons/hi';
 import { 
   BsStars,
@@ -46,6 +57,7 @@ import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { getUserDailyChallenge, generateDailyChallenge } from '../../services/dailyChallenge';
 import { getBadgeById } from '../../data/badges';
 import QuestCardShared from '../quest/QuestCard';
+import ImpactHero from '../impact/ImpactHero';
 
 // Animation de compteur fluide
 const CountUp = ({ end, duration = 1000, prefix = '', suffix = '' }) => {
@@ -89,6 +101,14 @@ const categoryConfig = {
     bgColor: 'bg-green-500/20',
     borderColor: 'border-green-500/30'
   },
+  credit: { 
+    icon: FaCreditCard,
+    gradient: 'from-red-400 via-rose-400 to-pink-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
+    color: 'text-red-300',
+    bgColor: 'bg-red-500/20',
+    borderColor: 'border-red-500/30'
+  },
   investing: { 
     icon: FaChartLine,
     gradient: 'from-blue-400 via-indigo-400 to-purple-400',
@@ -97,21 +117,21 @@ const categoryConfig = {
     bgColor: 'bg-blue-500/20',
     borderColor: 'border-blue-500/30'
   },
-  debt: { 
-    icon: FaExclamationTriangle,
-    gradient: 'from-red-400 via-rose-400 to-pink-400',
-    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
-    color: 'text-red-300',
-    bgColor: 'bg-red-500/20',
-    borderColor: 'border-red-500/30'
+  taxes: { 
+    icon: FaFileInvoiceDollar,
+    gradient: 'from-purple-500 via-violet-500 to-indigo-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
+    color: 'text-purple-300',
+    bgColor: 'bg-purple-500/20',
+    borderColor: 'border-purple-500/30'
   },
-  planning: { 
-    icon: FaCalendarAlt,
-    gradient: 'from-amber-400 via-orange-400 to-red-400',
-    neonGlow: 'shadow-[0_0_20px_rgba(251,146,60,0.3)]',
-    color: 'text-amber-300',
-    bgColor: 'bg-amber-500/20',
-    borderColor: 'border-amber-500/30'
+  protect: { 
+    icon: FaShieldAlt,
+    gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
+    color: 'text-pink-300',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/30'
   }
 };
 
@@ -145,7 +165,7 @@ const QuestCard = ({ quest, userProgress, isPremium, onNavigate, hoveredQuest, s
   const isCompleted = progress?.status === 'completed';
   const isInProgress = progress?.status === 'active';
   const isLocked = quest.isPremium && !isPremium;
-  const category = categoryConfig[quest.category] || categoryConfig.planning;
+  const category = categoryConfig[quest.category] || categoryConfig.protect;
   const difficulty = difficultyConfig[quest.difficulty] || difficultyConfig.beginner;
 
   return (
@@ -186,11 +206,15 @@ const QuestCard = ({ quest, userProgress, isPremium, onNavigate, hoveredQuest, s
               ? 'linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(13, 148, 136, 0.08) 100%)'
               : quest.category === 'saving'
                 ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(101, 163, 13, 0.08) 100%)'
-                : quest.category === 'investing'
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%)'
-                  : quest.category === 'debt'
-                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.08) 100%)'
-                    : 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.08) 100%)',
+                : quest.category === 'credit'
+                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.08) 100%)'
+                  : quest.category === 'investing'
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%)'
+                    : quest.category === 'taxes'
+                      ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%)'
+                      : quest.category === 'protect'
+                        ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.08) 100%)'
+                        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%)',
           }}
         >
           {/* Accent succès discret en top stripe si terminé */}
@@ -260,12 +284,20 @@ const QuestCard = ({ quest, userProgress, isPremium, onNavigate, hoveredQuest, s
                 <div className="flex items-center gap-2">
                   {isCompleted && (
                     <>
-                      <FaCheckCircle className="text-emerald-300 text-[14px] sm:hidden" />
+                      <img 
+                        src={checkIcon} 
+                        alt="Terminé"
+                        className="w-4 h-4 sm:hidden"
+                      />
                       <div 
                         className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[12px] font-extrabold text-emerald-300 items-center gap-1 uppercase tracking-wider"
                         style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800, letterSpacing: '0.05em' }}
                       >
-                        <FaCheckCircle className="text-[12px]" />
+                        <img 
+                          src={checkIcon} 
+                          alt="Terminé"
+                          className="w-3 h-3"
+                        />
                         {t('dashboard.completed') || 'Terminé'}
                       </div>
                     </>
@@ -642,7 +674,7 @@ const DashboardPage = () => {
 
   if (loading) {
     return (
-      <AppBackground variant="nebula" grain grid={false} animate>
+      <AppBackground variant="finance" grain grid={false} animate>
         <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner />
         </div>
@@ -786,7 +818,7 @@ const DashboardPage = () => {
       : (t('dashboard.good_evening') || 'Bonsoir');
 
   return (
-    <AppBackground variant="nebula" grain grid={false} animate>
+    <AppBackground variant="finance" grain grid={false} animate>
       <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+88px)]">
         <div className="px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="max-w-7xl mx-auto">
@@ -888,7 +920,11 @@ const DashboardPage = () => {
                       to="/premium"
                       className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 font-semibold text-sm transition-all flex items-center gap-2"
                     >
-                      <FaCrown className="text-xs" />
+                      <img 
+                        src={couronneIcon} 
+                        alt="Premium"
+                        className="w-5 h-5"
+                      />
                       {t('dashboard.premium') || 'Premium'}
                     </Link>
                   )}
@@ -905,14 +941,18 @@ const DashboardPage = () => {
                 className="rounded-xl p-3 bg-white/[0.03] border border-white/10 flex items-center gap-3"
                 aria-label={`${streakDays} ${t('dashboard.days') || 'jours'} ${t('dashboard.streak') || 'de série'}`}
               >
-                <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center">
-                  <FaFire className="text-orange-400 text-base" />
+                <div className="flex items-center justify-center">
+                  <img 
+                    src={streakIcon} 
+                    alt="Streak"
+                    className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                  />
                 </div>
                 <div>
-                  <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}>
+                  <div className="text-xs sm:text-sm text-gray-400 font-bold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800, letterSpacing: '0.05em' }}>
                     {t('dashboard.streak') || 'Série'}
                   </div>
-                  <div className="text-sm font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
+                  <div className="text-lg sm:text-xl font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
                     {streakDays} <span className="text-gray-300 font-semibold">{t('dashboard.days') || 'jours'}</span>
                   </div>
                 </div>
@@ -925,14 +965,18 @@ const DashboardPage = () => {
                 className="rounded-xl p-3 bg-white/[0.03] border border-white/10 flex items-center gap-3"
                 aria-label={`${completedQuests} quêtes terminées`}
               >
-                <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center">
-                  <FaCheckCircle className="text-emerald-400 text-base" />
+                <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16">
+                  <img 
+                    src={checkIcon} 
+                    alt="Quêtes terminées"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
-                  <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, letterSpacing: '0.05em' }}>
+                  <div className="text-xs sm:text-sm text-gray-400 font-bold uppercase tracking-wider" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800, letterSpacing: '0.05em' }}>
                     {t('dashboard.quests_completed') || 'Quêtes terminées'}
                   </div>
-                  <div className="text-sm font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
+                  <div className="text-lg sm:text-xl font-extrabold text-white" style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900 }}>
                     <CountUp end={completedQuests} />/{totalQuests}
                   </div>
                 </div>
@@ -951,7 +995,11 @@ const DashboardPage = () => {
                   className="text-lg font-bold text-white flex items-center gap-2"
                   style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                 >
-                  <BsLightningChargeFill className="text-amber-400" />
+                  <img 
+                    src={progressionIcon} 
+                    alt="Progression"
+                    className="w-8 h-8"
+                  />
 {t('dashboard.progression') || 'Progression'}
                 </h2>
                 <span className="text-base sm:text-lg font-extrabold text-white">
@@ -987,20 +1035,19 @@ const DashboardPage = () => {
                     />
                   </motion.div>
                 </div>
-                
-                <div className="text-xs text-center text-gray-500">
-                  {t('dashboard.xp_to_next', { xp: xpToNext }) || `Plus que ${xpToNext} XP pour le niveau suivant`}
-                </div>
               </div>
             </motion.div>
             </motion.div>
+
+            {/* Impact Hero - Économies totales sécurisées */}
+            <ImpactHero />
 
             {/* Reprendre (si quêtes actives réellement commencées) */}
             {hasVisibleActiveQuests && activeQuestsToRender.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 
-                    className="text-lg font-bold text-white flex items-center gap-2"
+                    className="text-lg font-bold text-white"
                     style={{ fontFamily: '"Inter", sans-serif', fontWeight: 800 }}
                   >
                     {t('dashboard.continue_quest') || 'Reprendre'}
@@ -1249,7 +1296,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Mobile carrousel */}
-                <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
+                <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide flex items-stretch gap-4 snap-x snap-mandatory scroll-padding-x-4 pb-1">
                   {recommendedToRender.map((quest, index) => (
                     <div
                       key={quest.id}
@@ -1273,6 +1320,7 @@ const DashboardPage = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 + index * 0.1 }}
+                      className="h-full"
                     >
                       <QuestCardShared
                         quest={quest}
@@ -1436,7 +1484,11 @@ const DashboardPage = () => {
                       className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-white rounded-full font-bold border border-purple-500/30 transition-all"
                       style={{ fontFamily: '\"Inter\", sans-serif', fontWeight: 800 }}
                     >
-                      <FaCrown />
+                      <img 
+                        src={couronneIcon} 
+                        alt="Premium"
+                        className="w-6 h-6"
+                      />
                       {t('dashboard.go_premium') || 'Passer Premium'}
                     </Link>
                   )}

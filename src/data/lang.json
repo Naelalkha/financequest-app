@@ -900,15 +900,64 @@
     },
 
     "impact": {
-      "hero_title": "Your Financial Impact",
-      "hero_sub": "Track the real savings from your completed quests",
-      "cta_quickwin": "Add Quick Win",
-      "cta_continue": "Continue Your Journey",
-      "see_ledger": "See All Savings",
-      "proofs_none": "No proof provided",
-      "proofs_one": "Proof provided",
-      "proofs_pending": "Pending verification",
-      "proofs_verified": "Verified"
+      "hero": {
+        "title": "Secured Total Impact",
+        "subtitle": "Learn in 2 min · Act in 5 · Prove.",
+        "proofs": {
+          "none": "Proofs: 0 verified",
+          "pending": "Proofs: {{count}} pending",
+          "verified": "Proofs: {{count}} verified"
+        }
+      },
+      "cta": {
+        "quickwin": "Start a quick win (+€156/year)",
+        "continue": "Continue your quest"
+      },
+      "link": {
+        "detail": "See details"
+      },
+      "ledger": {
+        "title": "Impact & Proofs",
+        "add_btn": "Add Savings",
+        "total_estimated": "Total annual estimated",
+        "total_verified": "Verified",
+        "events_count": "Events",
+        "empty_title": "No savings yet",
+        "empty_subtitle": "Add your first savings to see your impact grow",
+        "empty_cta": "Add Savings",
+        "badge_verified": "Verified",
+        "badge_estimated": "Estimated",
+        "per_year": "/year",
+        "period_month": "monthly",
+        "period_year": "yearly",
+        "source_quest": "Quest",
+        "source_manual": "Manual"
+      },
+      "modal": {
+        "title": "Add Savings",
+        "fields": {
+          "title": "Title",
+          "title_placeholder": "e.g., Canceled unused subscription",
+          "amount": "Amount",
+          "amount_placeholder": "0",
+          "period": "Period",
+          "note": "Proof note (optional)",
+          "note_placeholder": "Add details or evidence..."
+        },
+        "period": {
+          "month": "per month",
+          "year": "per year"
+        },
+        "save": "Save",
+        "cancel": "Cancel",
+        "success": "Savings added successfully!",
+        "error": "Failed to add savings",
+        "validation": {
+          "title_required": "Title is required",
+          "amount_required": "Amount is required",
+          "amount_positive": "Amount must be greater than 0"
+        }
+      }
     },
 
     "daily": {
@@ -1822,15 +1871,64 @@
     },
 
     "impact": {
-      "hero_title": "Votre Impact Financier",
-      "hero_sub": "Suivez les économies réelles générées par vos quêtes complétées",
-      "cta_quickwin": "Ajouter une Victoire Rapide",
-      "cta_continue": "Continuer Votre Parcours",
-      "see_ledger": "Voir Toutes les Économies",
-      "proofs_none": "Aucune preuve fournie",
-      "proofs_one": "Preuve fournie",
-      "proofs_pending": "En attente de vérification",
-      "proofs_verified": "Vérifié"
+      "hero": {
+        "title": "Impact total sécurisé",
+        "subtitle": "Apprends en 2 min · Agis en 5 · Prouve.",
+        "proofs": {
+          "none": "Preuves : 0 vérifiée",
+          "pending": "Preuves : {{count}} en attente",
+          "verified": "Preuves : {{count}} vérifiée(s)"
+        }
+      },
+      "cta": {
+        "quickwin": "Démarrer un gain rapide (+€156/an)",
+        "continue": "Continuer ta quête"
+      },
+      "link": {
+        "detail": "Voir le détail"
+      },
+      "ledger": {
+        "title": "Impact & preuves",
+        "add_btn": "Ajouter une économie",
+        "total_estimated": "Total annuel estimé",
+        "total_verified": "Vérifié",
+        "events_count": "Événements",
+        "empty_title": "Aucune économie encore",
+        "empty_subtitle": "Ajoute ta première économie pour voir ton impact augmenter",
+        "empty_cta": "Ajouter une économie",
+        "badge_verified": "Vérifié",
+        "badge_estimated": "Estimé",
+        "per_year": "/an",
+        "period_month": "mensuel",
+        "period_year": "annuel",
+        "source_quest": "Quête",
+        "source_manual": "Manuel"
+      },
+      "modal": {
+        "title": "Ajouter une économie",
+        "fields": {
+          "title": "Titre",
+          "title_placeholder": "ex: Abonnement inutilisé annulé",
+          "amount": "Montant",
+          "amount_placeholder": "0",
+          "period": "Période",
+          "note": "Note de preuve (optionnel)",
+          "note_placeholder": "Ajoute des détails ou une preuve..."
+        },
+        "period": {
+          "month": "par mois",
+          "year": "par an"
+        },
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "success": "Économie ajoutée avec succès !",
+        "error": "Échec de l'ajout de l'économie",
+        "validation": {
+          "title_required": "Le titre est requis",
+          "amount_required": "Le montant est requis",
+          "amount_positive": "Le montant doit être supérieur à 0"
+        }
+      }
     },
 
     "daily": {

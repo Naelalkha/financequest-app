@@ -10,6 +10,7 @@ import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
 import Onboarding from './components/pages/Onboarding';
 import StarterPackHub from './components/pages/StarterPackHub';
+import Impact from './components/pages/Impact';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
@@ -190,6 +191,14 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/impact" 
+            element={
+              <PrivateRoute>
+                <Impact />
               </PrivateRoute>
             } 
           />
