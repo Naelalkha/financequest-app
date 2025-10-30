@@ -164,12 +164,9 @@ export const useSavingsEvents = () => {
     }
   }, [currentUser]);
 
-  // Charge les événements au montage du composant
-  useEffect(() => {
-    if (currentUser) {
-      loadEvents();
-    }
-  }, [currentUser, loadEvents]);
+  // NOTE: Ne charge PAS automatiquement les événements au montage
+  // Pour éviter de surcharger au démarrage
+  // Utilisez loadEvents() explicitement ou useSavingsStats() pour les agrégats
 
   return {
     events,

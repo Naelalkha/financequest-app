@@ -26,7 +26,10 @@ service cloud.firestore {
         'isModerator',
         'totalXP',
         'level',
-        'longestStreak'
+        'longestStreak',
+        'impactAnnualEstimated',
+        'impactAnnualVerified',
+        'proofsVerifiedCount'
       ];
     }
     
@@ -62,22 +65,71 @@ service cloud.firestore {
       // SAVINGS EVENTS (sous-collection)
       // ==========================================
       match /savingsEvents/{eventId} {
-        // Lecture : ses propres événements d'économie
         allow read: if isOwner(userId);
-        
-        // Création : pour soi-même avec champs requis
-        // Le champ 'verified' ne peut pas être défini à true lors de la création
-        allow create: if isOwner(userId)
-          && request.resource.data.keys().hasAll(['title', 'questId', 'amount', 'period', 'source', 'createdAt', 'updatedAt'])
-          && (!request.resource.data.keys().hasAny(['verified']) || request.resource.data.verified == false);
-        
-        // Mise à jour : ses propres événements
-        // Le champ 'verified' ne peut pas être modifié par l'utilisateur
-        allow update: if isOwner(userId)
-          && (!request.resource.data.diff(resource.data).changedKeys().hasAny(['verified']));
-        
-        // Suppression : ses propres événements
+        allow create: if isOwner(userId) && validCreateSavings();
+        allow update: if isOwner(userId) && validUpdateSavings();
         allow delete: if isOwner(userId);
+
+        function validCreateSavings() {
+          return hasOnlyAllowedSavings() &&
+                 hasRequiredSavings() &&
+                 isValidTypesSavings() &&
+                 newVerifiedIsFalseSavings() &&
+                 timestampsOnCreateSavings();
+        }
+
+        function validUpdateSavings() {
+          return hasOnlyAllowedSavings() &&
+                 isValidTypesSavings() &&
+                 verifiedUnchangedSavings() &&
+                 timestampOnUpdateSavings();
+        }
+
+        function hasOnlyAllowedSavings() {
+          let allowed = ['title', 'questId', 'amount', 'period', 'verified', 'proof', 'source', 'createdAt', 'updatedAt'];
+          return request.resource.data.keys().hasOnly(allowed);
+        }
+
+        function hasRequiredSavings() {
+          return request.resource.data.keys().hasAll(['title', 'amount', 'period', 'source', 'createdAt', 'updatedAt']);
+        }
+
+        function isValidTypesSavings() {
+          return request.resource.data.title is string &&
+                 request.resource.data.amount is number &&
+                 request.resource.data.amount > 0 && 
+                 request.resource.data.amount <= 100000 &&
+                 (request.resource.data.period == 'month' || request.resource.data.period == 'year') &&
+                 (request.resource.data.source == 'quest' || request.resource.data.source == 'manual') &&
+                 (!request.resource.data.keys().hasAny(['verified']) || request.resource.data.verified == false) &&
+                 (!request.resource.data.keys().hasAny(['proof']) ||
+                   request.resource.data.proof == null ||
+                   (request.resource.data.proof is map &&
+                    (request.resource.data.proof.type == 'note' || 
+                     request.resource.data.proof.type == 'file' || 
+                     request.resource.data.proof.type == 'screenshot')
+                   )
+                 );
+        }
+
+        function newVerifiedIsFalseSavings() {
+          return !request.resource.data.keys().hasAny(['verified']) || 
+                 request.resource.data.verified == false;
+        }
+
+        function verifiedUnchangedSavings() {
+          return !request.resource.data.keys().hasAny(['verified']) ||
+                 request.resource.data.verified == resource.data.verified;
+        }
+
+        function timestampsOnCreateSavings() {
+          return request.resource.data.createdAt is timestamp &&
+                 request.resource.data.updatedAt is timestamp;
+        }
+
+        function timestampOnUpdateSavings() {
+          return request.resource.data.updatedAt is timestamp;
+        }
       }
     }
     

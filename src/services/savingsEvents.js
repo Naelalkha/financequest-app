@@ -9,7 +9,8 @@ import {
   query,
   orderBy,
   where,
-  Timestamp 
+  serverTimestamp,
+  limit 
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
@@ -37,13 +38,26 @@ const getSavingsEventsCollection = (userId) => {
  */
 export const createSavingsEventInFirestore = async (userId, eventData) => {
   try {
-    const newEvent = createSavingsEvent({
-      ...eventData,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
+    const newEvent = {
+      title: eventData.title,
+      questId: eventData.questId,
+      amount: eventData.amount,
+      period: eventData.period,
+      source: eventData.source || 'quest',
+      proof: eventData.proof || null,
+      verified: false, // Toujours false à la création
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
 
-    if (!isValidSavingsEvent(newEvent)) {
+    // Validation côté client (avant envoi)
+    const validationData = {
+      ...newEvent,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    if (!isValidSavingsEvent(validationData)) {
       throw new Error('Invalid savings event data');
     }
 
@@ -52,7 +66,9 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
 
     return {
       id: docRef.id,
-      ...newEvent
+      ...newEvent,
+      createdAt: new Date(), // Pour l'état local
+      updatedAt: new Date(), // Pour l'état local
     };
   } catch (error) {
     console.error('Error creating savings event:', error);
@@ -70,13 +86,13 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
 export const updateSavingsEventInFirestore = async (userId, eventId, updates) => {
   try {
     // Empêcher la modification du champ 'verified' côté client
-    const { verified, ...allowedUpdates } = updates;
+    const { verified, createdAt, ...allowedUpdates } = updates;
 
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     
     await updateDoc(eventRef, {
       ...allowedUpdates,
-      updatedAt: Timestamp.now()
+      updatedAt: serverTimestamp()
     });
   } catch (error) {
     console.error('Error updating savings event:', error);
@@ -101,27 +117,31 @@ export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
 };
 
 /**
- * Récupère tous les événements d'économie d'un utilisateur
+ * Récupère les événements d'économie d'un utilisateur
  * @param {string} userId - ID de l'utilisateur
  * @param {Object} [options] - Options de filtre
  * @param {string} [options.questId] - Filtrer par questId
  * @param {boolean} [options.verified] - Filtrer par statut vérifié
+ * @param {number} [options.limitCount] - Nombre maximum d'événements (défaut: 50)
  * @returns {Promise<Array>} Liste des événements
  */
 export const getAllSavingsEvents = async (userId, options = {}) => {
   try {
     const savingsRef = getSavingsEventsCollection(userId);
-    let q = query(savingsRef, orderBy('createdAt', 'desc'));
+    const limitCount = options.limitCount || 50;
+    
+    let constraints = [orderBy('createdAt', 'desc'), limit(limitCount)];
 
     // Appliquer les filtres si fournis
     if (options.questId) {
-      q = query(savingsRef, where('questId', '==', options.questId), orderBy('createdAt', 'desc'));
+      constraints = [where('questId', '==', options.questId), orderBy('createdAt', 'desc'), limit(limitCount)];
     }
 
     if (typeof options.verified === 'boolean') {
-      q = query(savingsRef, where('verified', '==', options.verified), orderBy('createdAt', 'desc'));
+      constraints = [where('verified', '==', options.verified), orderBy('createdAt', 'desc'), limit(limitCount)];
     }
 
+    const q = query(savingsRef, ...constraints);
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => ({

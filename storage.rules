@@ -1,0 +1,46 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // ==========================================
+    // HELPER FUNCTIONS
+    // ==========================================
+    function isOwner(uid) { 
+      return request.auth != null && request.auth.uid == uid; 
+    }
+    
+    function isValidImageOrPdf() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType == 'application/pdf';
+    }
+    
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // ==========================================
+    // SAVINGS EVENT PROOFS
+    // ==========================================
+    // Structure: /proofs/{userId}/{eventId}/{filename}
+    match /proofs/{userId}/{eventId}/{filename} {
+      // Lecture : propriétaire uniquement
+      allow read: if isOwner(userId);
+      
+      // Écriture : propriétaire uniquement, max 5MB, images ou PDF
+      allow write: if isOwner(userId) && 
+                      isUnder5MB() && 
+                      isValidImageOrPdf();
+      
+      // Suppression : propriétaire uniquement
+      allow delete: if isOwner(userId);
+    }
+    
+    // ==========================================
+    // CATCH-ALL
+    // ==========================================
+    match /{allPaths=**} {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}
+
