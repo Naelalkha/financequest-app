@@ -219,18 +219,20 @@
       "replay": "Replay",
       "categories": {
         "all": "All",
-        "budgeting": "Budgeting",
+        "budgeting": "Budget",
         "saving": "Saving",
+        "credit": "Credit",
         "investing": "Investing",
-        "debt": "Debt Management",
-        "credit": "Credit Score"
+        "taxes": "Taxes",
+        "protect": "Protection"
       },
       "categories_list": {
-        "budgeting": "Budgeting",
+        "budgeting": "Budget",
         "saving": "Saving",
+        "credit": "Credit",
         "investing": "Investing",
-        "debt": "Debt Management",
-        "planning": "Planning"
+        "taxes": "Taxes",
+        "protect": "Protection"
       },
       "difficulties": {
         "all": "All Levels",
@@ -326,6 +328,11 @@
       "reflection_placeholder": "Share your thoughts...",
       "bookmark_added": "Quest bookmarked!",
       "bookmark_removed": "Bookmark removed",
+      
+      "card": {
+        "eta_minutes": "{{minutes}} min",
+        "impact_estimated": "Est. savings: {{amount}}"
+      },
       
       "steps": {
         "step": "Step {{current}} of {{total}}",
@@ -459,11 +466,12 @@
       "hard": "Hard",
       "difficulty": "Difficulty",
       "category": "Category",
-      "budgeting": "Budgeting",
+      "budgeting": "Budget",
       "saving": "Saving",
+      "credit": "Credit",
       "investing": "Investing",
-      "debt": "Debt",
-      "planning": "Planning",
+      "taxes": "Taxes",
+      "protect": "Protection",
       "trending": "Trending",
       "recent": "Recent",
       "quick": "Quick",
@@ -594,17 +602,17 @@
           "title": "Build Savings",
           "desc": "Create an emergency fund and save money"
         },
-        "debt": {
-          "title": "Manage Debt & Credit",
-          "desc": "Understand and improve your credit score, manage debt"
+        "credit": {
+          "title": "Manage Credit",
+          "desc": "Understand and improve your credit score"
         },
         "investing": {
           "title": "Start Investing",
           "desc": "Learn investment basics and strategies"
         },
-        "planning": {
-          "title": "Financial Planning",
-          "desc": "Plan your long-term financial future"
+        "protect": {
+          "title": "Protection & Planning",
+          "desc": "Protect your assets and plan your future"
         }
       },
       "levels": {
@@ -889,6 +897,26 @@
         "text": "Short quests + XP/streaks keep you moving."
       },
       "disclaimer": "Educational content only, not personalized financial advice."
+    },
+
+    "impact": {
+      "hero_title": "Your Financial Impact",
+      "hero_sub": "Track the real savings from your completed quests",
+      "cta_quickwin": "Add Quick Win",
+      "cta_continue": "Continue Your Journey",
+      "see_ledger": "See All Savings",
+      "proofs_none": "No proof provided",
+      "proofs_one": "Proof provided",
+      "proofs_pending": "Pending verification",
+      "proofs_verified": "Verified"
+    },
+
+    "daily": {
+      "challenge": {
+        "title": "Daily Challenge",
+        "eta": "{{minutes}} min",
+        "impact": "Est. savings: {{amount}}"
+      }
     }
   },
   
@@ -1114,16 +1142,18 @@
         "all": "Toutes",
         "budgeting": "Budget",
         "saving": "Épargne",
+        "credit": "Crédit",
         "investing": "Investissement",
-        "debt": "Gestion de Dettes",
-        "credit": "Score de Crédit"
+        "taxes": "Fiscalité",
+        "protect": "Protection"
       },
       "categories_list": {
         "budgeting": "Budget",
         "saving": "Épargne",
+        "credit": "Crédit",
         "investing": "Investissement",
-        "debt": "Gestion de Dettes",
-        "planning": "Planification"
+        "taxes": "Fiscalité",
+        "protect": "Protection"
       },
       "difficulties": {
         "all": "Tous Niveaux",
@@ -1183,6 +1213,11 @@
       "reflection_placeholder": "Partagez vos pensées...",
       "bookmark_added": "Quête ajoutée aux favoris !",
       "bookmark_removed": "Favori supprimé",
+      
+      "card": {
+        "eta_minutes": "{{minutes}} min",
+        "impact_estimated": "Économies estimées : {{amount}}"
+      },
       
       "steps": {
         "step": "Étape {{current}} sur {{total}}",
@@ -1354,9 +1389,10 @@
       "category": "Catégorie",
       "budgeting": "Budget",
       "saving": "Épargne",
+      "credit": "Crédit",
       "investing": "Investissement",
-      "debt": "Dette",
-      "planning": "Planification",
+      "taxes": "Fiscalité",
+      "protect": "Protection",
       "trending": "Tendance",
       "recent": "Récent",
       "quick": "Rapide",
@@ -1487,17 +1523,17 @@
           "title": "Construire l'épargne",
           "desc": "Créer un fonds d'urgence et économiser"
         },
-        "debt": {
-          "title": "Gérer Dettes & Crédit",
-          "desc": "Comprendre et améliorer votre score de crédit, gérer les dettes"
+        "credit": {
+          "title": "Gérer le Crédit",
+          "desc": "Comprendre et améliorer votre score de crédit"
         },
         "investing": {
           "title": "Commencer à investir",
           "desc": "Apprendre les bases de l'investissement"
         },
-        "planning": {
-          "title": "Planification Financière",
-          "desc": "Planifier votre avenir financier à long terme"
+        "protect": {
+          "title": "Protection & Planification",
+          "desc": "Protégez vos actifs et planifiez votre avenir"
         }
       },
       "levels": {
@@ -1769,20 +1805,40 @@
       "locked": "Verrouillé"
     },
     "edu": {
-      "title": "Pourquoi l’éducation financière compte",
+      "title": "Pourquoi l'éducation financière compte",
       "card1": {
-        "title": "À l’école, on n’apprend pas l’argent",
-        "text": "Beaucoup de jeunes n’ont jamais reçu les bases (budget, frais, dette)."
+        "title": "À l'école, on n'apprend pas l'argent",
+        "text": "Beaucoup de jeunes n'ont jamais reçu les bases (budget, frais, dette)."
       },
       "card2": {
         "title": "Petites décisions, gros effets",
-        "text": "Abos, frais, intérêts : les micro-choix s’additionnent chaque mois."
+        "text": "Abos, frais, intérêts : les micro-choix s'additionnent chaque mois."
       },
       "card3": {
-        "title": "Le jeu rend l’apprentissage durable",
+        "title": "Le jeu rend l'apprentissage durable",
         "text": "Quêtes courtes + XP/streaks = motivation et habitudes concrètes."
       },
       "disclaimer": "Contenu éducatif, pas de conseil financier personnalisé."
+    },
+
+    "impact": {
+      "hero_title": "Votre Impact Financier",
+      "hero_sub": "Suivez les économies réelles générées par vos quêtes complétées",
+      "cta_quickwin": "Ajouter une Victoire Rapide",
+      "cta_continue": "Continuer Votre Parcours",
+      "see_ledger": "Voir Toutes les Économies",
+      "proofs_none": "Aucune preuve fournie",
+      "proofs_one": "Preuve fournie",
+      "proofs_pending": "En attente de vérification",
+      "proofs_verified": "Vérifié"
+    },
+
+    "daily": {
+      "challenge": {
+        "title": "Défi Quotidien",
+        "eta": "{{minutes}} min",
+        "impact": "Économies estimées : {{amount}}"
+      }
     }
   }
 }

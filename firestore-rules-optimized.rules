@@ -57,6 +57,28 @@ service cloud.firestore {
       
       // Suppression : pour son propre compte
       allow delete: if isOwner(userId);
+
+      // ==========================================
+      // SAVINGS EVENTS (sous-collection)
+      // ==========================================
+      match /savingsEvents/{eventId} {
+        // Lecture : ses propres événements d'économie
+        allow read: if isOwner(userId);
+        
+        // Création : pour soi-même avec champs requis
+        // Le champ 'verified' ne peut pas être défini à true lors de la création
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'questId', 'amount', 'period', 'source', 'createdAt', 'updatedAt'])
+          && (!request.resource.data.keys().hasAny(['verified']) || request.resource.data.verified == false);
+        
+        // Mise à jour : ses propres événements
+        // Le champ 'verified' ne peut pas être modifié par l'utilisateur
+        allow update: if isOwner(userId)
+          && (!request.resource.data.diff(resource.data).changedKeys().hasAny(['verified']));
+        
+        // Suppression : ses propres événements
+        allow delete: if isOwner(userId);
+      }
     }
     
     // ==========================================
