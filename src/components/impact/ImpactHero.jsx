@@ -4,6 +4,7 @@ import { FaShieldAlt, FaChevronRight } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import { trackEvent } from '../../utils/analytics';
+import QuickWinModal from './QuickWinModal';
 
 /**
  * Calcule le montant annualisé d'un événement d'économie
@@ -34,6 +35,7 @@ const ImpactHero = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { events, loadEvents, loading } = useSavingsEvents();
+  const [isQuickWinOpen, setIsQuickWinOpen] = useState(false);
   const [stats, setStats] = useState({
     totalAnnual: 0,
     totalVerified: 0,
@@ -94,7 +96,13 @@ const ImpactHero = () => {
 
   const handleQuickWinClick = () => {
     trackEvent('cta_quickwin_clicked', { total_annual: stats.totalAnnual });
-    navigate('/quests?quickwin=1');
+    trackEvent('quickwin_opened', { source: 'impact_hero' });
+    setIsQuickWinOpen(true);
+  };
+
+  const handleQuickWinSuccess = () => {
+    // Recharger les événements après Quick Win
+    loadEvents({ limitCount: 50 });
   };
 
   const handleContinueClick = () => {
@@ -193,6 +201,13 @@ const ImpactHero = () => {
           <FaChevronRight className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
+
+      {/* Quick Win Modal */}
+      <QuickWinModal
+        isOpen={isQuickWinOpen}
+        onClose={() => setIsQuickWinOpen(false)}
+        onSuccess={handleQuickWinSuccess}
+      />
     </div>
   );
 };

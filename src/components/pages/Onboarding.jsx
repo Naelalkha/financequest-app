@@ -47,10 +47,10 @@ const Onboarding = () => {
       description: t('onboarding.goals.saving.desc') || 'Create an emergency fund and save money'
     },
     {
-      id: 'debt',
+      id: 'credit',
       icon: <FaExclamationTriangle className="text-2xl" />,
-      title: t('onboarding.goals.debt.title') || 'Manage Debt & Credit',
-      description: t('onboarding.goals.debt.desc') || 'Understand and improve your credit score, manage debt'
+      title: t('onboarding.goals.credit.title') || 'Manage Credit',
+      description: t('onboarding.goals.credit.desc') || 'Understand and improve your credit score'
     },
     {
       id: 'investing',
@@ -59,10 +59,10 @@ const Onboarding = () => {
       description: t('onboarding.goals.investing.desc') || 'Learn investment basics and strategies'
     },
     {
-      id: 'planning',
+      id: 'protect',
       icon: <FaRoute className="text-2xl" />,
-      title: t('onboarding.goals.planning.title') || 'Financial Planning',
-      description: t('onboarding.goals.planning.desc') || 'Plan your long-term financial future'
+      title: t('onboarding.goals.protect.title') || 'Protection & Planning',
+      description: t('onboarding.goals.protect.desc') || 'Protect your assets and plan your future'
     }
   ];
 
@@ -165,7 +165,7 @@ const Onboarding = () => {
   }
 
   return (
-    <AppBackground variant="nebula" className="min-h-screen">
+    <AppBackground variant="finance" className="min-h-screen">
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
           {/* Progress bar */}

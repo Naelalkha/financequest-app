@@ -222,7 +222,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <AppBackground variant="nebula" grain grid={false} animate>
+      <AppBackground variant="finance" grain grid={false} animate>
         <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner />
         </div>
@@ -277,7 +277,7 @@ const Profile = () => {
   ];
 
   return (
-    <AppBackground variant="nebula" grain grid={false} animate>
+    <AppBackground variant="finance" grain grid={false} animate>
       <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+88px)]">
         
         {/* Header Hero avec effet néon */}

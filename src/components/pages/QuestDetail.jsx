@@ -298,6 +298,14 @@ const QuestDetail = () => {
               streakMaintained: true,
               category: quest?.category
             });
+            
+            // Track daily challenge completion
+            logQuestEvent('daily_challenge_completed', {
+              quest_id: questId,
+              quest_title: quest?.title || quest?.description,
+              score,
+              category: quest?.category,
+            });
           }
         } catch (err) {
           console.warn('Daily challenge completion skipped or failed:', err);

@@ -13,9 +13,9 @@ export const getStarterPack = (goals, level, country) => {
   const freeQuestsByGoal = {
     budgeting: ['expense-tracking', 'basic-banking'],
     saving: ['emergency-fund-101', 'saving-strategies'],
-    debt: ['credit-score-basics'],
+    credit: ['credit-score-basics'],
     investing: ['investing-basics'],
-    planning: ['money-mindset']
+    protect: ['money-mindset']
   };
   
   // Pool de quêtes gratuites spécifiques au pays

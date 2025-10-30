@@ -44,6 +44,7 @@ import posthog from 'posthog-js';
 import SubscriptionManager from '../app/SubscriptionManager';
 import AppBackground from '../app/AppBackground';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import couronneIcon from '../../assets/couronne.png';
 
 // Initialize Stripe with your publishable key
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
@@ -403,7 +404,7 @@ const Premium = () => {
 
   if (checkingStatus) {
     return (
-      <AppBackground variant="nebula" grain grid={false} animate>
+      <AppBackground variant="finance" grain grid={false} animate>
         <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner />
         </div>
@@ -414,7 +415,7 @@ const Premium = () => {
   // Premium member view
   if (isPremium) {
     return (
-      <AppBackground variant="nebula" grain grid={false} animate>
+      <AppBackground variant="finance" grain grid={false} animate>
         <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+88px)]">
           <div className="px-4 sm:px-6 pt-4 sm:pt-6">
             <div className="max-w-7xl mx-auto">
@@ -443,7 +444,11 @@ const Premium = () => {
                         transition={{ duration: 3, repeat: Infinity }}
                       />
                       <div className="relative w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-glow-purple">
-                        <FaCrown className="text-3xl text-gray-900" />
+                        <img 
+                          src={couronneIcon} 
+                          alt="Premium"
+                          className="w-10 h-10 object-contain"
+                        />
                       </div>
                     </motion.div>
                     
@@ -566,7 +571,7 @@ const Premium = () => {
 
   // Non-premium view with improved UX
   return (
-    <AppBackground variant="nebula" grain grid={false} animate>
+    <AppBackground variant="finance" grain grid={false} animate>
       <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+88px)]">
         <div className="px-4 sm:px-6 pt-4 sm:pt-6 max-w-7xl mx-auto">
             
@@ -593,8 +598,12 @@ const Premium = () => {
               {/* Icône sans glow en haut */}
               <div className="inline-block mb-6">
                 <div className="relative">
-                  <div className="relative w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center">
-                    <FaCrown className="text-4xl text-gray-900" />
+                  <div className="relative flex items-center justify-center">
+                    <img 
+                      src={couronneIcon} 
+                      alt="Premium"
+                      className="w-24 h-24 sm:w-32 sm:h-32 object-contain"
+                    />
                   </div>
                 </div>
               </div>

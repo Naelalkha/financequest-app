@@ -2,7 +2,7 @@ import { FaShieldAlt, FaFileContract, FaCalculator } from 'react-icons/fa';
 
 export const insuranceEssentials = {
   id: 'insurance-essentials',
-  category: 'planning',
+  category: 'protect',
   difficulty: 'intermediate',
   duration: 25,
   xp: 150,

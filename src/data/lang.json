@@ -965,8 +965,42 @@
       "challenge": {
         "title": "Daily Challenge",
         "eta": "{{minutes}} min",
-        "impact": "Est. savings: {{amount}}"
+        "impact": "Est. savings: {{amount}}",
+        "meta": "{{minutes}} min · Est. savings: {{amount}}",
+        "cta": "Start Challenge"
       }
+    },
+
+    "continue": {
+      "card": {
+        "title": "Continue Quest",
+        "start_title": "Start Here",
+        "minutes": "{{minutes}} min",
+        "impact": "Est. savings: {{amount}}/year",
+        "meta": "{{minutes}} min · {{amount}}/year",
+        "cta": "Continue"
+      }
+    },
+
+    "quickwin": {
+      "title": "Quick Win: Cut 1 Subscription",
+      "subtitle": "Save €12-20/month in 3 steps",
+      "subscription_canceled": "Subscription canceled",
+      "custom_sub": "Or add your own:",
+      "sub_name_placeholder": "Name",
+      "sub_price_placeholder": "€/month",
+      "step1_title": "Step 1: Choose a subscription",
+      "step1_subtitle": "Select one subscription you rarely use",
+      "step2_title": "Step 2: Confirm cancellation",
+      "proof_note_label": "Proof note (optional)",
+      "proof_note_placeholder": "E.g., Canceled via app on 2025-01-30...",
+      "step3_title": "Great job! 🎉",
+      "step3_subtitle": "You just unlocked your first savings",
+      "cta_start": "Start Quick Win",
+      "cta_confirm": "Confirm",
+      "cta_finish": "Save to Dashboard",
+      "success": "Subscription saved! Check your Impact dashboard",
+      "error": "Failed to save. Please try again."
     }
   },
   
@@ -1937,8 +1971,42 @@
       "challenge": {
         "title": "Défi Quotidien",
         "eta": "{{minutes}} min",
-        "impact": "Économies estimées : {{amount}}"
+        "impact": "Économies estimées : {{amount}}",
+        "meta": "{{minutes}} min · Économies estimées : {{amount}}",
+        "cta": "Faire le défi"
       }
+    },
+
+    "continue": {
+      "card": {
+        "title": "Continuer la quête",
+        "start_title": "Commence ici",
+        "minutes": "{{minutes}} min",
+        "impact": "Économies estimées : {{amount}}/an",
+        "meta": "{{minutes}} min · {{amount}}/an",
+        "cta": "Continuer"
+      }
+    },
+
+    "quickwin": {
+      "title": "Gain Rapide : Coupe 1 abonnement",
+      "subtitle": "Économise €12-20/mois en 3 étapes",
+      "subscription_canceled": "Abonnement annulé",
+      "custom_sub": "Ou ajoute le tien :",
+      "sub_name_placeholder": "Nom",
+      "sub_price_placeholder": "€/mois",
+      "step1_title": "Étape 1 : Choisis un abonnement",
+      "step1_subtitle": "Sélectionne un abonnement que tu utilises peu",
+      "step2_title": "Étape 2 : Confirme l'annulation",
+      "proof_note_label": "Note de preuve (optionnel)",
+      "proof_note_placeholder": "Ex : Annulé via l'app le 30/01/2025...",
+      "step3_title": "Bravo ! 🎉",
+      "step3_subtitle": "Tu viens de débloquer ta première économie",
+      "cta_start": "Démarrer le gain rapide",
+      "cta_confirm": "Confirmer",
+      "cta_finish": "Sauvegarder au dashboard",
+      "success": "Abonnement sauvegardé ! Consulte ton dashboard Impact",
+      "error": "Échec de la sauvegarde. Réessaye."
     }
   }
 }

@@ -1,8 +1,8 @@
 // Import des quêtes globales
 import { globalBudgetingQuests } from './global/budgeting/index.js';
 import { globalSavingQuests } from './global/saving/index.js';
-import { globalInvestingQuests } from './global/investing/index.js';
 import { globalDebtQuests } from './global/debt/index.js';
+import { globalInvestingQuests } from './global/investing/index.js';
 import { globalPlanningQuests } from './global/planning/index.js';
 
 // Import des quêtes françaises
@@ -30,8 +30,8 @@ import {
 export const globalQuests = [
   ...globalBudgetingQuests,
   ...globalSavingQuests,
-  ...globalInvestingQuests,
   ...globalDebtQuests,
+  ...globalInvestingQuests,
   ...globalPlanningQuests
 ];
 

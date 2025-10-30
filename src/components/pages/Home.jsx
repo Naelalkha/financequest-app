@@ -550,7 +550,7 @@ const Home = () => {
   }, [user, navigate]);
 
   return (
-    <AppBackground variant="nebula" grain grid={false} animate>
+    <AppBackground variant="finance" grain grid={false} animate>
       <div className="min-h-screen">
         <HeroSection t={t} />
         <FeaturesSection t={t} />

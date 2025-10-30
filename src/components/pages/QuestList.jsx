@@ -24,7 +24,10 @@ import {
   FaCalendarAlt,
   FaCrown,
   FaChevronDown,
-  FaCircle
+  FaCircle,
+  FaCreditCard,
+  FaShieldAlt,
+  FaFileInvoiceDollar
 } from 'react-icons/fa';
 import { GiDiamondTrophy, GiTwoCoins } from 'react-icons/gi';
 import { BsStars } from 'react-icons/bs';
@@ -96,6 +99,14 @@ const baseCategoryConfig = {
     borderColor: 'border-green-500/30',
     icon: FaPiggyBank
   },
+  credit: { 
+    gradient: 'from-red-400 via-rose-400 to-pink-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
+    color: 'text-red-300',
+    bgColor: 'bg-red-500/20',
+    borderColor: 'border-red-500/30',
+    icon: FaCreditCard
+  },
   investing: { 
     gradient: 'from-blue-400 via-indigo-400 to-purple-400',
     neonGlow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]',
@@ -104,21 +115,21 @@ const baseCategoryConfig = {
     borderColor: 'border-blue-500/30',
     icon: FaChartLine
   },
-  debt: { 
-    gradient: 'from-red-400 via-rose-400 to-pink-400',
-    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
-    color: 'text-red-300',
-    bgColor: 'bg-red-500/20',
-    borderColor: 'border-red-500/30',
-    icon: FaExclamationTriangle
+  taxes: { 
+    gradient: 'from-purple-500 via-violet-500 to-indigo-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
+    color: 'text-purple-300',
+    bgColor: 'bg-purple-500/20',
+    borderColor: 'border-purple-500/30',
+    icon: FaFileInvoiceDollar
   },
-  planning: { 
-    gradient: 'from-amber-400 via-orange-400 to-red-400',
-    neonGlow: 'shadow-[0_0_20px_rgba(251,146,60,0.3)]',
-    color: 'text-amber-300',
-    bgColor: 'bg-amber-500/20',
-    borderColor: 'border-amber-500/30',
-    icon: FaCalendarAlt
+  protect: { 
+    gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
+    color: 'text-pink-300',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/30',
+    icon: FaShieldAlt
   }
 };
 
@@ -162,17 +173,21 @@ const QuestList = () => {
       ...baseCategoryConfig.saving,
       label: t('questList.saving') || 'Épargne'
     },
+    credit: { 
+      ...baseCategoryConfig.credit,
+      label: t('questList.credit') || 'Crédit'
+    },
     investing: { 
       ...baseCategoryConfig.investing,
       label: t('questList.investing') || 'Investissement'
     },
-    debt: { 
-      ...baseCategoryConfig.debt,
-      label: t('questList.debt') || 'Dette'
+    taxes: { 
+      ...baseCategoryConfig.taxes,
+      label: t('questList.taxes') || 'Fiscalité'
     },
-    planning: { 
-      ...baseCategoryConfig.planning,
-      label: t('questList.planning') || 'Planification'
+    protect: { 
+      ...baseCategoryConfig.protect,
+      label: t('questList.protect') || 'Protection'
     }
   }), [t]);
 
@@ -522,7 +537,7 @@ const QuestList = () => {
   };
 
   return (
-    <AppBackground variant="nebula" grain grid={false} animate>
+    <AppBackground variant="finance" grain grid={false} animate>
       <div className="relative pb-[calc(env(safe-area-inset-bottom)+88px)]">
         
 

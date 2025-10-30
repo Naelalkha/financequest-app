@@ -2,7 +2,7 @@ import { FaUserTie, FaPiggyBank, FaCalculator, FaChartLine } from 'react-icons/f
 
 export const retraiteFrance = {
   id: 'retraite-france',
-  category: 'planning',
+  category: 'protect',
   country: 'fr-FR',
   difficulty: 'intermediate',
   duration: 30,

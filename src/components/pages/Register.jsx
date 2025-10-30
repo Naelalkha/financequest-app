@@ -134,7 +134,7 @@ const Register = () => {
   }
 
   return (
-    <AppBackground variant="nebula" className="min-h-screen">
+    <AppBackground variant="finance" className="min-h-screen">
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="relative w-full max-w-md">
           {/* Back to home */}

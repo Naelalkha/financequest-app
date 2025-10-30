@@ -1,9 +1,9 @@
-import { FaCalculator, FaPiggyBank, FaChartLine, FaCreditCard, FaRoute } from 'react-icons/fa';
+import { FaCalculator, FaPiggyBank, FaChartLine, FaCreditCard, FaRoute, FaShieldAlt, FaFileInvoiceDollar } from 'react-icons/fa';
 
 export const categories = {
   budgeting: {
     id: 'budgeting',
-    name: { en: 'Budgeting', fr: 'Budget' },
+    name: { en: 'Budget', fr: 'Budget' },
     description: { 
       en: 'Master the art of managing your money and tracking expenses',
       fr: 'Maîtrisez l\'art de gérer votre argent et de suivre vos dépenses'
@@ -33,6 +33,22 @@ export const categories = {
     totalXP: 200,
     totalDuration: 30
   },
+  credit: {
+    id: 'credit',
+    name: { en: 'Credit', fr: 'Crédit' },
+    description: { 
+      en: 'Understand and manage credit effectively',
+      fr: 'Comprendre et gérer le crédit efficacement'
+    },
+    icon: FaCreditCard,
+    color: '#EF4444',
+    secondaryColor: '#F87171',
+    order: 3,
+    difficulty: 'intermediate',
+    totalQuests: 2,
+    totalXP: 250,
+    totalDuration: 40
+  },
   investing: {
     id: 'investing',
     name: { en: 'Investing', fr: 'Investissement' },
@@ -43,36 +59,20 @@ export const categories = {
     icon: FaChartLine,
     color: '#F59E0B',
     secondaryColor: '#FBBF24',
-    order: 3,
+    order: 4,
     difficulty: 'intermediate',
     totalQuests: 4,
     totalXP: 500,
     totalDuration: 75
   },
-  debt: {
-    id: 'debt',
-    name: { en: 'Debt Management', fr: 'Gestion de la Dette' },
+  taxes: {
+    id: 'taxes',
+    name: { en: 'Taxes', fr: 'Fiscalité' },
     description: { 
-      en: 'Understand and manage debt effectively',
-      fr: 'Comprendre et gérer la dette efficacement'
+      en: 'Understand taxes and optimize your tax situation',
+      fr: 'Comprendre les impôts et optimiser votre situation fiscale'
     },
-    icon: FaCreditCard,
-    color: '#EF4444',
-    secondaryColor: '#F87171',
-    order: 4,
-    difficulty: 'intermediate',
-    totalQuests: 2,
-    totalXP: 250,
-    totalDuration: 40
-  },
-  planning: {
-    id: 'planning',
-    name: { en: 'Financial Planning', fr: 'Planification Financière' },
-    description: { 
-      en: 'Long-term financial planning and wealth building',
-      fr: 'Planification financière à long terme et construction de richesse'
-    },
-    icon: FaRoute,
+    icon: FaFileInvoiceDollar,
     color: '#8B5CF6',
     secondaryColor: '#A78BFA',
     order: 5,
@@ -80,10 +80,26 @@ export const categories = {
     totalQuests: 5,
     totalXP: 600,
     totalDuration: 90
+  },
+  protect: {
+    id: 'protect',
+    name: { en: 'Protection', fr: 'Protection' },
+    description: { 
+      en: 'Protect your assets and plan for the future',
+      fr: 'Protégez vos actifs et planifiez votre avenir'
+    },
+    icon: FaShieldAlt,
+    color: '#10B981',
+    secondaryColor: '#34D399',
+    order: 6,
+    difficulty: 'advanced',
+    totalQuests: 3,
+    totalXP: 350,
+    totalDuration: 60
   }
 };
 
-export const categoryOrder = ['budgeting', 'saving', 'investing', 'debt', 'planning'];
+export const categoryOrder = ['budgeting', 'saving', 'credit', 'investing', 'taxes', 'protect'];
 
 export const getCategoryById = (categoryId) => {
   return categories[categoryId] || null;

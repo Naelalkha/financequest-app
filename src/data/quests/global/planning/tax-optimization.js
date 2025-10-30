@@ -2,7 +2,7 @@ import { FaCalculator, FaFileAlt, FaChartBar } from 'react-icons/fa';
 
 export const taxOptimization = {
   id: 'tax-optimization',
-  category: 'planning',
+  category: 'taxes',
   difficulty: 'expert',
   duration: 30,
   xp: 200,

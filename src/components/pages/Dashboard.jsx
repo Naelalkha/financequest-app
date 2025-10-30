@@ -58,6 +58,7 @@ import { getUserDailyChallenge, generateDailyChallenge } from '../../services/da
 import { getBadgeById } from '../../data/badges';
 import QuestCardShared from '../quest/QuestCard';
 import ImpactHero from '../impact/ImpactHero';
+import { trackEvent } from '../../utils/analytics';
 
 // Animation de compteur fluide
 const CountUp = ({ end, duration = 1000, prefix = '', suffix = '' }) => {
@@ -672,6 +673,27 @@ const DashboardPage = () => {
 
   const calculateLevel = (points) => Math.floor(points / 1000) + 1;
 
+  // Analytics handlers
+  const handleContinueQuestClick = (questId) => {
+    trackEvent('continue_card_clicked', {
+      quest_id: questId,
+    });
+    navigate(`/quests/${questId}`);
+  };
+
+  const handleDailyChallengeClick = () => {
+    trackEvent('daily_challenge_started', {
+      quest_id: dailyChallenge?.questId,
+      quest_title: dailyChallenge?.questTitle,
+    });
+    if (dailyChallenge.questId) {
+      navigate(`/quests/${dailyChallenge.questId}`);
+    } else {
+      console.error('❌ Aucun questId trouvé, redirection vers /quests');
+      navigate('/quests');
+    }
+  };
+
   if (loading) {
     return (
       <AppBackground variant="finance" grain grid={false} animate>
@@ -816,6 +838,25 @@ const DashboardPage = () => {
     : hour < 18 
       ? (t('dashboard.good_afternoon') || 'Bon après-midi')
       : (t('dashboard.good_evening') || 'Bonsoir');
+
+  // Analytics: Track Continue Quest card viewed
+  useEffect(() => {
+    if (hasVisibleActiveQuests && activeQuestsToRender.length > 0) {
+      trackEvent('continue_card_viewed', {
+        active_quests_count: activeQuestsToRender.length,
+      });
+    }
+  }, [hasVisibleActiveQuests, activeQuestsToRender.length]);
+
+  // Analytics: Track Daily Challenge viewed
+  useEffect(() => {
+    if (showDailyChallenge && dailyChallenge) {
+      trackEvent('daily_challenge_viewed', {
+        quest_id: dailyChallenge.questId,
+        quest_title: dailyChallenge.questTitle,
+      });
+    }
+  }, [showDailyChallenge, dailyChallenge]);
 
   return (
     <AppBackground variant="finance" grain grid={false} animate>
@@ -1065,7 +1106,7 @@ const DashboardPage = () => {
                     quest={quest}
                     progressData={userProgress[quest.id]}
                     isPremiumUser={isPremium}
-                    onClick={() => navigate(`/quests/${quest.id}`)}
+                    onClick={() => handleContinueQuestClick(quest.id)}
                   />
                 </div>
               ))}
@@ -1079,7 +1120,7 @@ const DashboardPage = () => {
                   quest={quest}
                   progressData={userProgress[quest.id]}
                   isPremiumUser={isPremium}
-                  onClick={() => navigate(`/quests/${quest.id}`)}
+                  onClick={() => handleContinueQuestClick(quest.id)}
                 />
               ))}
             </div>
@@ -1193,19 +1234,7 @@ const DashboardPage = () => {
                 transition={{ delay: 0.6 }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                onClick={() => {
-                  console.log('🔍 DEBUG click défi quotidien:', { 
-                    questId: dailyChallenge.questId,
-                    questTitle: dailyChallenge.questTitle,
-                    url: `/quests/${dailyChallenge.questId}`
-                  });
-                  if (dailyChallenge.questId) {
-                    navigate(`/quests/${dailyChallenge.questId}`);
-                  } else {
-                    console.error('❌ Aucun questId trouvé, redirection vers /quests');
-                    navigate('/quests');
-                  }
-                }}
+                onClick={handleDailyChallengeClick}
                 className="relative neon-element rounded-2xl p-6 mb-8 cursor-pointer overflow-hidden group"
               >
                 <motion.div
