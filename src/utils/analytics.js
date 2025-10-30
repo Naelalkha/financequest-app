@@ -231,9 +231,19 @@ export const trackFeatureUsage = (featureName, data = {}) => {
   });
 };
 
+/**
+ * Track custom event (alias for logAnalyticsEvent for compatibility)
+ * @param {string} eventName - Name of the event
+ * @param {object} parameters - Event parameters
+ */
+export const trackEvent = (eventName, parameters = {}) => {
+  logAnalyticsEvent(eventName, parameters);
+};
+
 // Export all functions as default for convenience
 export default {
   logAnalyticsEvent,
+  trackEvent,
   setAnalyticsUserId,
   setAnalyticsUserProperties,
   logSignupEvent,
