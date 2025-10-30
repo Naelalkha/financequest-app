@@ -36,9 +36,13 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess }) => {
     if (!formData.amount || formData.amount === '') {
       newErrors.amount = t('impact.modal.validation.amount_required');
     } else {
-      const amount = parseFloat(formData.amount);
-      if (isNaN(amount) || amount <= 0) {
+      const amount = Number(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
         newErrors.amount = t('impact.modal.validation.amount_positive');
+      }
+      // Validation supplémentaire : montant max (selon règles Firestore)
+      if (Number.isFinite(amount) && amount > 100000) {
+        newErrors.amount = t('impact.modal.validation.amount_too_high') || 'Amount must be less than €100,000';
       }
     }
 
@@ -56,7 +60,13 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      const amount = parseFloat(formData.amount);
+      const amount = Number(formData.amount);
+      
+      // Double vérification (défense en profondeur)
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+        throw new Error('Invalid amount value');
+      }
+
       const eventData = {
         title: formData.title.trim(),
         amount,

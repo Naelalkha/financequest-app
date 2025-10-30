@@ -955,7 +955,8 @@
         "validation": {
           "title_required": "Title is required",
           "amount_required": "Amount is required",
-          "amount_positive": "Amount must be greater than 0"
+          "amount_positive": "Amount must be greater than 0",
+          "amount_too_high": "Amount must be less than €100,000"
         }
       }
     },
@@ -1926,7 +1927,8 @@
         "validation": {
           "title_required": "Le titre est requis",
           "amount_required": "Le montant est requis",
-          "amount_positive": "Le montant doit être supérieur à 0"
+          "amount_positive": "Le montant doit être supérieur à 0",
+          "amount_too_high": "Le montant doit être inférieur à 100 000 €"
         }
       }
     },
