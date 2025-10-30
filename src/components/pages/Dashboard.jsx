@@ -465,6 +465,10 @@ const DashboardPage = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0 });
   const [hoveredQuest, setHoveredQuest] = useState(null);
   
+  // Refs pour éviter les duplications de tracking analytics
+  const continueCardTracked = useRef(false);
+  const dailyChallengeTracked = useRef(false);
+  
   const { 
     quests, 
     loading: questsLoading, 
@@ -496,6 +500,39 @@ const DashboardPage = () => {
     const timer = setInterval(calculateTime, 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Analytics: Track Continue Quest card viewed (une seule fois par session)
+  useEffect(() => {
+    // Calculer hasVisibleActiveQuests depuis userProgress
+    const visibleActiveQuestIds = Object.entries(userProgress)
+      .filter(([_, p]) => p?.status === 'active' && (p?.progress || 0) > 0)
+      .map(([id]) => id);
+    
+    if (visibleActiveQuestIds.length > 0 && quests && !questsLoading && !continueCardTracked.current) {
+      const activeQuestsToRender = quests
+        .filter(q => visibleActiveQuestIds.includes(q.id))
+        .slice(0, 3);
+      
+      if (activeQuestsToRender.length > 0) {
+        trackEvent('continue_card_viewed', {
+          active_quests_count: activeQuestsToRender.length,
+        });
+        continueCardTracked.current = true;
+      }
+    }
+  }, [userProgress, quests, questsLoading]);
+
+  // Analytics: Track Daily Challenge viewed (une seule fois par session)
+  useEffect(() => {
+    const showDailyChallenge = Boolean(dailyChallenge && dailyChallenge.status !== 'completed');
+    if (showDailyChallenge && dailyChallenge && !dailyChallengeTracked.current) {
+      trackEvent('daily_challenge_viewed', {
+        quest_id: dailyChallenge.questId,
+        quest_title: dailyChallenge.questTitle,
+      });
+      dailyChallengeTracked.current = true;
+    }
+  }, [dailyChallenge]);
 
   const fetchDashboardData = async () => {
     try {
@@ -838,25 +875,6 @@ const DashboardPage = () => {
     : hour < 18 
       ? (t('dashboard.good_afternoon') || 'Bon après-midi')
       : (t('dashboard.good_evening') || 'Bonsoir');
-
-  // Analytics: Track Continue Quest card viewed
-  useEffect(() => {
-    if (hasVisibleActiveQuests && activeQuestsToRender.length > 0) {
-      trackEvent('continue_card_viewed', {
-        active_quests_count: activeQuestsToRender.length,
-      });
-    }
-  }, [hasVisibleActiveQuests, activeQuestsToRender.length]);
-
-  // Analytics: Track Daily Challenge viewed
-  useEffect(() => {
-    if (showDailyChallenge && dailyChallenge) {
-      trackEvent('daily_challenge_viewed', {
-        quest_id: dailyChallenge.questId,
-        quest_title: dailyChallenge.questTitle,
-      });
-    }
-  }, [showDailyChallenge, dailyChallenge]);
 
   return (
     <AppBackground variant="finance" grain grid={false} animate>
