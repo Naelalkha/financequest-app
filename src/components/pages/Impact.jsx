@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { FaPlus, FaChartLine, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import AddSavingsModal from '../impact/AddSavingsModal';
@@ -108,7 +108,7 @@ const Impact = () => {
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
-              <Plus className="w-5 h-5" />
+              <FaPlus className="w-5 h-5" />
               <span className="hidden sm:inline">{t('impact.ledger.add_btn')}</span>
             </button>
           </div>
@@ -120,7 +120,7 @@ const Impact = () => {
         {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4">
             <div className="w-24 h-24 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
-              <TrendingUp className="w-12 h-12 text-amber-600 dark:text-amber-400" />
+              <FaChartLine className="w-12 h-12 text-amber-600 dark:text-amber-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {t('impact.ledger.empty_title')}
@@ -132,7 +132,7 @@ const Impact = () => {
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
-              <Plus className="w-5 h-5" />
+              <FaPlus className="w-5 h-5" />
               {t('impact.ledger.empty_cta')}
             </button>
           </div>
@@ -143,7 +143,7 @@ const Impact = () => {
               {/* Total estimé */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <FaChartLine className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {t('impact.ledger.total_estimated')}
                   </span>
@@ -156,7 +156,7 @@ const Impact = () => {
               {/* Vérifié */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <FaCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {t('impact.ledger.total_verified')}
                   </span>
@@ -169,7 +169,7 @@ const Impact = () => {
               {/* Événements */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <FaClock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {t('impact.ledger.events_count')}
                   </span>

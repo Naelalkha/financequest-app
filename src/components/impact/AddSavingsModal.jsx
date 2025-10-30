@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { FaTimes } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
@@ -153,7 +153,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess }) => {
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label={t('impact.modal.cancel')}
           >
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <FaTimes className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 

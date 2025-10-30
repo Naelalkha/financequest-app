@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ChevronRight } from 'lucide-react';
+import { FaShieldAlt, FaChevronRight } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import { trackEvent } from '../../utils/analytics';
@@ -136,7 +136,7 @@ const ImpactHero = () => {
       {/* En-tête avec icône et chip */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Shield 
+          <FaShieldAlt 
             className="w-5 h-5 text-amber-600 dark:text-amber-400" 
             aria-hidden="true"
           />
@@ -190,7 +190,7 @@ const ImpactHero = () => {
           className="flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-amber-900 dark:text-amber-100 font-medium rounded-xl border border-amber-200 dark:border-amber-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           {t('impact.link.detail')}
-          <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          <FaChevronRight className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
     </div>
