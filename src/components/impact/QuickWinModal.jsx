@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaTimes, FaCheckCircle } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
@@ -50,7 +51,23 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleConfirm = async () => {
-    if (!selectedSub || !currentUser) return;
+    console.log('🔍 handleConfirm called', {
+      selectedSub,
+      currentUser: !!currentUser,
+      step,
+    });
+
+    if (!selectedSub) {
+      console.error('❌ No subscription selected');
+      toast.error('Aucun abonnement sélectionné');
+      return;
+    }
+
+    if (!currentUser) {
+      console.error('❌ User not authenticated');
+      toast.error('Utilisateur non connecté');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -75,6 +92,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
         } : null,
       };
 
+      console.log('💾 Creating savings event:', eventData);
       await createSavingsEventInFirestore(currentUser.uid, eventData);
 
       // Analytics
@@ -85,23 +103,20 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
       });
 
       // Success
+      console.log('✅ Quick win saved successfully');
       if (onSuccess) {
         onSuccess();
       }
 
       // Toast
-      if (window.toast) {
-        window.toast.success(t('quickwin.success'));
-      }
+      toast.success(t('quickwin.success'));
 
       // Reset et fermeture
       handleReset();
       onClose();
     } catch (error) {
-      console.error('Error creating quick win savings:', error);
-      if (window.toast) {
-        window.toast.error(t('quickwin.error'));
-      }
+      console.error('❌ Error creating quick win savings:', error);
+      toast.error(t('quickwin.error') || 'Erreur lors de la sauvegarde');
     } finally {
       setIsSubmitting(false);
     }
@@ -328,7 +343,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
           ) : (
             <button
               onClick={handleConfirm}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !selectedSub || !currentUser}
               className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
