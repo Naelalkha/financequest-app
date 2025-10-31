@@ -91,11 +91,12 @@ service cloud.firestore {
         }
 
         function hasRequiredSavings() {
-          return request.resource.data.keys().hasAll(['title', 'amount', 'period', 'source', 'createdAt', 'updatedAt']);
+          return request.resource.data.keys().hasAll(['title', 'questId', 'amount', 'period', 'source', 'createdAt', 'updatedAt']);
         }
 
         function isValidTypesSavings() {
           return request.resource.data.title is string &&
+                 request.resource.data.questId is string &&
                  request.resource.data.amount is number &&
                  request.resource.data.amount > 0 && 
                  request.resource.data.amount <= 100000 &&
