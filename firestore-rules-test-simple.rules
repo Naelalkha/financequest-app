@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    
+    function isOwner(uid) { 
+      return isSignedIn() && request.auth.uid == uid; 
+    }
+    
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // SAVINGS EVENTS - ULTRA SIMPLE POUR TESTER
+      match /savingsEvents/{eventId} {
+        // Règles ultra-simples : juste vérifier que l'utilisateur est connecté et possède le document
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // USER QUESTS (Progression des quêtes) - INCHANGÉ
+    match /userQuests/{questId} {
+      allow read: if isSignedIn() 
+        && (resource == null || resource.data.userId == request.auth.uid);
+      
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'questId', 'startedAt']);
+      
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+      
+      allow delete: if isSignedIn() 
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // QUESTS (Contenu pédagogique)
+    match /quests/{questId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // USER PROGRESS (Progression globale)
+    match /userProgress/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // DAILY CHALLENGES
+    match /dailyChallenges/{challengeId} {
+      allow read: if isSignedIn() 
+        && (resource == null || resource.data.userId == request.auth.uid);
+      
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'questId', 'createdAt', 'startedAt']);
+      
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+      
+      allow delete: if isSignedIn() 
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // USER STATS
+    match /userStats/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // FEEDBACK
+    match /feedback/{feedbackId} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'message', 'createdAt']);
+      allow update, delete: if false;
+    }
+    
+    // ACHIEVEMENT SHARES
+    match /achievement_shares/{shareId} {
+      allow read: if true;
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'questId', 'timestamp']);
+      allow update, delete: if false;
+    }
+    
+    // CATCH-ALL
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
