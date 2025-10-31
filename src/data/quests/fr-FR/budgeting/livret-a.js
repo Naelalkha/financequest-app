@@ -22,6 +22,12 @@ export const livretA = {
     featured: true
   },
 
+  // Estimation de l'impact financier annuel
+  estimatedImpact: {
+    amount: 50, // €50/an en intérêts pour un Livret A moyen (estimation conservatrice)
+    period: 'year'
+  },
+
   icons: {
     main: FaPiggyBank,
     steps: [FaEuroSign, FaShieldAlt, FaCalculator]

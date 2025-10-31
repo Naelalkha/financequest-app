@@ -1,21 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
 import { trackEvent } from '../../utils/analytics';
 
-const AddSavingsModal = ({ isOpen, onClose, onSuccess }) => {
+const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) => {
   const { t } = useLanguage();
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    period: 'month',
-    note: '',
+    title: initialValues?.title || '',
+    amount: initialValues?.amount !== undefined ? String(initialValues.amount) : '',
+    period: initialValues?.period || 'month',
+    note: initialValues?.note || '',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Mettre à jour le formData quand initialValues change
+  useEffect(() => {
+    if (initialValues) {
+      setFormData({
+        title: initialValues.title || '',
+        amount: initialValues.amount !== undefined ? String(initialValues.amount) : '',
+        period: initialValues.period || 'month',
+        note: initialValues.note || '',
+      });
+    }
+  }, [initialValues]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,15 +83,15 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess }) => {
         title: formData.title.trim(),
         amount,
         period: formData.period,
-        source: 'manual',
-        questId: 'manual', // Identifiant pour les économies manuelles
+        source: initialValues?.source || 'manual',
+        questId: initialValues?.questId || 'manual',
         proof: formData.note.trim() ? {
           type: 'note',
           note: formData.note.trim(),
         } : null,
       };
 
-      await createSavingsEventInFirestore(currentUser.uid, eventData);
+      await createSavingsEventInFirestore(user.uid, eventData);
 
       // Analytics
       trackEvent('impact_added', {

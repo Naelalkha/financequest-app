@@ -11,7 +11,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocalQuestDetail } from '../../hooks/useLocalQuests';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { logQuestEvent } from '../../utils/analytics';
+import { logQuestEvent, trackEvent } from '../../utils/analytics';
 import ProgressBar from '../quest/ProgressBar';
 import LoadingSpinner from '../app/LoadingSpinner';
 import { QuizStep, ActionChallenge, ChallengeStep, InteractiveChallenge } from '../features';
@@ -21,6 +21,7 @@ import posthog from 'posthog-js';
 import { usePaywall } from '../../hooks/usePaywall';
 import PaywallModal from '../app/PaywallModal';
 import { completeDailyChallenge, getUserDailyChallenge } from '../../services/dailyChallenge';
+import { ImpactPromptModal, AddSavingsModal } from '../impact';
 
 const QuestDetail = () => {
   const { id: questId } = useParams();
@@ -44,6 +45,9 @@ const QuestDetail = () => {
   const [finalScore, setFinalScore] = useState(null);
   const [answer, setAnswer] = useState('');
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showImpactPrompt, setShowImpactPrompt] = useState(false);
+  const [showAddSavingsModal, setShowAddSavingsModal] = useState(false);
+  const [savingsInitialValues, setSavingsInitialValues] = useState(null);
 
   // Utiliser le hook usePaywall
   const { show: shouldShowPaywall, variant } = usePaywall(quest);
@@ -325,6 +329,7 @@ const QuestDetail = () => {
       
       logQuestEvent('quest_complete', {
         questId,
+        has_impact: !!quest?.estimatedImpact,
         xp: quest.xp,
         score
       });
@@ -348,10 +353,64 @@ const QuestDetail = () => {
         }
       }
 
+      // Afficher le prompt Impact si la quête a un estimatedImpact
+      if (quest?.estimatedImpact && quest.estimatedImpact.amount > 0) {
+        console.log('🎯 Quest has estimatedImpact, showing prompt', quest.estimatedImpact);
+        
+        // Track analytics
+        trackEvent('impact_add_prompt_shown', {
+          quest_id: questId,
+          source: 'quest',
+          amount: quest.estimatedImpact.amount,
+          period: quest.estimatedImpact.period,
+        });
+
+        // Attendre un peu pour laisser le temps à l'utilisateur de voir la completion
+        setTimeout(() => {
+          setShowImpactPrompt(true);
+        }, 3000); // 3s après la completion pour laisser voir confetti
+      }
+
     } catch (error) {
       console.error('Error completing quest:', error);
       toast.error(t('errors.complete_quest_failed') || 'Failed to complete quest');
     }
+  };
+
+  // Handlers pour le prompt Impact
+  const handleImpactPromptConfirm = () => {
+    // Fermer le prompt
+    setShowImpactPrompt(false);
+    
+    // Préparer les valeurs initiales pour AddSavingsModal
+    const questTitle = typeof quest.title === 'object' ? quest.title[currentLang] : quest.title;
+    const initialValues = {
+      title: questTitle || t('quest.impact_added_from_quest'),
+      amount: quest.estimatedImpact.amount,
+      period: quest.estimatedImpact.period,
+      note: t('quest.impact_added_note', { title: questTitle }),
+      source: 'quest',
+      questId: questId,
+    };
+    
+    setSavingsInitialValues(initialValues);
+    
+    // Ouvrir la modal AddSavings
+    setShowAddSavingsModal(true);
+  };
+
+  const handleAddSavingsSuccess = () => {
+    // Fermer la modal
+    setShowAddSavingsModal(false);
+    
+    // Réinitialiser les valeurs
+    setSavingsInitialValues(null);
+    
+    // Toast de succès
+    toast.success(
+      t('impact.modal.success') || 'Savings added successfully!',
+      { icon: '💰' }
+    );
   };
 
   // Fonction helper pour calculer le score à partir des réponses
@@ -644,6 +703,19 @@ const QuestDetail = () => {
                     Premium
                   </span>
                 )}
+                {quest.estimatedImpact && quest.estimatedImpact.amount > 0 && (
+                  <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-sm rounded-full font-medium border border-amber-500/30 flex items-center gap-1">
+                    <FaChartLine className="text-xs" />
+                    {t('quest.impact_chip', { 
+                      amount: new Intl.NumberFormat(currentLang === 'fr' ? 'fr-FR' : 'en-US', {
+                        style: 'currency',
+                        currency: 'EUR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(quest.estimatedImpact.amount * (quest.estimatedImpact.period === 'month' ? 12 : 1))
+                    })}
+                  </span>
+                )}
               </div>
               <p className="text-gray-400">{quest.description}</p>
               
@@ -855,6 +927,28 @@ const QuestDetail = () => {
             ))}
           </div>
         )}
+
+        {/* Impact Prompt Modal - Affiché après complétion si estimatedImpact existe */}
+        {quest && (
+          <ImpactPromptModal
+            isOpen={showImpactPrompt}
+            onClose={() => setShowImpactPrompt(false)}
+            onConfirm={handleImpactPromptConfirm}
+            quest={quest}
+            estimatedImpact={quest.estimatedImpact}
+          />
+        )}
+
+        {/* Add Savings Modal - Prérempli avec les données de la quête */}
+        <AddSavingsModal
+          isOpen={showAddSavingsModal}
+          onClose={() => {
+            setShowAddSavingsModal(false);
+            setSavingsInitialValues(null);
+          }}
+          onSuccess={handleAddSavingsSuccess}
+          initialValues={savingsInitialValues}
+        />
       </main>
     </div>
   );

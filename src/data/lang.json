@@ -311,6 +311,10 @@
       "start": "Start",
       "unlock_premium": "Unlock with Premium",
       "premium_badge": "Premium",
+      "impact_estimated": "Est. savings: {{amount}}/year",
+      "impact_chip": "+{{amount}}/year (estimated)",
+      "impact_added_from_quest": "Savings from quest",
+      "impact_added_note": "Added from quest: {{title}}",
       "wrong_answer": "Not quite right",
       "explanation": "Explanation",
       "next_question": "Next Question",
@@ -938,6 +942,13 @@
         "source_quest": "Quest",
         "source_manual": "Manual"
       },
+      "prompt": {
+        "title": "Add this to your Impact?",
+        "subtitle": "+{{amount}}/year (estimated)",
+        "description": "Track this savings in your Impact dashboard",
+        "add": "Add to Impact",
+        "later": "Maybe Later"
+      },
       "modal": {
         "title": "Add Savings",
         "fields": {
@@ -1292,6 +1303,10 @@
       "start": "Commencer",
       "unlock_premium": "Débloquer avec Premium",
       "premium_badge": "Premium",
+      "impact_estimated": "Économies estimées : {{amount}}/an",
+      "impact_chip": "+{{amount}}/an (estimé)",
+      "impact_added_from_quest": "Économie d'une quête",
+      "impact_added_note": "Ajouté depuis la quête : {{title}}",
       "wrong_answer": "Pas tout à fait",
       "explanation": "Explication",
       "next_question": "Question Suivante",
@@ -1955,6 +1970,13 @@
         "period_year": "annuel",
         "source_quest": "Quête",
         "source_manual": "Manuel"
+      },
+      "prompt": {
+        "title": "Ajouter à ton Impact ?",
+        "subtitle": "+{{amount}}/an (estimé)",
+        "description": "Enregistre cette économie dans ton tableau Impact",
+        "add": "Ajouter à l'Impact",
+        "later": "Plus tard"
       },
       "modal": {
         "title": "Ajouter une économie",
