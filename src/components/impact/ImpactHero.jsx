@@ -2,9 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaChevronRight } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useImpactAggregates } from '../../hooks/useImpactAggregates';
+import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import { trackEvent } from '../../utils/analytics';
 import QuickWinModal from './QuickWinModal';
+
+/**
+ * Calcule le montant annualisé d'un événement d'économie
+ * @param {Object} event - Événement d'économie
+ * @returns {number} Montant annualisé
+ */
+const calculateAnnual = (event) => {
+  return event.amount * (event.period === 'month' ? 12 : 1);
+};
 
 /**
  * Formate un montant en euros selon la locale
@@ -25,21 +34,56 @@ const formatCurrency = (amount, locale) => {
 const ImpactHero = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { 
-    impactAnnualEstimated, 
-    impactAnnualVerified, 
-    proofsVerifiedCount, 
-    loading 
-  } = useImpactAggregates();
+  const { events, loadEvents, loading } = useSavingsEvents();
   const [isQuickWinOpen, setIsQuickWinOpen] = useState(false);
+  const [stats, setStats] = useState({
+    totalAnnual: 0,
+    totalVerified: 0,
+    proofsVerifiedCount: 0,
+    proofsPendingCount: 0,
+  });
 
-  // Utiliser les agrégats serveur comme source de vérité
-  const stats = {
-    totalAnnual: impactAnnualEstimated || 0,
-    totalVerified: impactAnnualVerified || 0,
-    proofsVerifiedCount: proofsVerifiedCount || 0,
-    proofsPendingCount: 0, // TODO: Ajouter ce compteur côté serveur si nécessaire
-  };
+  // Charger les événements au montage
+  useEffect(() => {
+    loadEvents({ limitCount: 50 });
+  }, [loadEvents]);
+
+  // Calculer les statistiques quand les événements changent
+  useEffect(() => {
+    if (events.length === 0) {
+      setStats({
+        totalAnnual: 0,
+        totalVerified: 0,
+        proofsVerifiedCount: 0,
+        proofsPendingCount: 0,
+      });
+      return;
+    }
+
+    let totalAnnual = 0;
+    let totalVerified = 0;
+    let proofsVerifiedCount = 0;
+    let proofsPendingCount = 0;
+
+    events.forEach((event) => {
+      const annual = calculateAnnual(event);
+      totalAnnual += annual;
+
+      if (event.verified) {
+        totalVerified += annual;
+        proofsVerifiedCount++;
+      } else if (event.proof && event.proof.note) {
+        proofsPendingCount++;
+      }
+    });
+
+    setStats({
+      totalAnnual,
+      totalVerified,
+      proofsVerifiedCount,
+      proofsPendingCount,
+    });
+  }, [events]);
 
   // Track event au montage
   useEffect(() => {
@@ -57,8 +101,8 @@ const ImpactHero = () => {
   };
 
   const handleQuickWinSuccess = () => {
-    // Les agrégats seront automatiquement mis à jour par le listener temps réel
-    // grâce au trigger Cloud Function qui met à jour le user document
+    // Recharger les événements après Quick Win
+    loadEvents({ limitCount: 50 });
     setIsQuickWinOpen(false);
   };
 
@@ -70,6 +114,7 @@ const ImpactHero = () => {
   const handleDetailClick = () => {
     trackEvent('impact_ledger_opened', {
       total_annual: stats.totalAnnual,
+      events_count: events.length,
     });
     navigate('/impact');
   };
