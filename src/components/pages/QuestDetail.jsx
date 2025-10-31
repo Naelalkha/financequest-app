@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle, FaCalculator } from 'react-icons/fa';
+import { FaArrowLeft, FaFire, FaTrophy, FaStar, FaClock, FaChartLine, FaLock, FaCheckCircle, FaCircle, FaCalculator, FaCrown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Confetti from 'react-confetti';
+import { motion } from 'framer-motion';
+import { GiTwoCoins } from 'react-icons/gi';
 // Import par défaut au lieu d'import nommé
 import AchievementShareButton from '../quest/AchievementShareButton';
 import { updateStreakWithProtection } from '../../utils/streakProtection';
@@ -23,6 +25,77 @@ import { usePaywall } from '../../hooks/usePaywall';
 import PaywallModal from '../app/PaywallModal';
 import { completeDailyChallenge, getUserDailyChallenge } from '../../services/dailyChallenge';
 import { ImpactPromptModal, AddSavingsModal } from '../impact';
+import { annualizeImpact, formatEUR } from '../../utils/impact';
+
+// Category and difficulty config (aligné avec QuestCard)
+const categoryConfig = {
+  budgeting: { 
+    gradient: 'from-cyan-400 via-sky-400 to-teal-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]',
+    color: 'text-cyan-300',
+    bgColor: 'bg-cyan-500/20',
+    borderColor: 'border-cyan-500/30'
+  },
+  savings: { 
+    gradient: 'from-green-400 via-lime-400 to-emerald-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(74,222,128,0.3)]',
+    color: 'text-green-300',
+    bgColor: 'bg-green-500/20',
+    borderColor: 'border-green-500/30'
+  },
+  debts: { 
+    gradient: 'from-red-400 via-rose-400 to-pink-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
+    color: 'text-red-300',
+    bgColor: 'bg-red-500/20',
+    borderColor: 'border-red-500/30'
+  },
+  investing: { 
+    gradient: 'from-blue-400 via-indigo-400 to-purple-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]',
+    color: 'text-blue-300',
+    bgColor: 'bg-blue-500/20',
+    borderColor: 'border-blue-500/30'
+  },
+  taxes: { 
+    gradient: 'from-purple-500 via-violet-500 to-indigo-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
+    color: 'text-purple-300',
+    bgColor: 'bg-purple-500/20',
+    borderColor: 'border-purple-500/30'
+  },
+  planning: { 
+    gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
+    color: 'text-pink-300',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/30'
+  }
+};
+
+const difficultyConfig = {
+  beginner: { 
+    label: 'Facile', 
+    color: 'text-emerald-300',
+    bgStyle: 'bg-emerald-500/20 border border-emerald-500/30',
+    textColor: 'text-emerald-300',
+    gradient: 'from-emerald-400 to-green-400'
+  },
+  intermediate: { 
+    label: 'Moyen', 
+    color: 'text-amber-300',
+    bgStyle: 'bg-amber-500/20 border border-amber-500/30',
+    textColor: 'text-amber-300',
+    gradient: 'from-amber-400 to-orange-400'
+  },
+  advanced: { 
+    label: 'Difficile', 
+    color: 'text-red-300',
+    bgStyle: 'bg-red-500/20 border border-red-500/30',
+    textColor: 'text-red-300',
+    gradient: 'from-red-400 to-rose-400'
+  }
+};
 
 const QuestDetail = () => {
   const { id: questId } = useParams();
@@ -532,7 +605,14 @@ const QuestDetail = () => {
   const currentScore = calculateScore();
   const currentStepData = quest.steps[currentStep] || {};
   
-
+  // Config catégorie et difficulté (aligné avec QuestCard)
+  const category = categoryConfig[quest.category] || categoryConfig.budgeting;
+  const difficulty = difficultyConfig[quest.difficulty] || difficultyConfig.beginner;
+  const locale = currentLang === 'fr' ? 'fr-FR' : 'en-US';
+  
+  // Impact estimé annualisé pour le badge
+  const estimatedAnnual = quest.estimatedImpact ? annualizeImpact(quest.estimatedImpact) : null;
+  const formattedImpact = estimatedAnnual ? formatEUR(locale, estimatedAnnual) : null;
 
   const renderStep = () => {
     if (!currentStepData) return null;
@@ -544,12 +624,18 @@ const QuestDetail = () => {
             <div className="prose prose-invert max-w-none mb-6">
               <p className="text-gray-300 whitespace-pre-wrap">{currentStepData.content}</p>
             </div>
-            <button
+            <motion.button
               onClick={() => handleStepComplete({ read: true })}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
+              className="group relative overflow-hidden w-full sm:w-auto min-w-[180px] min-h-[56px] py-4 px-6 rounded-[32px] font-bold text-lg sm:text-xl tracking-tight text-gray-900 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 backdrop-blur-xs border border-amber-400/40 shadow-glow-md hover:shadow-glow-lg transition-all flex items-center justify-center gap-2 will-change-transform"
+              whileHover={{ scale: 1.02, y: -1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
+              whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             >
-              {t('ui.continue') || 'Continue'}
-            </button>
+              <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-amber-400/60 via-amber-300/60 to-orange-400/60" />
+              <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)' }} />
+              <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                {t('ui.continue') || 'Continue'}
+              </span>
+            </motion.button>
           </div>
         );
 
@@ -630,13 +716,23 @@ const QuestDetail = () => {
               </p>
             </div>
             
-            <button
+            <motion.button
               onClick={() => handleStepComplete({ reflection: answer })}
               disabled={answer.length < (currentStepData.minLength || 50)}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="group relative overflow-hidden w-full sm:w-auto min-w-[180px] min-h-[56px] py-4 px-6 rounded-[32px] font-bold text-lg sm:text-xl tracking-tight text-gray-900 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 backdrop-blur-xs border border-amber-400/40 shadow-glow-md hover:shadow-glow-lg transition-all flex items-center justify-center gap-2 will-change-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={answer.length >= (currentStepData.minLength || 50) ? { scale: 1.02, y: -1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } } : {}}
+              whileTap={answer.length >= (currentStepData.minLength || 50) ? { scale: 0.98, transition: { duration: 0.1 } } : {}}
             >
-              {t('ui.submit') || 'Submit'}
-            </button>
+              {answer.length >= (currentStepData.minLength || 50) && (
+                <>
+                  <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-amber-400/60 via-amber-300/60 to-orange-400/60" />
+                  <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)' }} />
+                </>
+              )}
+              <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                {t('ui.submit') || 'Submit'}
+              </span>
+            </motion.button>
           </div>
         );
 
@@ -658,12 +754,18 @@ const QuestDetail = () => {
                 {t('quest_detail.interactive_instruction') || 'For now, imagine you\'ve calculated your budget using the 50/30/20 rule'}
               </p>
             </div>
-            <button
+            <motion.button
               onClick={() => handleStepComplete({ completed: true })}
-              className="mt-6 w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
+              className="mt-6 group relative overflow-hidden w-full sm:w-auto min-w-[180px] min-h-[56px] py-4 px-6 rounded-[32px] font-bold text-lg sm:text-xl tracking-tight text-gray-900 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 backdrop-blur-xs border border-amber-400/40 shadow-glow-md hover:shadow-glow-lg transition-all flex items-center justify-center gap-2 will-change-transform"
+              whileHover={{ scale: 1.02, y: -1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
+              whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             >
-              {t('ui.continue') || 'Continue'}
-            </button>
+              <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-amber-400/60 via-amber-300/60 to-orange-400/60" />
+              <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)' }} />
+              <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                {t('ui.continue') || 'Continue'}
+              </span>
+            </motion.button>
           </div>
         );
 
@@ -672,12 +774,18 @@ const QuestDetail = () => {
         return (
           <div className="text-center py-8">
             <p className="text-gray-400">Unknown step type: {currentStepData.type}</p>
-            <button
+            <motion.button
               onClick={() => handleStepComplete({ completed: true })}
-              className="mt-4 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300"
+              className="mt-4 group relative overflow-hidden w-full sm:w-auto min-w-[180px] min-h-[56px] py-4 px-6 rounded-[32px] font-bold text-lg sm:text-xl tracking-tight text-gray-900 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 backdrop-blur-xs border border-amber-400/40 shadow-glow-md hover:shadow-glow-lg transition-all flex items-center justify-center gap-2 will-change-transform"
+              whileHover={{ scale: 1.02, y: -1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
+              whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             >
-              {t('ui.continue') || 'Continue'}
-            </button>
+              <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-amber-400/60 via-amber-300/60 to-orange-400/60" />
+              <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)' }} />
+              <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                {t('ui.continue') || 'Continue'}
+              </span>
+            </motion.button>
           </div>
         );
     }
@@ -701,25 +809,34 @@ const QuestDetail = () => {
         <div className="neon-card p-6 mb-6 animate-fadeIn">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h1 className="text-3xl font-bold text-white">{quest.title}</h1>
+                
+                {/* Badge Premium (aligné avec QuestCard) */}
                 {quest.isPremium && (
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-sm rounded-full font-medium border border-purple-500/30">
-                    Premium
-                  </span>
+                  <div
+                    className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border-2 border-purple-500/50 text-xs sm:text-sm font-extrabold text-purple-300 uppercase tracking-wider flex items-center gap-2"
+                    style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900, letterSpacing: '0.05em' }}
+                  >
+                    <FaCrown className="text-xs sm:text-sm" />
+                    PRO
+                  </div>
                 )}
-                {quest.estimatedImpact && quest.estimatedImpact.amount > 0 && (
-                  <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-sm rounded-full font-medium border border-amber-500/30 flex items-center gap-1">
-                    <FaChartLine className="text-xs" />
-                    {t('quest.impact_chip', { 
-                      amount: new Intl.NumberFormat(currentLang === 'fr' ? 'fr-FR' : 'en-US', {
-                        style: 'currency',
-                        currency: 'EUR',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(quest.estimatedImpact.amount * (quest.estimatedImpact.period === 'month' ? 12 : 1))
-                    })}
-                  </span>
+                
+                {/* Badge Difficulté (aligné avec QuestCard) */}
+                <div 
+                  className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wider ${difficulty.bgStyle} ${difficulty.textColor}`}
+                  style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900, letterSpacing: '0.05em' }}
+                >
+                  {difficulty.label}
+                </div>
+                
+                {/* Badge Impact estimé (aligné avec QuestCard) */}
+                {formattedImpact && (
+                  <div className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/25 to-orange-500/25 border-2 border-amber-500/40 text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                    <FaChartLine className="text-xs sm:text-sm" />
+                    {t('quest.impact_chip', { amount: formattedImpact.replace('+', '') })}
+                  </div>
                 )}
               </div>
               <p className="text-gray-400">{quest.description}</p>
@@ -754,9 +871,9 @@ const QuestDetail = () => {
                 <p className="text-sm font-semibold text-white">~{quest.duration || 15}</p>
                 <p className="text-xs text-gray-400">{t('ui.minutes') || 'min'}</p>
               </div>
-              <div className="text-center p-3 bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-sm rounded-xl border border-green-500/20 shadow-lg shadow-green-500/5">
-                <FaChartLine className="text-2xl text-green-400 mx-auto mb-1" />
-                <p className="text-sm font-semibold text-white capitalize">{quest.difficulty || 'Easy'}</p>
+              <div className={`text-center p-3 backdrop-blur-sm rounded-xl shadow-lg ${difficulty.bgStyle}`}>
+                <FaChartLine className={`text-2xl mx-auto mb-1 ${difficulty.textColor}`} />
+                <p className={`text-sm font-semibold ${difficulty.textColor} capitalize`}>{difficulty.label}</p>
                 <p className="text-xs text-gray-400">{t('quest_detail.difficulty') || 'Level'}</p>
               </div>
             </div>
@@ -889,7 +1006,7 @@ const QuestDetail = () => {
                 return (
                   <Link
                     to={redirectTo}
-                    className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                    className="group relative overflow-hidden min-w-[180px] min-h-[56px] py-4 px-6 rounded-[32px] font-bold text-lg sm:text-xl tracking-tight text-gray-900 bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-white/10 hover:from-gray-700 hover:to-gray-600 shadow-glow-sm hover:shadow-glow-md transition-all flex items-center justify-center gap-2 will-change-transform"
                     onClick={() => {
                       console.log('🔍 Quest completion redirect debug:', {
                         questId,
@@ -901,7 +1018,10 @@ const QuestDetail = () => {
                       });
                     }}
                   >
-                    {buttonText}
+                    <span className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-30 group-hover:opacity-50 blur-[2px] transition-opacity bg-gradient-to-r from-gray-600/60 via-gray-500/60 to-gray-600/60" />
+                    <span className="relative z-10 flex items-center gap-2 font-sans tracking-tight">
+                      {buttonText}
+                    </span>
                   </Link>
                 );
               })()}
