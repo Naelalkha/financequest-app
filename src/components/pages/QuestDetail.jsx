@@ -27,6 +27,14 @@ import { completeDailyChallenge, getUserDailyChallenge } from '../../services/da
 import { ImpactPromptModal, AddSavingsModal } from '../impact';
 import { annualizeImpact, formatEUR } from '../../utils/impact';
 
+// Import des illustrations pour les catégories
+import budgetIcon from '../../assets/budget.png';
+import epargneIcon from '../../assets/epargne.png';
+import creditIcon from '../../assets/dettes.png';
+import investissementIcon from '../../assets/investissement.png';
+import impotsIcon from '../../assets/impots.png';
+import protectionIcon from '../../assets/protection.png';
+
 // Category and difficulty config (aligné avec QuestCard)
 const categoryConfig = {
   budgeting: { 
@@ -34,42 +42,72 @@ const categoryConfig = {
     neonGlow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]',
     color: 'text-cyan-300',
     bgColor: 'bg-cyan-500/20',
-    borderColor: 'border-cyan-500/30'
+    borderColor: 'border-cyan-500/30',
+    illustration: budgetIcon
   },
   savings: { 
     gradient: 'from-green-400 via-lime-400 to-emerald-400',
     neonGlow: 'shadow-[0_0_20px_rgba(74,222,128,0.3)]',
     color: 'text-green-300',
     bgColor: 'bg-green-500/20',
-    borderColor: 'border-green-500/30'
+    borderColor: 'border-green-500/30',
+    illustration: epargneIcon
+  },
+  saving: { // Fallback pour compatibilité
+    gradient: 'from-green-400 via-lime-400 to-emerald-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(74,222,128,0.3)]',
+    color: 'text-green-300',
+    bgColor: 'bg-green-500/20',
+    borderColor: 'border-green-500/30',
+    illustration: epargneIcon
   },
   debts: { 
     gradient: 'from-red-400 via-rose-400 to-pink-400',
     neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
     color: 'text-red-300',
     bgColor: 'bg-red-500/20',
-    borderColor: 'border-red-500/30'
+    borderColor: 'border-red-500/30',
+    illustration: creditIcon
+  },
+  credit: { // Fallback pour compatibilité
+    gradient: 'from-red-400 via-rose-400 to-pink-400',
+    neonGlow: 'shadow-[0_0_20px_rgba(248,113,113,0.3)]',
+    color: 'text-red-300',
+    bgColor: 'bg-red-500/20',
+    borderColor: 'border-red-500/30',
+    illustration: creditIcon
   },
   investing: { 
     gradient: 'from-blue-400 via-indigo-400 to-purple-400',
     neonGlow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]',
     color: 'text-blue-300',
     bgColor: 'bg-blue-500/20',
-    borderColor: 'border-blue-500/30'
+    borderColor: 'border-blue-500/30',
+    illustration: investissementIcon
   },
   taxes: { 
     gradient: 'from-purple-500 via-violet-500 to-indigo-500',
     neonGlow: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
     color: 'text-purple-300',
     bgColor: 'bg-purple-500/20',
-    borderColor: 'border-purple-500/30'
+    borderColor: 'border-purple-500/30',
+    illustration: impotsIcon
   },
   planning: { 
     gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
     neonGlow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
     color: 'text-pink-300',
     bgColor: 'bg-pink-500/20',
-    borderColor: 'border-pink-500/30'
+    borderColor: 'border-pink-500/30',
+    illustration: protectionIcon
+  },
+  protect: { // Fallback pour compatibilité
+    gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    neonGlow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
+    color: 'text-pink-300',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/30',
+    illustration: protectionIcon
   }
 };
 
@@ -560,7 +598,7 @@ const QuestDetail = () => {
     return (
       <AppBackground variant="finance" grain grid={false} animate>
         <div className="min-h-screen flex items-center justify-center px-4">
-          <div className="neon-card p-8 text-center max-w-md">
+          <div className="neon-card rounded-2xl p-8 text-center max-w-md">
             <FaLock className="text-5xl text-purple-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-4">
               {t('premium.quest_locked') || 'Premium Quest'}
@@ -806,8 +844,17 @@ const QuestDetail = () => {
         </button>
 
         {/* Quest header */}
-        <div className="neon-card p-6 mb-6 animate-fadeIn">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+        <div className="neon-card rounded-2xl p-6 mb-6 animate-fadeIn relative overflow-hidden">
+          {/* Image de catégorie en haut à droite */}
+          <div className="absolute top-4 right-4 z-0 opacity-20">
+            <img 
+              src={category.illustration} 
+              alt={quest.category}
+              className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 object-contain"
+            />
+          </div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h1 className="text-3xl font-bold text-white">{quest.title}</h1>
@@ -860,20 +907,20 @@ const QuestDetail = () => {
             </div>
             
             {/* Quest stats */}
-            <div className="flex items-center gap-3 mt-4 md:mt-0">
-              <div className="text-center p-3 bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm rounded-xl border border-amber-500/20 shadow-lg shadow-amber-500/5">
-                <FaStar className="text-2xl text-amber-400 mx-auto mb-1" />
-                <p className="text-sm font-semibold text-white">{quest.xp}</p>
+            <div className="flex items-center gap-4 mt-4 md:mt-0">
+              <div className="text-center px-4 py-2.5 bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm rounded-xl border border-amber-500/20 shadow-lg shadow-amber-500/5 min-w-[80px]">
+                <FaStar className="text-xl text-amber-400 mx-auto mb-1" />
+                <p className="text-base font-semibold text-white">{quest.xp}</p>
                 <p className="text-xs text-gray-400">{t('ui.xp') || 'XP'}</p>
               </div>
-              <div className="text-center p-3 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-sm rounded-xl border border-cyan-500/20 shadow-lg shadow-cyan-500/5">
-                <FaClock className="text-2xl text-cyan-400 mx-auto mb-1" />
-                <p className="text-sm font-semibold text-white">~{quest.duration || 15}</p>
+              <div className="text-center px-4 py-2.5 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-sm rounded-xl border border-cyan-500/20 shadow-lg shadow-cyan-500/5 min-w-[80px]">
+                <FaClock className="text-xl text-cyan-400 mx-auto mb-1" />
+                <p className="text-base font-semibold text-white">~{quest.duration || 15}</p>
                 <p className="text-xs text-gray-400">{t('ui.minutes') || 'min'}</p>
               </div>
-              <div className={`text-center p-3 backdrop-blur-sm rounded-xl shadow-lg ${difficulty.bgStyle}`}>
-                <FaChartLine className={`text-2xl mx-auto mb-1 ${difficulty.textColor}`} />
-                <p className={`text-sm font-semibold ${difficulty.textColor} capitalize`}>{difficulty.label}</p>
+              <div className={`text-center px-4 py-2.5 backdrop-blur-sm rounded-xl shadow-lg min-w-[80px] ${difficulty.bgStyle}`}>
+                <FaChartLine className={`text-xl mx-auto mb-1 ${difficulty.textColor}`} />
+                <p className={`text-base font-semibold ${difficulty.textColor} capitalize`}>{difficulty.label}</p>
                 <p className="text-xs text-gray-400">{t('quest_detail.difficulty') || 'Level'}</p>
               </div>
             </div>
@@ -917,7 +964,7 @@ const QuestDetail = () => {
 
         {/* Quest content */}
         {!questCompleted ? (
-          <div className="neon-card p-6 animate-fadeIn">
+          <div className="neon-card rounded-2xl p-6 animate-fadeIn">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">
@@ -937,7 +984,7 @@ const QuestDetail = () => {
           </div>
         ) : (
           // Quest complete screen
-          <div className="neon-card p-8 text-center animate-fadeIn">
+          <div className="neon-card rounded-2xl p-8 text-center animate-fadeIn">
             <div className="mb-6">
               <div className="relative inline-block">
                 <FaTrophy className="text-6xl text-yellow-400 animate-bounce" />
