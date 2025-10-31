@@ -207,6 +207,11 @@
     "quests": {
       "title": "Financial Quests",
       "subtitle": "Choose your learning adventure",
+      "tabs": {
+        "starter": "Starter Pack",
+        "quickwins": "Quick Wins",
+        "all": "All Quests"
+      },
       "all_quests": "All Quests",
       "all_categories": "All Categories",
       "in_progress": "In Progress",
@@ -1243,6 +1248,11 @@
     "quests": {
       "title": "Quêtes Financières",
       "subtitle": "Choisissez votre aventure d'apprentissage",
+      "tabs": {
+        "starter": "Starter Pack",
+        "quickwins": "Coups rapides",
+        "all": "Toutes les quêtes"
+      },
       "all_quests": "Toutes les Quêtes",
       "all_categories": "Toutes les Catégories",
       "in_progress": "En Cours",

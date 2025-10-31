@@ -54,6 +54,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import LoadingSpinner from '../app/LoadingSpinner';
 import AppBackground from '../app/AppBackground';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
+import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
 import { getUserDailyChallenge, generateDailyChallenge } from '../../services/dailyChallenge';
 import { getBadgeById } from '../../data/badges';
 import QuestCardShared from '../quest/QuestCard';
@@ -467,9 +468,13 @@ const DashboardPage = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0 });
   const [hoveredQuest, setHoveredQuest] = useState(null);
   
+  // Agrégats d'impact pour onboarding (Étape 6)
+  const { impactAnnualEstimated } = useServerImpactAggregates();
+  
   // Refs pour éviter les duplications de tracking analytics
   const continueCardTracked = useRef(false);
   const dailyChallengeTracked = useRef(false);
+  const onboardingRedirected = useRef(false);
   
   const { 
     quests, 
@@ -502,6 +507,23 @@ const DashboardPage = () => {
     const timer = setInterval(calculateTime, 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Onboarding: Rediriger vers Starter Pack si impact === 0 (Étape 6)
+  useEffect(() => {
+    if (!onboardingRedirected.current && user && !loading && impactAnnualEstimated === 0) {
+      // Redirection uniquement si impact est vraiment 0 (nouvel utilisateur)
+      const hasSeenOnboarding = sessionStorage.getItem('hasSeenStarterOnboarding');
+      if (!hasSeenOnboarding) {
+        sessionStorage.setItem('hasSeenStarterOnboarding', 'true');
+        onboardingRedirected.current = true;
+        navigate('/quests?tab=starter');
+        trackEvent('onboarding_redirected', { 
+          from: 'dashboard', 
+          to: 'starter_pack' 
+        });
+      }
+    }
+  }, [user, loading, impactAnnualEstimated, navigate]);
 
   // Mémoïser le nombre de quêtes actives visibles pour stabiliser les deps
   const activeQuestsCount = useMemo(() => {

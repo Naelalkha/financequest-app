@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaChevronRight, FaSync } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
 import { trackEvent } from '../../utils/analytics';
 import { formatTimeSinceRecalc } from '../../services/impactAggregates';
+import { openQuestGuarded } from '../../utils/navguards';
+import { getStarterPackQuests } from '../../data/quests/index';
 import QuickWinModal from './QuickWinModal';
 
 /**
@@ -36,6 +39,7 @@ const formatCurrency = (amount, locale) => {
 const ImpactHero = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   
   // Agrégats serveur (source de vérité)
   const {
@@ -121,8 +125,25 @@ const ImpactHero = () => {
 
   const handleQuickWinClick = () => {
     trackEvent('cta_quickwin_clicked', { total_annual: stats.totalAnnual });
-    trackEvent('quickwin_opened', { source: 'impact_hero' });
-    setIsQuickWinOpen(true);
+    
+    // Étape 6: Rediriger vers la première quête Starter Pack au lieu de la modal
+    const starterQuests = getStarterPackQuests();
+    if (starterQuests.length > 0) {
+      const firstStarterQuest = starterQuests[0];
+      trackEvent('starter_pack_started', { 
+        quest_id: firstStarterQuest.id,
+        source: 'impact_hero'
+      });
+      openQuestGuarded({
+        quest: firstStarterQuest,
+        user,
+        navigate,
+        source: 'hero_quickwin'
+      });
+    } else {
+      // Fallback: ouvrir /quests?tab=starter si pas de quête
+      navigate('/quests?tab=starter');
+    }
   };
 
   const handleQuickWinSuccess = () => {

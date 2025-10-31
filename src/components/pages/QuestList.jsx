@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from 'framer-motion';
 // Styles globaux unifiés (neon/glass) désormais dans global.css
 import { 
@@ -45,6 +45,9 @@ import PaywallModal from '../app/PaywallModal';
 import posthog from 'posthog-js';
 import AppBackground from '../app/AppBackground';
 import Select from '../quest/Select';
+import { trackEvent } from '../../utils/analytics';
+import { getStarterPackQuests } from '../../data/quests/index';
+import { annualizeImpact } from '../../utils/impact';
 
 // Skeleton futuriste
 const QuestSkeleton = () => {
@@ -137,7 +140,14 @@ const QuestList = () => {
   const { user } = useAuth();
   const { t, currentLang } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const reduceMotion = useReducedMotion();
+  
+  // Tab depuis l'URL (starter, quickwins, all)
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get('tab');
+    return ['starter', 'quickwins', 'all'].includes(tabParam) ? tabParam : 'all';
+  });
   const [userProgress, setUserProgress] = useState({});
   const [isPremium, setIsPremium] = useState(false);
   const [bookmarkedQuests, setBookmarkedQuests] = useState([]);
@@ -317,10 +327,22 @@ const QuestList = () => {
     const enrichedQuests = quests.map((quest, index) => ({
       ...quest,
       isNew: index >= quests.length - 5,
-      createdAt: quests.length - index
+      createdAt: quests.length - index,
+      estimatedAnnual: quest.estimatedImpact ? annualizeImpact(quest.estimatedImpact) : 0
     }));
 
     let filtered = [...enrichedQuests];
+
+    // Filtrage par tab (Étape 6)
+    if (activeTab === 'starter') {
+      filtered = filtered.filter(quest => quest.starterPack === true);
+    } else if (activeTab === 'quickwins') {
+      filtered = filtered.filter(quest => 
+        quest.tags?.includes('quickwin') || 
+        (quest.duration <= 10 && quest.estimatedAnnual > 0)
+      );
+    }
+    // 'all' = pas de filtre par tab
 
     if (filters.category !== 'all') {
       filtered = filtered.filter(quest => quest.category === filters.category);
@@ -345,8 +367,21 @@ const QuestList = () => {
       );
     }
 
-    // Tri
+    // Tri intelligent (Étape 6: starterPack → impact annualisé → xp)
     switch (filters.sortBy) {
+      case 'impact':
+        // Tri par impact annuel estimé DESC
+        filtered.sort((a, b) => {
+          // Starter Pack d'abord
+          if (a.starterPack && !b.starterPack) return -1;
+          if (!a.starterPack && b.starterPack) return 1;
+          // Puis par impact
+          const impactDiff = (b.estimatedAnnual || 0) - (a.estimatedAnnual || 0);
+          if (impactDiff !== 0) return impactDiff;
+          // Puis par XP
+          return (b.xp || 0) - (a.xp || 0);
+        });
+        break;
       case 'new':
         filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         break;
@@ -358,17 +393,31 @@ const QuestList = () => {
         break;
       case 'hot':
       default:
-        // Étape 1: tri stable par récence pour base visuelle
-        filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        // Étape 2: si la progression est chargée, re-classement progressif côté UI (voir animation), pas brut
+        // Tri par défaut: Starter Pack → impact → xp → récence
+        filtered.sort((a, b) => {
+          // 1. Starter Pack d'abord
+          if (a.starterPack && !b.starterPack) return -1;
+          if (!a.starterPack && b.starterPack) return 1;
+          // 2. Impact annuel DESC (si présent)
+          const impactDiff = (b.estimatedAnnual || 0) - (a.estimatedAnnual || 0);
+          if (impactDiff !== 0) return impactDiff;
+          // 3. XP DESC
+          const xpDiff = (b.xp || 0) - (a.xp || 0);
+          if (xpDiff !== 0) return xpDiff;
+          // 4. Récence (fallback)
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        });
+        // Si progression chargée, boost les quêtes actives en top
         if (isUserDataLoaded) {
-          filtered.sort((a, b) => calculateRecommendationScore(b) - calculateRecommendationScore(a));
+          const activeQuests = filtered.filter(q => userProgress[q.id]?.status === 'active');
+          const others = filtered.filter(q => userProgress[q.id]?.status !== 'active');
+          filtered = [...activeQuests, ...others];
         }
         break;
     }
 
     return filtered;
-  }, [quests, filters, selectedTags, userProgress, bookmarkedQuests, debouncedSearch]);
+  }, [quests, filters, selectedTags, userProgress, bookmarkedQuests, debouncedSearch, activeTab, isUserDataLoaded]);
 
   // Debounce de la recherche (source de vérité: rawSearch)
   useEffect(() => {
@@ -408,6 +457,32 @@ const QuestList = () => {
       ...prev,
       [filterType]: value
     }));
+    
+    // Analytics pour changement de tri
+    if (filterType === 'sortBy') {
+      trackEvent('quest_list_sorted', {
+        sort_type: value,
+        current_tab: activeTab
+      });
+    }
+  };
+  
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+    
+    // Analytics pour changement de tab
+    trackEvent('quest_list_filter_changed', {
+      filter_type: 'tab',
+      filter_value: newTab
+    });
+    
+    // Track starter pack viewed
+    if (newTab === 'starter') {
+      trackEvent('starter_pack_viewed', {
+        quest_count: quests.filter(q => q.starterPack).length
+      });
+    }
   };
 
   const handleTagToggle = (tagId) => {
@@ -600,6 +675,51 @@ const QuestList = () => {
                 </motion.div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Segmented Control - Tabs (Étape 6) */}
+        <div className="px-4 sm:px-6 pb-4">
+          <div className="w-full max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="flex gap-2 p-1.5 bg-gray-900/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 w-fit mx-auto"
+            >
+              {[
+                { id: 'starter', label: t('quests.tabs.starter') || 'Starter Pack', icon: FaBolt },
+                { id: 'quickwins', label: t('quests.tabs.quickwins') || 'Coups rapides', icon: FaFire },
+                { id: 'all', label: t('quests.tabs.all') || 'Toutes les quêtes', icon: FaLayerGroup }
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`
+                      relative px-4 sm:px-6 py-2.5 rounded-xl font-semibold text-sm sm:text-base
+                      transition-all duration-300 flex items-center gap-2
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 shadow-lg shadow-amber-500/30' 
+                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                      }
+                    `}
+                  >
+                    <Icon className={`text-sm ${isActive ? 'text-gray-900' : 'text-gray-500'}`} />
+                    <span>{tab.label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl -z-10"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </motion.div>
           </div>
         </div>
 
