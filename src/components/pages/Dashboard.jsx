@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -501,26 +501,30 @@ const DashboardPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Analytics: Track Continue Quest card viewed (une seule fois par session)
-  useEffect(() => {
-    // Calculer hasVisibleActiveQuests depuis userProgress
+  // Mémoïser le nombre de quêtes actives visibles pour stabiliser les deps
+  const activeQuestsCount = useMemo(() => {
     const visibleActiveQuestIds = Object.entries(userProgress)
       .filter(([_, p]) => p?.status === 'active' && (p?.progress || 0) > 0)
       .map(([id]) => id);
     
-    if (visibleActiveQuestIds.length > 0 && quests && !questsLoading && !continueCardTracked.current) {
-      const activeQuestsToRender = quests
-        .filter(q => visibleActiveQuestIds.includes(q.id))
-        .slice(0, 3);
-      
-      if (activeQuestsToRender.length > 0) {
-        trackEvent('continue_card_viewed', {
-          active_quests_count: activeQuestsToRender.length,
-        });
-        continueCardTracked.current = true;
-      }
-    }
+    if (!quests || questsLoading) return 0;
+    
+    const activeQuests = quests
+      .filter(q => visibleActiveQuestIds.includes(q.id))
+      .slice(0, 3);
+    
+    return activeQuests.length;
   }, [userProgress, quests, questsLoading]);
+
+  // Analytics: Track Continue Quest card viewed (une seule fois par session)
+  useEffect(() => {
+    if (activeQuestsCount > 0 && !continueCardTracked.current) {
+      trackEvent('continue_card_viewed', {
+        active_quests_count: activeQuestsCount,
+      });
+      continueCardTracked.current = true;
+    }
+  }, [activeQuestsCount]);
 
   // Analytics: Track Daily Challenge viewed (une seule fois par session)
   useEffect(() => {

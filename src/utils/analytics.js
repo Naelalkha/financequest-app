@@ -1,6 +1,7 @@
 // Analytics utilities for FinanceQuest
 import { analytics } from '../services/firebase';
 import { logEvent, setUserId, setUserProperties } from 'firebase/analytics';
+import { getSessionId } from './sessionId';
 
 /**
  * Log a custom analytics event
@@ -10,7 +11,13 @@ import { logEvent, setUserId, setUserProperties } from 'firebase/analytics';
 export const logAnalyticsEvent = (eventName, parameters = {}) => {
   try {
     if (analytics) {
-      logEvent(analytics, eventName, parameters);
+      // Enrichir tous les événements avec session_id et timestamp
+      const enrichedParams = {
+        ...parameters,
+        session_id: getSessionId(),
+        event_timestamp: new Date().toISOString(),
+      };
+      logEvent(analytics, eventName, enrichedParams);
     }
   } catch (error) {
     console.error('Analytics error:', error);
