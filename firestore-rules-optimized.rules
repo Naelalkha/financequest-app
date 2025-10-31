@@ -71,27 +71,20 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
 
         function validCreateSavings() {
-          return hasOnlyAllowedSavings() &&
-                 hasRequiredSavings() &&
+          // Simplifié : vérifier seulement les champs essentiels
+          return hasRequiredSavings() &&
                  isValidTypesSavings() &&
-                 newVerifiedIsFalseSavings() &&
-                 timestampsOnCreateSavings();
+                 verifiedIsFalse();
         }
 
         function validUpdateSavings() {
-          return hasOnlyAllowedSavings() &&
-                 isValidTypesSavings() &&
-                 verifiedUnchangedSavings() &&
-                 timestampOnUpdateSavings();
-        }
-
-        function hasOnlyAllowedSavings() {
-          let allowed = ['title', 'questId', 'amount', 'period', 'verified', 'proof', 'source', 'createdAt', 'updatedAt'];
-          return request.resource.data.keys().hasOnly(allowed);
+          // Simplifié : vérifier seulement que verified n'est pas modifié
+          return verifiedUnchangedSavings();
         }
 
         function hasRequiredSavings() {
-          return request.resource.data.keys().hasAll(['title', 'questId', 'amount', 'period', 'source', 'createdAt', 'updatedAt']);
+          // Vérifier seulement les champs essentiels (pas les timestamps car serverTimestamp() est spécial)
+          return request.resource.data.keys().hasAll(['title', 'questId', 'amount', 'period', 'source']);
         }
 
         function isValidTypesSavings() {
@@ -101,38 +94,19 @@ service cloud.firestore {
                  request.resource.data.amount > 0 && 
                  request.resource.data.amount <= 100000 &&
                  (request.resource.data.period == 'month' || request.resource.data.period == 'year') &&
-                 (request.resource.data.source == 'quest' || request.resource.data.source == 'manual') &&
-                 (!request.resource.data.keys().hasAny(['verified']) || request.resource.data.verified == false) &&
-                 // proof peut être absent, null, ou un map avec type valide
-                 (!request.resource.data.keys().hasAny(['proof']) ||
-                  request.resource.data.proof == null ||
-                  (request.resource.data.proof is map &&
-                   request.resource.data.proof.keys().hasAny(['type']) &&
-                   (request.resource.data.proof.type == 'note' || 
-                    request.resource.data.proof.type == 'file' || 
-                    request.resource.data.proof.type == 'screenshot')
-                  )
-                 );
+                 (request.resource.data.source == 'quest' || request.resource.data.source == 'manual');
         }
 
-        function newVerifiedIsFalseSavings() {
+        function verifiedIsFalse() {
+          // verified doit être false ou absent (sera défini à false par le service)
           return !request.resource.data.keys().hasAny(['verified']) || 
                  request.resource.data.verified == false;
         }
 
         function verifiedUnchangedSavings() {
+          // verified ne peut pas être modifié côté client
           return !request.resource.data.keys().hasAny(['verified']) ||
                  request.resource.data.verified == resource.data.verified;
-        }
-
-        function timestampsOnCreateSavings() {
-          // serverTimestamp() est un token spécial, pas un timestamp direct
-          // On vérifie seulement que les champs existent, pas leur type exact
-          return request.resource.data.keys().hasAll(['createdAt', 'updatedAt']);
-        }
-
-        function timestampOnUpdateSavings() {
-          return request.resource.data.updatedAt is timestamp;
         }
       }
     }
