@@ -2,7 +2,7 @@ import { FaPiggyBank, FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
 
 export const weeklySavings = {
   id: 'weekly-savings',
-  category: 'saving',
+  category: 'savings',
   country: 'global', // Universel, virements auto existent partout
   difficulty: 'beginner',
   duration: 6,

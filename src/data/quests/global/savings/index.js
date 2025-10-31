@@ -4,7 +4,7 @@ import { savingStrategies } from './saving-strategies.js';
 import { weeklySavings } from './weekly-savings.js';
 
 // Export de toutes les quêtes d'épargne globales
-export const globalSavingQuests = [
+export const globalSavingsQuests = [
   weeklySavings, // Starter Pack (en premier)
   emergencyFund101,
   savingStrategies

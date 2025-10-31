@@ -2,7 +2,7 @@ import { FaPiggyBank, FaExclamationTriangle, FaCalculator, FaCheckCircle } from 
 
 export const emergencyFund101 = {
   id: 'emergency-fund-101',
-  category: 'saving',
+  category: 'savings',
   difficulty: 'beginner',
   duration: 40,
   xp: 205,

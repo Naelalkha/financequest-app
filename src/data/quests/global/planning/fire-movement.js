@@ -2,7 +2,7 @@ import { FaFire, FaChartLine, FaCalculator } from 'react-icons/fa';
 
 export const fireMovement = {
   id: 'fire-movement',
-  category: 'protect',
+  category: 'planning',
   difficulty: 'advanced',
   duration: 30,
   xp: 200,

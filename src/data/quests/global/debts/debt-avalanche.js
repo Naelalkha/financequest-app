@@ -2,7 +2,7 @@ import { FaChartLine, FaLightbulb, FaCheckCircle } from 'react-icons/fa';
 
 export const debtAvalanche = {
   id: 'debt-avalanche',
-  category: 'credit',
+  category: 'debts',
   difficulty: 'intermediate',
   duration: 45,
   xp: 225,

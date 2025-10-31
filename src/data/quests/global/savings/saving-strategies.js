@@ -2,7 +2,7 @@ import { FaPiggyBank, FaLightbulb, FaCheckCircle } from 'react-icons/fa';
 
 export const savingStrategies = {
   id: 'saving-strategies',
-  category: 'saving',
+  category: 'savings',
   difficulty: 'beginner',
   duration: 40,
   xp: 200,

@@ -1,7 +1,7 @@
 // Import des quêtes globales
 import { globalBudgetingQuests } from './global/budgeting/index.js';
-import { globalSavingQuests } from './global/saving/index.js';
-import { globalDebtQuests } from './global/debt/index.js';
+import { globalSavingsQuests } from './global/savings/index.js';
+import { globalDebtsQuests } from './global/debts/index.js';
 import { globalInvestingQuests } from './global/investing/index.js';
 import { globalPlanningQuests } from './global/planning/index.js';
 
@@ -29,8 +29,8 @@ import {
 // Combine toutes les quêtes par pays
 export const globalQuests = [
   ...globalBudgetingQuests,
-  ...globalSavingQuests,
-  ...globalDebtQuests,
+  ...globalSavingsQuests,
+  ...globalDebtsQuests,
   ...globalInvestingQuests,
   ...globalPlanningQuests
 ];

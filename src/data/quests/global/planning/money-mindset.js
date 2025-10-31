@@ -2,7 +2,7 @@ import { FaBrain, FaLightbulb, FaCheckCircle } from 'react-icons/fa';
 
 export const moneyMindset = {
   id: 'money-mindset',
-  category: 'protect',
+  category: 'planning',
   difficulty: 'beginner',
   duration: 35,
   xp: 150,

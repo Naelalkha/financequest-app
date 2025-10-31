@@ -17,9 +17,9 @@ export const categories = {
     totalXP: 800,
     totalDuration: 120
   },
-  saving: {
-    id: 'saving',
-    name: { en: 'Saving', fr: 'Épargne' },
+  savings: {
+    id: 'savings',
+    name: { en: 'Savings', fr: 'Épargne' },
     description: { 
       en: 'Build wealth through smart saving strategies and emergency funds',
       fr: 'Construisez votre richesse grâce à des stratégies d\'épargne intelligentes'
@@ -33,12 +33,12 @@ export const categories = {
     totalXP: 200,
     totalDuration: 30
   },
-  credit: {
-    id: 'credit',
-    name: { en: 'Credit', fr: 'Crédit' },
+  debts: {
+    id: 'debts',
+    name: { en: 'Debts & Credit', fr: 'Dettes & Crédit' },
     description: { 
-      en: 'Understand and manage credit effectively',
-      fr: 'Comprendre et gérer le crédit efficacement'
+      en: 'Manage debts and understand credit effectively',
+      fr: 'Gérer vos dettes et comprendre le crédit efficacement'
     },
     icon: FaCreditCard,
     color: '#EF4444',
@@ -81,14 +81,14 @@ export const categories = {
     totalXP: 600,
     totalDuration: 90
   },
-  protect: {
-    id: 'protect',
-    name: { en: 'Protection', fr: 'Protection' },
+  planning: {
+    id: 'planning',
+    name: { en: 'Planning', fr: 'Planification' },
     description: { 
-      en: 'Protect your assets and plan for the future',
-      fr: 'Protégez vos actifs et planifiez votre avenir'
+      en: 'Plan your financial future and protect your assets',
+      fr: 'Planifiez votre avenir financier et protégez vos actifs'
     },
-    icon: FaShieldAlt,
+    icon: FaRoute,
     color: '#10B981',
     secondaryColor: '#34D399',
     order: 6,
@@ -99,7 +99,7 @@ export const categories = {
   }
 };
 
-export const categoryOrder = ['budgeting', 'saving', 'credit', 'investing', 'taxes', 'protect'];
+export const categoryOrder = ['budgeting', 'savings', 'debts', 'investing', 'taxes', 'planning'];
 
 export const getCategoryById = (categoryId) => {
   return categories[categoryId] || null;

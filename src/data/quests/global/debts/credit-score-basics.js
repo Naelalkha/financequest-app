@@ -2,7 +2,7 @@ import { FaCreditCard, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 
 export const creditScoreBasics = {
   id: 'credit-score-basics',
-  category: 'credit',
+  category: 'debts',
   difficulty: 'beginner',
   duration: 45,
   xp: 200,
