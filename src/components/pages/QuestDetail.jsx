@@ -651,6 +651,25 @@ const QuestDetail = () => {
   // Impact estimé annualisé pour le badge
   const estimatedAnnual = quest.estimatedImpact ? annualizeImpact(quest.estimatedImpact) : null;
   const formattedImpact = estimatedAnnual ? formatEUR(locale, estimatedAnnual) : null;
+  
+  // Gradient de fond selon la catégorie (aligné avec QuestCard)
+  const getCategoryGradient = () => {
+    const categoryKey = quest.category;
+    if (categoryKey === 'budgeting') {
+      return 'linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(13, 148, 136, 0.08) 100%)';
+    } else if (categoryKey === 'saving' || categoryKey === 'savings') {
+      return 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(101, 163, 13, 0.08) 100%)';
+    } else if (categoryKey === 'credit' || categoryKey === 'debts') {
+      return 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.08) 100%)';
+    } else if (categoryKey === 'investing') {
+      return 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%)';
+    } else if (categoryKey === 'taxes') {
+      return 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%)';
+    } else if (categoryKey === 'protect' || categoryKey === 'planning') {
+      return 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.08) 100%)';
+    }
+    return 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.08) 100%)';
+  };
 
   const renderStep = () => {
     if (!currentStepData) return null;
@@ -844,13 +863,17 @@ const QuestDetail = () => {
         </button>
 
         {/* Quest header */}
-        <div className="neon-card rounded-2xl p-6 mb-6 animate-fadeIn relative overflow-hidden">
-          {/* Image de catégorie en haut à droite */}
-          <div className="absolute top-4 right-4 z-0 opacity-20">
+        <div 
+          className="neon-card rounded-2xl p-6 mb-6 animate-fadeIn relative overflow-hidden backdrop-blur-sm"
+          style={{ background: getCategoryGradient() }}
+        >
+          {/* Image de catégorie en haut à droite - plus visible */}
+          <div className="absolute top-4 right-4 z-0 opacity-40">
             <img 
               src={category.illustration} 
               alt={quest.category}
-              className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 object-contain"
+              className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 object-contain drop-shadow-2xl"
+              style={{ filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))' }}
             />
           </div>
           
@@ -964,7 +987,10 @@ const QuestDetail = () => {
 
         {/* Quest content */}
         {!questCompleted ? (
-          <div className="neon-card rounded-2xl p-6 animate-fadeIn">
+          <div 
+            className="neon-card rounded-2xl p-6 animate-fadeIn backdrop-blur-sm"
+            style={{ background: getCategoryGradient() }}
+          >
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">
@@ -984,7 +1010,10 @@ const QuestDetail = () => {
           </div>
         ) : (
           // Quest complete screen
-          <div className="neon-card rounded-2xl p-8 text-center animate-fadeIn">
+          <div 
+            className="neon-card rounded-2xl p-8 text-center animate-fadeIn backdrop-blur-sm"
+            style={{ background: getCategoryGradient() }}
+          >
             <div className="mb-6">
               <div className="relative inline-block">
                 <FaTrophy className="text-6xl text-yellow-400 animate-bounce" />
