@@ -103,13 +103,15 @@ service cloud.firestore {
                  (request.resource.data.period == 'month' || request.resource.data.period == 'year') &&
                  (request.resource.data.source == 'quest' || request.resource.data.source == 'manual') &&
                  (!request.resource.data.keys().hasAny(['verified']) || request.resource.data.verified == false) &&
+                 // proof peut être absent, null, ou un map avec type valide
                  (!request.resource.data.keys().hasAny(['proof']) ||
-                   request.resource.data.proof == null ||
-                   (request.resource.data.proof is map &&
-                    (request.resource.data.proof.type == 'note' || 
-                     request.resource.data.proof.type == 'file' || 
-                     request.resource.data.proof.type == 'screenshot')
-                   )
+                  request.resource.data.proof == null ||
+                  (request.resource.data.proof is map &&
+                   request.resource.data.proof.keys().hasAny(['type']) &&
+                   (request.resource.data.proof.type == 'note' || 
+                    request.resource.data.proof.type == 'file' || 
+                    request.resource.data.proof.type == 'screenshot')
+                  )
                  );
         }
 

@@ -50,6 +50,21 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
       updatedAt: serverTimestamp(),
     };
 
+    console.log('📤 Creating savings event:', {
+      userId,
+      eventData: {
+        title: newEvent.title,
+        questId: newEvent.questId,
+        amount: newEvent.amount,
+        period: newEvent.period,
+        source: newEvent.source,
+        proof: newEvent.proof,
+        verified: newEvent.verified,
+        hasCreatedAt: !!newEvent.createdAt,
+        hasUpdatedAt: !!newEvent.updatedAt,
+      },
+    });
+
     // Validation côté client (avant envoi)
     const validationData = {
       ...newEvent,
@@ -62,7 +77,10 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
     }
 
     const savingsRef = getSavingsEventsCollection(userId);
+    console.log('📁 Savings ref path:', savingsRef.path);
+    
     const docRef = await addDoc(savingsRef, newEvent);
+    console.log('✅ Savings event created:', docRef.id);
 
     return {
       id: docRef.id,
@@ -71,7 +89,9 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
       updatedAt: new Date(), // Pour l'état local
     };
   } catch (error) {
-    console.error('Error creating savings event:', error);
+    console.error('❌ Error creating savings event:', error);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Error message:', error.message);
     throw error;
   }
 };
