@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaFire, 
   FaCheckCircle,
@@ -12,6 +13,11 @@ import {
 } from 'react-icons/fa';
 import { FaWallet, FaPiggyBank, FaChartLine, FaExclamationTriangle, FaCalendarAlt, FaCreditCard, FaShieldAlt, FaFileInvoiceDollar } from 'react-icons/fa';
 import { GiTwoCoins } from 'react-icons/gi';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { openQuestGuarded } from '../../utils/navguards';
+import { annualizeImpact, formatEUR } from '../../utils/impact';
+import { trackEvent } from '../../utils/analytics';
 
 // Import des illustrations pour les catégories
 import budgetIcon from '../../assets/budget.png';
@@ -106,6 +112,10 @@ const difficultyConfig = {
 
 const QuestCard = ({ quest, progressData, isPremiumUser, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+  const { currentLang, t } = useLanguage();
+  const { user } = useAuth();
+  const locale = currentLang === 'fr' ? 'fr-FR' : 'en-US';
 
   const progress = progressData;
   const isCompleted = progress?.status === 'completed';
@@ -114,6 +124,54 @@ const QuestCard = ({ quest, progressData, isPremiumUser, onClick }) => {
   const isLocked = quest.isPremium && !isPremiumUser;
   const category = categoryConfig[quest.category] || categoryConfig.protect;
   const difficulty = difficultyConfig[quest.difficulty] || difficultyConfig.beginner;
+
+  // Impact estimé annualisé si la quête le fournit (sinon null)
+  const estimatedAnnual = useMemo(() => {
+    if (!quest?.estimatedImpact) return null;
+    return annualizeImpact(quest.estimatedImpact);
+  }, [quest?.estimatedImpact]);
+
+  // Meta "durée + impact" (fallback: durée seule)
+  const metaText = useMemo(() => {
+    if (typeof quest?.duration === 'number' && estimatedAnnual != null) {
+      const formattedImpact = formatEUR(locale, estimatedAnnual);
+      if (formattedImpact) {
+        return t('quest.meta', { 
+          minutes: quest.duration, 
+          amount: formattedImpact.replace('+', '') 
+        });
+      }
+    }
+    if (typeof quest?.duration === 'number') {
+      return `${quest.duration} min`;
+    }
+    return null;
+  }, [t, quest?.duration, estimatedAnnual, locale]);
+
+  // Track "vue de carte" (1 seule fois)
+  const viewedRef = useRef(false);
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    trackEvent('quest_card_viewed', {
+      quest_id: quest?.id,
+      is_premium: !!quest?.isPremium,
+      has_access: !isLocked,
+      category: quest?.category,
+      difficulty: quest?.difficulty,
+    });
+  }, [quest?.id, quest?.isPremium, isLocked, quest?.category, quest?.difficulty]);
+
+  // Handler pour ouvrir la quête avec guard
+  const handleOpen = () => {
+    // Si onClick custom est fourni, l'utiliser (compatibilité)
+    if (onClick) {
+      onClick();
+    } else {
+      // Sinon utiliser le guard
+      openQuestGuarded({ quest, user, navigate, source: 'quest_card' });
+    }
+  };
 
   return (
     <motion.div
@@ -127,8 +185,8 @@ const QuestCard = ({ quest, progressData, isPremiumUser, onClick }) => {
         className="relative rounded-2xl overflow-hidden w-full h-full focus-visible-ring cursor-pointer flex flex-col"
         role="link"
         tabIndex={0}
-        onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(e); } }}
+        onClick={handleOpen}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(); } }}
         aria-label={`Ouvrir la quête ${quest.title}`}
       >
         {/* Overlay animé */}
@@ -260,6 +318,13 @@ const QuestCard = ({ quest, progressData, isPremiumUser, onClick }) => {
               >
                 {quest.description}
               </p>
+
+              {/* Meta: durée + impact estimé */}
+              {metaText && (
+                <div className="mt-2 text-xs sm:text-sm text-amber-300/90 font-medium">
+                  {metaText}
+                </div>
+              )}
             </div>
 
             {/* Stats */}

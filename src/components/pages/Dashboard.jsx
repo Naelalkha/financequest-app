@@ -59,6 +59,8 @@ import { getBadgeById } from '../../data/badges';
 import QuestCardShared from '../quest/QuestCard';
 import ImpactHero from '../impact/ImpactHero';
 import { trackEvent } from '../../utils/analytics';
+import { openQuestGuarded } from '../../utils/navguards';
+import { annualizeImpact, formatEUR } from '../../utils/impact';
 
 // Animation de compteur fluide
 const CountUp = ({ end, duration = 1000, prefix = '', suffix = '' }) => {
@@ -715,25 +717,44 @@ const DashboardPage = () => {
   const calculateLevel = (points) => Math.floor(points / 1000) + 1;
 
   // Analytics handlers
-  const handleContinueQuestClick = (questId) => {
-    trackEvent('continue_card_clicked', {
-      quest_id: questId,
+  const handleContinueQuestClick = (quest) => {
+    // Utiliser openQuestGuarded pour gérer le gating Premium
+    openQuestGuarded({
+      quest,
+      user,
+      navigate,
+      source: 'continue_card',
     });
-    navigate(`/quests/${questId}`);
   };
 
   const handleDailyChallengeClick = () => {
-    trackEvent('daily_challenge_started', {
-      quest_id: dailyChallenge?.questId,
-      quest_title: dailyChallenge?.questTitle,
-    });
-    if (dailyChallenge.questId) {
-      navigate(`/quests/${dailyChallenge.questId}`);
+    // Récupérer la quête complète depuis quests
+    const dailyChallengeQuest = quests?.find(q => q.id === dailyChallenge?.questId);
+    
+    if (dailyChallengeQuest) {
+      openQuestGuarded({
+        quest: dailyChallengeQuest,
+        user,
+        navigate,
+        source: 'daily_challenge',
+      });
     } else {
-      console.error('❌ Aucun questId trouvé, redirection vers /quests');
+      console.error('❌ Quête du défi quotidien non trouvée');
       navigate('/quests');
     }
   };
+
+  // Calcul de l'impact estimé du daily challenge (si dispo)
+  const dailyChallengeQuest = quests?.find(q => q.id === dailyChallenge?.questId);
+  const dcEstimatedAnnual = dailyChallengeQuest?.estimatedImpact
+    ? annualizeImpact(dailyChallengeQuest.estimatedImpact)
+    : null;
+  const dcMeta = dcEstimatedAnnual != null && typeof dailyChallengeQuest?.duration === 'number'
+    ? t('quest.meta', {
+        minutes: dailyChallengeQuest.duration,
+        amount: formatEUR(currentLang === 'fr' ? 'fr-FR' : 'en-US', dcEstimatedAnnual)?.replace('+', '') || ''
+      })
+    : null;
 
   if (loading) {
     return (
@@ -1128,7 +1149,7 @@ const DashboardPage = () => {
                     quest={quest}
                     progressData={userProgress[quest.id]}
                     isPremiumUser={isPremium}
-                    onClick={() => handleContinueQuestClick(quest.id)}
+                    onClick={() => handleContinueQuestClick(quest)}
                   />
                 </div>
               ))}
@@ -1142,7 +1163,7 @@ const DashboardPage = () => {
                   quest={quest}
                   progressData={userProgress[quest.id]}
                   isPremiumUser={isPremium}
-                  onClick={() => handleContinueQuestClick(quest.id)}
+                  onClick={() => handleContinueQuestClick(quest)}
                 />
               ))}
             </div>
@@ -1297,6 +1318,10 @@ const DashboardPage = () => {
                       </div>
                       {dailyChallenge?.questTitle && (
                         <p className="mt-1 text-sm text-gray-400 line-clamp-1">{dailyChallenge.questTitle}</p>
+                      )}
+                      {/* Impact estimé si dispo */}
+                      {dcMeta && (
+                        <p className="mt-1 text-xs text-amber-300/80 font-medium">{dcMeta}</p>
                       )}
                     </div>
                   </div>
