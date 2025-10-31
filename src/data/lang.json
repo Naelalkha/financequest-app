@@ -925,6 +925,14 @@
       "link": {
         "detail": "See details"
       },
+      "sync": {
+        "syncing": "Syncing...",
+        "last_update": "Updated {{time}}",
+        "never": "Never synced",
+        "recalc_button": "Recalculate",
+        "recalc_success": "Impact recalculated!",
+        "recalc_error": "Failed to recalculate"
+      },
       "ledger": {
         "title": "Impact & Proofs",
         "add_btn": "Add Savings",
@@ -1953,6 +1961,14 @@
       },
       "link": {
         "detail": "Voir le détail"
+      },
+      "sync": {
+        "syncing": "Synchronisation...",
+        "last_update": "MAJ {{time}}",
+        "never": "Jamais synchronisé",
+        "recalc_button": "Recalculer",
+        "recalc_success": "Impact recalculé !",
+        "recalc_error": "Échec du recalcul"
       },
       "ledger": {
         "title": "Impact & preuves",

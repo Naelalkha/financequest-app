@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaShieldAlt, FaChevronRight } from 'react-icons/fa';
+import { FaShieldAlt, FaChevronRight, FaSync } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
+import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
 import { trackEvent } from '../../utils/analytics';
+import { formatTimeSinceRecalc } from '../../services/impactAggregates';
 import QuickWinModal from './QuickWinModal';
 
 /**
@@ -34,24 +36,36 @@ const formatCurrency = (amount, locale) => {
 const ImpactHero = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { events, loadEvents, loading } = useSavingsEvents();
+  
+  // Agrégats serveur (source de vérité)
+  const {
+    impactAnnualEstimated: serverEstimated,
+    impactAnnualVerified: serverVerified,
+    proofsVerifiedCount: serverProofsCount,
+    lastImpactRecalcAt,
+    loading: serverLoading,
+    syncing,
+  } = useServerImpactAggregates();
+  
+  // Fallback local si serveur non dispo
+  const { events, loadEvents, loading: localLoading } = useSavingsEvents();
   const [isQuickWinOpen, setIsQuickWinOpen] = useState(false);
-  const [stats, setStats] = useState({
+  const [localStats, setLocalStats] = useState({
     totalAnnual: 0,
     totalVerified: 0,
     proofsVerifiedCount: 0,
     proofsPendingCount: 0,
   });
 
-  // Charger les événements au montage
+  // Charger les événements au montage (pour fallback)
   useEffect(() => {
     loadEvents({ limitCount: 50 });
   }, [loadEvents]);
 
-  // Calculer les statistiques quand les événements changent
+  // Calculer les statistiques locales (fallback)
   useEffect(() => {
     if (events.length === 0) {
-      setStats({
+      setLocalStats({
         totalAnnual: 0,
         totalVerified: 0,
         proofsVerifiedCount: 0,
@@ -77,13 +91,23 @@ const ImpactHero = () => {
       }
     });
 
-    setStats({
+    setLocalStats({
       totalAnnual,
       totalVerified,
       proofsVerifiedCount,
       proofsPendingCount,
     });
   }, [events]);
+  
+  // Stats finales : priorité serveur, sinon fallback local
+  const stats = {
+    totalAnnual: serverEstimated !== null ? serverEstimated : localStats.totalAnnual,
+    totalVerified: serverVerified !== null ? serverVerified : localStats.totalVerified,
+    proofsVerifiedCount: serverProofsCount !== null ? serverProofsCount : localStats.proofsVerifiedCount,
+    proofsPendingCount: localStats.proofsPendingCount, // Uniquement local pour l'instant
+  };
+  
+  const loading = serverLoading || localLoading;
 
   // Track event au montage
   useEffect(() => {
@@ -157,6 +181,20 @@ const ImpactHero = () => {
         <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 shadow-sm border border-gray-200 dark:border-gray-700">
           {getProofChip()}
         </div>
+        
+        {/* Chip "MAJ il y a..." */}
+        {lastImpactRecalcAt && (
+          <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-full text-xs font-medium text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700 flex items-center gap-1">
+            {syncing ? (
+              <>
+                <FaSync className="animate-spin text-xs" />
+                <span>{t('impact.sync.syncing')}</span>
+              </>
+            ) : (
+              <span>{t('impact.sync.last_update', { time: formatTimeSinceRecalc(lastImpactRecalcAt, language) })}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Valeur principale */}

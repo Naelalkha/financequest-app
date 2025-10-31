@@ -29,7 +29,8 @@ service cloud.firestore {
         'longestStreak',
         'impactAnnualEstimated',
         'impactAnnualVerified',
-        'proofsVerifiedCount'
+        'proofsVerifiedCount',
+        'lastImpactRecalcAt'
       ];
     }
     

@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
+import { recalculateImpactInBackground } from './impactAggregates';
 
 /**
  * Récupère la référence de la collection savingsEvents pour un utilisateur
@@ -82,6 +83,9 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
     const docRef = await addDoc(savingsRef, newEvent);
     console.log('✅ Savings event created:', docRef.id);
 
+    // Déclencher le recalcul des agrégats en arrière-plan
+    recalculateImpactInBackground('create');
+
     return {
       id: docRef.id,
       ...newEvent,
@@ -114,6 +118,9 @@ export const updateSavingsEventInFirestore = async (userId, eventId, updates) =>
       ...allowedUpdates,
       updatedAt: serverTimestamp()
     });
+
+    // Déclencher le recalcul des agrégats en arrière-plan
+    recalculateImpactInBackground('update');
   } catch (error) {
     console.error('Error updating savings event:', error);
     throw error;
@@ -130,6 +137,9 @@ export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
   try {
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     await deleteDoc(eventRef);
+
+    // Déclencher le recalcul des agrégats en arrière-plan
+    recalculateImpactInBackground('delete');
   } catch (error) {
     console.error('Error deleting savings event:', error);
     throw error;
