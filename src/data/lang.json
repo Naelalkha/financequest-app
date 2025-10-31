@@ -306,6 +306,11 @@
       "select_answer": "Select your answer",
       "submit_answer": "Submit Answer",
       "correct_answer": "Correct Answer!",
+      "meta": "{{minutes}} min · Est. savings: {{amount}}/year",
+      "meta_no_impact": "{{minutes}} min",
+      "start": "Start",
+      "unlock_premium": "Unlock with Premium",
+      "premium_badge": "Premium",
       "wrong_answer": "Not quite right",
       "explanation": "Explanation",
       "next_question": "Next Question",
@@ -1001,6 +1006,13 @@
       "cta_finish": "Save to Dashboard",
       "success": "Subscription saved! Check your Impact dashboard",
       "error": "Failed to save. Please try again."
+    },
+
+    "upsell": {
+      "locked_title": "Premium Content",
+      "locked_desc": "This quest is part of Moniyo Premium.",
+      "cta": "Start 7-day free trial",
+      "note": "Cancel anytime"
     }
   },
   
@@ -1275,6 +1287,11 @@
       "select_answer": "Sélectionnez votre réponse",
       "submit_answer": "Soumettre la Réponse",
       "correct_answer": "Bonne Réponse !",
+      "meta": "{{minutes}} min · Économies estimées : {{amount}}/an",
+      "meta_no_impact": "{{minutes}} min",
+      "start": "Commencer",
+      "unlock_premium": "Débloquer avec Premium",
+      "premium_badge": "Premium",
       "wrong_answer": "Pas tout à fait",
       "explanation": "Explication",
       "next_question": "Question Suivante",
@@ -2007,6 +2024,13 @@
       "cta_finish": "Sauvegarder au dashboard",
       "success": "Abonnement sauvegardé ! Consulte ton dashboard Impact",
       "error": "Échec de la sauvegarde. Réessaye."
+    },
+
+    "upsell": {
+      "locked_title": "Contenu Premium",
+      "locked_desc": "Cette quête fait partie de Moniyo Premium.",
+      "cta": "Essai gratuit 7 jours",
+      "note": "Annulable à tout moment"
     }
   }
 }
