@@ -27,6 +27,13 @@ export const recalculateImpactAggregates = async (source = 'unknown') => {
       return null;
     }
     
+    // En développement (localhost), skip l'API et utiliser le fallback client
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isDev && !API_BASE_URL) {
+      console.log('🏠 Dev mode: skipping server API, using client-side fallback');
+      return null; // Le hook useServerImpactAggregates utilisera le fallback local
+    }
+    
     // Obtenir l'ID Token
     const idToken = await currentUser.getIdToken();
     
