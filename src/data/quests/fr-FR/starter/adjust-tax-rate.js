@@ -2,13 +2,13 @@ import { FaPercentage, FaCalculator, FaCheckCircle } from 'react-icons/fa';
 
 export const adjustTaxRate = {
   id: 'adjust-tax-rate',
-  category: 'planning',
+  category: 'taxes', // Catégorie métier Fiscalité
   country: 'fr-FR',
   difficulty: 'beginner',
   duration: 7,
   xp: 120,
   isPremium: false,
-  starterPack: true,
+  starterPack: true, // Flag collection Starter Pack
   order: 2,
   
   metadata: {

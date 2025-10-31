@@ -2,13 +2,13 @@ import { FaPiggyBank, FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
 
 export const weeklySavings = {
   id: 'weekly-savings',
-  category: 'savings',
+  category: 'saving', // Catégorie métier Épargne (note: 'saving' pas 'savings')
   country: 'fr-FR',
   difficulty: 'beginner',
   duration: 6,
   xp: 150,
   isPremium: false,
-  starterPack: true,
+  starterPack: true, // Flag collection Starter Pack
   order: 3,
   
   metadata: {

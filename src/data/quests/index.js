@@ -148,6 +148,18 @@ export const getFreeQuests = (lang = 'en', country = 'global') => {
 };
 
 /**
+ * Récupère les quêtes Starter Pack (collection)
+ * @param {string} lang - Langue (en/fr)
+ * @param {string} country - Pays (global/fr-FR/en-US)
+ * @returns {Array} - Quêtes Starter Pack
+ */
+export const getStarterPackQuests = (lang = 'en', country = 'fr-FR') => {
+  const countryQuests = getQuestsByCountry(country, lang);
+  const starterQuests = countryQuests.filter(quest => quest.starterPack === true);
+  return starterQuests;
+};
+
+/**
  * Récupère les quêtes premium
  * @param {string} lang - Langue (en/fr)
  * @param {string} country - Pays (global/fr-FR/en-US)

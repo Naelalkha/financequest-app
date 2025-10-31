@@ -2,20 +2,20 @@ import { FaTrash, FaCheckCircle, FaCoins } from 'react-icons/fa';
 
 export const cutSubscription = {
   id: 'cut-subscription',
-  category: 'budgeting',
+  category: 'budgeting', // Catégorie métier (pas 'starter')
   country: 'fr-FR',
   difficulty: 'beginner',
   duration: 5,
   xp: 100,
   isPremium: false,
-  starterPack: true,
+  starterPack: true, // Flag collection Starter Pack
   order: 1,
   
   metadata: {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),
     author: 'FinanceQuest Team',
-    tags: ['starter', 'subscription', 'budgeting', 'quick-win'],
+    tags: ['starter', 'subscription', 'budgeting', 'quickwin'],
     relatedQuests: [],
     averageCompletionTime: 5,
     completionRate: 0.92,
