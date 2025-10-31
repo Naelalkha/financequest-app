@@ -867,22 +867,20 @@ const QuestDetail = () => {
           className="neon-card rounded-2xl p-6 mb-6 animate-fadeIn relative overflow-hidden backdrop-blur-sm"
           style={{ background: getCategoryGradient() }}
         >
-          {/* Image de catégorie en haut à droite - plus visible */}
-          <div className="absolute top-4 right-4 z-0 opacity-40">
-            <img 
-              src={category.illustration} 
-              alt={quest.category}
-              className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 object-contain drop-shadow-2xl"
-              style={{ filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))' }}
-            />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h1 className="text-3xl font-bold text-white">{quest.title}</h1>
-                
-                {/* Badge Premium (aligné avec QuestCard) */}
+          <div className="relative z-10">
+            {/* Image + Badges (aligné avec QuestCard) */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                {/* Image de catégorie */}
+                <div className="flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src={category.illustration} 
+                    alt={quest.category}
+                    className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 object-contain"
+                  />
+                </div>
+
+                {/* Badges d'état */}
                 {quest.isPremium && (
                   <div
                     className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border-2 border-purple-500/50 text-xs sm:text-sm font-extrabold text-purple-300 uppercase tracking-wider flex items-center gap-2"
@@ -892,45 +890,58 @@ const QuestDetail = () => {
                     PRO
                   </div>
                 )}
-                
-                {/* Badge Difficulté (aligné avec QuestCard) */}
+
+                {/* Badge Difficulté */}
                 <div 
                   className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wider ${difficulty.bgStyle} ${difficulty.textColor}`}
                   style={{ fontFamily: '"Inter", sans-serif', fontWeight: 900, letterSpacing: '0.05em' }}
                 >
                   {difficulty.label}
                 </div>
-                
-                {/* Badge Impact estimé (aligné avec QuestCard) */}
+
+                {/* Badge Impact estimé */}
                 {formattedImpact && (
                   <div className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/25 to-orange-500/25 border-2 border-amber-500/40 text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1">
                     <FaChartLine className="text-xs sm:text-sm" />
-                    {t('quest.impact_chip', { amount: formattedImpact.replace('+', '') })}
+                    {formattedImpact.replace('+', '')}
                   </div>
                 )}
               </div>
-              <p className="text-gray-400">{quest.description}</p>
-              
-              {/* Quest objectives */}
-              {quest.objectives && quest.objectives.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-gray-300 mb-2">
-                    {t('quest_detail.objectives') || 'Learning Objectives:'}
-                  </h3>
-                  <ul className="space-y-1">
-                    {quest.objectives.map((objective, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
-                        <FaStar className="text-yellow-400 mt-0.5 text-xs" />
-                        <span>{objective}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
+
+            {/* Titre & Description (aligné avec QuestCard) */}
+            <h1 
+              className="text-white font-extrabold text-[22px] sm:text-2xl lg:text-3xl mb-3 line-clamp-2 leading-tight"
+              style={{ fontFamily: '"Inter", "Helvetica Neue", sans-serif', fontWeight: 900, letterSpacing: '-0.03em' }}
+            >
+              {quest.title}
+            </h1>
+            <p 
+              className="text-gray-200 text-[15px] sm:text-base lg:text-lg line-clamp-3 leading-relaxed mb-4"
+              style={{ fontFamily: '"Inter", sans-serif', fontWeight: 500, letterSpacing: '0.005em', lineHeight: '1.6' }}
+            >
+              {quest.description}
+            </p>
             
+            {/* Quest objectives */}
+            {quest.objectives && quest.objectives.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-2">
+                  {t('quest_detail.objectives') || 'Learning Objectives:'}
+                </h3>
+                <ul className="space-y-1">
+                  {quest.objectives.map((objective, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
+                      <FaStar className="text-yellow-400 mt-0.5 text-xs flex-shrink-0" />
+                      <span>{objective}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Quest stats */}
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="text-center px-4 py-2.5 bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm rounded-xl border border-amber-500/20 shadow-lg shadow-amber-500/5 min-w-[80px]">
                 <FaStar className="text-xl text-amber-400 mx-auto mb-1" />
                 <p className="text-base font-semibold text-white">{quest.xp}</p>
@@ -941,18 +952,12 @@ const QuestDetail = () => {
                 <p className="text-base font-semibold text-white">~{quest.duration || 15}</p>
                 <p className="text-xs text-gray-400">{t('ui.minutes') || 'min'}</p>
               </div>
-              <div className={`text-center px-4 py-2.5 backdrop-blur-sm rounded-xl shadow-lg min-w-[80px] ${difficulty.bgStyle}`}>
-                <FaChartLine className={`text-xl mx-auto mb-1 ${difficulty.textColor}`} />
-                <p className={`text-base font-semibold ${difficulty.textColor} capitalize`}>{difficulty.label}</p>
-                <p className="text-xs text-gray-400">{t('quest_detail.difficulty') || 'Level'}</p>
-              </div>
             </div>
-          </div>
           
-          {/* Progress bar */}
-          <div className="mt-6">
-            <div className="flex justify-between text-sm text-gray-400 mb-2">
-              <span>{t('quest_detail.progress') || 'Progress'}</span>
+            {/* Progress bar */}
+            <div className="mt-6">
+              <div className="flex justify-between text-sm text-gray-400 mb-2">
+                <span>{t('quest_detail.progress') || 'Progress'}</span>
               <span className="font-medium text-white">{Math.round(progress)}%</span>
             </div>
             <ProgressBar 
