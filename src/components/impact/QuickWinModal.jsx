@@ -25,8 +25,19 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Calculer l'abonnement sélectionné (prédéfini ou custom)
   const selectedSub = subscriptions.find((s) => s.selected) || 
-                      (customSub.name && customSub.price ? customSub : null);
+                      (customSub.name?.trim() && customSub.price && String(customSub.price).trim() !== '' ? customSub : null);
+  
+  // Debug pour voir l'état
+  console.log('🔍 Modal state:', {
+    step,
+    selectedSub,
+    subscriptions: subscriptions.filter(s => s.selected),
+    customSub,
+    isSubmitting,
+    currentUser: !!currentUser,
+  });
 
   const handleSelectSub = (id) => {
     setSubscriptions((prev) =>
@@ -323,14 +334,23 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {t('ui.cancel')}
-          </button>
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          {/* Message d'erreur si bouton désactivé à l'étape 3 */}
+          {step === 3 && (!selectedSub || !currentUser) && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
+              {!selectedSub && '⚠️ Aucun abonnement sélectionné'}
+              {!currentUser && '⚠️ Vous devez être connecté'}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t('ui.cancel')}
+            </button>
           
           {step < 3 ? (
             <button
@@ -345,6 +365,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
               onClick={handleConfirm}
               disabled={isSubmitting || !selectedSub || !currentUser}
               className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              title={!selectedSub ? 'Aucun abonnement sélectionné' : !currentUser ? 'Utilisateur non connecté' : ''}
             >
               {isSubmitting ? (
                 <>
@@ -356,6 +377,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
               )}
             </button>
           )}
+          </div>
         </div>
       </div>
     </div>
