@@ -100,10 +100,11 @@ const ImpactHero = () => {
   }, [events]);
   
   // Stats finales : priorité serveur, sinon fallback local
+  // En dev sans API, serverEstimated sera 0 (pas null), donc on utilise le max
   const stats = {
-    totalAnnual: serverEstimated !== null ? serverEstimated : localStats.totalAnnual,
-    totalVerified: serverVerified !== null ? serverVerified : localStats.totalVerified,
-    proofsVerifiedCount: serverProofsCount !== null ? serverProofsCount : localStats.proofsVerifiedCount,
+    totalAnnual: Math.max(serverEstimated || 0, localStats.totalAnnual),
+    totalVerified: Math.max(serverVerified || 0, localStats.totalVerified),
+    proofsVerifiedCount: Math.max(serverProofsCount || 0, localStats.proofsVerifiedCount),
     proofsPendingCount: localStats.proofsPendingCount, // Uniquement local pour l'instant
   };
   
