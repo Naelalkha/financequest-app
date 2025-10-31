@@ -8,6 +8,7 @@ import { globalPlanningQuests } from './global/planning/index.js';
 // Import des quêtes françaises
 import { frBudgetingQuests } from './fr-FR/budgeting/index.js';
 import { frPlanningQuests } from './fr-FR/planning/index.js';
+import { cutSubscription, adjustTaxRate, weeklySavings } from './fr-FR/starter/index.js';
 
 // Import des quêtes américaines
 import { usBudgetingQuests } from './en-US/budgeting/index.js';
@@ -36,6 +37,11 @@ export const globalQuests = [
 ];
 
 export const frQuests = [
+  // Starter Pack (3 quêtes gratuites prioritaires)
+  cutSubscription,
+  adjustTaxRate,
+  weeklySavings,
+  // Autres quêtes FR
   ...frBudgetingQuests,
   ...frPlanningQuests
 ];
