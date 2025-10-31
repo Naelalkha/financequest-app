@@ -2,8 +2,8 @@ import { FaTrash, FaCheckCircle, FaCoins } from 'react-icons/fa';
 
 export const cutSubscription = {
   id: 'cut-subscription',
-  category: 'budgeting', // Catégorie métier (pas 'starter')
-  country: 'fr-FR',
+  category: 'budgeting',
+  country: 'global', // Universel, pas spécifique FR
   difficulty: 'beginner',
   duration: 5,
   xp: 100,

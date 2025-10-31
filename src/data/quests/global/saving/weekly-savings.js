@@ -2,8 +2,8 @@ import { FaPiggyBank, FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
 
 export const weeklySavings = {
   id: 'weekly-savings',
-  category: 'saving', // Catégorie métier Épargne (note: 'saving' pas 'savings')
-  country: 'fr-FR',
+  category: 'saving',
+  country: 'global', // Universel, virements auto existent partout
   difficulty: 'beginner',
   duration: 6,
   xp: 150,
