@@ -15,7 +15,7 @@ import {
  * @returns {Object}
  */
 export const useSavingsEvents = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,13 +24,13 @@ export const useSavingsEvents = () => {
    * Charge tous les événements d'économie
    */
   const loadEvents = useCallback(async (options = {}) => {
-    if (!currentUser) return;
+    if (!user) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const fetchedEvents = await getAllSavingsEvents(currentUser.uid, options);
+      const fetchedEvents = await getAllSavingsEvents(user.uid, options);
       setEvents(fetchedEvents);
     } catch (err) {
       console.error('Error loading savings events:', err);
@@ -38,20 +38,20 @@ export const useSavingsEvents = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Crée un nouvel événement d'économie
    */
   const createEvent = useCallback(async (eventData) => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      const newEvent = await createSavingsEventInFirestore(currentUser.uid, eventData);
+      const newEvent = await createSavingsEventInFirestore(user.uid, eventData);
       setEvents(prev => [newEvent, ...prev]);
       return newEvent;
     } catch (err) {
@@ -59,20 +59,20 @@ export const useSavingsEvents = () => {
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Met à jour un événement d'économie
    */
   const updateEvent = useCallback(async (eventId, updates) => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      await updateSavingsEventInFirestore(currentUser.uid, eventId, updates);
+      await updateSavingsEventInFirestore(user.uid, eventId, updates);
       
       // Mettre à jour localement
       setEvents(prev => prev.map(event => 
@@ -85,84 +85,84 @@ export const useSavingsEvents = () => {
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Supprime un événement d'économie
    */
   const deleteEvent = useCallback(async (eventId) => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      await deleteSavingsEventFromFirestore(currentUser.uid, eventId);
+      await deleteSavingsEventFromFirestore(user.uid, eventId);
       setEvents(prev => prev.filter(event => event.id !== eventId));
     } catch (err) {
       console.error('Error deleting savings event:', err);
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Récupère un événement spécifique par ID
    */
   const getEventById = useCallback(async (eventId) => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      return await getSavingsEventById(currentUser.uid, eventId);
+      return await getSavingsEventById(user.uid, eventId);
     } catch (err) {
       console.error('Error fetching savings event:', err);
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Calcule le total des économies
    */
   const getTotalSavings = useCallback(async (period = null) => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      return await calculateTotalSavings(currentUser.uid, period);
+      return await calculateTotalSavings(user.uid, period);
     } catch (err) {
       console.error('Error calculating total savings:', err);
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   /**
    * Récupère les économies groupées par quête
    */
   const getEventsByQuest = useCallback(async () => {
-    if (!currentUser) {
+    if (!user) {
       throw new Error('User not authenticated');
     }
 
     setError(null);
 
     try {
-      return await getSavingsByQuest(currentUser.uid);
+      return await getSavingsByQuest(user.uid);
     } catch (err) {
       console.error('Error fetching savings by quest:', err);
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [user]);
 
   // NOTE: Ne charge PAS automatiquement les événements au montage
   // Pour éviter de surcharger au démarrage
@@ -188,20 +188,20 @@ export const useSavingsEvents = () => {
  * @returns {Object}
  */
 export const useQuestSavings = (questId) => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [questEvents, setQuestEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!currentUser || !questId) return;
+    if (!user || !questId) return;
 
     const loadQuestSavings = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const events = await getAllSavingsEvents(currentUser.uid, { questId });
+        const events = await getAllSavingsEvents(user.uid, { questId });
         setQuestEvents(events);
       } catch (err) {
         console.error('Error loading quest savings:', err);
@@ -212,7 +212,7 @@ export const useQuestSavings = (questId) => {
     };
 
     loadQuestSavings();
-  }, [currentUser, questId]);
+  }, [user, questId]);
 
   return {
     questEvents,
@@ -226,7 +226,7 @@ export const useQuestSavings = (questId) => {
  * @returns {Object}
  */
 export const useSavingsStats = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     total: 0,
     count: 0,
@@ -238,15 +238,15 @@ export const useSavingsStats = () => {
   const [error, setError] = useState(null);
 
   const loadStats = useCallback(async () => {
-    if (!currentUser) return;
+    if (!user) return;
 
     setLoading(true);
     setError(null);
 
     try {
       const [totalData, allEvents] = await Promise.all([
-        calculateTotalSavings(currentUser.uid),
-        getAllSavingsEvents(currentUser.uid)
+        calculateTotalSavings(user.uid),
+        getAllSavingsEvents(user.uid)
       ]);
 
       const verified = allEvents.filter(e => e.verified).length;
@@ -263,7 +263,7 @@ export const useSavingsStats = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [user]);
 
   useEffect(() => {
     loadStats();
