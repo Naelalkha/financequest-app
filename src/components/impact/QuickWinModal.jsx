@@ -12,7 +12,7 @@ import { trackEvent } from '../../utils/analytics';
  */
 const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
   const { t } = useLanguage();
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [subscriptions, setSubscriptions] = useState([
     { id: 1, name: 'Netflix', price: 12.99, selected: false },
@@ -36,7 +36,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
     subscriptions: subscriptions.filter(s => s.selected),
     customSub,
     isSubmitting,
-    currentUser: !!currentUser,
+    user: !!user,
   });
 
   const handleSelectSub = (id) => {
@@ -64,7 +64,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
   const handleConfirm = async () => {
     console.log('🔍 handleConfirm called', {
       selectedSub,
-      currentUser: !!currentUser,
+      user: !!user,
       step,
     });
 
@@ -74,7 +74,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
 
-    if (!currentUser) {
+    if (!user) {
       console.error('❌ User not authenticated');
       toast.error('Utilisateur non connecté');
       return;
@@ -104,7 +104,7 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
       };
 
       console.log('💾 Creating savings event:', eventData);
-      await createSavingsEventInFirestore(currentUser.uid, eventData);
+      await createSavingsEventInFirestore(user.uid, eventData);
 
       // Analytics
       trackEvent('quickwin_completed', {
@@ -336,10 +336,10 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Footer Actions */}
         <div className="p-6 border-t border-gray-200 dark:border-gray-700">
           {/* Message d'erreur si bouton désactivé à l'étape 3 */}
-          {step === 3 && (!selectedSub || !currentUser) && (
+          {step === 3 && (!selectedSub || !user) && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
               {!selectedSub && '⚠️ Aucun abonnement sélectionné'}
-              {!currentUser && '⚠️ Vous devez être connecté'}
+              {!user && '⚠️ Vous devez être connecté'}
             </div>
           )}
 
@@ -363,9 +363,9 @@ const QuickWinModal = ({ isOpen, onClose, onSuccess }) => {
           ) : (
             <button
               onClick={handleConfirm}
-              disabled={isSubmitting || !selectedSub || !currentUser}
+              disabled={isSubmitting || !selectedSub || !user}
               className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              title={!selectedSub ? 'Aucun abonnement sélectionné' : !currentUser ? 'Utilisateur non connecté' : ''}
+              title={!selectedSub ? 'Aucun abonnement sélectionné' : !user ? 'Utilisateur non connecté' : ''}
             >
               {isSubmitting ? (
                 <>
