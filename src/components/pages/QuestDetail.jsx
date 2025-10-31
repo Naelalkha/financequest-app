@@ -14,6 +14,7 @@ import { db } from '../../services/firebase';
 import { logQuestEvent, trackEvent } from '../../utils/analytics';
 import ProgressBar from '../quest/ProgressBar';
 import LoadingSpinner from '../app/LoadingSpinner';
+import AppBackground from '../app/AppBackground';
 import { QuizStep, ActionChallenge, ChallengeStep, InteractiveChallenge } from '../features';
 import SimpleActionStep from '../features/SimpleActionStep';
 import ChecklistStep from '../features/ChecklistStep';
@@ -484,37 +485,41 @@ const QuestDetail = () => {
   // Fallback pour l'ancien système premium
   if (!loading && quest?.isPremium && !isPremium && user && !shouldShowPaywall) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center max-w-md">
-          <FaLock className="text-5xl text-purple-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-4">
-            {t('premium.quest_locked') || 'Premium Quest'}
-          </h2>
-          <p className="text-gray-400 mb-6">
-            {t('premium.unlock_quest') || 'Unlock this quest with FinanceQuest Premium'}
-          </p>
-          <Link
-            to="/premium"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-bold hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg"
-          >
-            {t('dashboard.upgrade_now') || 'Upgrade Now'}
-          </Link>
-          <button
-            onClick={() => navigate('/quests')}
-            className="mt-4 text-gray-400 hover:text-white transition-colors block mx-auto"
-          >
-            {t('quest_detail.back_to_quests') || 'Back to Quests'}
-          </button>
+      <AppBackground variant="finance" grain grid={false} animate>
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="neon-card p-8 text-center max-w-md">
+            <FaLock className="text-5xl text-purple-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-4">
+              {t('premium.quest_locked') || 'Premium Quest'}
+            </h2>
+            <p className="text-gray-400 mb-6">
+              {t('premium.unlock_quest') || 'Unlock this quest with FinanceQuest Premium'}
+            </p>
+            <Link
+              to="/premium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-bold hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg"
+            >
+              {t('dashboard.upgrade_now') || 'Upgrade Now'}
+            </Link>
+            <button
+              onClick={() => navigate('/quests')}
+              className="mt-4 text-gray-400 hover:text-white transition-colors block mx-auto"
+            >
+              {t('quest_detail.back_to_quests') || 'Back to Quests'}
+            </button>
+          </div>
         </div>
-      </div>
+      </AppBackground>
     );
   }
 
   if (loading || !quest) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <LoadingSpinner size="large" />
-      </div>
+      <AppBackground variant="finance" grain grid={false} animate>
+        <div className="min-h-screen flex items-center justify-center">
+          <LoadingSpinner size="large" />
+        </div>
+      </AppBackground>
     );
   }
 
@@ -679,21 +684,21 @@ const QuestDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <AppBackground variant="finance" grain grid={false} animate>
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} gravity={0.3} />}
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl pb-[calc(env(safe-area-inset-bottom)+88px)]">
         {/* Back button */}
         <button
           onClick={() => navigate('/quests')}
-          className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group"
+          className="flex items-center gap-2 text-gray-400 hover:text-amber-400 mb-6 transition-colors group font-medium"
         >
           <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
           {t('quest_detail.back_to_quests') || 'Back to Quests'}
         </button>
 
         {/* Quest header */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-6 animate-fadeIn">
+        <div className="neon-card p-6 mb-6 animate-fadeIn">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -738,18 +743,18 @@ const QuestDetail = () => {
             </div>
             
             {/* Quest stats */}
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <FaStar className="text-2xl text-blue-400 mx-auto mb-1" />
+            <div className="flex items-center gap-3 mt-4 md:mt-0">
+              <div className="text-center p-3 bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm rounded-xl border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                <FaStar className="text-2xl text-amber-400 mx-auto mb-1" />
                 <p className="text-sm font-semibold text-white">{quest.xp}</p>
                 <p className="text-xs text-gray-400">{t('ui.xp') || 'XP'}</p>
               </div>
-              <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <FaClock className="text-2xl text-blue-400 mx-auto mb-1" />
+              <div className="text-center p-3 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-sm rounded-xl border border-cyan-500/20 shadow-lg shadow-cyan-500/5">
+                <FaClock className="text-2xl text-cyan-400 mx-auto mb-1" />
                 <p className="text-sm font-semibold text-white">~{quest.duration || 15}</p>
                 <p className="text-xs text-gray-400">{t('ui.minutes') || 'min'}</p>
               </div>
-              <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+              <div className="text-center p-3 bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-sm rounded-xl border border-green-500/20 shadow-lg shadow-green-500/5">
                 <FaChartLine className="text-2xl text-green-400 mx-auto mb-1" />
                 <p className="text-sm font-semibold text-white capitalize">{quest.difficulty || 'Easy'}</p>
                 <p className="text-xs text-gray-400">{t('quest_detail.difficulty') || 'Level'}</p>
@@ -795,7 +800,7 @@ const QuestDetail = () => {
 
         {/* Quest content */}
         {!questCompleted ? (
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 animate-fadeIn">
+          <div className="neon-card p-6 animate-fadeIn">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">
@@ -815,7 +820,7 @@ const QuestDetail = () => {
           </div>
         ) : (
           // Quest complete screen
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center animate-fadeIn">
+          <div className="neon-card p-8 text-center animate-fadeIn">
             <div className="mb-6">
               <div className="relative inline-block">
                 <FaTrophy className="text-6xl text-yellow-400 animate-bounce" />
@@ -950,7 +955,7 @@ const QuestDetail = () => {
           initialValues={savingsInitialValues}
         />
       </main>
-    </div>
+    </AppBackground>
   );
 };
 
