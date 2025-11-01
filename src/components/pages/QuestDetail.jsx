@@ -988,6 +988,7 @@ const QuestDetail = () => {
               </div>
             </div>
           </div>
+          </div>
         </div>
 
         {/* Quest content */}
