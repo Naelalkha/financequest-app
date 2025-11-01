@@ -944,6 +944,15 @@
         "total_estimated": "Total annual estimated",
         "total_verified": "Verified",
         "events_count": "Events",
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "toast": {
+          "deleted": "Savings deleted.",
+          "undo": "Undo",
+          "restored": "Savings restored"
+        },
         "empty_title": "No savings yet",
         "empty_subtitle": "Add your first savings to see your impact grow",
         "empty_cta": "Add Savings",
@@ -961,6 +970,18 @@
         "description": "Track this savings in your Impact dashboard",
         "add": "Add to Impact",
         "later": "Maybe Later"
+      },
+      "edit": {
+        "title": "Edit Savings",
+        "save": "Save Changes",
+        "cancel": "Cancel",
+        "success": "Savings updated successfully",
+        "error": "Failed to update savings"
+      },
+      "errors": {
+        "amount_invalid": "Invalid amount. Must be between 0 and 100,000",
+        "forbidden_field": "This field cannot be modified",
+        "required_field": "This field is required"
       },
       "modal": {
         "title": "Add Savings",
@@ -1986,6 +2007,15 @@
         "total_estimated": "Total annuel estimé",
         "total_verified": "Vérifié",
         "events_count": "Événements",
+        "actions": {
+          "edit": "Modifier",
+          "delete": "Supprimer"
+        },
+        "toast": {
+          "deleted": "Économie supprimée.",
+          "undo": "Annuler",
+          "restored": "Économie restaurée"
+        },
         "empty_title": "Aucune économie encore",
         "empty_subtitle": "Ajoute ta première économie pour voir ton impact augmenter",
         "empty_cta": "Ajouter une économie",
@@ -2003,6 +2033,18 @@
         "description": "Enregistre cette économie dans ton tableau Impact",
         "add": "Ajouter à l'Impact",
         "later": "Plus tard"
+      },
+      "edit": {
+        "title": "Modifier l'économie",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "success": "Économie mise à jour avec succès",
+        "error": "Échec de la mise à jour"
+      },
+      "errors": {
+        "amount_invalid": "Montant invalide. Doit être entre 0 et 100 000",
+        "forbidden_field": "Ce champ ne peut pas être modifié",
+        "required_field": "Ce champ est requis"
       },
       "modal": {
         "title": "Ajouter une économie",

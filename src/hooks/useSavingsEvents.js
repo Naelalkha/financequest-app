@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   createSavingsEventInFirestore,
   updateSavingsEventInFirestore,
   deleteSavingsEventFromFirestore,
+  restoreSavingsEventInFirestore,
   getAllSavingsEvents,
   getSavingsEventById,
   calculateTotalSavings,
@@ -19,6 +20,7 @@ export const useSavingsEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const deletedSnapshotRef = useRef(null); // Pour stocker le snapshot lors d'un delete
 
   /**
    * Charge tous les événements d'économie
@@ -62,7 +64,7 @@ export const useSavingsEvents = () => {
   }, [user]);
 
   /**
-   * Met à jour un événement d'économie
+   * Met à jour un événement d'économie (alias pour editEvent)
    */
   const updateEvent = useCallback(async (eventId, updates) => {
     if (!user) {
@@ -88,7 +90,48 @@ export const useSavingsEvents = () => {
   }, [user]);
 
   /**
-   * Supprime un événement d'économie
+   * Édite un événement d'économie avec optimistic UI
+   */
+  const editEvent = useCallback(async (eventId, updates) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    setError(null);
+
+    // Sauvegarder l'ancien état pour rollback
+    const oldEvent = events.find(e => e.id === eventId);
+    if (!oldEvent) {
+      throw new Error('Event not found');
+    }
+
+    try {
+      // Optimistic UI : mettre à jour immédiatement
+      setEvents(prev => prev.map(event => 
+        event.id === eventId 
+          ? { ...event, ...updates, updatedAt: new Date() }
+          : event
+      ));
+
+      // Puis envoyer au serveur
+      await updateSavingsEventInFirestore(user.uid, eventId, updates);
+      
+      console.log('✅ Event edited successfully:', eventId);
+    } catch (err) {
+      console.error('❌ Error editing savings event:', err);
+      
+      // Rollback en cas d'erreur
+      setEvents(prev => prev.map(event => 
+        event.id === eventId ? oldEvent : event
+      ));
+      
+      setError(err.message);
+      throw err;
+    }
+  }, [user, events]);
+
+  /**
+   * Supprime un événement d'économie avec snapshot pour undo
    */
   const deleteEvent = useCallback(async (eventId) => {
     if (!user) {
@@ -97,11 +140,74 @@ export const useSavingsEvents = () => {
 
     setError(null);
 
+    // Trouver l'événement à supprimer et créer un snapshot
+    const eventToDelete = events.find(e => e.id === eventId);
+    if (!eventToDelete) {
+      throw new Error('Event not found');
+    }
+
+    // Stocker le snapshot pour un éventuel undo
+    deletedSnapshotRef.current = {
+      id: eventId,
+      data: { ...eventToDelete }
+    };
+
     try {
-      await deleteSavingsEventFromFirestore(user.uid, eventId);
+      // Optimistic UI : supprimer immédiatement de l'affichage
       setEvents(prev => prev.filter(event => event.id !== eventId));
+
+      // Puis supprimer du serveur
+      await deleteSavingsEventFromFirestore(user.uid, eventId);
+      
+      console.log('✅ Event deleted successfully:', eventId);
     } catch (err) {
-      console.error('Error deleting savings event:', err);
+      console.error('❌ Error deleting savings event:', err);
+      
+      // Rollback en cas d'erreur
+      if (deletedSnapshotRef.current) {
+        setEvents(prev => [deletedSnapshotRef.current.data, ...prev]);
+        deletedSnapshotRef.current = null;
+      }
+      
+      setError(err.message);
+      throw err;
+    }
+  }, [user, events]);
+
+  /**
+   * Annule la suppression d'un événement (Undo)
+   * Doit être appelé dans les 10 secondes après deleteEvent
+   */
+  const undoDelete = useCallback(async () => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    if (!deletedSnapshotRef.current) {
+      throw new Error('No deleted event to restore');
+    }
+
+    setError(null);
+
+    const { id, data } = deletedSnapshotRef.current;
+
+    try {
+      // Optimistic UI : restaurer immédiatement dans l'affichage
+      setEvents(prev => [data, ...prev]);
+
+      // Puis restaurer sur le serveur
+      await restoreSavingsEventInFirestore(user.uid, id, data);
+      
+      console.log('✅ Event restored successfully:', id);
+      
+      // Effacer le snapshot après restauration réussie
+      deletedSnapshotRef.current = null;
+    } catch (err) {
+      console.error('❌ Error restoring savings event:', err);
+      
+      // Rollback en cas d'erreur
+      setEvents(prev => prev.filter(event => event.id !== id));
+      
       setError(err.message);
       throw err;
     }
@@ -175,7 +281,9 @@ export const useSavingsEvents = () => {
     loadEvents,
     createEvent,
     updateEvent,
+    editEvent, // Nouvelle fonction avec optimistic UI
     deleteEvent,
+    undoDelete, // Nouvelle fonction pour annuler une suppression
     getEventById,
     getTotalSavings,
     getEventsByQuest

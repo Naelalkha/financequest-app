@@ -2,6 +2,7 @@ import {
   collection, 
   doc, 
   addDoc, 
+  setDoc,
   updateDoc, 
   deleteDoc, 
   getDocs, 
@@ -101,28 +102,63 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
 };
 
 /**
- * Met à jour un événement d'économie existant
+ * Met à jour un événement d'économie existant avec whitelist stricte
  * @param {string} userId - ID de l'utilisateur
  * @param {string} eventId - ID de l'événement
- * @param {Partial<import('../types/savingsEvent').SavingsEvent>} updates - Mises à jour
+ * @param {Object} updates - Mises à jour
+ * @param {string} [updates.title] - Titre de l'économie
+ * @param {number} [updates.amount] - Montant économisé
+ * @param {'month'|'year'} [updates.period] - Période
+ * @param {Object} [updates.proof] - Preuve de l'économie (note uniquement)
  * @returns {Promise<void>}
  */
 export const updateSavingsEventInFirestore = async (userId, eventId, updates) => {
   try {
-    // Empêcher la modification du champ 'verified' côté client
-    const { verified, createdAt, ...allowedUpdates } = updates;
+    // Whitelist stricte : seuls ces champs peuvent être modifiés
+    const allowedFields = ['title', 'amount', 'period', 'proof'];
+    const safeUpdates = {};
+
+    // Filtrer uniquement les champs autorisés
+    allowedFields.forEach(field => {
+      if (updates.hasOwnProperty(field)) {
+        safeUpdates[field] = updates[field];
+      }
+    });
+
+    // Validation côté client
+    if (safeUpdates.amount !== undefined) {
+      const amount = Number(safeUpdates.amount);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+        throw new Error('Invalid amount: must be a finite number between 0 and 100,000');
+      }
+      safeUpdates.amount = amount;
+    }
+
+    if (safeUpdates.period !== undefined && !['month', 'year'].includes(safeUpdates.period)) {
+      throw new Error('Invalid period: must be "month" or "year"');
+    }
+
+    // Si proof est fourni, ne garder que la note
+    if (safeUpdates.proof) {
+      safeUpdates.proof = {
+        type: 'note',
+        note: safeUpdates.proof.note || ''
+      };
+    }
 
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     
     await updateDoc(eventRef, {
-      ...allowedUpdates,
+      ...safeUpdates,
       updatedAt: serverTimestamp()
     });
+
+    console.log('✅ Savings event updated:', eventId, safeUpdates);
 
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('update');
   } catch (error) {
-    console.error('Error updating savings event:', error);
+    console.error('❌ Error updating savings event:', error);
     throw error;
   }
 };
@@ -138,10 +174,57 @@ export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     await deleteDoc(eventRef);
 
+    console.log('✅ Savings event deleted:', eventId);
+
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('delete');
   } catch (error) {
-    console.error('Error deleting savings event:', error);
+    console.error('❌ Error deleting savings event:', error);
+    throw error;
+  }
+};
+
+/**
+ * Restaure un événement d'économie supprimé (Undo)
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} eventId - ID de l'événement d'origine
+ * @param {Object} snapshot - Snapshot des données de l'événement supprimé
+ * @returns {Promise<{id: string, ...}>} L'événement restauré avec son ID
+ */
+export const restoreSavingsEventInFirestore = async (userId, eventId, snapshot) => {
+  try {
+    // Utiliser setDoc avec l'ID d'origine pour restaurer exactement le même document
+    const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
+    
+    // Préparer les données à restaurer (conserver les timestamps d'origine si disponibles)
+    const restoreData = {
+      title: snapshot.title,
+      questId: snapshot.questId,
+      amount: snapshot.amount,
+      period: snapshot.period,
+      source: snapshot.source || 'quest',
+      proof: snapshot.proof || null,
+      verified: false, // Toujours false côté client
+      createdAt: snapshot.createdAt || serverTimestamp(), // Conserver l'original si possible
+      updatedAt: serverTimestamp(), // Nouvelle date de mise à jour
+    };
+
+    // Utiliser setDoc au lieu de addDoc pour conserver l'ID
+    await setDoc(eventRef, restoreData);
+
+    console.log('✅ Savings event restored:', eventId);
+
+    // Déclencher le recalcul des agrégats en arrière-plan
+    recalculateImpactInBackground('restore');
+
+    return {
+      id: eventId,
+      ...restoreData,
+      createdAt: snapshot.createdAt instanceof Date ? snapshot.createdAt : new Date(),
+      updatedAt: new Date(),
+    };
+  } catch (error) {
+    console.error('❌ Error restoring savings event:', error);
     throw error;
   }
 };
