@@ -66,15 +66,23 @@ service cloud.firestore {
       // SAVINGS EVENTS (sous-collection)
       // ==========================================
       match /savingsEvents/{eventId} {
-        // Règles simples alignées sur userQuests qui fonctionnent
+        // Lecture : propriétaire uniquement
         allow read: if isOwner(userId);
+        
+        // Création : propriétaire uniquement
         allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
+        
+        // Mise à jour : propriétaire uniquement + protection champs sensibles
+        allow update: if isOwner(userId)
+          // Empêcher la modification de ces champs côté client
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'source', 'questId', 'userId']));
+        
+        // Suppression : propriétaire uniquement
         allow delete: if isOwner(userId);
         
         // Note: La validation métier (champs requis, types, bornes) est faite côté client
-        // Le champ 'verified' est protégé côté service (toujours false à la création)
-        // Les règles serveur pourront ajouter des validations plus tard si nécessaire
+        // Le champ 'verified' est toujours false à la création côté service
+        // Les champs 'source', 'questId', 'verified' ne peuvent pas être modifiés par update
       }
     }
     

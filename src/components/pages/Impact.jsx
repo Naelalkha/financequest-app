@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { FaPlus, FaChartLine, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaPlus, FaChartLine, FaCheckCircle, FaClock, FaEdit, FaTrash, FaUndo } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
+import { trackEvent } from '../../utils/analytics';
+import { toast } from 'react-toastify';
 import AddSavingsModal from '../impact/AddSavingsModal';
+import EditSavingsModal from '../impact/EditSavingsModal';
 
 /**
  * Calcule le montant annualisé d'un événement d'économie
@@ -39,13 +42,19 @@ const formatDate = (date, locale) => {
 
 const Impact = () => {
   const { t, language } = useLanguage();
-  const { events, loadEvents, loading } = useSavingsEvents();
+  const { events, loadEvents, loading, editEvent, deleteEvent, undoDelete } = useSavingsEvents();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState(null);
   const [stats, setStats] = useState({
     totalAnnual: 0,
     totalVerified: 0,
     eventsCount: 0,
   });
+  
+  // Pour gérer le toast Undo
+  const undoTimeoutRef = useRef(null);
+  const undoToastIdRef = useRef(null);
 
   // Charger les événements au montage
   useEffect(() => {
@@ -86,6 +95,109 @@ const Impact = () => {
     // Recharger les événements
     loadEvents({ limitCount: 50 });
   };
+
+  const handleEdit = (event) => {
+    trackEvent('impact_edit_opened', {
+      event_id: event.id,
+    });
+    setEventToEdit(event);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    // Recharger les événements
+    loadEvents({ limitCount: 50 });
+    setIsEditModalOpen(false);
+    setEventToEdit(null);
+  };
+
+  const handleDelete = async (event) => {
+    const annualAmount = calculateAnnual(event);
+    
+    trackEvent('impact_delete_opened', {
+      event_id: event.id,
+      annual_amount: annualAmount,
+    });
+
+    try {
+      // Supprimer l'événement (optimistic UI)
+      await deleteEvent(event.id);
+
+      trackEvent('impact_deleted', {
+        event_id: event.id,
+        annual_amount: annualAmount,
+      });
+
+      // Afficher le toast Undo avec timer 10s
+      const toastId = toast(
+        <div className="flex items-center justify-between gap-4 w-full">
+          <span>{t('impact.ledger.toast.deleted')}</span>
+          <button
+            onClick={() => handleUndo(toastId)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg font-semibold transition-colors"
+          >
+            <FaUndo className="text-sm" />
+            {t('impact.ledger.toast.undo')}
+          </button>
+        </div>,
+        {
+          autoClose: 10000, // 10 secondes
+          closeButton: false,
+          draggable: false,
+          icon: false,
+        }
+      );
+
+      undoToastIdRef.current = toastId;
+
+      // Timeout pour effacer le snapshot après 10s
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current);
+      }
+      undoTimeoutRef.current = setTimeout(() => {
+        undoToastIdRef.current = null;
+      }, 10000);
+      
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error(t('impact.errors.delete_failed') || 'Failed to delete savings');
+    }
+  };
+
+  const handleUndo = async (toastId) => {
+    if (toastId) {
+      toast.dismiss(toastId);
+    }
+    
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+    }
+
+    trackEvent('impact_undo_clicked', {});
+
+    try {
+      await undoDelete();
+      
+      toast.success(t('impact.ledger.toast.restored') || 'Savings restored', {
+        autoClose: 3000,
+      });
+      
+      // Recharger pour synchroniser
+      loadEvents({ limitCount: 50 });
+    } catch (error) {
+      console.error('Error undoing delete:', error);
+      toast.error(t('impact.errors.undo_failed') || 'Failed to restore savings');
+    }
+  };
+
+  // Nettoyer le timeout quand le composant se démonte
+  useEffect(() => {
+    return () => {
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -232,13 +344,36 @@ const Impact = () => {
                         )}
                       </div>
 
-                      {/* Montant annualisé */}
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                          +{formatCurrency(annual, language)}
+                      {/* Montant annualisé et actions */}
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        {/* Boutons d'action */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(event)}
+                            className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label={t('impact.ledger.actions.edit')}
+                            title={t('impact.ledger.actions.edit')}
+                          >
+                            <FaEdit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(event)}
+                            className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                            aria-label={t('impact.ledger.actions.delete')}
+                            title={t('impact.ledger.actions.delete')}
+                          >
+                            <FaTrash className="w-5 h-5" />
+                          </button>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {t('impact.ledger.per_year')}
+
+                        {/* Montant */}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                            +{formatCurrency(annual, language)}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {t('impact.ledger.per_year')}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -255,6 +390,17 @@ const Impact = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleModalSuccess}
+      />
+
+      {/* Modal d'édition */}
+      <EditSavingsModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEventToEdit(null);
+        }}
+        onSuccess={handleEditSuccess}
+        event={eventToEdit}
       />
     </div>
   );
