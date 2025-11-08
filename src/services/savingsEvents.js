@@ -18,6 +18,45 @@ import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
 import { recalculateImpactInBackground } from './impactAggregates';
 
 /**
+ * Déclenche la mise à jour de gamification en arrière-plan (fire-and-forget)
+ */
+const updateGamificationInBackground = async (userId) => {
+  try {
+    // Import dynamique pour éviter les dépendances circulaires
+    const { updateGamificationOnSavingsChange } = await import('./gamification');
+    
+    // Récupérer tous les events pour calculer le total
+    const savingsRef = getSavingsEventsCollection(userId);
+    const snapshot = await getDocs(query(savingsRef));
+    
+    const savingsEvents = [];
+    snapshot.forEach(doc => {
+      savingsEvents.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // Calculer totalAnnualImpact
+    let totalAnnualImpact = 0;
+    savingsEvents.forEach(event => {
+      const annual = event.amount * (event.period === 'month' ? 12 : 1);
+      totalAnnualImpact += annual;
+    });
+    
+    // Appeler updateGamificationOnSavingsChange
+    await updateGamificationOnSavingsChange(userId, {
+      totalAnnualImpact,
+      savingsEvents,
+      questsById: {}, // Sera récupéré dans le service si nécessaire
+      userProgress: {},
+      allQuests: [],
+      eventSource: 'manual',
+      currentStreak: 0,
+    });
+  } catch (error) {
+    console.warn('⚠️ Background gamification update failed (non-blocking):', error.message);
+  }
+};
+
+/**
  * Récupère la référence de la collection savingsEvents pour un utilisateur
  * @param {string} userId
  * @returns {import('firebase/firestore').CollectionReference}
@@ -86,6 +125,9 @@ export const createSavingsEventInFirestore = async (userId, eventData) => {
 
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('create');
+    
+    // Déclencher la mise à jour de gamification en arrière-plan
+    updateGamificationInBackground(userId).catch(() => {});
 
     return {
       id: docRef.id,
@@ -157,6 +199,9 @@ export const updateSavingsEventInFirestore = async (userId, eventId, updates) =>
 
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('update');
+    
+    // Déclencher la mise à jour de gamification en arrière-plan
+    updateGamificationInBackground(userId).catch(() => {});
   } catch (error) {
     console.error('❌ Error updating savings event:', error);
     throw error;
@@ -178,6 +223,9 @@ export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
 
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('delete');
+    
+    // Déclencher la mise à jour de gamification en arrière-plan
+    updateGamificationInBackground(userId).catch(() => {});
   } catch (error) {
     console.error('❌ Error deleting savings event:', error);
     throw error;

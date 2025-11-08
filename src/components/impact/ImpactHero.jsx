@@ -44,8 +44,6 @@ const ImpactHero = () => {
   // Agrégats serveur (source de vérité)
   const {
     impactAnnualEstimated: serverEstimated,
-    impactAnnualVerified: serverVerified,
-    proofsVerifiedCount: serverProofsCount,
     lastImpactRecalcAt,
     loading: serverLoading,
     syncing,
@@ -56,9 +54,6 @@ const ImpactHero = () => {
   const [isQuickWinOpen, setIsQuickWinOpen] = useState(false);
   const [localStats, setLocalStats] = useState({
     totalAnnual: 0,
-    totalVerified: 0,
-    proofsVerifiedCount: 0,
-    proofsPendingCount: 0,
   });
 
   // Charger les événements au montage (pour fallback)
@@ -71,35 +66,19 @@ const ImpactHero = () => {
     if (events.length === 0) {
       setLocalStats({
         totalAnnual: 0,
-        totalVerified: 0,
-        proofsVerifiedCount: 0,
-        proofsPendingCount: 0,
       });
       return;
     }
 
     let totalAnnual = 0;
-    let totalVerified = 0;
-    let proofsVerifiedCount = 0;
-    let proofsPendingCount = 0;
 
     events.forEach((event) => {
       const annual = calculateAnnual(event);
       totalAnnual += annual;
-
-      if (event.verified) {
-        totalVerified += annual;
-        proofsVerifiedCount++;
-      } else if (event.proof && event.proof.note) {
-        proofsPendingCount++;
-      }
     });
 
     setLocalStats({
       totalAnnual,
-      totalVerified,
-      proofsVerifiedCount,
-      proofsPendingCount,
     });
   }, [events]);
   
@@ -107,9 +86,6 @@ const ImpactHero = () => {
   // En dev sans API, serverEstimated sera 0 (pas null), donc on utilise le max
   const stats = {
     totalAnnual: Math.max(serverEstimated || 0, localStats.totalAnnual),
-    totalVerified: Math.max(serverVerified || 0, localStats.totalVerified),
-    proofsVerifiedCount: Math.max(serverProofsCount || 0, localStats.proofsVerifiedCount),
-    proofsPendingCount: localStats.proofsPendingCount, // Uniquement local pour l'instant
   };
   
   const loading = serverLoading || localLoading;
@@ -118,8 +94,6 @@ const ImpactHero = () => {
   useEffect(() => {
     trackEvent('impact_viewed', {
       total_annual: stats.totalAnnual,
-      verified_count: stats.proofsVerifiedCount,
-      pending_count: stats.proofsPendingCount,
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -165,17 +139,6 @@ const ImpactHero = () => {
     navigate('/impact');
   };
 
-  // Déterminer le chip de preuves
-  const getProofChip = () => {
-    if (stats.proofsVerifiedCount > 0) {
-      return t('impact.hero.proofs.verified', { count: stats.proofsVerifiedCount });
-    }
-    if (stats.proofsPendingCount > 0) {
-      return t('impact.hero.proofs.pending', { count: stats.proofsPendingCount });
-    }
-    return t('impact.hero.proofs.none');
-  };
-
   if (loading) {
     return (
       <div className="mb-8 p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 rounded-2xl border border-amber-200 dark:border-amber-800 animate-pulse">
@@ -188,7 +151,7 @@ const ImpactHero = () => {
 
   return (
     <div className="mb-8 p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm hover:shadow-md transition-shadow">
-      {/* En-tête avec icône et chip */}
+      {/* En-tête avec icône */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <FaShieldAlt 
@@ -196,12 +159,8 @@ const ImpactHero = () => {
             aria-hidden="true"
           />
           <span className="text-sm font-medium text-amber-900 dark:text-amber-100">
-            {t('impact.hero.title')}
+            {t('impact.hero.title') || 'Impact total'}
           </span>
-        </div>
-        
-        <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 shadow-sm border border-gray-200 dark:border-gray-700">
-          {getProofChip()}
         </div>
         
         {/* Chip "MAJ il y a..." */}

@@ -62,6 +62,9 @@ import ImpactHero from '../impact/ImpactHero';
 import { trackEvent } from '../../utils/analytics';
 import { openQuestGuarded } from '../../utils/navguards';
 import { annualizeImpact, formatEUR } from '../../utils/impact';
+import { useGamification } from '../../hooks/useGamification';
+import { computeLevel, formatBadge } from '../../utils/gamification';
+import { BADGES } from '../../config/gamification';
 
 // Animation de compteur fluide
 const CountUp = ({ end, duration = 1000, prefix = '', suffix = '' }) => {
@@ -471,6 +474,14 @@ const DashboardPage = () => {
   // Agrégats d'impact pour onboarding (Étape 6)
   const { impactAnnualEstimated } = useServerImpactAggregates();
   
+  // Gamification (Étape 9)
+  const { gamification } = useGamification();
+  
+  // Calcul du niveau dès le début (pour être disponible partout)
+  const userPoints = gamification?.xpTotal || userData?.xp || 0;
+  const levelData = computeLevel(userPoints);
+  const userLevel = levelData.level;
+  
   // Refs pour éviter les duplications de tracking analytics
   const continueCardTracked = useRef(false);
   const dailyChallengeTracked = useRef(false);
@@ -518,8 +529,7 @@ const DashboardPage = () => {
         onboardingRedirected.current = true;
         navigate('/quests?tab=starter');
         trackEvent('onboarding_redirected', { 
-          from: 'dashboard', 
-          to: 'starter_pack' 
+          reason: 'no_impact'
         });
       }
     }
@@ -736,8 +746,6 @@ const DashboardPage = () => {
     }
   };
 
-  const calculateLevel = (points) => Math.floor(points / 1000) + 1;
-
   // Analytics handlers
   const handleContinueQuestClick = (quest) => {
     // Utiliser openQuestGuarded pour gérer le gating Premium
@@ -787,13 +795,6 @@ const DashboardPage = () => {
       </AppBackground>
     );
   }
-
-  // Utilisation d'une seule source de vérité pour l'XP
-  const userPoints = userData?.xp || 0;
-  const userLevel = calculateLevel(userPoints);
-  const streakDays = userData?.streaks || userData?.loginStreak || 0;
-  const completedQuests = userData?.completedQuests || 0; // completedQuests: 10 - source principale
-  const totalQuests = quests?.length || 0;
 
   // Fenêtre glissante de 7 jours
   const toDate = (value) => {
@@ -901,10 +902,15 @@ const DashboardPage = () => {
   const displayName = userData?.displayName || user?.email?.split('@')[0];
   const avatarLetter = userData?.displayName?.[0] || user?.email?.[0]?.toUpperCase();
   
-  // Calculs pour la progression
-  const xpInLevel = userPoints % 1000;
-  const xpToNext = 1000 - xpInLevel;
-  const progress = (xpInLevel / 1000) * 100;
+  // Variables utilisées dans le rendu (userLevel déjà calculé plus haut)
+  const streakDays = userData?.streaks || userData?.loginStreak || 0;
+  const completedQuests = userData?.completedQuests || 0; // completedQuests: 10 - source principale
+  const totalQuests = quests?.length || 0;
+
+  // Calculs pour la progression (utiliser les données de gamification)
+  const xpInLevel = levelData.xpInCurrentLevel;
+  const xpToNext = levelData.xpNeededForNext;
+  const progress = levelData.progress;
   
   // Titre de niveau
   const getLevelTitle = () => {
@@ -1117,7 +1123,7 @@ const DashboardPage = () => {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400 flex items-center gap-1">
                     <GiTwoCoins className="text-yellow-400 text-xs" />
-                    {xpInLevel} / 1000 XP
+                    {xpInLevel.toLocaleString()} / {levelData.nextLevelXP ? levelData.nextLevelXP.toLocaleString() : '∞'} XP
                   </span>
                   <span className="font-bold text-amber-400">
                     {Math.round(progress)}%
@@ -1456,14 +1462,30 @@ const DashboardPage = () => {
               </div>
                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                  {(() => {
-                   const earnedBadgeIds = userData?.badges || [];
+                   // Fusionner les badges existants (userData.badges) avec les nouveaux badges de gamification
+                   const legacyBadgeIds = userData?.badges || [];
+                   const gamificationBadgeIds = gamification?.badges || [];
                    const badgeLang = (currentLang || 'en').startsWith('fr') ? 'fr' : 'en';
-                   const earnedBadges = earnedBadgeIds
+                   
+                   // Récupérer les badges existants
+                   const legacyBadges = legacyBadgeIds
                      .map((id) => getBadgeById(id, badgeLang))
                      .filter(Boolean)
-                     .slice(0, 4);
+                     .map(badge => ({ ...badge, source: 'legacy' }));
+                   
+                   // Récupérer les nouveaux badges de gamification
+                   const gamificationBadges = gamificationBadgeIds
+                     .map((id) => formatBadge(id, badgeLang, true))
+                     .filter(badge => badge.unlocked)
+                     .map(badge => ({ ...badge, source: 'gamification' }));
+                   
+                   // Combiner et dédupliquer (priorité aux badges de gamification)
+                   const allBadges = [...gamificationBadges, ...legacyBadges];
+                   const uniqueBadges = Array.from(
+                     new Map(allBadges.map(badge => [badge.id, badge])).values()
+                   ).slice(0, 4);
 
-                   if (earnedBadges.length === 0) {
+                   if (uniqueBadges.length === 0) {
                      return (
                        <div className="col-span-2 sm:col-span-4 neon-element rounded-2xl p-4 text-center">
                          <p className="text-sm text-gray-400">{t('dashboard.no_badges') || 'Aucun badge débloqué pour le moment'}</p>
@@ -1471,8 +1493,11 @@ const DashboardPage = () => {
                      );
                    }
 
-                   return earnedBadges.map((badge) => {
-                     const Icon = badge.icon;
+                   return uniqueBadges.map((badge) => {
+                     // Pour les badges de gamification, utiliser l'icône emoji
+                     const isGamificationBadge = badge.source === 'gamification';
+                     const Icon = badge.icon || badge.Icon;
+                     
                      return (
                        <motion.div
                          key={badge.id}
@@ -1481,9 +1506,16 @@ const DashboardPage = () => {
                        >
                          <div className="absolute inset-0 bg-white/0" />
                          <div className="relative">
-                           <div className={`w-12 h-12 mx-auto mb-2 rounded-full border flex items-center justify-center ${badge.color || 'bg-white/5 border-white/10'}`}
+                           <div 
+                             className="w-12 h-12 mx-auto mb-2 rounded-full border flex items-center justify-center bg-white/5 border-white/10"
+                             style={badge.color ? {
+                               backgroundColor: `${badge.color}20`,
+                               borderColor: `${badge.color}50`,
+                             } : {}}
                            >
-                             {Icon ? (
+                             {isGamificationBadge && badge.icon ? (
+                               <span className="text-2xl">{badge.icon}</span>
+                             ) : Icon ? (
                                <Icon className="text-xl text-white" />
                              ) : (
                                <FaStar className="text-xl text-white" />

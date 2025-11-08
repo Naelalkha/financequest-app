@@ -118,15 +118,31 @@
     },
     
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Home",
+      "dashboard_short": "Home",
       "quests": "Quests",
+      "quests_short": "Quests",
       "premium": "Premium",
+      "premium_short": "Pro",
       "profile": "Profile",
+      "profile_short": "Profile",
+      "impact": "Impact",
+      "impact_short": "Impact",
       "settings": "Settings",
       "back": "Back",
       "home": "Home",
       "menu": "Menu",
-      "close": "Close"
+      "close": "Close",
+      "badge": {
+        "starter": "Starter"
+      },
+      "impact_chip": "+{{amount}}/yr",
+      "a11y": {
+        "home": "Go to Home",
+        "quests": "Go to Quests",
+        "impact": "Go to Impact",
+        "profile": "Go to Profile"
+      }
     },
     
     "dashboard": {
@@ -367,6 +383,12 @@
       "total_xp": "Total XP",
       "total_quests": "Total Quests",
       "completion_rate": "Completion Rate",
+      "premium_card": {
+        "title": "Go Premium",
+        "subtitle": "Unlock Intermediate & Expert quests",
+        "cta": "Start 7-day trial",
+        "manage": "Manage subscription"
+      },
       "avg_score": "Average Score",
       "best_streak": "Best Streak",
       "current_streak": "Current Streak",
@@ -914,6 +936,7 @@
     },
 
     "impact": {
+      "title": "Impact",
       "hero": {
         "title": "Secured Total Impact",
         "subtitle": "Learn in 2 min · Act in 5 · Prove.",
@@ -922,6 +945,25 @@
           "pending": "Proofs: {{count}} pending",
           "verified": "Proofs: {{count}} verified"
         }
+      },
+      "next_milestone": {
+        "title": "Next milestone",
+        "subtitle": "{{target}} — {{remaining}} left"
+      },
+      "view_all_milestones": "View all milestones",
+      "suggested_actions": {
+        "title": "{{remaining}} away from {{target}} milestone",
+        "quickwin": "Cut 1 subscription (+€156/year)"
+      },
+      "empty": {
+        "title": "Start and watch your impact grow",
+        "cta": "Start a quick win (+€156/year)"
+      },
+      "milestones": {
+        "title": "All milestones"
+      },
+      "toggle": {
+        "period": "€/year | €/month"
       },
       "cta": {
         "quickwin": "Start a quick win (+€156/year)",
@@ -939,14 +981,18 @@
         "recalc_error": "Failed to recalculate"
       },
       "ledger": {
-        "title": "Impact & Proofs",
+        "title": "Ledger",
         "add_btn": "Add Savings",
         "total_estimated": "Total annual estimated",
         "total_verified": "Verified",
         "events_count": "Events",
+        "period_month": "monthly",
+        "period_year": "yearly",
+        "source_quest": "Quest",
         "actions": {
           "edit": "Edit",
-          "delete": "Delete"
+          "delete": "Delete",
+          "menu": "Menu"
         },
         "toast": {
           "deleted": "Savings deleted.",
@@ -1058,6 +1104,34 @@
       "locked_desc": "This quest is part of Moniyo Premium.",
       "cta": "Start 7-day free trial",
       "note": "Cancel anytime"
+    },
+
+    "gamification": {
+      "level": "Level {{level}}",
+      "xp_progress": "{{current}} / {{target}} XP",
+      "next_level": "Next level at {{target}} XP",
+      "level_up": "Level {{level}} reached!",
+      "milestones": {
+        "title": "Impact Milestones",
+        "reached": "Milestone reached: +{{amount}}/year",
+        "next": "Next milestone: +{{amount}}/year ({{remaining}} left)",
+        "progress": "Progress to next milestone"
+      },
+      "badges": {
+        "title": "Badges",
+        "locked": "Locked",
+        "unlocked": "Unlocked",
+        "unlocked_on": "Unlocked on {{date}}",
+        "see_all": "See all badges",
+        "count": "{{count}} / {{total}} badges",
+        "new_badge": "New badge unlocked!"
+      },
+      "toasts": {
+        "level_up": "Level {{level}} reached! 🎉",
+        "milestone": "Congrats! +€{{amount}}/year reached 🎉",
+        "badge": "Badge unlocked: {{name}}",
+        "xp_earned": "+{{amount}} XP"
+      }
     }
   },
   
@@ -1181,14 +1255,30 @@
     
     "nav": {
       "dashboard": "Accueil",
+      "dashboard_short": "Accueil",
       "quests": "Quêtes",
+      "quests_short": "Quêtes",
       "premium": "Premium",
+      "premium_short": "Pro",
       "profile": "Profil",
+      "profile_short": "Profil",
+      "impact": "Impact",
+      "impact_short": "Impact",
       "settings": "Paramètres",
       "back": "Retour",
       "home": "Accueil",
       "menu": "Menu",
-      "close": "Fermer"
+      "close": "Fermer",
+      "badge": {
+        "starter": "Starter"
+      },
+      "impact_chip": "+{{amount}}/an",
+      "a11y": {
+        "home": "Aller à l'accueil",
+        "quests": "Aller aux quêtes",
+        "impact": "Aller à l'impact",
+        "profile": "Aller au profil"
+      }
     },
     
     "dashboard": {
@@ -1429,6 +1519,12 @@
       "total_xp": "XP Total",
       "total_quests": "Quêtes Totales",
       "completion_rate": "Taux de Complétion",
+      "premium_card": {
+        "title": "Passe en Premium",
+        "subtitle": "Débloque les quêtes Intermédiaire & Expert",
+        "cta": "Essai 7 jours",
+        "manage": "Gérer l'abonnement"
+      },
       "avg_score": "Score Moyen",
       "best_streak": "Meilleure Série",
       "current_streak": "Série Actuelle",
@@ -1977,14 +2073,34 @@
     },
 
     "impact": {
+      "title": "Impact",
       "hero": {
-        "title": "Impact total sécurisé",
-        "subtitle": "Apprends en 2 min · Agis en 5 · Prouve.",
+        "title": "Impact total",
+        "subtitle": "Mesure ce que tu gagnes réellement.",
         "proofs": {
           "none": "Preuves : 0 vérifiée",
           "pending": "Preuves : {{count}} en attente",
           "verified": "Preuves : {{count}} vérifiée(s)"
         }
+      },
+      "next_milestone": {
+        "title": "Prochain palier",
+        "subtitle": "{{target}} — reste {{remaining}}"
+      },
+      "view_all_milestones": "Voir tous les paliers",
+      "suggested_actions": {
+        "title": "À {{remaining}} du palier {{target}}",
+        "quickwin": "Couper 1 abo (+€156/an)"
+      },
+      "empty": {
+        "title": "Commence et vois ton impact grimper",
+        "cta": "Démarrer un gain rapide (+€156/an)"
+      },
+      "milestones": {
+        "title": "Tous les paliers"
+      },
+      "toggle": {
+        "period": "€/an | €/mois"
       },
       "cta": {
         "quickwin": "Démarrer un gain rapide (+€156/an)",
@@ -2002,14 +2118,18 @@
         "recalc_error": "Échec du recalcul"
       },
       "ledger": {
-        "title": "Impact & preuves",
+        "title": "Journal",
         "add_btn": "Ajouter une économie",
         "total_estimated": "Total annuel estimé",
         "total_verified": "Vérifié",
         "events_count": "Événements",
+        "period_month": "mensuel",
+        "period_year": "annuel",
+        "source_quest": "Quête",
         "actions": {
           "edit": "Modifier",
-          "delete": "Supprimer"
+          "delete": "Supprimer",
+          "menu": "Menu"
         },
         "toast": {
           "deleted": "Économie supprimée.",
@@ -2121,6 +2241,34 @@
       "locked_desc": "Cette quête fait partie de Moniyo Premium.",
       "cta": "Essai gratuit 7 jours",
       "note": "Annulable à tout moment"
+    },
+
+    "gamification": {
+      "level": "Niveau {{level}}",
+      "xp_progress": "{{current}} / {{target}} XP",
+      "next_level": "Prochain niveau à {{target}} XP",
+      "level_up": "Niveau {{level}} atteint !",
+      "milestones": {
+        "title": "Paliers d'impact",
+        "reached": "Palier atteint : +{{amount}}/an",
+        "next": "Prochain palier : +{{amount}}/an (reste {{remaining}})",
+        "progress": "Progression vers le prochain palier"
+      },
+      "badges": {
+        "title": "Badges",
+        "locked": "Verrouillé",
+        "unlocked": "Débloqué",
+        "unlocked_on": "Débloqué le {{date}}",
+        "see_all": "Voir tous les badges",
+        "count": "{{count}} / {{total}} badges",
+        "new_badge": "Nouveau badge débloqué !"
+      },
+      "toasts": {
+        "level_up": "Niveau {{level}} atteint ! 🎉",
+        "milestone": "Bravo ! +{{amount}}€/an franchis 🎉",
+        "badge": "Badge débloqué : {{name}}",
+        "xp_earned": "+{{amount}} XP"
+      }
     }
   }
 }

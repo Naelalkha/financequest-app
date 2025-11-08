@@ -26,6 +26,7 @@
     "react-router-dom": "^7.7.0",
     "react-swipeable": "^7.0.2",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.3.0",
     "stripe": "^18.3.0",
     "vite-plugin-pwa": "^1.0.1",
     "workbox-window": "^7.3.0"

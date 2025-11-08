@@ -11,7 +11,7 @@ import { updateStreakWithProtection } from '../../utils/streakProtection';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocalQuestDetail } from '../../hooks/useLocalQuests';
-import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { logQuestEvent, trackEvent } from '../../utils/analytics';
 import ProgressBar from '../quest/ProgressBar';
@@ -26,6 +26,8 @@ import PaywallModal from '../app/PaywallModal';
 import { completeDailyChallenge, getUserDailyChallenge } from '../../services/dailyChallenge';
 import { ImpactPromptModal, AddSavingsModal } from '../impact';
 import { annualizeImpact, formatEUR } from '../../utils/impact';
+import { updateGamificationOnQuestComplete } from '../../services/gamification';
+import { allQuests } from '../../data/quests';
 
 // Import des illustrations pour les catégories
 import budgetIcon from '../../assets/budget.png';
@@ -425,6 +427,33 @@ const QuestDetail = () => {
           }
         } catch (err) {
           console.warn('Daily challenge completion skipped or failed:', err);
+        }
+
+        // Mettre à jour la gamification (Étape 9)
+        try {
+          // Récupérer toutes les quêtes complétées pour le contexte
+          const userQuestsRef = collection(db, 'userQuests');
+          const userQuestsQuery = query(userQuestsRef, where('userId', '==', user.uid));
+          const userQuestsSnap = await getDocs(userQuestsQuery);
+          
+          const userProgressMap = {};
+          userQuestsSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.status === 'completed') {
+              userProgressMap[data.questId] = { completed: true };
+            }
+          });
+
+          // Appeler updateGamificationOnQuestComplete
+          await updateGamificationOnQuestComplete(user.uid, {
+            quest,
+            score,
+            userProgress: userProgressMap,
+            allQuests,
+          });
+        } catch (err) {
+          console.warn('Gamification update skipped or failed:', err);
+          // Ne pas bloquer la completion si la gamification échoue
         }
       }
       

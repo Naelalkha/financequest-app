@@ -583,11 +583,19 @@ const Profile = () => {
           {/* CTA */}
           <div className="text-center">
             <Link
-              to="/premium"
+              to="/premium?from=profile_card"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 rounded-xl font-bold hover:from-amber-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-glow-md"
+              onClick={() => {
+                try {
+                  const { trackEvent } = require('../../utils/analytics');
+                  trackEvent('premium_entry_profile_card', {});
+                } catch (error) {
+                  console.warn('Analytics tracking failed:', error);
+                }
+              }}
             >
               <FaRocket />
-              <span>{t('profilePage.upgrade_now') || 'Passer à Premium'}</span>
+              <span>{t('profile.premium_card.cta') || t('profilePage.upgrade_now') || 'Passer à Premium'}</span>
             </Link>
             <p className="text-xs text-gray-500 mt-3">
               {t('profilePage.cancel_anytime') || 'Annulable à tout moment'}
