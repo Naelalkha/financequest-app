@@ -221,7 +221,15 @@
         "badges": "Badges",
         "impactLog": "Impact Log",
         "efficiency": "Efficiency"
-      }
+      },
+      "dailyChallenge": "Daily Challenge",
+      "categories": "Categories",
+      "statistics": "Statistics",
+      "netImpactYTD": "Net Impact (YTD)",
+      "perYearSaved": "/ YEAR SAVED",
+      "generating": "GENERATING...",
+      "startQuest": "START QUEST",
+      "noRecentImpact": "No recent impact"
     },
     "quests": {
       "title": "Financial Quests",
@@ -868,7 +876,23 @@
     "categories": {
       "needs": "Needs",
       "wants": "Wants",
-      "savings": "Savings"
+      "savings": "Savings",
+      "ops": {
+        "label": "OPS",
+        "desc": "Daily Budget"
+      },
+      "defense": {
+        "label": "DEFENSE",
+        "desc": "Savings & Security"
+      },
+      "growth": {
+        "label": "GROWTH",
+        "desc": "Investment"
+      },
+      "strategy": {
+        "label": "STRATEGY",
+        "desc": "Planning"
+      }
     },
     "ui": {
       "loading": "Loading...",
@@ -1363,7 +1387,15 @@
         "badges": "Badges",
         "impactLog": "Journal d'Impact",
         "efficiency": "Efficacité"
-      }
+      },
+      "dailyChallenge": "Défi Quotidien",
+      "categories": "Catégories",
+      "statistics": "Statistiques",
+      "netImpactYTD": "Impact Net (YTD)",
+      "perYearSaved": "/ AN ÉCONOMISÉ",
+      "generating": "GÉNÉRATION...",
+      "startQuest": "LANCER QUÊTE",
+      "noRecentImpact": "Aucun impact récent"
     },
     "quests": {
       "title": "Quêtes Financières",
@@ -2010,7 +2042,23 @@
     "categories": {
       "needs": "Besoins",
       "wants": "Envie",
-      "savings": "Épargne"
+      "savings": "Épargne",
+      "ops": {
+        "label": "OPS",
+        "desc": "Budget Quotidien"
+      },
+      "defense": {
+        "label": "DÉFENSE",
+        "desc": "Épargne & Sécurité"
+      },
+      "growth": {
+        "label": "CROISSANCE",
+        "desc": "Investissement"
+      },
+      "strategy": {
+        "label": "STRATÉGIE",
+        "desc": "Planification"
+      }
     },
     "ui": {
       "loading": "Chargement...",

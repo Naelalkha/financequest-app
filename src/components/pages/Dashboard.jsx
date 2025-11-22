@@ -21,6 +21,7 @@ import DashboardScoreboard from '../dashboard/DashboardScoreboard';
 import DashboardBentoStats from '../dashboard/DashboardBentoStats';
 import DashboardQuestsView from '../dashboard/DashboardQuestsView';
 import DashboardDailyChallenge from '../dashboard/DashboardDailyChallenge';
+import CategoryGrid from '../dashboard/CategoryGrid';
 import SmartMissionModal from '../dashboard/SmartMissionModal';
 import QuestDetailsModal from '../dashboard/QuestDetailsModal';
 
@@ -46,7 +47,7 @@ const Dashboard = () => {
   const [recommendedQuest, setRecommendedQuest] = useState(null);
   const [showQuestDetails, setShowQuestDetails] = useState(false);
   const [selectedQuest, setSelectedQuest] = useState(null);
-  
+
   // Local impact override for optimistic updates
   const [localImpactBoost, setLocalImpactBoost] = useState(0);
 
@@ -147,41 +148,38 @@ const Dashboard = () => {
   const handleStartQuest = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
-    
+
     try {
-      // Simulate AI scanning
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
       // Debug logs
       console.log('🔍 Total quests:', quests?.length);
       console.log('🔍 Active quest IDs:', activeQuestIds);
       console.log('🔍 Completed quest IDs:', completedQuestIds);
-      
+
       // Get available quests
       // For SmartMission: Include active quests but exclude completed ones
       // (User might want to see recommended quests even if already started)
       const availableQuests = (quests || []).filter(
         q => !completedQuestIds.includes(q.id)
       );
-      
+
       console.log('✅ Available quests:', availableQuests.length);
       console.log('✅ Including active quests for SmartMission');
-      
+
       if (availableQuests.length === 0) {
         console.warn('⚠️ No quests found (all completed or no quests loaded)');
         toast.info(t('quests.no_quests') || 'All quests completed! 🎉');
         setIsGenerating(false);
         return;
       }
-      
+
       // Generate a recommendation (simple random for now, can be improved with AI logic)
       const recommended = getRecommendedQuest(availableQuests);
       console.log('🎯 Recommended quest:', recommended);
-      
+
       setRecommendedQuest(recommended);
       setShowSmartMission(true);
       console.log('✨ Opening SmartMission modal');
-      
+
     } catch (error) {
       console.error("❌ Error starting quest:", error);
       toast.error("System malfunction. Try again.");
@@ -193,13 +191,13 @@ const Dashboard = () => {
   // Get recommended quest based on user data (simple algorithm)
   const getRecommendedQuest = (availableQuests) => {
     if (!availableQuests || availableQuests.length === 0) return null;
-    
+
     // Priority logic:
     // 1. Beginner quests if user is new (< 500 XP)
     // 2. High impact quests
     // 3. Shorter quests
     const userXP = gamification?.xpTotal || 0;
-    
+
     if (userXP < 500) {
       const beginnerQuests = availableQuests.filter(
         q => q.difficulty === 'beginner' || q.difficulty === 'easy'
@@ -208,7 +206,7 @@ const Dashboard = () => {
         return beginnerQuests[Math.floor(Math.random() * beginnerQuests.length)];
       }
     }
-    
+
     // Otherwise return a random available quest
     return availableQuests[Math.floor(Math.random() * availableQuests.length)];
   };
@@ -218,7 +216,7 @@ const Dashboard = () => {
     try {
       trackEvent('quest_accepted', { questId: quest.id, source: 'smart_mission' });
       console.log('✅ Quest accepted:', quest.title);
-      
+
       // Close SmartMission and open QuestDetails
       setShowSmartMission(false);
       setSelectedQuest(quest);
@@ -233,18 +231,18 @@ const Dashboard = () => {
   const handleCompleteQuestFromDetails = async (modifiedQuest) => {
     try {
       console.log('🎯 Quest completed:', modifiedQuest);
-      
+
       // 1. Create savings event in Firebase if there's monetary value
       if (modifiedQuest.monetaryValue && modifiedQuest.monetaryValue > 0) {
         console.log('💰 Creating savings event...');
-        
+
         // Calculate annual savings
         const annualSavings = modifiedQuest.monetaryValue * 12;
-        
+
         // OPTIMISTIC UPDATE: Add to local impact immediately
         setLocalImpactBoost(prev => prev + annualSavings);
         console.log('⚡ Optimistic update: +€' + annualSavings.toFixed(2));
-        
+
         const savingsEvent = await createSavingsEventInFirestore(user.uid, {
           title: modifiedQuest.title,
           questId: modifiedQuest.id,
@@ -256,9 +254,9 @@ const Dashboard = () => {
             note: `Completed via SmartMission flow - ${new Date().toLocaleDateString()}`
           }
         });
-        
+
         console.log('✅ Savings event created:', savingsEvent.id);
-        
+
         // Show detailed success with savings
         toast.success(
           `🎉 ${modifiedQuest.title} completed!\n💰 +€${annualSavings.toFixed(2)}/year\n⚡ +${modifiedQuest.xpReward} XP`,
@@ -268,19 +266,19 @@ const Dashboard = () => {
         // No monetary value, just show XP
         toast.success(`🎉 ${modifiedQuest.title} completed! +${modifiedQuest.xpReward} XP`);
       }
-      
+
       // 2. Track analytics
-      trackEvent('quest_completed', { 
-        questId: modifiedQuest.id, 
+      trackEvent('quest_completed', {
+        questId: modifiedQuest.id,
         monetaryValue: modifiedQuest.monetaryValue,
         xpReward: modifiedQuest.xpReward,
         source: 'smart_mission_flow'
       });
-      
+
       // 3. Close modal
       setShowQuestDetails(false);
       setSelectedQuest(null);
-      
+
       // 4. Force impact recalculation to update dashboard immediately
       console.log('🔄 Forcing impact recalculation...');
       setTimeout(async () => {
@@ -293,7 +291,7 @@ const Dashboard = () => {
           console.warn('⚠️ Manual recalculation failed, impact will update on next load');
         }
       }, 500); // Small delay to ensure Firebase write is complete
-      
+
     } catch (error) {
       console.error("❌ Error completing quest:", error);
       toast.error(t('errors.complete_quest_failed') || 'Failed to save quest completion');
@@ -305,14 +303,14 @@ const Dashboard = () => {
     // For reroll: Include active quests but exclude completed and current quest
     const availableQuests = (quests || []).filter(
       q => !completedQuestIds.includes(q.id) &&
-           q.id !== recommendedQuest?.id // Exclude current quest
+        q.id !== recommendedQuest?.id // Exclude current quest
     );
-    
+
     if (availableQuests.length === 0) {
       toast.info('No other quests available');
       return recommendedQuest; // Return current if no other options
     }
-    
+
     const newRecommendation = availableQuests[Math.floor(Math.random() * availableQuests.length)];
     setRecommendedQuest(newRecommendation);
     return newRecommendation;
@@ -337,6 +335,10 @@ const Dashboard = () => {
     if (dailyChallenge?.questId) {
       navigate(`/quests/${dailyChallenge.questId}`);
     }
+  };
+
+  const handleSelectCategory = (category) => {
+    navigate(`/quests?category=${category}`);
   };
 
   // Mock Data for Bento
@@ -376,37 +378,41 @@ const Dashboard = () => {
         />
 
         {/* 2. Scoreboard (Impact Hero) */}
-        <DashboardScoreboard
-          impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
-          currency={userData?.currency || '€'}
-          onStartQuest={handleStartQuest}
-          isLoading={isGenerating}
-        />
+        <div className="space-y-6">
+          <DashboardScoreboard
+            impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
+            currency={userData?.currency || '€'}
+            onStartQuest={handleStartQuest}
+            isLoading={isGenerating}
+          />
+        </div>
 
         {/* 2.5 Daily Challenge (if exists) */}
         {dailyChallenge && dailyChallenge.status !== 'completed' && (
-          <DashboardDailyChallenge
-            challenge={dailyChallenge}
-            onStart={handleStartDailyChallenge}
-            isLoading={isGenerating}
-          />
+          <div className="mt-8">
+            <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.dailyChallenge') || 'DAILY CHALLENGE'}</h2>
+            <DashboardDailyChallenge
+              challenge={dailyChallenge}
+              onStart={handleStartDailyChallenge}
+              isLoading={isGenerating}
+            />
+          </div>
         )}
 
-        {/* 3. Bento Stats (Badges & Log) */}
-        <DashboardBentoStats
-          badges={badges}
-          recentImpact={recentImpact}
-        />
+        {/* 2.6 Category Grid */}
+        <div className="mt-8">
+          <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.categories') || 'CATEGORIES'}</h2>
+          <CategoryGrid onSelectCategory={handleSelectCategory} />
+        </div>
 
-        {/* 4. Quests View (Active & Archive) */}
-        <DashboardQuestsView
-          activeQuests={activeQuests}
-          completedQuests={completedQuests}
-          onComplete={handleCompleteQuest}
-          onStartQuest={handleStartQuest}
-          onNavigate={handleNavigateToQuest}
-          isLoading={isGenerating}
-        />
+        {/* 3. Bento Stats (Badges & Log) */}
+        <div className="mt-8">
+          <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.statistics') || 'STATISTICS'}</h2>
+          <DashboardBentoStats
+            badges={badges}
+            recentImpact={recentImpact}
+          />
+        </div>
 
       </div>
 

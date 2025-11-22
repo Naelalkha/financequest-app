@@ -25,15 +25,15 @@ const DashboardBentoStats = ({ badges = [], recentImpact = [] }) => {
                         badges.map(badge => {
                             const isUnlocked = !!badge.achievedAt;
                             const rarity = badge.rarity || (badge.name?.includes('Legend') ? 'LEGENDARY' : 'COMMON');
-                            
+
                             return (
                                 <div key={badge.id} className="flex-shrink-0 w-16 h-16 bg-neutral-900 rounded-2xl p-[1px] relative group cursor-pointer border border-neutral-800">
                                     {/* Chrome/Silver gradient base */}
                                     <div className={`
                                         w-full h-full rounded-2xl flex items-center justify-center bg-gradient-to-br from-neutral-700 to-black
-                                        ${isUnlocked 
-                                            ? rarity === 'LEGENDARY' 
-                                                ? 'border border-white/50 shadow-chrome-glow' 
+                                        ${isUnlocked
+                                            ? rarity === 'LEGENDARY'
+                                                ? 'border border-white/50 shadow-chrome-glow'
                                                 : 'border border-neutral-500'
                                             : 'opacity-40'
                                         }
@@ -54,9 +54,9 @@ const DashboardBentoStats = ({ badges = [], recentImpact = [] }) => {
             {/* Impact Ledger - DARK MODE RECEIPT */}
             <div className="col-span-2 md:col-span-1 bg-[#111] border border-white/5 text-white rounded-3xl p-5 font-mono text-xs relative shadow-2xl overflow-hidden">
                 {/* Dark Rip Paper Effect Top */}
-                <div 
-                    className="absolute top-0 left-0 w-full h-3 bg-bg-primary z-10" 
-                    style={{clipPath: "polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)"}}
+                <div
+                    className="absolute top-0 left-0 w-full h-3 bg-bg-primary z-10"
+                    style={{ clipPath: "polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)" }}
                 />
 
                 <div className="flex justify-between items-end mb-4 mt-2 border-b border-neutral-800 pb-2">
@@ -66,7 +66,7 @@ const DashboardBentoStats = ({ badges = [], recentImpact = [] }) => {
 
                 <div className="space-y-3 relative z-10">
                     {recentImpact.length === 0 ? (
-                        <div className="text-center text-neutral-400 py-4">No recent impact</div>
+                        <div className="text-center text-neutral-400 py-4">{t('dashboard.noRecentImpact')}</div>
                     ) : (
                         recentImpact.map((item) => (
                             <div key={item.id} className="flex justify-between items-center group">
