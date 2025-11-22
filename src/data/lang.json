@@ -212,7 +212,16 @@
       "continue": "Continue",
       "start": "Start",
       "explore": "Explore",
-      "choose_first_quest": "Choose your first quest and discover the FinanceQuest universe"
+      "choose_first_quest": "Choose your first quest and discover the FinanceQuest universe",
+      "missionsLog": "Missions Log",
+      "manageContracts": "Manage Contracts",
+      "quickLog": "Quick Log",
+      "quickLogDesc": "Quick Action",
+      "bento": {
+        "badges": "Badges",
+        "impactLog": "Impact Log",
+        "efficiency": "Efficiency"
+      }
     },
     "quests": {
       "title": "Financial Quests",
@@ -1345,7 +1354,16 @@
       "continue": "Continuer",
       "start": "Commencer",
       "explore": "Explorer",
-      "choose_first_quest": "Choisis ta première quête et découvre l'univers FinanceQuest"
+      "choose_first_quest": "Choisis ta première quête et découvre l'univers FinanceQuest",
+      "missionsLog": "Journal Missions",
+      "manageContracts": "Gérer les contrats",
+      "quickLog": "Action Rapide",
+      "quickLogDesc": "Enregistrement rapide",
+      "bento": {
+        "badges": "Badges",
+        "impactLog": "Journal d'Impact",
+        "efficiency": "Efficacité"
+      }
     },
     "quests": {
       "title": "Quêtes Financières",

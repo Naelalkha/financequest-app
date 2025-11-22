@@ -19,7 +19,22 @@ export default {
           700: '#b45309',
           800: '#92400e',
           900: '#78350f',
+          DEFAULT: '#FBBF24', // Refonte default
+          dark: '#F59E0B',
+          light: '#FCD34D',
         },
+        // Refonte colors - VOLT THEME
+        onyx: '#050505',
+        'onyx-light': '#121212',
+        volt: '#E2FF00', // New Electric Volt
+        'volt-dark': '#B8CC00',
+        acid: '#E2FF00', // Mapped to Volt for compatibility
+        emerald: '#10B981',
+        'bg-primary': '#0A0A0A',
+        'bg-secondary': '#1A1A1A',
+        'chrome-light': '#E5E5E5',
+        'chrome-medium': '#A3A3A3',
+        'chrome-dark': '#525252',
         // Custom dark theme colors
         gray: {
           850: '#18202F',
@@ -30,11 +45,14 @@ export default {
         success: '#10B981',
         warning: '#F59E0B',
         error: '#EF4444',
-        info: '#3B82F6'
+        info: '#3B82F6',
+        blue: '#3B82F6',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Lexend', 'system-ui', 'sans-serif'],
+        space: ['Inter', 'system-ui', 'sans-serif'], // Refonte: equivalent to space-grotesk
+        mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
@@ -109,6 +127,11 @@ export default {
         'glow-md': '0 0 20px rgba(251, 191, 36, 0.4)',
         'glow-lg': '0 0 30px rgba(251, 191, 36, 0.5)',
         'inner-glow': 'inset 0 0 20px rgba(251, 191, 36, 0.2)',
+        'gold-glow': '0 0 20px rgba(251, 191, 36, 0.2)',
+        'acid-glow': '0 0 20px rgba(229, 255, 0, 0.3)',
+        'volt-glow': '0 0 20px rgba(226, 255, 0, 0.2)',
+        'volt-glow-strong': '0 0 30px rgba(226, 255, 0, 0.4)',
+        'chrome-glow': '0 0 20px rgba(255, 255, 255, 0.2)',
       },
       screens: {
         'xs': '475px',
@@ -171,6 +194,12 @@ export default {
         },
         '.text-glow': {
           textShadow: '0 0 10px currentColor',
+        },
+        '.text-glow-volt': {
+          textShadow: '0 0 20px rgba(226, 255, 0, 0.4)',
+        },
+        '.text-glow-chrome': {
+          textShadow: '0 0 15px rgba(255, 255, 255, 0.4)',
         },
       }
       addUtilities(newUtilities)

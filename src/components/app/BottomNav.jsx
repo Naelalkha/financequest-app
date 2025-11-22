@@ -215,7 +215,7 @@ const BottomNav = () => {
               className={`
                     w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all duration-300 relative
                     ${isActive
-                  ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-110'
+                  ? 'text-[#E2FF00] drop-shadow-[0_0_8px_rgba(226,255,0,0.5)] scale-110'
                   : 'text-gray-600 hover:text-gray-400 hover:bg-white/5'
                 }
                   `}

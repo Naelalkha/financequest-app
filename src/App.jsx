@@ -11,7 +11,6 @@ import Profile from './components/pages/Profile';
 import Onboarding from './components/pages/Onboarding';
 import StarterPackHub from './components/pages/StarterPackHub';
 import Impact from './components/pages/Impact';
-import DashboardConcept from './components/dashboard/DashboardConcept';
 import Achievements from './components/pages/Achievements';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
@@ -201,14 +200,6 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <Impact />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/concept"
-            element={
-              <PrivateRoute>
-                <DashboardConcept />
               </PrivateRoute>
             }
           />

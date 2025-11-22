@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Timer, Zap, ArrowRight } from "lucide-react";
 
-const OnyxDailyChallenge = ({ challenge, onStart, isLoading }) => {
+const DashboardDailyChallenge = ({ challenge, onStart, isLoading }) => {
     const [timeLeft, setTimeLeft] = useState("");
 
     // Countdown Logic
@@ -72,4 +72,5 @@ const OnyxDailyChallenge = ({ challenge, onStart, isLoading }) => {
     );
 };
 
-export default OnyxDailyChallenge;
+export default DashboardDailyChallenge;
+

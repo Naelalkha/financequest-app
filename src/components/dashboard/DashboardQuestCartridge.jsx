@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, CheckCircle2, XCircle } from 'lucide-react';
 
-const OnyxQuestCartridge = ({ quest, onComplete, onNavigate }) => {
+const DashboardQuestCartridge = ({ quest, onComplete, onNavigate }) => {
     const isNetflix = quest.iconType === "NETFLIX" || quest.title?.toLowerCase().includes('netflix');
     const isSpotify = quest.title?.toLowerCase().includes('spotify');
 
@@ -92,4 +92,5 @@ const OnyxQuestCartridge = ({ quest, onComplete, onNavigate }) => {
     );
 };
 
-export default OnyxQuestCartridge;
+export default DashboardQuestCartridge;
+

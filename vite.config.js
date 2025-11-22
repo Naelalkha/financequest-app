@@ -134,6 +134,11 @@ export default defineConfig({
     hmr: {
       port: 5173,
       host: 'localhost'
+    },
+    watch: {
+      usePolling: false,
+      // Watch tailwind config for changes
+      ignored: ['!**/tailwind.config.js']
     }
   },
   preview: {

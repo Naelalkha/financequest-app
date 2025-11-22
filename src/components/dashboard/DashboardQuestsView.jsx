@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { LayoutList, Archive, Plus } from 'lucide-react';
-import OnyxQuestCartridge from './OnyxQuestCartridge';
+import DashboardQuestCartridge from './DashboardQuestCartridge';
 
-const OnyxQuestsView = ({
+const DashboardQuestsView = ({
     activeQuests = [],
     completedQuests = [],
     onComplete,
@@ -81,7 +81,7 @@ const OnyxQuestsView = ({
                             </div>
                         ) : (
                             activeQuests.map(quest => (
-                                <OnyxQuestCartridge
+                                <DashboardQuestCartridge
                                     key={quest.id}
                                     quest={quest}
                                     onComplete={onComplete}
@@ -118,4 +118,5 @@ const OnyxQuestsView = ({
     );
 };
 
-export default OnyxQuestsView;
+export default DashboardQuestsView;
+
