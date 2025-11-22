@@ -15,10 +15,10 @@ const LanguageToggle = () => {
   const containerRef = useRef(null);
 
   const languages = [
-    { code: 'en', label: 'English', flag: '🇬🇧', active: true },
-    { code: 'fr', label: 'Français', flag: '🇫🇷', active: true },
-    { code: 'es', label: 'Español', flag: '🇪🇸', active: false },
-    { code: 'de', label: 'Deutsch', flag: '🇩🇪', active: false }
+    { code: 'en', label: currentLang === 'fr' ? 'Anglais' : 'English', flag: '🇬🇧', active: true },
+    { code: 'fr', label: currentLang === 'fr' ? 'Français' : 'French', flag: '🇫🇷', active: true },
+    { code: 'es', label: currentLang === 'fr' ? 'Espagnol' : 'Spanish', flag: '🇪🇸', active: false },
+    { code: 'de', label: currentLang === 'fr' ? 'Allemand' : 'German', flag: '🇩🇪', active: false }
   ];
 
   const handleLanguageChange = async (newLang) => {
@@ -28,7 +28,7 @@ const LanguageToggle = () => {
     if (!selectedLang) return;
     
     if (!selectedLang.active) {
-      toast.info('This language is coming soon!');
+      toast.info(t('profilePage.language_coming_soon') || 'This language is coming soon!');
       return;
     }
 
@@ -36,7 +36,10 @@ const LanguageToggle = () => {
     setShowMenu(false);
 
     try {
-      // Update in Firebase FIRST if user is logged in
+      // Update language in context IMMEDIATELY for instant UI feedback
+      setLanguage(newLang);
+      
+      // Update in Firebase if user is logged in
       if (user?.uid) {
         try {
           const userRef = doc(db, 'users', user.uid);
@@ -47,27 +50,23 @@ const LanguageToggle = () => {
           console.log('Language updated in Firebase:', newLang);
         } catch (firebaseError) {
           console.error('Error updating language in Firebase:', firebaseError);
-          // Fallback to local update if Firebase fails
-          setLanguage(newLang);
+          // Language already updated locally, so UI is already correct
         }
-      } else {
-        // Update language in context for non-logged users
-        setLanguage(newLang);
       }
       
       // Show success message
       const messages = {
-        en: 'Language changed to English',
-        fr: 'Langue changée en Français'
+        en: t('profilePage.language_changed_en') || 'Language changed to English',
+        fr: t('profilePage.language_changed_fr') || 'Langue changée en Français'
       };
       
-      toast.success(messages[newLang] || 'Language updated!', {
+      toast.success(messages[newLang] || t('profilePage.language_updated') || 'Language updated!', {
         icon: selectedLang.flag,
         autoClose: 2000
       });
     } catch (error) {
       console.error('Error changing language:', error);
-      toast.error('Failed to change language');
+      toast.error(t('profilePage.language_change_failed') || 'Failed to change language');
       // Fallback to local update
       setLanguage(newLang);
     } finally {
@@ -99,7 +98,7 @@ const LanguageToggle = () => {
           text-white hover:bg-white/[0.02] transition-colors
           ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}
         `}
-        aria-label="Change language"
+        aria-label={t('profilePage.change_language') || 'Change language'}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">

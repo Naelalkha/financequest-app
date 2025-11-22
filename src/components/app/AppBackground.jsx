@@ -5,8 +5,8 @@ import { motion, useReducedMotion } from 'framer-motion';
  * AppBackground - Composant de fond animé unifié pour l'application
  * Supporte plusieurs variantes visuelles avec animations performantes
  */
-const AppBackground = memo(({ 
-  children, 
+const AppBackground = memo(({
+  children,
   variant = 'finance',
   grain = true,
   grid = false,
@@ -68,6 +68,13 @@ const AppBackground = memo(({
       ],
       backgroundColor: 'rgb(24, 33, 57)',
       particleColor: 'rgba(251, 191, 36, 0.12)'
+    },
+    onyx: {
+      gradients: [
+        'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%)'
+      ],
+      backgroundColor: '#050505',
+      particleColor: '#E5FF00'
     }
   };
 
@@ -76,9 +83,9 @@ const AppBackground = memo(({
   // Générer les particules flottantes
   const particles = useMemo(() => {
     if (!animate || reduceMotion) return [];
-    
+
     const particleCount = variant === 'finance' ? 25 : 30;
-    
+
     return Array.from({ length: particleCount }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -86,7 +93,7 @@ const AppBackground = memo(({
       size: variant === 'finance' ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
       duration: Math.random() * 25 + 20,
       delay: Math.random() * 5,
-      color: variant === 'finance' 
+      color: variant === 'finance'
         ? (i % 3 === 0 ? 'rgba(251, 191, 36, 0.2)' : i % 3 === 1 ? 'rgba(30, 58, 138, 0.15)' : 'rgba(29, 78, 216, 0.12)')
         : currentVariant.particleColor
     }));
@@ -95,7 +102,7 @@ const AppBackground = memo(({
   // Générer des formes géométriques flottantes pour finance
   const geometricShapes = useMemo(() => {
     if (!animate || reduceMotion || variant !== 'finance') return [];
-    
+
     const types = ['ring', 'glass-blob', 'gradient-sphere', 'soft-square', 'lens'];
     const colors = [
       { primary: 'rgba(251, 191, 36, 0.18)', secondary: 'rgba(245, 158, 11, 0.12)' },
@@ -104,7 +111,7 @@ const AppBackground = memo(({
       { primary: 'rgba(34, 211, 238, 0.15)', secondary: 'rgba(20, 184, 166, 0.1)' },
       { primary: 'rgba(251, 191, 36, 0.16)', secondary: 'rgba(251, 191, 36, 0.08)' }
     ];
-    
+
     return Array.from({ length: 12 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -137,7 +144,7 @@ const AppBackground = memo(({
 
   if (!mounted) {
     return (
-      <div 
+      <div
         className={`fixed inset-0 ${className}`}
         style={{ backgroundColor: currentVariant.backgroundColor }}
       >
@@ -149,7 +156,7 @@ const AppBackground = memo(({
   return (
     <div className={`fixed inset-0 overflow-hidden ${className}`}>
       {/* Fond de base */}
-      <div 
+      <div
         className="absolute inset-0"
         style={{ backgroundColor: currentVariant.backgroundColor }}
       />
@@ -158,7 +165,7 @@ const AppBackground = memo(({
       {currentVariant.gradients.map((gradient, index) => {
         const baseOpacity = variant === 'finance' ? 70 : 60;
         const maxOpacity = variant === 'finance' ? 85 : 80;
-        
+
         return (
           <motion.div
             key={`gradient-${index}`}
@@ -210,7 +217,7 @@ const AppBackground = memo(({
         ))}
 
         {/* Vignette effect */}
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             background: 'radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%)'
@@ -219,7 +226,7 @@ const AppBackground = memo(({
 
         {/* Grain effect */}
         {grain && (
-          <div 
+          <div
             className="absolute inset-0 opacity-30 mix-blend-overlay"
             style={grainStyle}
           />
@@ -227,15 +234,15 @@ const AppBackground = memo(({
 
         {/* Grid effect */}
         {grid && (
-          <div 
+          <div
             className="absolute inset-0 opacity-20"
             style={gridStyle}
           />
         )}
-        
+
         {/* Grid effect moderne pour finance */}
         {variant === 'finance' && (
-          <div 
+          <div
             className="absolute inset-0 opacity-15"
             style={{
               backgroundImage: `
@@ -313,7 +320,7 @@ const AppBackground = memo(({
                 ease: "easeInOut"
               }}
             />
-            
+
             {/* Orbe Bleu Indigo - Profondeur & confiance */}
             <motion.div
               className="absolute w-[550px] h-[550px] rounded-full"
@@ -336,7 +343,7 @@ const AppBackground = memo(({
                 delay: 2
               }}
             />
-            
+
             {/* Orbe Indigo profond - Excellence */}
             <motion.div
               className="absolute w-[450px] h-[450px] rounded-full"
@@ -358,7 +365,7 @@ const AppBackground = memo(({
                 delay: 1
               }}
             />
-            
+
             {/* Orbe doré secondaire */}
             <motion.div
               className="absolute w-[400px] h-[400px] rounded-full"
@@ -379,7 +386,7 @@ const AppBackground = memo(({
                 delay: 0.5
               }}
             />
-            
+
             {/* Orbe bleu royal - Stabilité */}
             <motion.div
               className="absolute w-[380px] h-[380px] rounded-full"
@@ -400,7 +407,7 @@ const AppBackground = memo(({
                 delay: 1.5
               }}
             />
-            
+
             {/* Formes géométriques modernes et esthétiques */}
             {geometricShapes.map((shape) => {
               const getShapeStyle = () => {
@@ -412,7 +419,7 @@ const AppBackground = memo(({
                   height: `${baseSize}px`,
                   transform: `rotate(${shape.rotation}deg)`
                 };
-                
+
                 switch (shape.type) {
                   case 'ring':
                     return {
@@ -423,7 +430,7 @@ const AppBackground = memo(({
                       filter: 'blur(4px)',
                       boxShadow: `0 0 ${baseSize * 0.4}px ${shape.colors.primary}, inset 0 0 ${baseSize * 0.3}px ${shape.colors.secondary}`
                     };
-                  
+
                   case 'glass-blob':
                     return {
                       ...baseStyle,
@@ -434,7 +441,7 @@ const AppBackground = memo(({
                       border: `1px solid ${shape.colors.primary}`,
                       boxShadow: `0 8px 32px ${shape.colors.secondary}`
                     };
-                  
+
                   case 'gradient-sphere':
                     return {
                       ...baseStyle,
@@ -443,7 +450,7 @@ const AppBackground = memo(({
                       filter: 'blur(5px)',
                       boxShadow: `0 0 ${baseSize * 0.6}px ${shape.colors.primary}`
                     };
-                  
+
                   case 'soft-square':
                     return {
                       ...baseStyle,
@@ -452,7 +459,7 @@ const AppBackground = memo(({
                       filter: 'blur(5px)',
                       boxShadow: `0 0 ${baseSize * 0.5}px ${shape.colors.primary}`
                     };
-                  
+
                   case 'lens':
                     return {
                       ...baseStyle,
@@ -461,7 +468,7 @@ const AppBackground = memo(({
                       filter: 'blur(5px)',
                       boxShadow: `0 0 ${baseSize * 0.5}px ${shape.colors.secondary}`
                     };
-                  
+
                   default:
                     return {
                       ...baseStyle,
@@ -472,7 +479,7 @@ const AppBackground = memo(({
                     };
                 }
               };
-              
+
               return (
                 <motion.div
                   key={`shape-${shape.id}`}
@@ -501,7 +508,7 @@ const AppBackground = memo(({
         )}
 
         {/* Overlay subtil de brillance */}
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             background: 'linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.01) 50%, transparent 100%)',
@@ -516,7 +523,7 @@ const AppBackground = memo(({
       </div>
 
       {/* Effet de flou sur les bords pour plus de profondeur */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           boxShadow: 'inset 0 0 100px rgba(0, 0, 0, 0.3)',

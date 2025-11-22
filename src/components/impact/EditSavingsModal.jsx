@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateSavingsEventInFirestore } from '../../services/savingsEvents';
@@ -20,6 +20,8 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPeriodOpen, setIsPeriodOpen] = useState(false);
+  const periodSelectRef = useRef(null);
 
   // Pré-remplir le formulaire avec les données de l'événement
   useEffect(() => {
@@ -32,6 +34,20 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
       });
     }
   }, [event]);
+
+  // Fermer le menu période au clic extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (periodSelectRef.current && !periodSelectRef.current.contains(event.target)) {
+        setIsPeriodOpen(false);
+      }
+    };
+
+    if (isPeriodOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isPeriodOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -145,37 +161,51 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
     }
   };
 
-  if (!isOpen || !event) return null;
+  console.log('EditSavingsModal render - isOpen:', isOpen, 'event:', event);
+  
+  if (!isOpen || !event) {
+    console.log('EditSavingsModal: Not rendering - isOpen:', isOpen, 'event:', event);
+    return null;
+  }
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-savings-title"
     >
       <div 
-        className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-700 transform animate-scaleIn"
+        className="relative rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.3)] p-6 w-full max-w-md border border-white/10"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.25) 100%)',
+          backdropFilter: 'blur(20px)',
+          isolation: 'isolate', // Crée un nouveau contexte d'empilement pour les selects
+        }}
       >
+        {/* Ligne d'accent en haut */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        
+        <div className="flex items-center justify-between mb-6">
+          <h2 id="edit-savings-title" className="text-2xl font-bold text-white">
+            {t('impact.edit.title') || 'Edit Savings'}
+          </h2>
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           aria-label={t('impact.edit.cancel') || 'Cancel'}
           disabled={isSubmitting}
         >
-          <FaTimes size={20} />
+            <FaTimes className="w-5 h-5 text-gray-400 hover:text-white" />
         </button>
-
-        <h2 id="edit-savings-title" className="text-2xl font-bold text-white mb-6">
-          {t('impact.edit.title') || 'Edit Savings'}
-        </h2>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label htmlFor="edit-title" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="edit-title" className="block text-sm font-medium text-gray-300 mb-2">
               {t('impact.modal.fields.title') || 'Title'} *
             </label>
             <input
@@ -184,9 +214,9 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className={`w-full px-4 py-2 bg-gray-700 border ${
-                errors.title ? 'border-red-500' : 'border-gray-600'
-              } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500`}
+              className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white focus:outline-none focus:ring-2 transition-colors ${
+                errors.title ? 'border-red-500/50 focus:ring-red-500' : 'border-white/10 focus:ring-amber-500'
+              } placeholder-gray-400`}
               placeholder={t('impact.modal.fields.title_placeholder') || 'e.g., Canceled subscription'}
               disabled={isSubmitting}
               required
@@ -198,7 +228,7 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
 
           {/* Amount */}
           <div>
-            <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-300 mb-2">
               {t('impact.modal.fields.amount') || 'Amount'} * (€)
             </label>
             <input
@@ -207,9 +237,9 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
               name="amount"
               value={formData.amount}
               onChange={handleChange}
-              className={`w-full px-4 py-2 bg-gray-700 border ${
-                errors.amount ? 'border-red-500' : 'border-gray-600'
-              } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500`}
+              className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white focus:outline-none focus:ring-2 transition-colors ${
+                errors.amount ? 'border-red-500/50 focus:ring-red-500' : 'border-white/10 focus:ring-amber-500'
+              } placeholder-gray-400`}
               placeholder={t('impact.modal.fields.amount_placeholder') || '0'}
               min="0"
               max="100000"
@@ -223,31 +253,66 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
           </div>
 
           {/* Period */}
-          <div>
-            <label htmlFor="edit-period" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="relative" ref={periodSelectRef}>
+            <label htmlFor="edit-period" className="block text-sm font-medium text-gray-300 mb-2">
               {t('impact.modal.fields.period') || 'Period'} *
             </label>
-            <select
-              id="edit-period"
-              name="period"
-              value={formData.period}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => !isSubmitting && setIsPeriodOpen(!isPeriodOpen)}
               disabled={isSubmitting}
-              required
+                className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors text-left flex items-center justify-between text-white ${
+                  errors.period
+                    ? 'border-red-500/50 focus:ring-red-500'
+                    : 'border-white/10 focus:ring-amber-500'
+                }`}
+                style={{
+                  borderWidth: '1px',
+                  borderStyle: 'solid'
+                }}
             >
-              <option value="month">{t('impact.modal.period.month') || 'per month'}</option>
-              <option value="year">{t('impact.modal.period.year') || 'per year'}</option>
-            </select>
+                <span>{formData.period === 'month' ? (t('impact.modal.period.month') || 'per month') : (t('impact.modal.period.year') || 'per year')}</span>
+                <FaChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isPeriodOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isPeriodOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-white/10 rounded-xl shadow-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, period: 'month' }));
+                      setIsPeriodOpen(false);
+                    }}
+                    className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
+                      formData.period === 'month' ? 'bg-white/5' : ''
+                    }`}
+                  >
+                    {t('impact.modal.period.month') || 'per month'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, period: 'year' }));
+                      setIsPeriodOpen(false);
+                    }}
+                    className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
+                      formData.period === 'year' ? 'bg-white/5' : ''
+                    }`}
+                  >
+                    {t('impact.modal.period.year') || 'per year'}
+                  </button>
+                </div>
+              )}
+            </div>
             {errors.period && (
               <p className="mt-1 text-sm text-red-400">{errors.period}</p>
             )}
           </div>
 
-          {/* Proof note */}
+          {/* Détails */}
           <div>
-            <label htmlFor="edit-note" className="block text-sm font-medium text-gray-300 mb-1">
-              {t('impact.modal.fields.note') || 'Proof note (optional)'}
+            <label htmlFor="edit-note" className="block text-sm font-medium text-gray-300 mb-2">
+              {t('impact.modal.fields.note') || 'Détails (optionnel)'}
             </label>
             <textarea
               id="edit-note"
@@ -255,7 +320,7 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
               value={formData.note}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none transition-colors placeholder-gray-400"
               placeholder={t('impact.modal.fields.note_placeholder') || 'Add details or evidence...'}
               disabled={isSubmitting}
             />
@@ -266,8 +331,8 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
 
           {/* Submit error */}
           {errors.submit && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.submit}</p>
+            <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+              <p className="text-sm text-red-400">{errors.submit}</p>
             </div>
           )}
 
@@ -276,7 +341,7 @@ const EditSavingsModal = ({ isOpen, onClose, onSuccess, event }) => {
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {t('impact.edit.cancel') || 'Cancel'}

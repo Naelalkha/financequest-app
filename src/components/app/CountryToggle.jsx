@@ -6,17 +6,17 @@ import { toast } from 'react-toastify';
 
 const CountryToggle = () => {
   const { user, updateUserProfile } = useAuth();
-  const { t } = useLanguage();
+  const { t, currentLang } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
   const [openUpwards, setOpenUpwards] = useState(false);
   const containerRef = useRef(null);
 
   const countries = useMemo(() => ([
-    { code: 'fr-FR', label: 'France', flag: '🇫🇷', active: true },
-    { code: 'en-US', label: 'United States', flag: '🇺🇸', active: true },
-    { code: 'de-DE', label: 'Deutschland', flag: '🇩🇪', active: false },
-  ]), []);
+    { code: 'fr-FR', label: currentLang === 'fr' ? 'France' : 'France', flag: '🇫🇷', active: true },
+    { code: 'en-US', label: currentLang === 'fr' ? 'États-Unis' : 'United States', flag: '🇺🇸', active: true },
+    { code: 'de-DE', label: currentLang === 'fr' ? 'Allemagne' : 'Germany', flag: '🇩🇪', active: false },
+  ]), [currentLang]);
 
   const currentCode = user?.country || 'fr-FR';
   const currentCountry = countries.find(c => c.code === currentCode) || countries[0];
@@ -37,7 +37,7 @@ const CountryToggle = () => {
     const selected = countries.find(c => c.code === newCode);
     if (!selected) return;
     if (!selected.active) {
-      toast.info('Ce pays arrive bientôt !');
+      toast.info(t('profilePage.country_coming_soon') || 'This country is coming soon!');
       return;
     }
 
@@ -46,10 +46,10 @@ const CountryToggle = () => {
 
     try {
       await updateUserProfile({ country: newCode });
-      toast.success('✨ Pays mis à jour !', { autoClose: 1800 });
+      toast.success(t('profilePage.toast.country_updated') || '✨ Country updated!', { autoClose: 1800 });
     } catch (e) {
       console.error('Error updating country:', e);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(t('profilePage.toast.update_error') || 'Error during update');
     } finally {
       setTimeout(() => setIsChanging(false), 400);
     }
@@ -66,15 +66,15 @@ const CountryToggle = () => {
           text-white hover:bg-white/[0.02] transition-colors
           ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}
         `}
-        aria-label="Changer de pays"
+        aria-label={t('profilePage.change_country') || 'Change country'}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-10 h-10 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center flex-shrink-0">
             <FaFlag className="text-green-400" />
           </div>
           <div className="min-w-0 text-left">
-            <p className="text-white font-semibold">Pays</p>
-            <p className="text-sm text-gray-400 sm:whitespace-nowrap">{t('profilePage.country_sub') || 'Quêtes spécifiques'}</p>
+            <p className="text-white font-semibold">{t('profilePage.country_label') || t('auth.country') || 'Country'}</p>
+            <p className="text-sm text-gray-400 sm:whitespace-nowrap">{t('profilePage.country_sub') || 'Country-specific quests'}</p>
           </div>
         </div>
         <div className="w-full sm:w-64 sm:ml-3 mt-3 sm:mt-0 flex items-center justify-between sm:justify-center gap-2 px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-base flex-shrink-0">
@@ -109,7 +109,7 @@ const CountryToggle = () => {
                   <span className="ml-auto text-xs">✓</span>
                 )}
                 {!c.active && (
-                  <span className="ml-auto text-xs text-gray-600">Soon</span>
+                  <span className="ml-auto text-xs text-gray-600">{t('profilePage.soon') || 'Soon'}</span>
                 )}
               </button>
             ))}

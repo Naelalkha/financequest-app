@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
@@ -47,9 +47,12 @@ export const LanguageProvider = ({ children }) => {
   const { user } = useAuth();
   const [currentLang, setCurrentLang] = useState('en');
   const [isLoading, setIsLoading] = useState(true);
+  const localUpdateRef = useRef(null); // Track local updates to prevent Firebase override
 
   // Translation helper function with nested key support
-  const t = (key, params = {}) => {
+  // Memoize to ensure it updates when currentLang changes
+  const t = useMemo(() => {
+    return (key, params = {}) => {
     const keys = key.split('.');
     let translation = translations[currentLang] || translations.en;
     
@@ -82,13 +85,21 @@ export const LanguageProvider = ({ children }) => {
 
     return translation || key;
   };
+  }, [currentLang]);
 
   // Change language function
   const changeLanguage = (newLang) => {
-    if (newLang && (newLang === 'en' || newLang === 'fr') && newLang !== currentLang) {
-      console.log('LanguageContext: Changing language from', currentLang, 'to', newLang);
-      setCurrentLang(newLang);
+    if (newLang && (newLang === 'en' || newLang === 'fr')) {
+      setCurrentLang(prevLang => {
+        if (newLang !== prevLang) {
+          console.log('LanguageContext: Changing language from', prevLang, 'to', newLang);
       localStorage.setItem('financequest_language', newLang);
+          // Mark this as a local update to prevent Firebase override
+          localUpdateRef.current = { lang: newLang, timestamp: Date.now() };
+          return newLang;
+        }
+        return prevLang;
+      });
     }
   };
 
@@ -112,10 +123,26 @@ export const LanguageProvider = ({ children }) => {
               const userData = docSnap.data();
               const userLang = userData.lang || userData.language || 'en';
               
-              if ((userLang === 'en' || userLang === 'fr') && userLang !== currentLang) {
-                console.log('LanguageContext: Firebase listener updating language from', currentLang, 'to', userLang);
-                setCurrentLang(userLang);
+              // Always update if language changed (use functional update to avoid stale closure)
+              if (userLang === 'en' || userLang === 'fr') {
+                setCurrentLang(prevLang => {
+                  // Ignore Firebase update if we just made a local update (within last 2 seconds)
+                  if (localUpdateRef.current && 
+                      localUpdateRef.current.lang === userLang && 
+                      Date.now() - localUpdateRef.current.timestamp < 2000) {
+                    console.log('LanguageContext: Ignoring Firebase update (recent local update)');
+                    return prevLang;
+                  }
+                  
+                  if (userLang !== prevLang) {
+                    console.log('LanguageContext: Firebase listener updating language from', prevLang, 'to', userLang);
                 localStorage.setItem('financequest_language', userLang);
+                    // Clear local update ref since Firebase confirmed the change
+                    localUpdateRef.current = null;
+                    return userLang;
+                  }
+                  return prevLang;
+                });
               }
             }
             setIsLoading(false);

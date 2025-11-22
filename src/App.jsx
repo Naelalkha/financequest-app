@@ -5,12 +5,13 @@ import Login from './components/pages/Login';
 import Register from './components/pages/Register';
 import Dashboard from './components/pages/Dashboard';
 import QuestList from './components/pages/QuestList';
-import QuestDetail from './components/pages/QuestDetail';
+import QuestRouter from './components/pages/QuestRouter';
 import Premium from './components/pages/Premium';
 import Profile from './components/pages/Profile';
 import Onboarding from './components/pages/Onboarding';
 import StarterPackHub from './components/pages/StarterPackHub';
 import Impact from './components/pages/Impact';
+import DashboardConcept from './components/dashboard/DashboardConcept';
 import Achievements from './components/pages/Achievements';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
@@ -25,7 +26,7 @@ import AppBackground from './components/app/AppBackground';
 function PrivateRoute({ children, skipOnboarding = false }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  
+
   if (loading) return (
     <AppBackground variant="nebula" grain grid={false} animate>
       <div className="min-h-screen flex items-center justify-center">
@@ -33,29 +34,29 @@ function PrivateRoute({ children, skipOnboarding = false }) {
       </div>
     </AppBackground>
   );
-  
+
   if (!user) return <Navigate to="/login" />;
-  
+
   // Vérifier si l'onboarding est complété (sauf pour la route onboarding elle-même)
   if (!skipOnboarding && user.onboardingCompleted === false && location.pathname !== '/onboarding') {
     console.log('🔄 PrivateRoute: Redirecting to onboarding. User:', user?.uid, 'onboardingCompleted:', user?.onboardingCompleted, 'path:', location.pathname);
     return <Navigate to="/onboarding" />;
   }
-  
+
   console.log('✅ PrivateRoute: Access granted. User:', user?.uid, 'onboardingCompleted:', user?.onboardingCompleted, 'path:', location.pathname);
-  
+
   return children;
 }
 
 // Premium route wrapper - redirect to profile if user is premium
 function PremiumRoute() {
   const { user } = useAuth();
-  
+
   // Si l'utilisateur est premium, rediriger vers /profile
   if (user?.isPremium) {
     return <Navigate to="/profile" replace />;
   }
-  
+
   // Sinon, afficher la page Premium
   return <Premium />;
 }
@@ -106,9 +107,9 @@ function AppContent() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden bg-gradient-to-br from-[#0A0A0A] via-[#1A1508] to-[#2E1F0A]">
 
-      
-      
-      
+
+
+
       {/* Toast Container with custom dark theme */}
       <ToastContainer
         position="top-center"
@@ -132,84 +133,92 @@ function AppContent() {
           background: 'linear-gradient(to right, #FFD700, #FFA500)'
         }}
       />
-      
+
       {/* Main content with padding for bottom nav */}
       <div className={showBottomNav ? 'pb-20' : ''}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route 
-            path="/onboarding" 
+          <Route
+            path="/onboarding"
             element={
               <PrivateRoute skipOnboarding={true}>
                 <Onboarding />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/starter-pack" 
+          <Route
+            path="/starter-pack"
             element={
               <PrivateRoute>
                 <StarterPackHub />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/quests" 
+          <Route
+            path="/quests"
             element={
               <PrivateRoute>
                 <QuestList />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/quests/:id" 
+          <Route
+            path="/quests/:id"
             element={
               <PrivateRoute>
-                <QuestDetail />
+                <QuestRouter />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/premium" 
+          <Route
+            path="/premium"
             element={
               <PrivateRoute>
                 <PremiumRoute />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/profile" 
+          <Route
+            path="/profile"
             element={
               <PrivateRoute>
                 <Profile />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/impact" 
+          <Route
+            path="/impact"
             element={
               <PrivateRoute>
                 <Impact />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route 
-            path="/achievements" 
+          <Route
+            path="/concept"
+            element={
+              <PrivateRoute>
+                <DashboardConcept />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/achievements"
             element={
               <PrivateRoute>
                 <Achievements />
               </PrivateRoute>
-            } 
+            }
           />
           <Route path="/success" element={<SuccessRedirect />} />
           <Route path="*" element={
@@ -217,8 +226,8 @@ function AppContent() {
               <div className="text-center animate-fadeIn">
                 <div className="text-8xl font-bold text-yellow-400 mb-4 animate-bounce">404</div>
                 <p className="text-xl text-gray-400 mb-8">{t('errors.not_found') || 'Page not found'}</p>
-                <a 
-                  href="/" 
+                <a
+                  href="/"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 rounded-lg font-bold hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
                 >
                   {t('ui.go_home') || 'Go Home'}
@@ -228,7 +237,7 @@ function AppContent() {
           } />
         </Routes>
       </div>
-      
+
       {/* Bottom Navigation */}
       {showBottomNav && <BottomNav />}
     </div>

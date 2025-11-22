@@ -59,7 +59,8 @@ export const useLocalQuests = (filters = {}) => {
       setLoading(false);
       toast.error(t('errors.quest_load_failed') || 'Failed to load quests');
     }
-  }, [user, userCountry, currentLang, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, userCountry, currentLang]);
 
   /**
    * Get quests by category for user's country
@@ -164,62 +165,5 @@ export const useLocalQuests = (filters = {}) => {
     getRecommendedQuestsForUser,
     getQuestByIdForUser,
     getQuestStats
-  };
-};
-
-/**
- * Hook for single quest details with country support
- */
-export const useLocalQuestDetail = (questId) => {
-  const { user } = useAuth();
-  const { currentLang } = useLanguage();
-  const [quest, setQuest] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Get user's country, default to fr-FR
-  const userCountry = user?.country || 'fr-FR';
-
-  useEffect(() => {
-    if (!questId || !user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Try to get quest from global first
-      let questData = getQuestById(questId, currentLang);
-      
-      // If not found in global, try country-specific
-      if (!questData && userCountry !== 'global') {
-        // Get all quests for the user's country
-        const globalQuests = getQuestsByCountry('global', currentLang);
-        const countryQuests = getQuestsByCountry(userCountry, currentLang);
-        const allQuests = [...globalQuests, ...countryQuests];
-        
-        questData = allQuests.find(q => q.id === questId);
-      }
-      
-      if (!questData) {
-        setError('Quest not found');
-        setLoading(false);
-        return;
-      }
-
-      setQuest(questData);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching quest detail:', err);
-      setError(err);
-      setLoading(false);
-    }
-  }, [questId, user, currentLang, userCountry]);
-
-  return {
-    quest,
-    loading,
-    error
   };
 }; 

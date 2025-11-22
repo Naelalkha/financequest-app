@@ -137,6 +137,7 @@ export const getUserDailyChallenge = async (userId, lang = 'fr') => {
       userId,
       status: 'active',
       progress: 0,
+      createdAt: serverTimestamp(), // Requis par les règles Firestore
       startedAt: serverTimestamp(),
       completedAt: null
     };
@@ -149,6 +150,7 @@ export const getUserDailyChallenge = async (userId, lang = 'fr') => {
       userId,
       status: 'active',
       progress: 0,
+      createdAt: new Date().toISOString(),
       startedAt: new Date().toISOString(),
       completedAt: null
     };

@@ -8,9 +8,10 @@ import { useState, useEffect, useRef } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  recalculateImpactAggregates, 
-  areAggregatesStale 
+import { useSavingsEvents } from './useSavingsEvents';
+import {
+  recalculateImpactAggregates,
+  areAggregatesStale
 } from '../services/impactAggregates';
 
 /**
@@ -28,16 +29,43 @@ import {
  */
 export const useServerImpactAggregates = () => {
   const { user } = useAuth();
-  const [impactAnnualEstimated, setImpactAnnualEstimated] = useState(null);
+  const [serverImpact, setServerImpact] = useState(null);
   const [impactAnnualVerified, setImpactAnnualVerified] = useState(null);
   const [proofsVerifiedCount, setProofsVerifiedCount] = useState(null);
   const [lastImpactRecalcAt, setLastImpactRecalcAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState(null);
-  
+
+  // Local fallback using direct impact events calculation
+  const { events, loadEvents } = useSavingsEvents();
+  const [localImpact, setLocalImpact] = useState(0);
+
   // Ref pour éviter les recalculs multiples
   const recalcTriggered = useRef(false);
+
+  // Load events for fallback calculation
+  useEffect(() => {
+    if (user) {
+      loadEvents({ limitCount: 50 });
+    }
+  }, [user, loadEvents]);
+
+  // Calculate local impact from events
+  useEffect(() => {
+    if (events.length === 0) {
+      setLocalImpact(0);
+      return;
+    }
+
+    let total = 0;
+    events.forEach((event) => {
+      // Annualize: month events * 12
+      total += event.amount * (event.period === 'month' ? 12 : 1);
+    });
+
+    setLocalImpact(total);
+  }, [events]);
 
   useEffect(() => {
     if (!user) {
@@ -59,8 +87,8 @@ export const useServerImpactAggregates = () => {
     const unsubscribe = onSnapshot(userRef, async (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
-        
-        setImpactAnnualEstimated(userData.impactAnnualEstimated ?? 0);
+
+        setServerImpact(userData.impactAnnualEstimated ?? 0);
         setImpactAnnualVerified(userData.impactAnnualVerified ?? 0);
         setProofsVerifiedCount(userData.proofsVerifiedCount ?? 0);
         setLastImpactRecalcAt(userData.lastImpactRecalcAt || null);
@@ -71,7 +99,7 @@ export const useServerImpactAggregates = () => {
           console.log('📊 Aggregates are stale, triggering recalculation...');
           recalcTriggered.current = true;
           setSyncing(true);
-          
+
           // Recalculer en arrière-plan
           try {
             await recalculateImpactAggregates('on_open');
@@ -84,7 +112,7 @@ export const useServerImpactAggregates = () => {
         }
       } else {
         // Document utilisateur n'existe pas encore
-        setImpactAnnualEstimated(0);
+        setServerImpact(0);
         setImpactAnnualVerified(0);
         setProofsVerifiedCount(0);
         setLastImpactRecalcAt(null);
@@ -104,11 +132,11 @@ export const useServerImpactAggregates = () => {
    */
   const manualRecalculate = async () => {
     if (!user || syncing) return;
-    
+
     console.log('🔄 Manual recalculation triggered');
     setSyncing(true);
     setError(null);
-    
+
     try {
       await recalculateImpactAggregates('manual_button');
       console.log('✅ Manual recalculation completed');
@@ -119,6 +147,9 @@ export const useServerImpactAggregates = () => {
       setSyncing(false);
     }
   };
+
+  // Use the maximum of server or local impact for best accuracy
+  const impactAnnualEstimated = Math.max(serverImpact || 0, localImpact);
 
   return {
     impactAnnualEstimated,

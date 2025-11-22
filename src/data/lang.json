@@ -4,7 +4,6 @@
       "name": "FinanceQuest",
       "tagline": "Level Up Your Financial Game"
     },
-    
     "home": {
       "headline": "Level Up Your",
       "headline_highlight": "Financial Game",
@@ -65,7 +64,6 @@
       "footer_terms": "Terms of Service",
       "footer_contact": "Contact"
     },
-    
     "auth": {
       "login": "Login",
       "register": "Sign Up",
@@ -116,7 +114,6 @@
       "already_have_account": "Already have an account?",
       "register_error": "Failed to create account"
     },
-    
     "nav": {
       "dashboard": "Home",
       "dashboard_short": "Home",
@@ -144,7 +141,6 @@
         "profile": "Go to Profile"
       }
     },
-    
     "dashboard": {
       "title": "Dashboard",
       "welcome": "Welcome back",
@@ -163,7 +159,6 @@
       "complete_quest": "Complete 1 quest today",
       "continue_quest": "Continue Quest",
       "start_quest": "Start Quest",
-
       "level_progress": "Level Progress",
       "next_level": "Next Level",
       "xp_to_next": "{{xp}} XP to level {{level}}",
@@ -181,7 +176,7 @@
       "go_premium": "Go Premium",
       "unlock_premium": "Unlock with Premium",
       "good_morning": "Good morning",
-      "good_afternoon": "Good afternoon", 
+      "good_afternoon": "Good afternoon",
       "good_evening": "Good evening",
       "ready_to_learn": "Ready to learn?",
       "start_journey": "Start your journey",
@@ -192,7 +187,7 @@
       "view_all": "View all",
       "level_titles": {
         "financial_master": "Financial Master",
-        "confirmed_expert": "Confirmed Expert", 
+        "confirmed_expert": "Confirmed Expert",
         "advanced_apprentice": "Advanced Apprentice",
         "ambitious_novice": "Ambitious Novice",
         "motivated_beginner": "Motivated Beginner"
@@ -219,7 +214,6 @@
       "explore": "Explore",
       "choose_first_quest": "Choose your first quest and discover the FinanceQuest universe"
     },
-    
     "quests": {
       "title": "Financial Quests",
       "subtitle": "Choose your learning adventure",
@@ -274,7 +268,6 @@
       "usingLocalData": "Using offline data",
       "search_placeholder": "Search quests..."
     },
-    
     "quest_detail": {
       "objectives": "Learning Objectives:",
       "difficulty": "Level",
@@ -310,7 +303,6 @@
       "complete_tasks_first": "Please complete all tasks first",
       "all_tasks_complete": "Great job! All tasks completed!"
     },
-    
     "quest": {
       "overview": "Overview",
       "objectives": "Objectives",
@@ -358,12 +350,10 @@
       "reflection_placeholder": "Share your thoughts...",
       "bookmark_added": "Quest bookmarked!",
       "bookmark_removed": "Bookmark removed",
-      
       "card": {
         "eta_minutes": "{{minutes}} min",
         "impact_estimated": "Est. savings: {{amount}}"
       },
-      
       "steps": {
         "step": "Step {{current}} of {{total}}",
         "next": "Next Step",
@@ -371,7 +361,6 @@
         "finish": "Complete Quest"
       }
     },
-    
     "profile": {
       "title": "My Profile",
       "edit_profile": "Edit Profile",
@@ -398,7 +387,6 @@
       "free_member": "Free Member",
       "view_premium": "View Premium Benefits"
     },
-
     "profilePage": {
       "menu": {
         "account": "Account",
@@ -488,9 +476,18 @@
       },
       "language_sub": "Interface and content",
       "country_sub": "Country-specific quests",
-      "language_label": "Language"
+      "language_label": "Language",
+      "country_label": "Country",
+      "change_language": "Change language",
+      "change_country": "Change country",
+      "language_coming_soon": "This language is coming soon!",
+      "country_coming_soon": "This country is coming soon!",
+      "language_changed_en": "Language changed to English",
+      "language_changed_fr": "Language changed to French",
+      "language_updated": "Language updated!",
+      "language_change_failed": "Failed to change language",
+      "soon": "Soon"
     },
-
     "questList": {
       "sort": "Sort",
       "sort_by": "Sort by",
@@ -524,13 +521,11 @@
       "quests": "Quests",
       "financial": "Financial"
     },
-    
     "subscription": {
       "trial": "Trial",
       "active": "Active",
       "canceled": "Canceled"
     },
-    
     "premium": {
       "title": "Unlock Premium",
       "subtitle": "Get unlimited access to all quests and features",
@@ -567,7 +562,6 @@
       "subscribe_button": "Get Premium Now",
       "disclaimer": "Educational content only, not personalized financial advice."
     },
-    
     "settings": {
       "title": "Settings",
       "account": "Account Settings",
@@ -580,14 +574,12 @@
       "terms": "Terms of Service",
       "about": "About"
     },
-    
     "notifications": {
       "level_up": "Level up! You're now level {{level}}!",
       "quest_complete": "Quest completed!",
       "badge_earned": "New badge earned!",
       "streak_milestone": "{{days}} day streak! Keep it going!"
     },
-    
     "errors": {
       "generic": "Something went wrong",
       "not_found": "Page not found",
@@ -608,7 +600,6 @@
       "step_type_unknown": "Unknown step type",
       "bookmark_failed": "Failed to update bookmark"
     },
-
     "onboarding": {
       "step": "Step",
       "of": "of",
@@ -669,18 +660,15 @@
         "title": "Your experience level"
       }
     },
-    
     "share": {
       "quest_complete": "I just completed \"{{quest}}\" on FinanceQuest and earned {{points}} points! 🎯"
     },
-    
     "stats": {
       "completed": "Done",
       "in_progress": "Active",
       "total_xp": "XP",
       "available": "Available"
     },
-    
     "starterPack": {
       "title": "Your Starter Pack",
       "subtitle": "Complete these 3 free quests to begin your financial journey",
@@ -703,7 +691,6 @@
       },
       "backToStarterPack": "Back to Starter Pack"
     },
-    
     "filters": {
       "recommended": "Recommended",
       "difficulty": "Difficulty",
@@ -717,7 +704,6 @@
       "premium": "Pro",
       "clear_all": "Clear all"
     },
-    
     "quiz": {
       "need_hint": "Need a hint?",
       "show_explanation": "Learn why",
@@ -750,7 +736,6 @@
       "review_answers": "Review Answers",
       "retry_quiz": "Retry Quiz"
     },
-    
     "challenge": {
       "debt_avalanche_title": "Debt Avalanche Calculator",
       "debt_avalanche_desc": "Calculate how much you can save by paying off your highest interest debts first",
@@ -861,7 +846,6 @@
       "total_contributed": "Total Contributed",
       "interest_earned": "Interest Earned"
     },
-    
     "expenses": {
       "coffee": "Daily Coffee",
       "rent": "Monthly Rent",
@@ -872,13 +856,11 @@
       "dinner": "Restaurant Dinner",
       "utilities": "Utilities"
     },
-    
     "categories": {
       "needs": "Needs",
       "wants": "Wants",
       "savings": "Savings"
     },
-    
     "ui": {
       "loading": "Loading...",
       "loading_app": "Loading FinanceQuest...",
@@ -934,10 +916,10 @@
       },
       "disclaimer": "Educational content only, not personalized financial advice."
     },
-
     "impact": {
       "title": "Impact",
       "hero": {
+        "total_label": "Total Savings",
         "title": "Secured Total Impact",
         "subtitle": "Learn in 2 min · Act in 5 · Prove.",
         "proofs": {
@@ -960,14 +942,35 @@
         "cta": "Start a quick win (+€156/year)"
       },
       "milestones": {
-        "title": "All milestones"
+        "title": "All milestones",
+        "all_reached_title": "All milestones reached!",
+        "all_reached_subtitle": "Congratulations, you've reached all available impact milestones.",
+        "level": "Level {{level}}",
+        "reached_count": "{{current}}/{{total}} reached",
+        "status_reached": "REACHED",
+        "status_next": "NEXT"
       },
-      "toggle": {
-        "period": "€/year | €/month"
+      "next_milestone": {
+        "title": "Next milestone",
+        "subtitle": "{{target}} — {{remaining}} left",
+        "label": "Next milestone",
+        "remaining_label": "More than",
+        "level_text": "Level {{current}} out of {{total}}",
+        "view_all": "View all"
+      },
+      "savings": {
+        "title": "My Savings",
+        "count_singular": "saving",
+        "count_plural": "savings"
       },
       "cta": {
         "quickwin": "Start a quick win (+€156/year)",
-        "continue": "Continue your quest"
+        "continue": "Continue your quest",
+        "reach_amount": "Reach {{amount}}",
+        "discover_quests": "Discover quests"
+      },
+      "toggle": {
+        "period": "€/year | €/month"
       },
       "link": {
         "detail": "See details"
@@ -986,7 +989,7 @@
         "total_estimated": "Total annual estimated",
         "total_verified": "Verified",
         "events_count": "Events",
-        "period_month": "monthly",
+        "period_month": "Monthly",
         "period_year": "yearly",
         "source_quest": "Quest",
         "actions": {
@@ -1005,10 +1008,10 @@
         "badge_verified": "Verified",
         "badge_estimated": "Estimated",
         "per_year": "/year",
-        "period_month": "monthly",
+        "period_month": "Monthly",
         "period_year": "yearly",
         "source_quest": "Quest",
-        "source_manual": "Manual"
+        "source_manual": "Personal"
       },
       "prompt": {
         "title": "Add this to your Impact?",
@@ -1037,7 +1040,7 @@
           "amount": "Amount",
           "amount_placeholder": "0",
           "period": "Period",
-          "note": "Proof note (optional)",
+          "note": "Details (optional)",
           "note_placeholder": "Add details or evidence..."
         },
         "period": {
@@ -1056,7 +1059,6 @@
         }
       }
     },
-
     "daily": {
       "challenge": {
         "title": "Daily Challenge",
@@ -1066,7 +1068,6 @@
         "cta": "Start Challenge"
       }
     },
-
     "continue": {
       "card": {
         "title": "Continue Quest",
@@ -1077,7 +1078,6 @@
         "cta": "Continue"
       }
     },
-
     "quickwin": {
       "title": "Quick Win: Cut 1 Subscription",
       "subtitle": "Save €12-20/month in 3 steps",
@@ -1088,7 +1088,7 @@
       "step1_title": "Step 1: Choose a subscription",
       "step1_subtitle": "Select one subscription you rarely use",
       "step2_title": "Step 2: Confirm cancellation",
-      "proof_note_label": "Proof note (optional)",
+      "proof_note_label": "Details (optional)",
       "proof_note_placeholder": "E.g., Canceled via app on 2025-01-30...",
       "step3_title": "Great job! 🎉",
       "step3_subtitle": "You just unlocked your first savings",
@@ -1098,14 +1098,12 @@
       "success": "Subscription saved! Check your Impact dashboard",
       "error": "Failed to save. Please try again."
     },
-
     "upsell": {
       "locked_title": "Premium Content",
       "locked_desc": "This quest is part of Moniyo Premium.",
       "cta": "Start 7-day free trial",
       "note": "Cancel anytime"
     },
-
     "gamification": {
       "level": "Level {{level}}",
       "xp_progress": "{{current}} / {{target}} XP",
@@ -1134,13 +1132,11 @@
       }
     }
   },
-  
   "fr": {
     "app": {
       "name": "FinanceQuest",
       "tagline": "Améliorez votre jeu financier"
     },
-    
     "home": {
       "headline": "Améliorez Votre",
       "headline_highlight": "Jeu Financier",
@@ -1201,7 +1197,6 @@
       "footer_terms": "Conditions d'Utilisation",
       "footer_contact": "Contact"
     },
-    
     "auth": {
       "login": "Connexion",
       "register": "S'inscrire",
@@ -1252,7 +1247,6 @@
       "already_have_account": "Vous avez déjà un compte ?",
       "register_error": "Échec de la création du compte"
     },
-    
     "nav": {
       "dashboard": "Accueil",
       "dashboard_short": "Accueil",
@@ -1280,7 +1274,6 @@
         "profile": "Aller au profil"
       }
     },
-    
     "dashboard": {
       "title": "Tableau de bord",
       "welcome": "Bon retour",
@@ -1299,7 +1292,6 @@
       "complete_quest": "Complétez 1 quête aujourd'hui",
       "continue_quest": "Continuer la Quête",
       "start_quest": "Commencer la Quête",
-
       "level_progress": "Progression du Niveau",
       "next_level": "Prochain Niveau",
       "xp_to_next": "{{xp}} XP jusqu'au niveau {{level}}",
@@ -1329,7 +1321,7 @@
       "level_titles": {
         "financial_master": "Maître Financier",
         "confirmed_expert": "Expert confirmé",
-        "advanced_apprentice": "Apprenti avancé", 
+        "advanced_apprentice": "Apprenti avancé",
         "ambitious_novice": "Novice ambitieux",
         "motivated_beginner": "Débutant motivé"
       },
@@ -1355,7 +1347,6 @@
       "explore": "Explorer",
       "choose_first_quest": "Choisis ta première quête et découvre l'univers FinanceQuest"
     },
-    
     "quests": {
       "title": "Quêtes Financières",
       "subtitle": "Choisissez votre aventure d'apprentissage",
@@ -1410,7 +1401,6 @@
       "usingLocalData": "Utilisation des données hors ligne",
       "search_placeholder": "Rechercher des quêtes..."
     },
-    
     "quest": {
       "overview": "Aperçu",
       "objectives": "Objectifs",
@@ -1458,12 +1448,10 @@
       "reflection_placeholder": "Partagez vos pensées...",
       "bookmark_added": "Quête ajoutée aux favoris !",
       "bookmark_removed": "Favori supprimé",
-      
       "card": {
         "eta_minutes": "{{minutes}} min",
         "impact_estimated": "Économies estimées : {{amount}}"
       },
-      
       "steps": {
         "step": "Étape {{current}} sur {{total}}",
         "next": "Étape Suivante",
@@ -1471,7 +1459,6 @@
         "finish": "Terminer la Quête"
       }
     },
-    
     "quest_detail": {
       "objectives": "Objectifs d'Apprentissage :",
       "difficulty": "Niveau",
@@ -1507,7 +1494,6 @@
       "complete_tasks_first": "Veuillez compléter toutes les tâches d'abord",
       "all_tasks_complete": "Excellent travail ! Toutes les tâches complétées !"
     },
-    
     "profile": {
       "title": "Mon Profil",
       "edit_profile": "Modifier le Profil",
@@ -1534,7 +1520,6 @@
       "free_member": "Membre Gratuit",
       "view_premium": "Voir les Avantages Premium"
     },
-
     "profilePage": {
       "menu": {
         "account": "Compte",
@@ -1624,9 +1609,18 @@
       },
       "language_sub": "Interface et contenu",
       "country_sub": "Quêtes spécifiques",
-      "language_label": "Langue"
+      "language_label": "Langue",
+      "country_label": "Pays",
+      "change_language": "Changer de langue",
+      "change_country": "Changer de pays",
+      "language_coming_soon": "Cette langue arrive bientôt !",
+      "country_coming_soon": "Ce pays arrive bientôt !",
+      "language_changed_en": "Langue changée en Anglais",
+      "language_changed_fr": "Langue changée en Français",
+      "language_updated": "Langue mise à jour !",
+      "language_change_failed": "Échec du changement de langue",
+      "soon": "Bientôt"
     },
-
     "questList": {
       "sort": "Trier",
       "sort_by": "Trier par",
@@ -1660,13 +1654,11 @@
       "quests": "Quêtes",
       "financial": "Financières"
     },
-    
     "subscription": {
       "trial": "Essai",
       "active": "Actif",
       "canceled": "Annulé"
     },
-    
     "premium": {
       "title": "Débloquer Premium",
       "subtitle": "Obtenez un accès illimité à toutes les quêtes et fonctionnalités",
@@ -1703,7 +1695,6 @@
       "subscribe_button": "Obtenir Premium Maintenant",
       "disclaimer": "Contenu éducatif, pas de conseil financier personnalisé."
     },
-    
     "settings": {
       "title": "Paramètres",
       "account": "Paramètres du compte",
@@ -1716,14 +1707,12 @@
       "terms": "Conditions d'utilisation",
       "about": "À propos"
     },
-    
     "notifications": {
       "level_up": "Niveau supérieur ! Vous êtes maintenant niveau {{level}} !",
       "quest_complete": "Quête complétée !",
       "badge_earned": "Nouveau badge gagné !",
       "streak_milestone": "Série de {{days}} jours ! Continuez !"
     },
-    
     "errors": {
       "generic": "Quelque chose s'est mal passé",
       "not_found": "Page non trouvée",
@@ -1744,7 +1733,6 @@
       "step_type_unknown": "Type d'étape inconnu",
       "bookmark_failed": "Échec de la mise à jour du favori"
     },
-
     "onboarding": {
       "step": "Étape",
       "of": "sur",
@@ -1805,18 +1793,15 @@
         "title": "Votre niveau d'expérience"
       }
     },
-    
     "share": {
       "quest_complete": "Je viens de terminer \"{{quest}}\" sur FinanceQuest et j'ai gagné {{points}} points ! 🎯"
     },
-    
     "stats": {
       "completed": "Terminées",
       "in_progress": "Actives",
       "total_xp": "XP",
       "available": "Disponibles"
     },
-    
     "starterPack": {
       "title": "Votre Pack de Démarrage",
       "subtitle": "Complétez ces 3 quêtes gratuites pour commencer votre parcours financier",
@@ -1839,7 +1824,6 @@
       },
       "backToStarterPack": "Retour au Pack de Démarrage"
     },
-    
     "filters": {
       "recommended": "Recommandé",
       "difficulty": "Difficulté",
@@ -1853,7 +1837,6 @@
       "premium": "Pro",
       "clear_all": "Tout effacer"
     },
-    
     "quiz": {
       "need_hint": "Besoin d'un indice ?",
       "show_explanation": "Apprendre pourquoi",
@@ -1886,7 +1869,6 @@
       "review_answers": "Réviser les Réponses",
       "retry_quiz": "Recommencer le Quiz"
     },
-    
     "challenge": {
       "debt_avalanche_title": "Calculateur Avalanche de Dettes",
       "debt_avalanche_desc": "Calculez combien vous pouvez économiser en remboursant d'abord vos dettes au taux d'intérêt le plus élevé",
@@ -1997,7 +1979,6 @@
       "total_contributed": "Total Contribué",
       "interest_earned": "Intérêts Gagnés"
     },
-    
     "expenses": {
       "coffee": "Café Quotidien",
       "rent": "Loyer Mensuel",
@@ -2008,13 +1989,11 @@
       "dinner": "Dîner au Restaurant",
       "utilities": "Services Publics"
     },
-    
     "categories": {
       "needs": "Besoins",
       "wants": "Envie",
       "savings": "Épargne"
     },
-    
     "ui": {
       "loading": "Chargement...",
       "loading_app": "Chargement de FinanceQuest...",
@@ -2071,10 +2050,10 @@
       },
       "disclaimer": "Contenu éducatif, pas de conseil financier personnalisé."
     },
-
     "impact": {
       "title": "Impact",
       "hero": {
+        "total_label": "Gain Total",
         "title": "Impact total",
         "subtitle": "Mesure ce que tu gagnes réellement.",
         "proofs": {
@@ -2097,14 +2076,35 @@
         "cta": "Démarrer un gain rapide (+€156/an)"
       },
       "milestones": {
-        "title": "Tous les paliers"
+        "title": "Tous les paliers",
+        "all_reached_title": "Tous les paliers atteints !",
+        "all_reached_subtitle": "Félicitations, tu as atteint tous les paliers d'impact disponibles.",
+        "level": "Palier {{level}}",
+        "reached_count": "{{current}}/{{total}} atteints",
+        "status_reached": "ATTEINT",
+        "status_next": "PROCHAIN"
       },
-      "toggle": {
-        "period": "€/an | €/mois"
+      "next_milestone": {
+        "title": "Prochain palier",
+        "subtitle": "{{target}} — reste {{remaining}}",
+        "label": "Prochain palier",
+        "remaining_label": "Plus que",
+        "level_text": "Palier {{current}} sur {{total}}",
+        "view_all": "Voir tous"
+      },
+      "savings": {
+        "title": "Mes économies",
+        "count_singular": "économie",
+        "count_plural": "économies"
       },
       "cta": {
         "quickwin": "Démarrer un gain rapide (+€156/an)",
-        "continue": "Continuer ta quête"
+        "continue": "Continuer ta quête",
+        "reach_amount": "Atteindre {{amount}}",
+        "discover_quests": "Découvrir les quêtes"
+      },
+      "toggle": {
+        "period": "€/an | €/mois"
       },
       "link": {
         "detail": "Voir le détail"
@@ -2123,8 +2123,8 @@
         "total_estimated": "Total annuel estimé",
         "total_verified": "Vérifié",
         "events_count": "Événements",
-        "period_month": "mensuel",
-        "period_year": "annuel",
+        "period_month": "Mensuel",
+        "period_year": "Annuel",
         "source_quest": "Quête",
         "actions": {
           "edit": "Modifier",
@@ -2142,10 +2142,10 @@
         "badge_verified": "Vérifié",
         "badge_estimated": "Estimé",
         "per_year": "/an",
-        "period_month": "mensuel",
-        "period_year": "annuel",
+        "period_month": "Mensuel",
+        "period_year": "Annuel",
         "source_quest": "Quête",
-        "source_manual": "Manuel"
+        "source_manual": "Perso"
       },
       "prompt": {
         "title": "Ajouter à ton Impact ?",
@@ -2174,8 +2174,8 @@
           "amount": "Montant",
           "amount_placeholder": "0",
           "period": "Période",
-          "note": "Note de preuve (optionnel)",
-          "note_placeholder": "Ajoute des détails ou une preuve..."
+          "note": "Détails (optionnel)",
+          "note_placeholder": "Ajoute des détails..."
         },
         "period": {
           "month": "par mois",
@@ -2193,7 +2193,6 @@
         }
       }
     },
-
     "daily": {
       "challenge": {
         "title": "Défi Quotidien",
@@ -2203,7 +2202,6 @@
         "cta": "Faire le défi"
       }
     },
-
     "continue": {
       "card": {
         "title": "Continuer la quête",
@@ -2214,7 +2212,6 @@
         "cta": "Continuer"
       }
     },
-
     "quickwin": {
       "title": "Gain Rapide : Coupe 1 abonnement",
       "subtitle": "Économise €12-20/mois en 3 étapes",
@@ -2225,7 +2222,7 @@
       "step1_title": "Étape 1 : Choisis un abonnement",
       "step1_subtitle": "Sélectionne un abonnement que tu utilises peu",
       "step2_title": "Étape 2 : Confirme l'annulation",
-      "proof_note_label": "Note de preuve (optionnel)",
+      "proof_note_label": "Détails (optionnel)",
       "proof_note_placeholder": "Ex : Annulé via l'app le 30/01/2025...",
       "step3_title": "Bravo ! 🎉",
       "step3_subtitle": "Tu viens de débloquer ta première économie",
@@ -2235,14 +2232,12 @@
       "success": "Abonnement sauvegardé ! Consulte ton dashboard Impact",
       "error": "Échec de la sauvegarde. Réessaye."
     },
-
     "upsell": {
       "locked_title": "Contenu Premium",
       "locked_desc": "Cette quête fait partie de Moniyo Premium.",
       "cta": "Essai gratuit 7 jours",
       "note": "Annulable à tout moment"
     },
-
     "gamification": {
       "level": "Niveau {{level}}",
       "xp_progress": "{{current}} / {{target}} XP",

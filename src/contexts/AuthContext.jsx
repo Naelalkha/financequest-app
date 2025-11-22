@@ -68,13 +68,13 @@ export const AuthProvider = ({ children }) => {
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
           xp: 0,
-          level: 'Novice',
+          // NE PAS inclure level - c'est un champ protégé calculé par le serveur
           streaks: 0,
           badges: [],
           totalQuests: 0,
           completedQuests: 0,
           onboardingCompleted: false,
-          // NE PAS inclure : isPremium, premiumStatus, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd
+          // NE PAS inclure : isPremium, premiumStatus, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd, level, totalXP, longestStreak
           lang: additionalData.lang || detectedLang,
           country: additionalData.country || detectedCountry,
           ...additionalData
@@ -86,14 +86,23 @@ export const AuthProvider = ({ children }) => {
         delete newUserData.stripeCustomerId;
         delete newUserData.stripeSubscriptionId;
         delete newUserData.currentPeriodEnd;
+        delete newUserData.level;
+        delete newUserData.totalXP;
+        delete newUserData.longestStreak;
+        delete newUserData.impactAnnualEstimated;
+        delete newUserData.impactAnnualVerified;
+        delete newUserData.proofsVerifiedCount;
+        delete newUserData.isAdmin;
+        delete newUserData.isModerator;
         
         console.log('Creating user document with data:', newUserData);
         await setDoc(userRef, newUserData, { merge: true });
         
-        // Retourner avec les valeurs par défaut pour l'affichage
+        // Retourner avec les valeurs par défaut pour l'affichage UI (non écrites en DB)
         return {
           ...newUserData,
-          isPremium: false // Valeur par défaut pour l'UI seulement
+          isPremium: false, // Valeur par défaut pour l'UI seulement
+          level: 'Novice' // Valeur par défaut pour l'UI (sera calculé par le serveur)
         };
       } else {
         // Update last login - ne pas faire échouer si ça échoue

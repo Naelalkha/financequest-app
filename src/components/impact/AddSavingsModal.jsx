@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
@@ -16,6 +16,8 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPeriodOpen, setIsPeriodOpen] = useState(false);
+  const periodSelectRef = useRef(null);
 
   // Mettre à jour le formData quand initialValues change
   useEffect(() => {
@@ -151,31 +153,39 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={handleClose}
     >
       <div 
-        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-md rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.3)] max-h-[90vh] overflow-y-auto border border-white/10"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
+        style={{
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.25) 100%)',
+          backdropFilter: 'blur(20px)',
+          isolation: 'isolate', // Crée un nouveau contexte d'empilement pour les selects
+        }}
       >
+        {/* Ligne d'accent en haut */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 
             id="modal-title"
-            className="text-2xl font-bold text-gray-900 dark:text-white"
+            className="text-2xl font-bold text-white"
           >
             {t('impact.modal.title')}
           </h2>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label={t('impact.modal.cancel')}
           >
-            <FaTimes className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <FaTimes className="w-5 h-5 text-gray-400 hover:text-white" />
           </button>
         </div>
 
@@ -185,7 +195,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
           <div>
             <label 
               htmlFor="title"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="block text-sm font-medium text-gray-300 mb-2"
             >
               {t('impact.modal.fields.title')}
             </label>
@@ -196,15 +206,15 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
               value={formData.title}
               onChange={handleChange}
               placeholder={t('impact.modal.fields.title_placeholder')}
-              className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
                 errors.title
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-amber-500'
-              } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+                  ? 'border-red-500/50 focus:ring-red-500'
+                  : 'border-white/10 focus:ring-amber-500'
+              } text-white placeholder-gray-400`}
               disabled={isSubmitting}
             />
             {errors.title && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p className="mt-1 text-sm text-red-400">
                 {errors.title}
               </p>
             )}
@@ -215,12 +225,12 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
             <div>
               <label 
                 htmlFor="amount"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-gray-300 mb-2"
               >
                 {t('impact.modal.fields.amount')}
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   €
                 </span>
                 <input
@@ -232,47 +242,83 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
                   placeholder={t('impact.modal.fields.amount_placeholder')}
                   step="0.01"
                   min="0"
-                  className={`w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                  className={`w-full pl-8 pr-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
                     errors.amount
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-amber-500'
-                  } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+                      ? 'border-red-500/50 focus:ring-red-500'
+                      : 'border-white/10 focus:ring-amber-500'
+                  } text-white placeholder-gray-400`}
                   disabled={isSubmitting}
                 />
               </div>
               {errors.amount && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-red-400">
                   {errors.amount}
                 </p>
               )}
             </div>
 
-            <div>
+            <div className="relative" ref={periodSelectRef}>
               <label 
                 htmlFor="period"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-gray-300 mb-2"
               >
                 {t('impact.modal.fields.period')}
               </label>
-              <select
-                id="period"
-                name="period"
-                value={formData.period}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-white transition-colors"
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => !isSubmitting && setIsPeriodOpen(!isPeriodOpen)}
                 disabled={isSubmitting}
+                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors text-left flex items-center justify-between text-white ${
+                    errors.period
+                      ? 'border-red-500/50 focus:ring-red-500'
+                      : 'border-white/10 focus:ring-amber-500'
+                  }`}
+                  style={{
+                    borderWidth: '1px',
+                    borderStyle: 'solid'
+                  }}
               >
-                <option value="month">{t('impact.modal.period.month')}</option>
-                <option value="year">{t('impact.modal.period.year')}</option>
-              </select>
+                  <span>{formData.period === 'month' ? t('impact.modal.period.month') : t('impact.modal.period.year')}</span>
+                  <FaChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isPeriodOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isPeriodOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-white/10 rounded-xl shadow-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, period: 'month' }));
+                        setIsPeriodOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
+                        formData.period === 'month' ? 'bg-white/5' : ''
+                      }`}
+                    >
+                      {t('impact.modal.period.month')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, period: 'year' }));
+                        setIsPeriodOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
+                        formData.period === 'year' ? 'bg-white/5' : ''
+                      }`}
+                    >
+                      {t('impact.modal.period.year')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Note de preuve */}
+          {/* Détails */}
           <div>
             <label 
               htmlFor="note"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="block text-sm font-medium text-gray-300 mb-2"
             >
               {t('impact.modal.fields.note')}
             </label>
@@ -283,15 +329,15 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
               onChange={handleChange}
               placeholder={t('impact.modal.fields.note_placeholder')}
               rows={3}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none transition-colors"
+              className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400 resize-none transition-colors"
               disabled={isSubmitting}
             />
           </div>
 
           {/* Erreur globale */}
           {errors.submit && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">
+            <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+              <p className="text-sm text-red-400">
                 {errors.submit}
               </p>
             </div>
@@ -303,18 +349,18 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('impact.modal.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
                   <span>{t('ui.saving')}</span>
                 </>
               ) : (

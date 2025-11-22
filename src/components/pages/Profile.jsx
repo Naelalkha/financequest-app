@@ -437,7 +437,7 @@ const Profile = () => {
                           </label>
                         <div className="px-4 py-3 bg-white/[0.02] rounded-lg border border-white/10">
                           <p className="text-white font-medium">
-                            {userData?.createdAt ? new Date(userData.createdAt.toDate?.() || userData.createdAt).toLocaleDateString('fr-FR') : t('profilePage.not_available') || 'N/A'}
+                            {userData?.createdAt ? new Date(userData.createdAt.toDate?.() || userData.createdAt).toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US') : t('profilePage.not_available') || 'N/A'}
                           </p>
                         </div>
                       </div>
@@ -649,7 +649,7 @@ const Profile = () => {
                 </span>
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
-                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US')
                     : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
@@ -661,7 +661,7 @@ const Profile = () => {
                 </span>
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
-                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US')
                     : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
@@ -673,7 +673,7 @@ const Profile = () => {
                 </span>
                 <span className="text-white font-bold">
                   {userData?.currentPeriodEnd 
-                    ? new Date(userData.currentPeriodEnd).toLocaleDateString('fr-FR')
+                    ? new Date(userData.currentPeriodEnd).toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US')
                     : t('profilePage.not_available') || 'N/A'
                   }
                 </span>
