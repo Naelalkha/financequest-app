@@ -1,7 +1,12 @@
 import React from "react";
-import { Zap, Shield, TrendingUp, Target } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useLocalQuests } from "../../hooks/useLocalQuests";
+
+// Import 3D Assets
+import pilotageIcon from '../../assets/3d/credit-card.png';
+import defenseIcon from '../../assets/3d/vault.png';
+import growthIcon from '../../assets/3d/coins.png';
+import strategyIcon from '../../assets/3d/chess-piece.png';
 
 /**
  * CategoryGrid - Tactical Mission Categories
@@ -14,20 +19,20 @@ const CategoryGrid = ({ onSelectCategory }) => {
   const { t } = useLanguage();
   const { quests } = useLocalQuests();
 
-  // Tactical Categories: OPS, DEFENSE, GROWTH, STRATEGY
+  // Tactical Categories: PILOTAGE, DEFENSE, GROWTH, STRATEGY
   const categories = [
     {
-      id: 'OPS',
-      icon: Zap,
-      labelKey: 'categories.ops.label',
-      descKey: 'categories.ops.desc',
+      id: 'PILOTAGE',
+      image: pilotageIcon,
+      labelKey: 'PILOTAGE', // Hardcoded as per request
+      descKey: 'categories.ops.desc', // Keeping original desc key or updating if needed
       color: 'text-blue-400',
       bgGradient: 'from-blue-500/10',
       borderColor: 'border-blue-500/30 shadow-blue-500/20 group-hover:shadow-blue-500/40',
     },
     {
       id: 'DEFENSE',
-      icon: Shield,
+      image: defenseIcon,
       labelKey: 'categories.defense.label',
       descKey: 'categories.defense.desc',
       color: 'text-emerald-400',
@@ -36,7 +41,7 @@ const CategoryGrid = ({ onSelectCategory }) => {
     },
     {
       id: 'GROWTH',
-      icon: TrendingUp,
+      image: growthIcon,
       labelKey: 'categories.growth.label',
       descKey: 'categories.growth.desc',
       color: 'text-[#E5FF00]',
@@ -45,7 +50,7 @@ const CategoryGrid = ({ onSelectCategory }) => {
     },
     {
       id: 'STRATEGY',
-      icon: Target,
+      image: strategyIcon,
       labelKey: 'categories.strategy.label',
       descKey: 'categories.strategy.desc',
       color: 'text-purple-400',
@@ -62,44 +67,33 @@ const CategoryGrid = ({ onSelectCategory }) => {
   return (
     <div className="grid grid-cols-2 gap-3 px-6">
       {categories.map((cat, index) => {
-        const Icon = cat.icon;
         const count = getQuestCount(cat.id);
 
         return (
           <button
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className="group relative h-32 bg-[#0A0A0A] border border-neutral-800 hover:border-neutral-600 rounded-2xl overflow-hidden text-left transition-all active:scale-95 flex flex-col justify-between p-4"
+            className="group relative h-32 bg-black border border-white/10 hover:border-[#E2FF00] rounded-2xl overflow-hidden text-left transition-all active:scale-95 flex flex-col justify-end p-4"
           >
             {/* Animated Background Gradient */}
             <div className={`absolute inset-0 bg-gradient-to-br ${cat.bgGradient} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-            {/* Watermark Icon (Giant, rotated, decorative) */}
-            <Icon
-              className={`absolute -right-4 -bottom-4 w-24 h-24 opacity-[0.03] group-hover:opacity-[0.07] transform -rotate-12 group-hover:rotate-0 transition-all duration-500 ${cat.color}`}
-              strokeWidth={1}
-            />
-
-            {/* Top Row: Icon & Index */}
-            <div className="flex justify-between items-start w-full relative z-10">
-              {/* Tactical Badge */}
-              <div className={`w-10 h-10 rounded-xl bg-neutral-900/80 backdrop-blur-sm flex items-center justify-center border shadow-[0_0_15px_rgba(0,0,0,0)] transition-all duration-300 ${cat.borderColor} ${cat.color}`}>
-                <Icon className="w-5 h-5" strokeWidth={2} />
-              </div>
-
-              {/* Industrial Index Number */}
-              <span className="font-mono text-[10px] text-neutral-600 border border-neutral-800 px-1.5 py-0.5 rounded bg-black/50">
-                {index + 1}
-              </span>
+            {/* 3D Asset (Main Visual) */}
+            <div className="absolute right-0 bottom-0 w-24 h-24 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3 z-0 pointer-events-none">
+              <img
+                src={cat.image}
+                alt=""
+                className="w-full h-full object-contain mix-blend-lighten opacity-95"
+              />
             </div>
 
-            {/* Bottom Row: Text Info */}
-            <div className="relative z-10">
-              <h3 className="font-sans font-bold text-white text-sm tracking-tight uppercase">
+            {/* Text Info */}
+            <div className="relative z-10 pointer-events-none">
+              <h3 className="font-sans font-bold text-white text-sm tracking-tight uppercase drop-shadow-md">
                 {t(cat.labelKey)}
               </h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className="block font-mono text-[9px] text-neutral-500 uppercase">
+                <span className="block font-mono text-[9px] text-neutral-400 uppercase bg-black/40 px-1 rounded backdrop-blur-sm">
                   {t(cat.descKey)}
                 </span>
                 {count > 0 && (
