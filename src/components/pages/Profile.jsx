@@ -26,8 +26,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import LanguageToggle from '../app/LanguageToggle';
-import CountryToggle from '../app/CountryToggle';
 import LoadingSpinner from '../app/LoadingSpinner';
 import AppBackground from '../app/AppBackground';
 import { auth, db } from '../../services/firebase';

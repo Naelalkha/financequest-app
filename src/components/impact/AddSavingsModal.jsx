@@ -75,7 +75,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
 
     try {
       const amount = Number(formData.amount);
-      
+
       // Double vérification (défense en profondeur)
       if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
         throw new Error('Invalid amount value');
@@ -127,7 +127,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
     } catch (error) {
       console.error('Error adding savings:', error);
       setErrors({ submit: t('impact.modal.error') });
-      
+
       if (window.toast) {
         window.toast.error(t('impact.modal.error'));
       }
@@ -152,11 +152,11 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={handleClose}
     >
-      <div 
+      <div
         className="relative w-full max-w-md rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.3)] max-h-[90vh] overflow-y-auto border border-white/10"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -170,10 +170,10 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
       >
         {/* Ligne d'accent en haut */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 
+          <h2
             id="modal-title"
             className="text-2xl font-bold text-white"
           >
@@ -193,7 +193,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Titre */}
           <div>
-            <label 
+            <label
               htmlFor="title"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
@@ -206,11 +206,10 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
               value={formData.title}
               onChange={handleChange}
               placeholder={t('impact.modal.fields.title_placeholder')}
-              className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
-                errors.title
+              className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.title
                   ? 'border-red-500/50 focus:ring-red-500'
                   : 'border-white/10 focus:ring-amber-500'
-              } text-white placeholder-gray-400`}
+                } text-white placeholder-gray-400`}
               disabled={isSubmitting}
             />
             {errors.title && (
@@ -223,7 +222,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
           {/* Montant et Période */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label 
+              <label
                 htmlFor="amount"
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
@@ -242,11 +241,10 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
                   placeholder={t('impact.modal.fields.amount_placeholder')}
                   step="0.01"
                   min="0"
-                  className={`w-full pl-8 pr-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
-                    errors.amount
+                  className={`w-full pl-8 pr-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.amount
                       ? 'border-red-500/50 focus:ring-red-500'
                       : 'border-white/10 focus:ring-amber-500'
-                  } text-white placeholder-gray-400`}
+                    } text-white placeholder-gray-400`}
                   disabled={isSubmitting}
                 />
               </div>
@@ -258,7 +256,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
             </div>
 
             <div className="relative" ref={periodSelectRef}>
-              <label 
+              <label
                 htmlFor="period"
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
@@ -268,17 +266,16 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
                 <button
                   type="button"
                   onClick={() => !isSubmitting && setIsPeriodOpen(!isPeriodOpen)}
-                disabled={isSubmitting}
-                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors text-left flex items-center justify-between text-white ${
-                    errors.period
+                  disabled={isSubmitting}
+                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl focus:outline-none focus:ring-2 transition-colors text-left flex items-center justify-between text-white ${errors.period
                       ? 'border-red-500/50 focus:ring-red-500'
                       : 'border-white/10 focus:ring-amber-500'
-                  }`}
+                    }`}
                   style={{
                     borderWidth: '1px',
                     borderStyle: 'solid'
                   }}
-              >
+                >
                   <span>{formData.period === 'month' ? t('impact.modal.period.month') : t('impact.modal.period.year')}</span>
                   <FaChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isPeriodOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -290,9 +287,8 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
                         setFormData(prev => ({ ...prev, period: 'month' }));
                         setIsPeriodOpen(false);
                       }}
-                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
-                        formData.period === 'month' ? 'bg-white/5' : ''
-                      }`}
+                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${formData.period === 'month' ? 'bg-white/5' : ''
+                        }`}
                     >
                       {t('impact.modal.period.month')}
                     </button>
@@ -302,9 +298,8 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
                         setFormData(prev => ({ ...prev, period: 'year' }));
                         setIsPeriodOpen(false);
                       }}
-                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${
-                        formData.period === 'year' ? 'bg-white/5' : ''
-                      }`}
+                      className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors ${formData.period === 'year' ? 'bg-white/5' : ''
+                        }`}
                     >
                       {t('impact.modal.period.year')}
                     </button>
@@ -316,7 +311,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
 
           {/* Détails */}
           <div>
-            <label 
+            <label
               htmlFor="note"
               className="block text-sm font-medium text-gray-300 mb-2"
             >

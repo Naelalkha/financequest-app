@@ -33,8 +33,8 @@ const QuestsView = ({
                 <button
                     onClick={() => setTab("ACTIVE")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ACTIVE"
-                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                            : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
+                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                        : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
                         }`}
                 >
                     <LayoutList className="w-3 h-3" />
@@ -43,8 +43,8 @@ const QuestsView = ({
                 <button
                     onClick={() => setTab("ARCHIVE")}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ARCHIVE"
-                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                            : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
+                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                        : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
                         }`}
                 >
                     <Archive className="w-3 h-3" />

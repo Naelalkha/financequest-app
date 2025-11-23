@@ -12,6 +12,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { db } from '../../services/firebase';
 import { getUserDailyChallenge } from '../../services/dailyChallenge';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
+import { updateGamificationOnQuestComplete } from '../../services/gamification';
 
 // Components
 import AppBackground from '../app/AppBackground';
@@ -256,18 +257,41 @@ const Dashboard = () => {
         });
 
         console.log('✅ Savings event created:', savingsEvent.id);
-
-        // Show detailed success with savings
-        toast.success(
-          `🎉 ${modifiedQuest.title} completed!\n💰 +€${annualSavings.toFixed(2)}/year\n⚡ +${modifiedQuest.xpReward} XP`,
-          { autoClose: 5000 }
-        );
-      } else {
-        // No monetary value, just show XP
-        toast.success(`🎉 ${modifiedQuest.title} completed! +${modifiedQuest.xpReward} XP`);
       }
 
-      // 2. Track analytics
+      // 2. Update gamification (XP, level, badges)
+      console.log('🎮 Updating gamification...');
+      const gamificationResult = await updateGamificationOnQuestComplete(user.uid, {
+        quest: modifiedQuest,
+        score: null,
+        userProgress: userProgress,
+        allQuests: quests || []
+      });
+
+      if (gamificationResult) {
+        console.log('✅ Gamification updated:', gamificationResult);
+
+        // Show success toast with all rewards
+        const xpGained = gamificationResult.xpGained || 0;
+        const annualSavings = modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0;
+
+        if (annualSavings > 0) {
+          toast.success(
+            `🎉 ${modifiedQuest.title} completed!\n💰 +€${annualSavings.toFixed(2)}/year\n⚡ +${xpGained} XP`,
+            { autoClose: 5000 }
+          );
+        } else {
+          toast.success(`🎉 ${modifiedQuest.title} completed! +${xpGained} XP`);
+        }
+
+        // Level up notification is handled by the gamification service
+      } else {
+        // Fallback if gamification update fails
+        console.warn('⚠️ Gamification update failed, showing basic success');
+        toast.success(`🎉 ${modifiedQuest.title} completed!`);
+      }
+
+      // 3. Track analytics
       trackEvent('quest_completed', {
         questId: modifiedQuest.id,
         monetaryValue: modifiedQuest.monetaryValue,
@@ -275,11 +299,11 @@ const Dashboard = () => {
         source: 'smart_mission_flow'
       });
 
-      // 3. Close modal
+      // 4. Close modal
       setShowQuestDetails(false);
       setSelectedQuest(null);
 
-      // 4. Force impact recalculation to update dashboard immediately
+      // 5. Force impact recalculation to update dashboard immediately
       console.log('🔄 Forcing impact recalculation...');
       setTimeout(async () => {
         try {
@@ -390,7 +414,7 @@ const Dashboard = () => {
         {/* 2.5 Daily Challenge (if exists) */}
         {dailyChallenge && dailyChallenge.status !== 'completed' && (
           <div className="mt-8">
-            <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.dailyChallenge') || 'DAILY CHALLENGE'}</h2>
+            <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dashboard.dailyChallenge') || 'DAILY CHALLENGE'}</h2>
             <DashboardDailyChallenge
               challenge={dailyChallenge}
               onStart={handleStartDailyChallenge}
@@ -401,16 +425,22 @@ const Dashboard = () => {
 
         {/* 2.6 Category Grid */}
         <div className="mt-8">
-          <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.categories') || 'CATEGORIES'}</h2>
+          <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dashboard.categories') || 'CATEGORIES'}</h2>
           <CategoryGrid onSelectCategory={handleSelectCategory} />
         </div>
 
         {/* 3. Bento Stats (Badges & Log) */}
         <div className="mt-8">
-          <h2 className="px-6 font-mono text-xs text-neutral-500 font-bold tracking-widest uppercase mb-3">{t('dashboard.statistics') || 'STATISTICS'}</h2>
+          <div className="px-6 flex justify-between items-end mb-4">
+            <h2 className="font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase">COLLECTION</h2>
+            <button className="text-xs text-neutral-600 hover:text-[#E2FF00] transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+              View All <span className="text-[10px]">&gt;</span>
+            </button>
+          </div>
           <DashboardBentoStats
             badges={badges}
             recentImpact={recentImpact}
+            levelData={levelData}
           />
         </div>
 

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import AppBackground from '../app/AppBackground';
 import BottomNav from '../app/BottomNav';
-import ImpactViewV2 from '../impact/ImpactViewV2';
+import ImpactView from '../impact/ImpactView';
 import { useSavingsEvents } from '../../hooks/useSavingsEvents';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,11 +20,12 @@ const Impact = () => {
     }
   }, [user, loadEvents]);
 
-  // Handlers for ImpactViewV2
+  // Handlers for ImpactView
   const handleAdd = async (data) => {
     console.log('➕ Adding new savings event:', data);
     await createEvent({
       title: data.title,
+      questId: 'manual',
       amount: data.amount,
       period: 'month',
       source: 'manual',
@@ -66,11 +67,11 @@ const Impact = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans pb-24">
       <AppBackground variant="onyx" />
-      
+
       <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
-        
+
         {/* ImpactView with Receipt Design */}
-        <ImpactViewV2
+        <ImpactView
           entries={events}
           onAdd={handleAdd}
           onEdit={handleEdit}

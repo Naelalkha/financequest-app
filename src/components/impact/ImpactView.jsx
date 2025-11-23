@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Plus, Trash2, Edit2, Trophy, Lock } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
-import ImpactModalV2 from "./ImpactModalV2";
+import ImpactModal from "./ImpactModal";
 
 // Milestones configuration
 const MILESTONES = [
@@ -15,9 +15,9 @@ const MILESTONES = [
 ];
 
 /**
- * ImpactViewV2 - Vue principale avec receipt style
+ * ImpactView - Vue principale avec receipt style
  */
-const ImpactViewV2 = ({ entries, onAdd, onEdit, onDelete }) => {
+const ImpactView = ({ entries, onAdd, onEdit, onDelete }) => {
   const { t } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
@@ -280,7 +280,7 @@ const ImpactViewV2 = ({ entries, onAdd, onEdit, onDelete }) => {
         />
       </div>
 
-      <ImpactModalV2
+      <ImpactModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
@@ -293,5 +293,5 @@ const ImpactViewV2 = ({ entries, onAdd, onEdit, onDelete }) => {
   );
 };
 
-export default ImpactViewV2;
+export default ImpactView;
 

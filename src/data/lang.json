@@ -220,7 +220,10 @@
       "bento": {
         "badges": "Badges",
         "impactLog": "Impact Log",
-        "efficiency": "Efficiency"
+        "efficiency": "Efficiency",
+        "nextMilestone": "Next Milestone",
+        "toGo": "to go",
+        "unlocksReward": "Unlocks Reward"
       },
       "dailyChallenge": "Daily Challenge",
       "categories": "Categories",
@@ -960,10 +963,6 @@
           "pending": "Proofs: {{count}} pending",
           "verified": "Proofs: {{count}} verified"
         }
-      },
-      "next_milestone": {
-        "title": "Next milestone",
-        "subtitle": "{{target}} — {{remaining}} left"
       },
       "view_all_milestones": "View all milestones",
       "suggested_actions": {

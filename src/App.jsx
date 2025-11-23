@@ -11,7 +11,6 @@ import Profile from './components/pages/Profile';
 import Onboarding from './components/pages/Onboarding';
 import StarterPackHub from './components/pages/StarterPackHub';
 import Impact from './components/pages/Impact';
-import Achievements from './components/pages/Achievements';
 import BottomNav from './components/app/BottomNav';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
@@ -203,14 +202,7 @@ function AppContent() {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/achievements"
-            element={
-              <PrivateRoute>
-                <Achievements />
-              </PrivateRoute>
-            }
-          />
+
           <Route path="/success" element={<SuccessRedirect />} />
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center px-4">
