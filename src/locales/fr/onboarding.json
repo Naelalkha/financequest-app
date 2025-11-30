@@ -1,0 +1,11 @@
+{
+    "welcome_title": "Bienvenue sur FinanceQuest !",
+    "welcome_subtitle": "Personnalisons ton expérience",
+    "continue": "Continuer",
+    "skip": "Passer pour l'instant",
+    "complete": "Commencer l'aventure",
+    "success": "Bienvenue à bord ! Ton aventure commence maintenant 🚀",
+    "error": "Échec de la configuration. Veuillez réessayer.",
+    "country_label": "Ton pays",
+    "language_label": "Langue préférée"
+}

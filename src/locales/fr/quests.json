@@ -1,0 +1,71 @@
+{
+    "title": "Quêtes Financières",
+    "subtitle": "Choisissez votre aventure d'apprentissage",
+    "tab_active": "Actives",
+    "tab_archive": "Archivées",
+    "find_new_quest": "Trouver nouvelle quête",
+    "scanning": "Recherche d'opportunités...",
+    "no_active": "Aucune mission active",
+    "archive_empty": "Archive vide",
+    "completed_status": "Terminée",
+    "all_quests": "Toutes les Quêtes",
+    "in_progress": "En Cours",
+    "completed": "Terminées",
+    "locked": "Verrouillées",
+    "difficulty": "Difficulté",
+    "duration": "Durée",
+    "category": "Catégorie",
+    "status": "Statut",
+    "replay": "Rejouer",
+    "start": "Démarrer",
+    "saved": "économisé",
+    "openMission": "OUVRIR MISSION",
+    "no_quests": "Aucune quête trouvée",
+    "search_placeholder": "Rechercher des quêtes...",
+    "objectives": "OBJECTIF",
+    "xp_earned": "XP Gagnés",
+    "categories": {
+        "all": "Toutes",
+        "budgeting": "Budget",
+        "saving": "Épargne",
+        "credit": "Crédit",
+        "investing": "Investissement",
+        "taxes": "Impôts",
+        "protect": "Protection"
+    },
+    "difficulties": {
+        "all": "Tous Niveaux",
+        "beginner": "Débutant",
+        "intermediate": "Intermédiaire",
+        "advanced": "Avancé"
+    },
+    "quickwin": {
+        "step1_title": "SÉLECTION CIBLE",
+        "sub_name_placeholder": "Nom du service",
+        "sub_price_placeholder": "VÉRIFIER LE COÛT"
+    },
+    "cutSubscription": {
+        "title": "Coupe 1 abonnement inutile",
+        "description": "Gagne en moyenne ~€13/mois (≈ €156/an) en 5–8 min.",
+        "objectives": [
+            "Repère 1 abonnement que tu n'utilises plus",
+            "Suis le mini-guide pour annuler",
+            "Ajoute l'économie à ton Impact"
+        ],
+        "prerequisites": [
+            "Aucun"
+        ],
+        "card": {
+            "title": "Couper 1 abonnement inutile",
+            "time": "5 min"
+        },
+        "intro": {
+            "title": "Opération Ciseaux",
+            "desc": "Nous allons identifier un prélèvement récurrent qui ne t'apporte plus de joie."
+        },
+        "steps": {
+            "step1_title": "Quel service ?",
+            "step2_label": "Montant mensuel économisé ?"
+        }
+    }
+}

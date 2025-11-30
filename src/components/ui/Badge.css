@@ -1,0 +1,80 @@
+/* Design System Badge */
+.fq-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* Sizes */
+.fq-badge--small {
+    padding: 2px 8px;
+    font-size: 10px;
+}
+
+.fq-badge--medium {
+    padding: 4px 12px;
+    font-size: 11px;
+}
+
+.fq-badge--large {
+    padding: 6px 16px;
+    font-size: 12px;
+}
+
+/* Variants */
+.fq-badge--default {
+    background: #2A2A2A;
+    color: #E0E0E0;
+}
+
+.fq-badge--new {
+    background: #E2FF00;
+    color: #0A0A0A;
+}
+
+.fq-badge--premium {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #0A0A0A;
+}
+
+.fq-badge--completed {
+    background: #00D9A3;
+    color: #0A0A0A;
+}
+
+.fq-badge--in-progress {
+    background: #4A90E2;
+    color: #FFFFFF;
+}
+
+.fq-badge--locked {
+    background: transparent;
+    color: #666666;
+    border: 1px solid #3A3A3A;
+}
+
+.fq-badge--popular {
+    background: #FF6B6B;
+    color: #FFFFFF;
+}
+
+.fq-badge--success {
+    background: #00D9A3;
+    color: #0A0A0A;
+}
+
+.fq-badge--warning {
+    background: #FFA500;
+    color: #0A0A0A;
+}
+
+.fq-badge--info {
+    background: #4A90E2;
+    color: #FFFFFF;
+}

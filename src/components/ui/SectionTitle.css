@@ -1,0 +1,23 @@
+/* Design System Section Title */
+.fq-section-title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.fq-section-title {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #888888;
+    margin: 0;
+}
+
+.fq-section-title-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

@@ -1,0 +1,55 @@
+{
+    "netImpactYTD": "NET IMPACT YTD",
+    "perYearSaved": "/ YEAR SAVED",
+    "startQuest": "START QUEST",
+    "generating": "GENERATING...",
+    "dailyChallenge": "DAILY CHALLENGE",
+    "daily_expires": "Expires",
+    "daily_saved": "Saved",
+    "categories": "CATEGORIES",
+    "statistics": "STATISTICS",
+    "collection": "COLLECTION",
+    "recommended": "RECOMMENDED MISSION",
+    "streak": "Streak",
+    "noRecentImpact": "No recent impact",
+    "categories_list": {
+        "pilotage": {
+            "title": "CONTROL",
+            "subtitle": "Budget & Cashflow"
+        },
+        "defense": {
+            "title": "DEFENSE",
+            "subtitle": "Savings & Security"
+        },
+        "growth": {
+            "title": "GROWTH",
+            "subtitle": "Investment & Income"
+        },
+        "strategy": {
+            "title": "STRATEGY",
+            "subtitle": "Wealth & Long Term"
+        }
+    },
+    "bento": {
+        "badges": "Badges",
+        "impactLog": "Impact Log",
+        "efficiency": "Efficiency",
+        "nextMilestone": "Next Milestone",
+        "toGo": "to go",
+        "unlocksReward": "Unlocks Reward",
+        "badge_novice": "Novice",
+        "badge_first_save": "First Save",
+        "badge_streak": "Streak",
+        "current_level": "Current Level",
+        "level_label": "LEVEL",
+        "level_title": "Financial Explorer",
+        "before_level": "before Level"
+    },
+    "level_titles": {
+        "financial_master": "Financial Master",
+        "confirmed_expert": "Confirmed Expert",
+        "advanced_apprentice": "Advanced Apprentice",
+        "ambitious_novice": "Ambitious Novice",
+        "motivated_beginner": "Motivated Beginner"
+    }
+}

@@ -1,7 +1,11 @@
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import { allQuests } from '../data/quests';
-import { localizeQuest } from '../data/quests/questHelpers';
+
+// Import quests from registry
+import { cutSubscriptionQuest } from '../features/quests/registry';
+
+// Temporary: Use only cut-subscription until quest registry is fully implemented
+const allQuests = [cutSubscriptionQuest];
 
 // Types de défis quotidiens
 const DAILY_CHALLENGE_TYPES = {
@@ -17,40 +21,29 @@ export const generateDailyChallenge = (date = new Date(), options = {}) => {
   const { forceRandom, salt, excludeQuestId, lang = 'fr' } = options;
   const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
   let seed = forceRandom ? Math.floor(Math.random() * 100000) + (salt || 0) : (dayOfYear % 365);
-  
+
   const challengeTypes = Object.values(DAILY_CHALLENGE_TYPES);
   const challengeType = challengeTypes[seed % challengeTypes.length];
-  
+
   // Sélectionner une quête basée sur le seed
   let availableQuests = allQuests.filter(q => !q.isPremium);
   if (excludeQuestId) {
     availableQuests = availableQuests.filter(q => q.id !== excludeQuestId);
   }
-  
+
   if (availableQuests.length === 0) {
     availableQuests = allQuests.filter(q => !q.isPremium); // Fallback si toutes les quêtes sont exclues
   }
-  
+
   const selectedQuest = availableQuests[seed % availableQuests.length];
-  
-  // Localiser la quête pour obtenir le bon titre
-  console.log('🔍 DEBUG selectedQuest:', { 
-    id: selectedQuest?.id, 
-    content: selectedQuest?.content,
-    title_fr: selectedQuest?.title_fr,
-    title_en: selectedQuest?.title_en,
-    title: selectedQuest?.title
-  });
-  
-  const localizedQuest = localizeQuest(selectedQuest, lang);
-  console.log('🔍 DEBUG localizedQuest:', { 
-    title: localizedQuest?.title,
-    lang: lang 
-  });
-  
-  const questTitle = localizedQuest?.title || selectedQuest?.content?.fr?.title || selectedQuest?.content?.en?.title || selectedQuest?.title_fr || selectedQuest?.title_en || selectedQuest?.title || `Quête ${selectedQuest?.id}`;
-  console.log('🔍 DEBUG questTitle final:', questTitle);
-  
+
+  // La quête cut-subscription utilise i18nKey, on récupère le titre depuis i18n
+  // Pour l'instant on utilise un placeholder, l'idéal serait d'importer i18n ici
+  const questTitleKey = selectedQuest?.i18nKey ? `${selectedQuest.i18nKey}.title` : null;
+  const questTitle = selectedQuest?.i18nKey
+    ? (lang === 'en' ? 'Cut one unused subscription' : 'Coupe 1 abonnement inutile') // Hardcoded pour l'instant
+    : selectedQuest?.title || `Quête ${selectedQuest?.id}`;
+
   return {
     id: `daily_${date.toISOString().split('T')[0]}_${seed}`,  // Add seed to make regenerated challenges unique
     type: challengeType,
@@ -116,20 +109,22 @@ export const getUserDailyChallenge = async (userId, lang = 'fr') => {
     const today = new Date().toISOString().split('T')[0];
     const challengeRef = doc(db, 'dailyChallenges', `${userId}_${today}`);
     const challengeSnap = await getDoc(challengeRef);
-    
+
     if (challengeSnap.exists()) {
       const data = challengeSnap.data();
       // Si pas de questTitle ou questTitle undefined, recalculer avec la bonne langue
       if (!data.questTitle || data.questTitle === 'undefined' || data.questTitle.includes('undefined')) {
         const quest = allQuests.find(q => q.id === data.questId);
         if (quest) {
-          const localizedQuest = localizeQuest(quest, lang);
-          data.questTitle = localizedQuest?.title || quest?.content?.fr?.title || quest?.content?.en?.title || `Quête ${quest.id}`;
+          // Utiliser directement la traduction hardcodée pour cut-subscription
+          data.questTitle = quest.i18nKey
+            ? (lang === 'en' ? 'Cut one unused subscription' : 'Coupe 1 abonnement inutile')
+            : quest.title || `Quête ${quest.id}`;
         }
       }
       return data;
     }
-    
+
     // Créer un nouveau défi quotidien
     const newChallenge = generateDailyChallenge(new Date(), { lang });
     const payload = {
@@ -143,7 +138,7 @@ export const getUserDailyChallenge = async (userId, lang = 'fr') => {
     };
     const sanitized = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
     await setDoc(challengeRef, sanitized);
-    
+
     // Retourner un objet avec les champs ajoutés (sans serverTimestamp résolu)
     return {
       ...newChallenge,
@@ -165,18 +160,18 @@ export const completeDailyChallenge = async (userId, challengeId, completionData
   try {
     const today = new Date().toISOString().split('T')[0];
     const challengeRef = doc(db, 'dailyChallenges', `${userId}_${today}`);
-    
+
     // Vérifier si le défi est valide
     const challengeSnap = await getDoc(challengeRef);
     if (!challengeSnap.exists()) {
       throw new Error('Daily challenge not found');
     }
-    
+
     const challenge = challengeSnap.data();
-    
+
     // Vérifier si les exigences sont remplies
     const isCompleted = checkChallengeCompletion(challenge, completionData);
-    
+
     if (isCompleted) {
       // Mettre à jour le statut
       await updateDoc(challengeRef, {
@@ -184,10 +179,10 @@ export const completeDailyChallenge = async (userId, challengeId, completionData
         completedAt: serverTimestamp(),
         completionData
       });
-      
+
       // Attribuer les récompenses
       await awardDailyChallengeRewards(userId, challenge);
-      
+
       return {
         success: true,
         rewards: challenge.rewards,
@@ -208,7 +203,7 @@ export const completeDailyChallenge = async (userId, challengeId, completionData
 // Vérifier si le défi est terminé selon les exigences
 const checkChallengeCompletion = (challenge, completionData) => {
   const { requirements } = challenge;
-  
+
   switch (requirements.target) {
     case 'perfect_score':
       return completionData.score === 100;
@@ -259,7 +254,7 @@ export const getDailyChallengeStats = async (userId) => {
   try {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (userSnap.exists()) {
       const userData = userSnap.data();
       return {
@@ -269,7 +264,7 @@ export const getDailyChallengeStats = async (userId) => {
         totalXP: userData.xp || 0
       };
     }
-    
+
     return {
       totalCompleted: 0,
       currentStreak: 0,

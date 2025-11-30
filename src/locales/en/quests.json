@@ -1,0 +1,71 @@
+{
+    "title": "Financial Quests",
+    "subtitle": "Choose your learning adventure",
+    "tab_active": "Active",
+    "tab_archive": "Archive",
+    "find_new_quest": "Find new quest",
+    "scanning": "Scanning opportunities...",
+    "no_active": "No active missions",
+    "archive_empty": "Archive empty",
+    "completed_status": "Completed",
+    "all_quests": "All Quests",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "locked": "Locked",
+    "difficulty": "Difficulty",
+    "duration": "Duration",
+    "category": "Category",
+    "status": "Status",
+    "replay": "Replay",
+    "start": "Start",
+    "saved": "saved",
+    "openMission": "OPEN MISSION",
+    "no_quests": "No quests found",
+    "search_placeholder": "Search quests...",
+    "objectives": "OBJECTIVE",
+    "xp_earned": "XP Earned",
+    "categories": {
+        "all": "All",
+        "budgeting": "Budgeting",
+        "saving": "Saving",
+        "credit": "Credit",
+        "investing": "Investing",
+        "taxes": "Taxes",
+        "protect": "Protection"
+    },
+    "difficulties": {
+        "all": "All Levels",
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+    },
+    "quickwin": {
+        "step1_title": "TARGET SELECTION",
+        "sub_name_placeholder": "Service name",
+        "sub_price_placeholder": "VERIFY COST"
+    },
+    "cutSubscription": {
+        "title": "Cut one unused subscription",
+        "description": "Save an average of ~€13/month (≈ €156/yr) in 5–8 min.",
+        "objectives": [
+            "Spot 1 subscription you no longer use",
+            "Follow the mini-guide to cancel",
+            "Add the saving to your Impact"
+        ],
+        "prerequisites": [
+            "None"
+        ],
+        "card": {
+            "title": "Cut 1 useless subscription",
+            "time": "5 min"
+        },
+        "intro": {
+            "title": "Operation Scissors",
+            "desc": "We'll identify a recurring charge that no longer brings you joy."
+        },
+        "steps": {
+            "step1_title": "Which service?",
+            "step2_label": "Monthly amount saved?"
+        }
+    }
+}

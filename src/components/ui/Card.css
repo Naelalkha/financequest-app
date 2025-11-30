@@ -1,0 +1,49 @@
+/* Design System Card - Onyx & Volt */
+.fq-card {
+    background: #1A1A1A;
+    border: 1px solid #2A2A2A;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Padding variants */
+.fq-card--padding-none {
+    padding: 0;
+}
+
+.fq-card--padding-small {
+    padding: 12px;
+}
+
+.fq-card--padding-medium {
+    padding: 20px;
+}
+
+.fq-card--padding-large {
+    padding: 32px;
+}
+
+/* Hover effect */
+.fq-card--hover {
+    cursor: pointer;
+}
+
+.fq-card--hover:hover {
+    border-color: #3A3A3A;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Volt glow effect (for premium cards) */
+.fq-card--glow {
+    border-color: #E2FF00;
+    box-shadow:
+        0 0 20px rgba(226, 255, 0, 0.15),
+        inset 0 0 30px rgba(226, 255, 0, 0.05);
+}
+
+.fq-card--glow:hover {
+    box-shadow:
+        0 0 30px rgba(226, 255, 0, 0.25),
+        inset 0 0 40px rgba(226, 255, 0, 0.08);
+}

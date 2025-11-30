@@ -1,0 +1,64 @@
+{
+    "actions": {
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "next": "Suivant",
+        "back": "Retour",
+        "confirm": "Confirmer",
+        "close": "Fermer",
+        "start": "Commencer",
+        "continue": "Continuer",
+        "finish": "Terminer",
+        "complete": "Terminer"
+    },
+    "ui": {
+        "close": "Fermer",
+        "cancel": "Annuler",
+        "continue": "Continuer",
+        "complete": "Terminer",
+        "day": "jour",
+        "year": "an",
+        "loading_app": "Chargement de FinanceQuest..."
+    },
+    "xp": "XP",
+    "status": {
+        "loading": "Chargement...",
+        "success": "Succès !",
+        "error": "Une erreur est survenue",
+        "saved": "Enregistré",
+        "completed": "Terminé"
+    },
+    "nav": {
+        "home": "Accueil",
+        "dashboard": "Accueil",
+        "quests": "Quêtes",
+        "impact": "Impact",
+        "profile": "Profil",
+        "premium": "Premium",
+        "settings": "Paramètres",
+        "back": "Retour",
+        "menu": "Menu",
+        "a11y": {
+            "home": "Aller à l'accueil",
+            "quests": "Aller aux quêtes",
+            "impact": "Aller à l'impact",
+            "profile": "Aller au profil"
+        }
+    },
+    "errors": {
+        "generic": "Une erreur est survenue",
+        "not_found": "Page non trouvée",
+        "unauthorized": "Accès non autorisé",
+        "network": "Erreur réseau",
+        "network_error": "Erreur réseau. Vérifiez votre connexion.",
+        "quest_load_failed": "Échec du chargement des quêtes",
+        "quest_not_found": "Quête non trouvée",
+        "save_progress_failed": "Échec de la sauvegarde de la progression",
+        "complete_quest_failed": "Échec de la complétion de la quête"
+    },
+    "impact": {
+        "hero": {
+            "total_label": "IMPACT PROJETÉ"
+        }
+    }
+}

@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
-import { 
-  getQuestsByCountry, 
-  getQuestsByCategory, 
-  getFreeQuests, 
-  getPremiumQuests,
-  getRecommendedQuests,
-  getQuestById
-} from '../data/quests/index.js';
+import { useTranslation } from 'react-i18next';
+import { cutSubscriptionQuest } from '../features/quests/registry';
 import { toast } from 'react-toastify';
+
+// Temporary: Simple quest helpers until full registry is implemented
+// Only return the quest for 'global' to avoid duplicates
+const getQuestsByCountry = (country) => country === 'global' ? [cutSubscriptionQuest] : [];
+const getQuestsByCategory = () => [cutSubscriptionQuest];
+const getFreeQuests = () => [cutSubscriptionQuest];
+const getPremiumQuests = () => [];
+const getRecommendedQuests = () => [cutSubscriptionQuest];
+const getQuestById = (id) => id === cutSubscriptionQuest.id ? cutSubscriptionQuest : null;
 
 /**
  * Custom hook for managing local quests with country support
  */
 export const useLocalQuests = (filters = {}) => {
   const { user } = useAuth();
-  const { t, currentLang } = useLanguage();
+  const { t, i18n } = useTranslation('quests');
   const [quests, setQuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,17 +36,17 @@ export const useLocalQuests = (filters = {}) => {
 
     try {
       setLoading(true);
-      
+
       // Get all quests for user's country (global + country-specific)
       let allQuests = [];
-      
+
       // Add global quests
-      const globalQuests = getQuestsByCountry('global', currentLang);
+      const globalQuests = getQuestsByCountry('global', i18n.language);
       allQuests.push(...globalQuests);
-      
+
       // Add country-specific quests
       if (userCountry !== 'global') {
-        const countryQuests = getQuestsByCountry(userCountry, currentLang);
+        const countryQuests = getQuestsByCountry(userCountry, i18n.language);
         allQuests.push(...countryQuests);
       }
 
@@ -60,17 +62,17 @@ export const useLocalQuests = (filters = {}) => {
       toast.error(t('errors.quest_load_failed') || 'Failed to load quests');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userCountry, currentLang]);
+  }, [user, userCountry, i18n.language]);
 
   /**
    * Get quests by category for user's country
    */
   const getQuestsByCategoryForUser = (category) => {
     if (!user) return [];
-    
-    const globalCategoryQuests = getQuestsByCategory(category, currentLang, 'global');
-    const countryCategoryQuests = getQuestsByCategory(category, currentLang, userCountry);
-    
+
+    const globalCategoryQuests = getQuestsByCategory(category, i18n.language, 'global');
+    const countryCategoryQuests = getQuestsByCategory(category, i18n.language, userCountry);
+
     return [...globalCategoryQuests, ...countryCategoryQuests];
   };
 
@@ -79,10 +81,10 @@ export const useLocalQuests = (filters = {}) => {
    */
   const getFreeQuestsForUser = () => {
     if (!user) return [];
-    
-    const globalFreeQuests = getFreeQuests(currentLang, 'global');
-    const countryFreeQuests = getFreeQuests(currentLang, userCountry);
-    
+
+    const globalFreeQuests = getFreeQuests(i18n.language, 'global');
+    const countryFreeQuests = getFreeQuests(i18n.language, userCountry);
+
     return [...globalFreeQuests, ...countryFreeQuests];
   };
 
@@ -91,10 +93,10 @@ export const useLocalQuests = (filters = {}) => {
    */
   const getPremiumQuestsForUser = () => {
     if (!user) return [];
-    
-    const globalPremiumQuests = getPremiumQuests(currentLang, 'global');
-    const countryPremiumQuests = getPremiumQuests(currentLang, userCountry);
-    
+
+    const globalPremiumQuests = getPremiumQuests(i18n.language, 'global');
+    const countryPremiumQuests = getPremiumQuests(i18n.language, userCountry);
+
     return [...globalPremiumQuests, ...countryPremiumQuests];
   };
 
@@ -103,16 +105,16 @@ export const useLocalQuests = (filters = {}) => {
    */
   const getRecommendedQuestsForUser = (completedQuestIds = [], userLevel = 1) => {
     if (!user) return [];
-    
-    const globalRecommended = getRecommendedQuests(completedQuestIds, userLevel, currentLang, 'global');
-    const countryRecommended = getRecommendedQuests(completedQuestIds, userLevel, currentLang, userCountry);
-    
+
+    const globalRecommended = getRecommendedQuests(completedQuestIds, userLevel, i18n.language, 'global');
+    const countryRecommended = getRecommendedQuests(completedQuestIds, userLevel, i18n.language, userCountry);
+
     // Combine and deduplicate
     const allRecommended = [...globalRecommended, ...countryRecommended];
-    const uniqueRecommended = allRecommended.filter((quest, index, self) => 
+    const uniqueRecommended = allRecommended.filter((quest, index, self) =>
       index === self.findIndex(q => q.id === quest.id)
     );
-    
+
     return uniqueRecommended.slice(0, 5); // Return top 5
   };
 
@@ -121,16 +123,16 @@ export const useLocalQuests = (filters = {}) => {
    */
   const getQuestByIdForUser = (questId) => {
     if (!user) return null;
-    
+
     // Try to get from global quests first
-    let quest = getQuestById(questId, currentLang);
-    
+    let quest = getQuestById(questId, i18n.language);
+
     // If not found in global, try country-specific
     if (!quest && userCountry !== 'global') {
       // This would require a modification to getQuestById to support country filtering
       // For now, we'll return the global quest if found
     }
-    
+
     return quest;
   };
 

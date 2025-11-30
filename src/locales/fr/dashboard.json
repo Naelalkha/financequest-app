@@ -1,0 +1,55 @@
+{
+    "netImpactYTD": "IMPACT NET ANNÉE",
+    "perYearSaved": "/ AN ÉCONOMISÉ",
+    "startQuest": "LANCER QUÊTE",
+    "generating": "GÉNÉRATION...",
+    "dailyChallenge": "DÉFI QUOTIDIEN",
+    "daily_expires": "Expire",
+    "daily_saved": "Économisé",
+    "categories": "CATÉGORIES",
+    "statistics": "STATISTIQUES",
+    "collection": "COLLECTION",
+    "recommended": "MISSION RECOMMANDÉE",
+    "streak": "Série",
+    "noRecentImpact": "Aucun impact récent",
+    "categories_list": {
+        "pilotage": {
+            "title": "PILOTAGE",
+            "subtitle": "Budget & Cashflow"
+        },
+        "defense": {
+            "title": "DÉFENSE",
+            "subtitle": "Épargne & Sécurité"
+        },
+        "growth": {
+            "title": "CROISSANCE",
+            "subtitle": "Investissement & Revenus"
+        },
+        "strategy": {
+            "title": "STRATÉGIE",
+            "subtitle": "Patrimoine & Long Terme"
+        }
+    },
+    "bento": {
+        "badges": "Badges",
+        "impactLog": "Journal d'Impact",
+        "efficiency": "Efficacité",
+        "nextMilestone": "Prochain Jalon",
+        "toGo": "à atteindre",
+        "unlocksReward": "Débloque une Récompense",
+        "badge_novice": "Novice",
+        "badge_first_save": "Première Économie",
+        "badge_streak": "Série",
+        "current_level": "Niveau Actuel",
+        "level_label": "NIVEAU",
+        "level_title": "Explorateur Financier",
+        "before_level": "avant le Niveau"
+    },
+    "level_titles": {
+        "financial_master": "Maître Financier",
+        "confirmed_expert": "Expert Confirmé",
+        "advanced_apprentice": "Apprenti Avancé",
+        "ambitious_novice": "Novice Ambitieux",
+        "motivated_beginner": "Débutant Motivé"
+    }
+}

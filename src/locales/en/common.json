@@ -1,0 +1,64 @@
+{
+    "actions": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "next": "Next",
+        "back": "Back",
+        "confirm": "Confirm",
+        "close": "Close",
+        "start": "Start",
+        "continue": "Continue",
+        "finish": "Finish",
+        "complete": "Complete"
+    },
+    "ui": {
+        "close": "Close",
+        "cancel": "Cancel",
+        "continue": "Continue",
+        "complete": "Complete",
+        "day": "day",
+        "year": "year",
+        "loading_app": "Loading FinanceQuest..."
+    },
+    "xp": "XP",
+    "status": {
+        "loading": "Loading...",
+        "success": "Success!",
+        "error": "An error occurred",
+        "saved": "Saved",
+        "completed": "Completed"
+    },
+    "nav": {
+        "home": "Home",
+        "dashboard": "Home",
+        "quests": "Quests",
+        "impact": "Impact",
+        "profile": "Profile",
+        "premium": "Premium",
+        "settings": "Settings",
+        "back": "Back",
+        "menu": "Menu",
+        "a11y": {
+            "home": "Go to Home",
+            "quests": "Go to Quests",
+            "impact": "Go to Impact",
+            "profile": "Go to Profile"
+        }
+    },
+    "errors": {
+        "generic": "An error occurred",
+        "not_found": "Page not found",
+        "unauthorized": "Unauthorized access",
+        "network": "Network error",
+        "network_error": "Network error. Check your connection.",
+        "quest_load_failed": "Failed to load quests",
+        "quest_not_found": "Quest not found",
+        "save_progress_failed": "Failed to save progress",
+        "complete_quest_failed": "Failed to complete quest"
+    },
+    "impact": {
+        "hero": {
+            "total_label": "PROJECTED IMPACT"
+        }
+    }
+}
