@@ -17,7 +17,7 @@ const DashboardHeader = ({ stats, userAvatar }) => {
             </div>
 
             {/* HUD Controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
                 {/* Streak Widget - Simplified */}
                 <div className="flex items-center gap-1.5 bg-blue/10 border border-blue/30 px-2 py-1 rounded-full backdrop-blur-md">
                     <Flame className="w-4 h-4 text-blue fill-blue" />
@@ -53,9 +53,6 @@ const DashboardHeader = ({ stats, userAvatar }) => {
                             strokeLinecap="round"
                         />
                     </svg>
-                    <span className="font-mono text-[8px] font-bold text-volt absolute -bottom-3 whitespace-nowrap">
-                        LVL {stats.level}
-                    </span>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center overflow-hidden border border-white/20">
                         <img src={userAvatar || "https://ui-avatars.com/api/?name=User&background=random"} alt="Avatar" className="w-full h-full object-cover opacity-80 grayscale hover:grayscale-0 transition-all" />
                     </div>

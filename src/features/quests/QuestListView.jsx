@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Archive, LayoutList, Plus } from "lucide-react";
+import { Archive, LayoutList, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import useLocalizedQuest from '../../hooks/useLocalizedQuest';
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocalQuests } from "../../hooks/useLocalQuests";
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -256,20 +257,26 @@ const QuestListView = () => {
                                 <p className="font-mono text-xs text-neutral-500">{t('archive_empty').toUpperCase()}</p>
                             </div>
                         ) : (
-                            completedQuests.map(quest => (
-                                <div key={quest.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center text-neutral-400 text-xs">
-                                            ✓
+                            completedQuests.map(quest => {
+                                const CompletedQuestItem = () => {
+                                    const localizedQuest = useLocalizedQuest(quest);
+                                    return (
+                                        <div className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center text-neutral-400 text-xs">
+                                                    ✓
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-sans font-bold text-white line-through decoration-gold">{localizedQuest?.title || quest.title}</h4>
+                                                    <span className="font-mono text-[10px] text-emerald">+{(quest.estimatedAnnual || quest.estimatedImpact || 0).toFixed(2)} SAVED</span>
+                                                </div>
+                                            </div>
+                                            <span className="font-mono text-[10px] text-neutral-600">{t('completed_status').toUpperCase()}</span>
                                         </div>
-                                        <div>
-                                            <h4 className="font-sans font-bold text-white line-through decoration-gold">{quest.title}</h4>
-                                            <span className="font-mono text-[10px] text-emerald">+{(quest.estimatedAnnual || quest.estimatedImpact || 0).toFixed(2)} SAVED</span>
-                                        </div>
-                                    </div>
-                                    <span className="font-mono text-[10px] text-neutral-600">{t('completed_status').toUpperCase()}</span>
-                                </div>
-                            ))
+                                    );
+                                };
+                                return <CompletedQuestItem key={quest.id} />;
+                            })
                         )}
                     </div>
                 )}

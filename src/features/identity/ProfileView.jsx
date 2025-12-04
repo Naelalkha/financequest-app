@@ -34,7 +34,7 @@ import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'f
 
 const Profile = () => {
   const { user, updateUserProfile, logout, resetPassword } = useAuth();
-  const { t, i18n } = useTranslation('profile');
+  const { t, i18n } = useTranslation('auth');
   const setLanguage = (lang) => i18n.changeLanguage(lang);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -242,13 +242,13 @@ const Profile = () => {
             {/* Status Badge */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-neutral-900 border border-neutral-800 text-[9px] font-mono font-bold px-3 py-1 rounded-full text-neutral-400 shadow-xl whitespace-nowrap flex items-center gap-1">
               <div className={`w-1.5 h-1.5 rounded-full ${userData?.isPremium ? 'bg-volt' : 'bg-neutral-500'}`}></div>
-              {userData?.isPremium ? 'PRO TIER' : 'FREE TIER'}
+              {userData?.isPremium ? t('profile.statusProTier') : t('profile.statusFreeTier')}
             </div>
           </div>
 
           <div className="flex-1 min-w-0">
             <h1 className="font-sans font-black text-2xl text-white tracking-tight truncate uppercase">
-              {userData?.displayName || user?.email?.split('@')[0] || 'USER'}
+              {userData?.displayName || user?.email?.split('@')[0] || t('profile.defaultUsername')}
             </h1>
             <div className="flex items-center gap-2 text-neutral-500 mb-2">
               <Mail className="w-3 h-3" />
@@ -257,11 +257,11 @@ const Profile = () => {
 
             <div className="flex items-center gap-2">
               <span className="bg-neutral-900 text-neutral-300 px-2 py-0.5 rounded text-[10px] font-mono border border-neutral-800">
-                ID: {user?.uid?.substring(0, 8)}
+                {t('profile.userIdLabel')} {user?.uid?.substring(0, 8)}
               </span>
               <span className="bg-volt/10 text-volt px-2 py-0.5 rounded text-[10px] font-mono border border-volt/20 font-bold flex items-center gap-1">
                 <Zap className="w-3 h-3" />
-                LVL {userData?.level || 1}
+                {t('profile.levelAbbr')} {userData?.level || 1}
               </span>
             </div>
           </div>
@@ -283,7 +283,7 @@ const Profile = () => {
                 {isActive && (
                   <div className="absolute inset-0 bg-volt rounded-full -z-10 animate-in zoom-in-95 duration-200"></div>
                 )}
-                <span className="tracking-widest">[{tab.replace('_', ' ')}]</span>
+                <span className="tracking-widest">[{tab === 'ID_CARD' ? t('profile.tabIdCard') : tab === 'SYSTEM' ? t('profile.tabSystem') : t('profile.tabUpgrade')}]</span>
               </button>
             );
           })}
@@ -485,7 +485,7 @@ const Profile = () => {
                 </div>
 
                 <div className="text-center pt-4 pb-2">
-                  <span className="font-mono text-[10px] text-neutral-700">Moniyo v1.0.0</span>
+                  <span className="font-mono text-[10px] text-neutral-700">{t('profile.appVersion')}</span>
                 </div>
               </div>
             )}
@@ -530,14 +530,14 @@ const Profile = () => {
                               {t('profile.upgradeTitle') || 'Premium Access'}
                             </span>
                           </div>
-                          <h2 className="text-3xl font-black text-white italic tracking-tighter">PRO ACCESS</h2>
+                          <h2 className="text-3xl font-black text-white italic tracking-tighter">{t('profile.proAccessTitle')}</h2>
                         </div>
                         <div className="text-right">
                           <span className="block text-2xl font-bold text-white">
                             {billingCycle === 'MONTHLY' ? '€4.99' : '€47.99'}
                           </span>
                           <span className="text-[10px] text-neutral-500 uppercase">
-                            {billingCycle === 'MONTHLY' ? '/ Month' : '/ Year'}
+                            {billingCycle === 'MONTHLY' ? t('profile.billingCycleMonth') : t('profile.billingCycleYear')}
                           </span>
                         </div>
                       </div>

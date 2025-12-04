@@ -1,9 +1,13 @@
 import React from 'react';
 import { Clock, CheckCircle2, XCircle } from 'lucide-react';
+import useLocalizedQuest from '../../../hooks/useLocalizedQuest';
 
 const DashboardQuestCartridge = ({ quest, onComplete, onNavigate }) => {
-    const isNetflix = quest.iconType === "NETFLIX" || quest.title?.toLowerCase().includes('netflix');
-    const isSpotify = quest.title?.toLowerCase().includes('spotify');
+    // ✅ Charger les traductions via le hook
+    const localizedQuest = useLocalizedQuest(quest);
+
+    const isNetflix = quest.iconType === "NETFLIX" || localizedQuest?.title?.toLowerCase().includes('netflix');
+    const isSpotify = localizedQuest?.title?.toLowerCase().includes('spotify');
 
     // Determine icon based on quest content if not explicit
     let IconDisplay = (
@@ -55,10 +59,10 @@ const DashboardQuestCartridge = ({ quest, onComplete, onNavigate }) => {
                             </span>
                         </div>
                         <h3 className="font-space font-bold text-xl text-white leading-none tracking-tight truncate mb-1">
-                            {quest.title}
+                            {localizedQuest?.title || quest.title || 'Quest'}
                         </h3>
                         <p className="font-mono text-xs text-gray-400 truncate tracking-tight">
-                            {quest.description}
+                            {localizedQuest?.description || quest.description || ''}
                         </p>
 
                         {/* Progress Bar styled as 'Loading' */}

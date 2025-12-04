@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, Zap, CheckCircle2, Target, ArrowRight, Shield, TrendingUp, BookOpen } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import useLocalizedQuest from '../../../hooks/useLocalizedQuest';
 
 const SUBSCRIPTION_SERVICES = [
     { name: "Netflix", color: "bg-red-600", defaultPrice: 13.49 },
@@ -42,6 +43,10 @@ const INTEL_DATABASE = {
  */
 const QuestDetailsModal = ({ quest, onClose, onComplete }) => {
     const { t } = useTranslation(['quests', 'common']);
+
+    // ✅ Charger les traductions via le hook
+    const localizedQuest = useLocalizedQuest(quest);
+
     const [step, setStep] = useState('INTEL'); // 'INTEL' | 'EXECUTION' | 'DEBRIEF'
 
     // Form State
@@ -70,7 +75,7 @@ const QuestDetailsModal = ({ quest, onClose, onComplete }) => {
     const handleConfirm = () => {
         const finalTitle = selectedService.name === "Other" && customName
             ? `CANCEL ${customName.toUpperCase()} `
-            : quest.title;
+            : localizedQuest?.title || quest.title;
 
         const modifiedQuest = {
             ...quest,
@@ -147,7 +152,7 @@ const QuestDetailsModal = ({ quest, onClose, onComplete }) => {
                                 <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest mb-2 block">
                                     {t('objectives') || 'OBJECTIVE'}
                                 </span>
-                                <p className="text-white font-bold text-lg leading-tight">"{quest.description}"</p>
+                                <p className="text-white font-bold text-lg leading-tight">"{localizedQuest?.description || quest.description}"</p>
                             </div>
                         </div>
                     )}

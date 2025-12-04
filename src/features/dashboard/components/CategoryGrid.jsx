@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocalQuests } from "../../../hooks/useLocalQuests";
 
 // Import 3D Assets
-import pilotageIcon from '../../../assets/credit-card.jpeg';
-import defenseIcon from '../../../assets/vault.jpeg';
-import growthIcon from '../../../assets/coins.jpeg';
-import strategyIcon from '../../../assets/chess-piece.jpeg';
+import pilotageIcon from '../../../assets/credit-card.png';
+import defenseIcon from '../../../assets/vault.png';
+import growthIcon from '../../../assets/coins.png';
+import strategyIcon from '../../../assets/chess.png';
 
 /**
  * CategoryGrid - Tactical Mission Categories
@@ -73,38 +73,37 @@ const CategoryGrid = ({ onSelectCategory }) => {
           <button
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className="group relative h-32 bg-black border border-white/15 shadow-lg hover:border-[#E2FF00] rounded-2xl overflow-hidden text-left transition-all active:scale-95 flex flex-col justify-end p-4"
+            className="group relative h-[8rem] bg-black border border-white/15 shadow-lg hover:border-[#E2FF00] rounded-2xl overflow-hidden text-left transition-all active:scale-95 flex flex-col justify-end p-3.5"
           >
+            {/* Gradient Overlay (Background aesthetic) */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-0" />
 
-            {/* 3D Asset (Main Visual) */}
-            <div className="absolute right-0 bottom-0 w-24 h-24 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3 z-0 pointer-events-none">
+            {/* 3D Asset (Larger and repositioned) */}
+            <div className="absolute right-[-1.2rem] bottom-[-1.2rem] w-[8rem] h-[8rem] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3 z-0 pointer-events-none">
               {cat.image ? (
                 <img
                   src={cat.image}
                   alt=""
-                  className="w-full h-full object-contain opacity-95"
+                  className="w-full h-full object-contain opacity-95 drop-shadow-xl"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-6xl opacity-50">
+                <div className="w-full h-full flex items-center justify-center text-5xl opacity-50">
                   {cat.id === 'GROWTH' ? '📈' : '♟️'}
                 </div>
               )}
             </div>
 
-            {/* Gradient Overlay (Envelops the card and image) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-0" />
-
-            {/* Text Info */}
-            <div className="relative z-10 pointer-events-none">
-              <h3 className="font-sans font-bold text-white text-sm tracking-tight uppercase drop-shadow-md">
+            {/* Text Info (Enhanced readability) */}
+            <div className="relative z-20 pointer-events-none">
+              <h3 className="font-sans font-bold text-white text-sm tracking-tight uppercase drop-shadow-lg whitespace-nowrap">
                 {t(cat.labelKey)}
               </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="block font-mono text-[9px] text-neutral-400 uppercase bg-black/40 pr-1 rounded backdrop-blur-sm">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="font-mono text-[9px] text-neutral-300 uppercase bg-black/70 backdrop-blur-sm py-0.5 pr-1.5 rounded leading-tight inline-block">
                   {t(cat.subtitle)}
                 </span>
                 {count > 0 && (
-                  <span className={`w-1.5 h-1.5 rounded-full ${cat.color.replace('text-', 'bg-')} animate-pulse`} />
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cat.color.replace('text-', 'bg-')} animate-pulse shadow-[0_0_6px_currentColor]`} />
                 )}
               </div>
             </div>

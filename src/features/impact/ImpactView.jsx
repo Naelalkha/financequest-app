@@ -3,25 +3,53 @@ import { Plus, Trash2, Edit2, Trophy, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../contexts/AuthContext";
 import { useSavingsEvents } from "../../hooks/useSavingsEvents";
+import { useLocalQuests } from "../../hooks/useLocalQuests";
+import useLocalizedQuest from "../../hooks/useLocalizedQuest";
 import ImpactModal from "./components/ImpactModal";
 
 // Milestones configuration
 const MILESTONES = [
-  { level: 1, threshold: 0, labelKey: "ROOKIE SAVER" },
-  { level: 2, threshold: 100, labelKey: "SMART SPENDER" },
-  { level: 3, threshold: 250, labelKey: "WALLET GUARD" },
-  { level: 4, threshold: 500, labelKey: "WEALTH BUILDER" },
-  { level: 5, threshold: 1000, labelKey: "FINANCE PRO" },
-  { level: 6, threshold: 2500, labelKey: "EMPIRE MAKER" },
-  { level: 7, threshold: 5000, labelKey: "LEGENDARY" },
+  { level: 1, threshold: 0, labelKey: "rookie_saver" },
+  { level: 2, threshold: 100, labelKey: "smart_spender" },
+  { level: 3, threshold: 250, labelKey: "wallet_guard" },
+  { level: 4, threshold: 500, labelKey: "wealth_builder" },
+  { level: 5, threshold: 1000, labelKey: "finance_pro" },
+  { level: 6, threshold: 2500, labelKey: "empire_maker" },
+  { level: 7, threshold: 5000, labelKey: "legendary" },
 ];
+
+/**
+ * EntryTitle - Component to display localized quest titles or manual entry titles
+ * Uses questId to fetch and display translated quest titles dynamically
+ */
+const EntryTitle = ({ entry }) => {
+  const { quests } = useLocalQuests();
+
+  // If entry has a questId and it's not 'manual', find the quest and localize it
+  const quest = entry.questId && entry.questId !== 'manual'
+    ? quests?.find(q => q.id === entry.questId)
+    : null;
+
+  const localizedQuest = useLocalizedQuest(quest);
+
+  // Use localized title for quests, or fallback to stored title for manual entries
+  const displayTitle = quest && localizedQuest
+    ? localizedQuest.title
+    : entry.title;
+
+  return (
+    <span className="font-bold uppercase block max-w-[180px] truncate text-[#E5E5E5]">
+      {displayTitle}
+    </span>
+  );
+};
 
 /**
  * ImpactView - Autonomous view with receipt style
  * Now handles its own data loading
  */
 const ImpactView = () => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('impact');
   const { user } = useAuth();
   const { events, loading, loadEvents, createEvent, updateEvent, deleteEvent } = useSavingsEvents();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,7 +148,7 @@ const ImpactView = () => {
       <div className="flex items-end justify-between mb-6 border-b border-white/10 pb-4">
         <div>
           <h1 className="font-sans font-bold text-4xl text-white tracking-tight">
-            VAULT<br /><span className="text-volt">LOG</span>
+            {t('header.title_vault')}<br /><span className="text-volt">{t('header.title_log')}</span>
           </h1>
         </div>
         <button
@@ -141,16 +169,16 @@ const ImpactView = () => {
           <div className="flex justify-between items-center mb-2">
             <div className="flex flex-col">
               <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
-                CURRENT RANK
+                {t('rank.current_rank')}
               </span>
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-volt" />
-                <span className="font-bold text-white text-lg">{currentLevel.labelKey}</span>
+                <span className="font-bold text-white text-lg">{t(`rank.labels.${currentLevel.labelKey}`)}</span>
               </div>
             </div>
             <div className="text-right">
               <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
-                LEVEL {currentLevel.level}
+                {t('rank.level')} {currentLevel.level}
               </span>
             </div>
           </div>
@@ -165,14 +193,14 @@ const ImpactView = () => {
 
           {/* Next Level Info */}
           <div className="flex justify-between items-center font-mono text-[10px]">
-            <span className="text-neutral-400">€{totalSaved.toFixed(2)} total</span>
+            <span className="text-neutral-400">€{totalSaved.toFixed(2)} {t('rank.total')}</span>
             {nextLevel ? (
               <span className="text-volt flex items-center gap-1">
                 <Lock className="w-3 h-3" />
-                €{(nextLevel.threshold - totalSaved).toFixed(2)} to Lvl {nextLevel.level}
+                €{(nextLevel.threshold - totalSaved).toFixed(2)} {t('rank.to_level')} {nextLevel.level}
               </span>
             ) : (
-              <span className="text-volt">MAX LEVEL</span>
+              <span className="text-volt">{t('rank.max_level')}</span>
             )}
           </div>
         </div>
@@ -200,22 +228,22 @@ const ImpactView = () => {
 
           {/* Header */}
           <div className="text-center border-b-2 border-[#E0E0E0] pb-4 mb-4 border-dashed relative z-10">
-            <h3 className="text-xl font-black tracking-tighter uppercase">IMPACT LOG</h3>
-            <p className="text-[10px] mt-1">Financial Savings Tracker</p>
+            <h3 className="text-xl font-black tracking-tighter uppercase">{t('receipt.title')}</h3>
+            <p className="text-[10px] mt-1">{t('receipt.subtitle')}</p>
             <p className="text-[10px]">{new Date().toLocaleDateString()} • {new Date().toLocaleTimeString()}</p>
           </div>
 
           {/* Table Header */}
           <div className="flex justify-between text-[10px] text-neutral-500 mb-2 px-2 relative z-10">
-            <span>ITEM / DATE</span>
-            <span>AMT/YEAR</span>
+            <span>{t('receipt.table_headers.item_date')}</span>
+            <span>{t('receipt.table_headers.amt_year')}</span>
           </div>
 
           {/* Items List */}
           <div className="space-y-0 mb-6 relative z-10">
             {entries.length === 0 ? (
               <div className="text-center py-8 text-neutral-400 italic">
-                No transactions yet
+                {t('receipt.empty')}
               </div>
             ) : (
               entries.map((entry) => {
@@ -232,9 +260,7 @@ const ImpactView = () => {
                       className={`flex justify-between items-start py-3 px-2 transition-colors cursor-pointer ${isExpanded ? 'bg-white/5' : 'hover:bg-white/5'}`}
                     >
                       <div>
-                        <span className="font-bold uppercase block max-w-[180px] truncate text-[#E5E5E5]">
-                          {entry.title}
-                        </span>
+                        <EntryTitle entry={entry} />
                         <span className="text-[10px] text-[#888888]">{displayDate}</span>
                       </div>
                       <div className="flex items-center gap-3">
@@ -253,7 +279,7 @@ const ImpactView = () => {
                           type="button"
                           className="flex-1 bg-volt text-black py-2 rounded text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-white active:scale-95"
                         >
-                          <Edit2 className="w-3 h-3" /> EDIT
+                          <Edit2 className="w-3 h-3" /> {t('modal.actions.edit')}
                         </button>
                         <button
                           onClick={(e) => {
@@ -263,7 +289,7 @@ const ImpactView = () => {
                           type="button"
                           className="flex-1 bg-transparent border border-red-500/50 text-red-500 py-2 rounded text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-red-500/10 active:scale-95"
                         >
-                          <Trash2 className="w-3 h-3" /> DELETE
+                          <Trash2 className="w-3 h-3" /> {t('modal.actions.delete')}
                         </button>
                       </div>
                     )}
@@ -276,11 +302,11 @@ const ImpactView = () => {
           {/* Footer Totals */}
           <div className="border-t-2 border-[#E0E0E0] pt-4 border-dashed relative z-10">
             <div className="flex justify-between mb-1 px-2">
-              <span>ITEM COUNT</span>
+              <span>{t('receipt.footer.item_count')}</span>
               <span>{entries.length}</span>
             </div>
             <div className="flex justify-between text-lg font-bold px-2">
-              <span>TOTAL SAVED</span>
+              <span>{t('receipt.footer.total_saved')}</span>
               <span className="text-volt">€{totalSaved.toFixed(2)}</span>
             </div>
           </div>
@@ -291,7 +317,7 @@ const ImpactView = () => {
               className="h-12 bg-[#E5E5E5] w-3/4 mx-auto mb-1"
               style={{ maskImage: "repeating-linear-gradient(90deg, black, black 2px, transparent 2px, transparent 4px)" }}
             />
-            <span className="text-[10px] tracking-[0.5em]">* 884-XJ-WIN *</span>
+            <span className="text-[10px] tracking-[0.5em]">{t('receipt.barcode')}</span>
           </div>
         </div>
 

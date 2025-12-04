@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
  * ImpactModal - Modal pour ajouter/éditer une économie
  */
 const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('impact');
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -51,12 +51,12 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
       <div className="w-full max-w-sm bg-bg-secondary border border-volt/30 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-sans font-bold text-xl text-white uppercase">
-            {initialData ? t('impact.edit.title') : t('impact.modal.title')}
+            {initialData ? t('modal.edit_title') : t('modal.title')}
           </h3>
           <button
             onClick={onClose}
             className="text-neutral-500 hover:text-white"
-            aria-label={t('ui.close')}
+            aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
@@ -65,13 +65,13 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-mono text-xs text-neutral-500 mb-1">
-              {t('impact.modal.fields.title')}
+              {t('modal.fields.title')}
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
-              placeholder={t('impact.modal.fields.title_placeholder')}
+              placeholder={t('modal.fields.title_placeholder')}
               className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-3 text-white focus:border-volt focus:outline-none transition-colors"
               autoFocus
             />
@@ -80,7 +80,7 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block font-mono text-xs text-neutral-500 mb-1">
-                {t('impact.modal.fields.amount')}
+                {t('modal.fields.amount')}
               </label>
               <input
                 type="number"
@@ -93,7 +93,7 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             </div>
             <div>
               <label className="block font-mono text-xs text-neutral-500 mb-1">
-                Date
+                {t('modal.fields.date')}
               </label>
               <input
                 type="date"
@@ -110,7 +110,7 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             className="w-full bg-volt text-black font-bold py-4 rounded-xl mt-2 hover:bg-white transition-colors shadow-volt-glow flex items-center justify-center gap-2 active:scale-95 uppercase"
           >
             <Save className="w-5 h-5" />
-            {t('impact.modal.save')}
+            {t('modal.save')}
           </button>
         </form>
       </div>

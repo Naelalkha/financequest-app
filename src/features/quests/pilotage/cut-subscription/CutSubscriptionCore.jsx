@@ -9,7 +9,7 @@ import { trackEvent } from '../../../../utils/analytics';
  * Export les 3 steps + validation logic
  */
 
-const QUEST_ID = 'cut-subscription-v1';
+const QUEST_ID = 'cut-subscription';
 
 // Step 1: Sélection du service
 const SelectSubscriptionStep = ({ questData, updateQuestData, locale }) => {
@@ -115,7 +115,7 @@ const validateCutSubscriptionStep = (stepIndex, questData, locale) => {
 // Export default d'un objet qui regroupe tout
 export default {
   // ID de la quête (pour linking avec DATA)
-  questId: 'cut-subscription-v1',
+  questId: 'cut-subscription',
 
   // Steps React
   steps: [
@@ -138,7 +138,10 @@ export default {
 
   // Config du modal Impact
   impactConfig: {
-    title: (questData) => `Abonnement — ${questData.serviceName}`,
+    // Le titre sera récupéré depuis les traductions de la quête
+    // Format: t('cutSubscription.title') avec le nom du service
+    getTitleKey: () => 'cutSubscription.card.title',
+    appendServiceName: true,
     period: 'month',
     initialValues: {}
   },

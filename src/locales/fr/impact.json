@@ -1,0 +1,51 @@
+{
+    "header": {
+        "title_vault": "VAULT",
+        "title_log": "LOG"
+    },
+    "rank": {
+        "current_rank": "RANG ACTUEL",
+        "level": "NIVEAU",
+        "total": "total",
+        "to_level": "vers Niv",
+        "max_level": "NIVEAU MAX",
+        "labels": {
+            "rookie_saver": "ÉPARGNANT DÉBUTANT",
+            "smart_spender": "DÉPENSIER INTELLIGENT",
+            "wallet_guard": "GARDIEN DU PORTEFEUILLE",
+            "wealth_builder": "BÂTISSEUR DE RICHESSE",
+            "finance_pro": "PRO DE LA FINANCE",
+            "empire_maker": "CRÉATEUR D'EMPIRE",
+            "legendary": "LÉGENDAIRE"
+        }
+    },
+    "receipt": {
+        "title": "JOURNAL D'IMPACT",
+        "subtitle": "Suivi des Économies Financières",
+        "table_headers": {
+            "item_date": "ARTICLE / DATE",
+            "amt_year": "MONTANT/AN"
+        },
+        "empty": "Aucune transaction pour le moment",
+        "footer": {
+            "item_count": "NOMBRE D'ARTICLES",
+            "total_saved": "TOTAL ÉCONOMISÉ"
+        },
+        "barcode": "* 884-XJ-WIN *"
+    },
+    "modal": {
+        "title": "NOUVELLE ÉCONOMIE",
+        "edit_title": "MODIFIER ÉCONOMIE",
+        "fields": {
+            "title": "Titre",
+            "title_placeholder": "Ex: Abonnement Netflix annulé",
+            "amount": "Montant/mois (€)",
+            "date": "Date"
+        },
+        "save": "Enregistrer",
+        "actions": {
+            "edit": "MODIFIER",
+            "delete": "SUPPRIMER"
+        }
+    }
+}

@@ -8,7 +8,7 @@ import CutSubscriptionCore from './CutSubscriptionCore';
  * Les traductions sont dans /locales/{lang}/quests.json sous la clé 'cutSubscription'
  */
 export const cutSubscriptionQuest = {
-  id: 'cut-subscription-v1',
+  id: 'cut-subscription',
   category: 'budget',
   country: 'fr-FR',
   difficulty: 'beginner',
@@ -35,7 +35,7 @@ export const cutSubscriptionQuest = {
 
   // Impact financier estimé
   estimatedImpact: {
-    amount: 13,
+    amount: 15,
     period: 'month'
   },
 

@@ -10,6 +10,7 @@ import frProfile from '../locales/fr/profile.json';
 import frHome from '../locales/fr/home.json';
 import frPremium from '../locales/fr/premium.json';
 import frOnboarding from '../locales/fr/onboarding.json';
+import frImpact from '../locales/fr/impact.json';
 
 // Import English translations
 import enCommon from '../locales/en/common.json';
@@ -20,6 +21,7 @@ import enProfile from '../locales/en/profile.json';
 import enHome from '../locales/en/home.json';
 import enPremium from '../locales/en/premium.json';
 import enOnboarding from '../locales/en/onboarding.json';
+import enImpact from '../locales/en/impact.json';
 
 /**
  * i18n Configuration - Modular Namespaces
@@ -44,7 +46,8 @@ const resources = {
         profile: frProfile,
         home: frHome,
         premium: frPremium,
-        onboarding: frOnboarding
+        onboarding: frOnboarding,
+        impact: frImpact
     },
     en: {
         common: enCommon,
@@ -54,7 +57,8 @@ const resources = {
         profile: enProfile,
         home: enHome,
         premium: enPremium,
-        onboarding: enOnboarding
+        onboarding: enOnboarding,
+        impact: enImpact
     }
 };
 
@@ -65,7 +69,7 @@ i18n
         lng: localStorage.getItem('language') || 'fr',
         fallbackLng: 'fr',
         defaultNS: 'common',
-        ns: ['common', 'auth', 'dashboard', 'quests', 'profile', 'home', 'premium', 'onboarding'],
+        ns: ['common', 'auth', 'dashboard', 'quests', 'profile', 'home', 'premium', 'onboarding', 'impact'],
 
         interpolation: {
             escapeValue: false

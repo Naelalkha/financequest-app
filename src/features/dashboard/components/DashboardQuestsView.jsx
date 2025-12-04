@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LayoutList, Archive, Plus } from 'lucide-react';
 import DashboardQuestCartridge from './DashboardQuestCartridge';
+import useLocalizedQuest from '../../../hooks/useLocalizedQuest';
 
 const DashboardQuestsView = ({
     activeQuests = [],
@@ -99,17 +100,23 @@ const DashboardQuestsView = ({
                                 <p className="font-mono text-xs text-gray-500">ARCHIVE EMPTY</p>
                             </div>
                         ) : (
-                            completedQuests.map(quest => (
-                                <div key={quest.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex justify-between items-center opacity-60 hover:opacity-100 transition-opacity">
-                                    <div>
-                                        <h4 className="font-space font-bold text-white text-sm">{quest.title}</h4>
-                                        <p className="font-mono text-[10px] text-gray-400">Completed</p>
-                                    </div>
-                                    <div className="text-[#E5FF00] font-mono text-xs font-bold">
-                                        +{quest.xp || quest.xpReward} XP
-                                    </div>
-                                </div>
-                            ))
+                            completedQuests.map(quest => {
+                                const CompletedQuestItem = () => {
+                                    const localizedQuest = useLocalizedQuest(quest);
+                                    return (
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex justify-between items-center opacity-60 hover:opacity-100 transition-opacity">
+                                            <div>
+                                                <h4 className="font-space font-bold text-white text-sm">{localizedQuest?.title || quest.title}</h4>
+                                                <p className="font-mono text-[10px] text-gray-400">Completed</p>
+                                            </div>
+                                            <div className="text-[#E5FF00] font-mono text-xs font-bold">
+                                                +{quest.xp || quest.xpReward} XP
+                                            </div>
+                                        </div>
+                                    );
+                                };
+                                return <CompletedQuestItem key={quest.id} />;
+                            })
                         )}
                     </div>
                 )}

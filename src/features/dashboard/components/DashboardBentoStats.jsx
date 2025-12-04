@@ -1,11 +1,11 @@
 import React from 'react';
-import { Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 // Import 3D Trophies
-import trophyNoviceStar from '../../../assets/trophee-novice-star.jpeg';
-import trophyFirstSave from '../../../assets/trophee-first-save.jpeg';
-import trophyEarlyStreak from '../../../assets/trophee-streak.jpeg';
+import trophyNoviceStar from '../../../assets/trophee-novice-star.png';
+import trophyFirstSave from '../../../assets/trophee-first-save.png';
+import trophyEarlyStreak from '../../../assets/trophee-streak.png';
+import lootChestIcon from '../../../assets/loot-level.png';
 
 const DashboardBentoStats = ({ badges = [], recentImpact = [], levelData = {} }) => {
     const { t } = useTranslation('dashboard');
@@ -27,46 +27,43 @@ const DashboardBentoStats = ({ badges = [], recentImpact = [], levelData = {} })
 
                     {/* Trophy 1: Novice Star */}
                     <div className="flex flex-col items-center gap-3 group/trophy cursor-pointer">
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-[#E5FF00]/10 blur-2xl rounded-full opacity-0 group-hover/trophy:opacity-100 transition-opacity duration-500"></div>
+                        <div className="relative w-16 h-16 flex items-center justify-center bg-black">
                             <img
                                 src={trophyNoviceStar}
                                 alt="Novice Star"
-                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300"
+                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300 relative z-10"
                             />
                         </div>
-                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors">{t('bento.badge_novice')}</span>
+                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors relative z-10">{t('bento.badge_novice')}</span>
                     </div>
 
                     {/* Trophy 2: First Save */}
                     <div className="flex flex-col items-center gap-3 group/trophy cursor-pointer">
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-[#E5FF00]/10 blur-2xl rounded-full opacity-0 group-hover/trophy:opacity-100 transition-opacity duration-500"></div>
+                        <div className="relative w-16 h-16 flex items-center justify-center bg-black">
                             <img
                                 src={trophyFirstSave}
                                 alt="First Save"
-                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300 delay-75"
+                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300 delay-75 relative z-10"
                             />
                         </div>
-                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors">{t('bento.badge_first_save')}</span>
+                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors relative z-10">{t('bento.badge_first_save')}</span>
                     </div>
 
                     {/* Trophy 3: Early Streak */}
                     <div className="flex flex-col items-center gap-3 group/trophy cursor-pointer">
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-[#E5FF00]/10 blur-2xl rounded-full opacity-0 group-hover/trophy:opacity-100 transition-opacity duration-500"></div>
+                        <div className="relative w-16 h-16 flex items-center justify-center bg-black">
                             <img
                                 src={trophyEarlyStreak}
                                 alt="Early Streak"
-                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300 delay-150"
+                                className="w-full h-full object-contain drop-shadow-2xl transform group-hover/trophy:scale-110 transition-transform duration-300 delay-150 relative z-10"
                             />
                         </div>
-                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors">{t('bento.badge_streak')}</span>
+                        <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider group-hover/trophy:text-white transition-colors relative z-10">{t('bento.badge_streak')}</span>
                     </div>
                 </div>
 
-                {/* Background Glow Effect */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-t from-[#E5FF00]/5 to-transparent opacity-50 pointer-events-none"></div>
+                {/* Gradient Overlay on the Entire Block */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#E5FF00]/5 to-transparent opacity-50 pointer-events-none rounded-3xl z-20"></div>
             </div>
 
             {/* Level Progress Section - PREMIUM VOLT GLOW STYLE (MATCHING RANK CARD) */}
@@ -77,14 +74,11 @@ const DashboardBentoStats = ({ badges = [], recentImpact = [], levelData = {} })
 
                     <div className="flex justify-between items-start mb-2 relative z-10">
                         <div>
-                            <h3 className="font-mono text-[10px] text-[#E5FF00] uppercase tracking-widest mb-1">{t('bento.current_level')}</h3>
                             <h2 className="font-sans font-black text-2xl text-white italic tracking-tighter">{t('bento.level_label')} {levelData.level || 1}</h2>
                             <p className="font-mono text-xs text-[#E5FF00] mt-1 font-semibold">{t('bento.level_title')}</p>
                         </div>
-                        {/* 3D Lock Icon */}
-                        <div className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center border-b-4 border-neutral-800 shadow-lg transform -rotate-6">
-                            <Lock className="w-5 h-5 text-neutral-500" />
-                        </div>
+                        {/* 3D Loot Chest Icon */}
+                        <img src={lootChestIcon} alt="Loot Chest" className="w-12 h-12 object-contain m-2" />
                     </div>
 
                     <div className="relative z-10 mt-auto">

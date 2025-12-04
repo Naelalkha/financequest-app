@@ -1,7 +1,7 @@
 {
     "netImpactYTD": "IMPACT NET ANNÉE",
     "perYearSaved": "/ AN ÉCONOMISÉ",
-    "startQuest": "LANCER QUÊTE",
+    "startQuest": "LANCER LA MISSION",
     "generating": "GÉNÉRATION...",
     "dailyChallenge": "DÉFI QUOTIDIEN",
     "daily_expires": "Expire",
@@ -10,6 +10,9 @@
     "statistics": "STATISTIQUES",
     "collection": "COLLECTION",
     "recommended": "MISSION RECOMMANDÉE",
+    "missionBriefing": "BRIEFING DE MISSION",
+    "reward": "Récompense",
+    "estTime": "Temps Est.",
     "streak": "Série",
     "noRecentImpact": "Aucun impact récent",
     "categories_list": {

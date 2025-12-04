@@ -1,13 +1,17 @@
 import React from "react";
 import { Eye } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import useLocalizedQuest from '../../../hooks/useLocalizedQuest';
 
 /**
  * QuestCartridge - Quest card with 3D cartridge design
  * Utilise les métadonnées de la quête (xp, estimatedImpact, icons, etc.)
  */
 const QuestCartridge = ({ quest, onOpen, isPriority }) => {
-    const { t } = useTranslation('quests');
+    const { t } = useTranslation(['quests', 'common']);
+
+    // ✅ Charger les traductions via le hook
+    const localizedQuest = useLocalizedQuest(quest);
 
     // Récupérer les métadonnées de la quête
     const questXP = quest.xp || quest.xpReward || 0;
@@ -50,7 +54,7 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
             const IconComponent = questIcon;
             return <IconComponent className="text-4xl" style={{ color: questColors.primary || '#fff' }} />;
         }
-        
+
         // Fallback sur les icônes hardcodées
         if (isNetflix) {
             return <div className="text-4xl font-black text-red-600 drop-shadow-[2px_4px_0px_rgba(0,0,0,0.8)] rotate-[-10deg]">N</div>;
@@ -64,18 +68,18 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
     // Calculer le montant annuel si c'est mensuel
     const getImpactDisplay = () => {
         if (monthlyAmount <= 0) return null;
-        
+
         if (impactPeriod === 'month') {
             const yearlyAmount = monthlyAmount * 12;
             return {
                 monthly: monthlyAmount,
                 yearly: yearlyAmount,
-                label: `~€${monthlyAmount}/mois (≈ €${yearlyAmount}/an)`
+                label: `~€${monthlyAmount}/${t('ui.month', { ns: 'common' })} (≈ €${yearlyAmount}/${t('ui.year', { ns: 'common' })})`
             };
         } else if (impactPeriod === 'year') {
             return {
                 yearly: monthlyAmount,
-                label: `~€${monthlyAmount}/an`
+                label: `~€${monthlyAmount}/${t('ui.year', { ns: 'common' })}`
             };
         }
         return {
@@ -129,7 +133,7 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
                         </div>
 
                         <h3 className="font-sans font-bold text-xl text-white leading-tight truncate mb-1">
-                            {quest.title}
+                            {localizedQuest?.title || quest.title || 'Quest'}
                         </h3>
 
                         {/* Impact financier estimé - Utilise estimatedImpact depuis les métadonnées */}

@@ -1,7 +1,7 @@
 {
     "netImpactYTD": "NET IMPACT YTD",
     "perYearSaved": "/ YEAR SAVED",
-    "startQuest": "START QUEST",
+    "startQuest": "START MISSION",
     "generating": "GENERATING...",
     "dailyChallenge": "DAILY CHALLENGE",
     "daily_expires": "Expires",
@@ -10,6 +10,9 @@
     "statistics": "STATISTICS",
     "collection": "COLLECTION",
     "recommended": "RECOMMENDED MISSION",
+    "missionBriefing": "MISSION BRIEFING",
+    "reward": "Reward",
+    "estTime": "Est. Time",
     "streak": "Streak",
     "noRecentImpact": "No recent impact",
     "categories_list": {

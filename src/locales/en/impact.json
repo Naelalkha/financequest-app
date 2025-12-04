@@ -1,0 +1,51 @@
+{
+    "header": {
+        "title_vault": "VAULT",
+        "title_log": "LOG"
+    },
+    "rank": {
+        "current_rank": "CURRENT RANK",
+        "level": "LEVEL",
+        "total": "total",
+        "to_level": "to Lvl",
+        "max_level": "MAX LEVEL",
+        "labels": {
+            "rookie_saver": "ROOKIE SAVER",
+            "smart_spender": "SMART SPENDER",
+            "wallet_guard": "WALLET GUARD",
+            "wealth_builder": "WEALTH BUILDER",
+            "finance_pro": "FINANCE PRO",
+            "empire_maker": "EMPIRE MAKER",
+            "legendary": "LEGENDARY"
+        }
+    },
+    "receipt": {
+        "title": "IMPACT LOG",
+        "subtitle": "Financial Savings Tracker",
+        "table_headers": {
+            "item_date": "ITEM / DATE",
+            "amt_year": "AMT/YEAR"
+        },
+        "empty": "No transactions yet",
+        "footer": {
+            "item_count": "ITEM COUNT",
+            "total_saved": "TOTAL SAVED"
+        },
+        "barcode": "* 884-XJ-WIN *"
+    },
+    "modal": {
+        "title": "NEW SAVING",
+        "edit_title": "EDIT SAVING",
+        "fields": {
+            "title": "Title",
+            "title_placeholder": "Ex: Cancelled Netflix subscription",
+            "amount": "Amount/month (€)",
+            "date": "Date"
+        },
+        "save": "Save",
+        "actions": {
+            "edit": "EDIT",
+            "delete": "DELETE"
+        }
+    }
+}
