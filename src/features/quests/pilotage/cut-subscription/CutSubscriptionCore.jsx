@@ -1,133 +1,52 @@
-import SubscriptionSelector from './SubscriptionSelector';
-import AmountInput from './AmountInput';
-import CancellationGuide from './CancellationGuide';
+import CutSubscriptionFlow from './CutSubscriptionFlow';
 import { trackEvent } from '../../../../utils/analytics';
 
 /**
- * CutSubscriptionCore - Steps spécifiques pour la quête "Couper 1 abonnement"
+ * CutSubscriptionCore - Quest Core Configuration
  * 
- * Export les 3 steps + validation logic
+ * Now uses the new 3-phase Moniyo Protocol flow:
+ * PHASE 1: PROTOCOL (Briefing + Tactics)
+ * PHASE 2: EXECUTION (Target Selection + Amount)
+ * PHASE 3: DEBRIEF (Celebration + Rewards)
  */
 
 const QUEST_ID = 'cut-subscription';
 
-// Step 1: Sélection du service
-const SelectSubscriptionStep = ({ questData, updateQuestData, locale }) => {
-  const handleSubscriptionSelect = (subscription) => {
-    updateQuestData({
-      serviceName: subscription.serviceName,
-      serviceId: subscription.id,
-      monthlyAmount: subscription.monthlyAmount
-    });
-
-    trackEvent('quest_step_completed', {
-      quest_id: QUEST_ID,
-      step: 'subscription_select',
-      service: subscription.serviceName
-    });
-  };
-
-  return (
-    <SubscriptionSelector
-      value={questData.serviceId ? {
-        id: questData.serviceId,
-        serviceName: questData.serviceName,
-        monthlyAmount: questData.monthlyAmount
-      } : null}
-      onChange={handleSubscriptionSelect}
-      locale={locale}
-    />
-  );
-};
-
-// Step 2: Montant mensuel
-const AmountInputStep = ({ questData, updateQuestData, locale }) => {
-  const handleAmountChange = (amount) => {
-    updateQuestData({
-      monthlyAmount: amount
-    });
-  };
-
-  return (
-    <AmountInput
-      value={questData.monthlyAmount || 0}
-      onChange={handleAmountChange}
-      serviceName={questData.serviceName}
-      locale={locale}
-    />
-  );
-};
-
-// Step 3: Guide d'annulation
-const CancellationGuideStep = ({ questData, updateQuestData, onNext, locale }) => {
-  const handleCancellationComplete = () => {
-    trackEvent('quest_step_completed', {
-      quest_id: QUEST_ID,
-      step: 'cancellation_guide'
-    });
-
-    // Passer automatiquement à l'étape suivante
-    if (onNext) {
-      onNext();
-    }
-  };
-
-  return (
-    <CancellationGuide
-      serviceName={questData.serviceName}
-      onComplete={handleCancellationComplete}
-      locale={locale}
-    />
-  );
-};
-
-// Validation logic
-const validateCutSubscriptionStep = (stepIndex, questData, locale) => {
-  const isFr = locale === 'fr';
-
-  switch (stepIndex) {
-    case 0: // Selection step
-      if (!questData.serviceName) {
-        return {
-          valid: false,
-          message: isFr ? 'Sélectionne un abonnement' : 'Select a subscription'
-        };
-      }
-      return { valid: true };
-
-    case 1: // Amount step
-      if (!questData.monthlyAmount || questData.monthlyAmount <= 0) {
-        return {
-          valid: false,
-          message: isFr ? 'Entre le montant mensuel' : 'Enter the monthly amount'
-        };
-      }
-      return { valid: true };
-
-    case 2: // Cancellation guide - always valid (user can proceed)
-      return { valid: true };
-
-    default:
-      return { valid: true };
+// Validation function for the flow
+const validateCutSubscription = (questData) => {
+  if (!questData.serviceName) {
+    return {
+      valid: false,
+      message: { fr: 'Sélectionne un abonnement', en: 'Select a subscription' }
+    };
   }
+
+  if (!questData.monthlyAmount || questData.monthlyAmount <= 0) {
+    return {
+      valid: false,
+      message: { fr: 'Entre le montant mensuel', en: 'Enter the monthly amount' }
+    };
+  }
+
+  return { valid: true };
 };
 
-// Export default d'un objet qui regroupe tout
+// Export the new flow component as the core
 export default {
-  // ID de la quête (pour linking avec DATA)
-  questId: 'cut-subscription',
+  // ID de la quête
+  questId: QUEST_ID,
 
-  // Steps React
-  steps: [
-    SelectSubscriptionStep,
-    AmountInputStep,
-    CancellationGuideStep
-  ],
+  // The main flow component (replaces individual steps)
+  FlowComponent: CutSubscriptionFlow,
+
+  // Legacy steps array for backward compatibility
+  // (The new flow handles everything internally)
+  steps: [],
 
   // Validation
-  validate: validateCutSubscriptionStep,
+  validate: validateCutSubscription,
 
-  // Config de completion
+  // Completion config
   completionConfig: {
     title: {
       fr: 'Mission accomplie !',
@@ -136,19 +55,32 @@ export default {
     showImpactButton: true
   },
 
-  // Config du modal Impact
+  // Impact config
   impactConfig: {
-    // Le titre sera récupéré depuis les traductions de la quête
-    // Format: t('cutSubscription.title') avec le nom du service
-    getTitleKey: () => 'cutSubscription.card.title',
+    getTitleKey: () => 'cutSubscription.title',
     appendServiceName: true,
     period: 'month',
     initialValues: {}
   },
 
-  // Options du wrapper
+  // Wrapper config
   wrapperConfig: {
-    showIntro: true
+    // No intro needed - the Protocol phase handles it
+    showIntro: false,
+    // Use full-screen flow mode
+    useFlowMode: true
+  },
+
+  // Analytics tracking
+  trackCompletion: (data) => {
+    trackEvent('quest_completed', {
+      quest_id: QUEST_ID,
+      service_name: data.serviceName,
+      monthly_amount: data.monthlyAmount,
+      annual_impact: data.annualAmount
+    });
   }
 };
 
+// Also export the flow component directly
+export { default as CutSubscriptionFlow } from './CutSubscriptionFlow';

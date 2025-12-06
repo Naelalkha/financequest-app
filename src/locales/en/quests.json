@@ -46,7 +46,7 @@
     },
     "cutSubscription": {
         "title": "Cut one unused subscription",
-        "description": "Save an average of ~€13/month (≈ €156/yr) in 5–8 min.",
+        "description": "Stop paying for what you don't use. Average savings of 156€/year.",
         "objectives": [
             "Spot 1 subscription you no longer use",
             "Follow the mini-guide to cancel",
@@ -66,6 +66,34 @@
         "steps": {
             "step1_title": "Which service?",
             "step2_label": "Monthly amount saved?"
+        },
+        "protocol": {
+            "intelLabel": "DATA INTELLIGENCE",
+            "intelTitle": "THE OPPORTUNITY COST",
+            "intelText": "Every euro spent unnecessarily is a euro that can't work for you. A forgotten €15/month subscription = €2,500 lost over 10 years with compound interest.",
+            "tacticsLabel": "OPERATIONAL PROCEDURE",
+            "step1": "Open your settings",
+            "step2": "Select the unused subscription",
+            "step3": "Confirm cancellation",
+            "cta": "TARGET ELIMINATED →"
+        },
+        "execution": {
+            "title": "IDENTIFY THE TARGET",
+            "amountTitle": "CONFIRM THE LOOT",
+            "perMonth": "/MONTH",
+            "perYear": "/YEAR",
+            "impactCalc": "That's {{amount}}€ per year impact",
+            "customPlaceholder": "Service name...",
+            "cta": "VALIDATE IMPACT"
+        },
+        "debrief": {
+            "impactLabel": "ANNUAL IMPACT",
+            "perYear": "/ YEAR",
+            "xpLabel": "XP EARNED",
+            "xpSublabel": "Performance bonus",
+            "streakLabel": "STREAK",
+            "streakDays": "{{count}} consecutive days",
+            "cta": "MISSION COMPLETE"
         }
     }
 }

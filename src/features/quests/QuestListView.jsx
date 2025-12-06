@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import { updateGamificationOnQuestComplete } from "../../services/gamification";
 import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
+import { CutSubscriptionFlow } from "./pilotage/cut-subscription";
+
 
 /**
  * QuestListView - Autonomous quest list view
@@ -284,14 +286,40 @@ const QuestListView = () => {
 
             {/* Quest Details Modal */}
             {showQuestModal && selectedQuest && (
-                <QuestDetailsModal
-                    quest={selectedQuest}
-                    onClose={() => {
-                        setShowQuestModal(false);
-                        setSelectedQuest(null);
-                    }}
-                    onComplete={handleCompleteQuest}
-                />
+                selectedQuest.id === 'cut-subscription' ? (
+                    <CutSubscriptionFlow
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestModal(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={(result) => {
+                            // Transform result to match expected format
+                            handleCompleteQuest({
+                                ...selectedQuest,
+                                id: result.questId,
+                                title: result.serviceName
+                                    ? `${t('cutSubscription.title')} - ${result.serviceName}`
+                                    : selectedQuest.title,
+                                monetaryValue: result.monthlyAmount,
+                                xpReward: result.xpEarned
+                            });
+                        }}
+                        userProgress={{
+                            streak: 1,
+                            xpProgress: 50
+                        }}
+                    />
+                ) : (
+                    <QuestDetailsModal
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestModal(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={handleCompleteQuest}
+                    />
+                )
             )}
         </div>
     );

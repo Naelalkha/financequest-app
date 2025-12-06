@@ -9,7 +9,6 @@ import QuestList from './pages/QuestList';
 import QuestRouter from './pages/QuestRouter';
 import Premium from './pages/Premium';
 import Profile from './pages/Profile';
-import Onboarding from './pages/Onboarding';
 import Impact from './pages/Impact';
 import BottomNav from './components/layout/BottomNav';
 import AppBackground from './components/layout/AppBackground';
@@ -55,9 +54,6 @@ const AppRouter = () => {
     const { user, loading } = useAuth();
     const location = useLocation();
 
-    // Check if onboarding has been seen
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding') === 'true';
-
     if (loading) {
         return (
             <AppBackground variant="nebula" grain grid={false} animate>
@@ -69,7 +65,7 @@ const AppRouter = () => {
     }
 
     // Routes that show bottom nav
-    const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
+    const showBottomNav = user && !['/', '/login', '/register'].includes(location.pathname);
 
     return (
         <>
@@ -77,8 +73,7 @@ const AppRouter = () => {
                 <Routes>
                     {/* Root Route Logic */}
                     <Route path="/" element={
-                        user ? <Navigate to="/dashboard" replace /> :
-                            (!hasSeenOnboarding ? <Navigate to="/onboarding" replace /> : <Navigate to="/login" replace />)
+                        user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
                     } />
 
                     {/* Public Routes */}
@@ -90,11 +85,6 @@ const AppRouter = () => {
                     <Route path="/register" element={
                         <PublicRoute>
                             <Register />
-                        </PublicRoute>
-                    } />
-                    <Route path="/onboarding" element={
-                        <PublicRoute>
-                            <Onboarding />
                         </PublicRoute>
                     } />
 

@@ -22,6 +22,8 @@ import DashboardDailyChallenge from './components/DashboardDailyChallenge';
 import CategoryGrid from './components/CategoryGrid';
 import SmartMissionModal from './components/SmartMissionModal';
 import QuestDetailsModal from './components/QuestDetailsModal';
+import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
+
 
 /**
  * DashboardView - Main dashboard feature view
@@ -399,14 +401,40 @@ const DashboardView = () => {
 
             {/* QuestDetails Modal (3-step flow) */}
             {selectedQuest && (
-                <QuestDetailsModal
-                    quest={selectedQuest}
-                    onClose={() => {
-                        setShowQuestDetails(false);
-                        setSelectedQuest(null);
-                    }}
-                    onComplete={handleCompleteQuestFromDetails}
-                />
+                selectedQuest.id === 'cut-subscription' ? (
+                    <CutSubscriptionFlow
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestDetails(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={(result) => {
+                            // Transform result to match expected format
+                            handleCompleteQuestFromDetails({
+                                ...selectedQuest,
+                                id: result.questId,
+                                title: result.serviceName
+                                    ? `${t('quests:cutSubscription.title')} - ${result.serviceName}`
+                                    : selectedQuest.title,
+                                monetaryValue: result.monthlyAmount,
+                                xpReward: result.xpEarned
+                            });
+                        }}
+                        userProgress={{
+                            streak: streakDays,
+                            xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
+                        }}
+                    />
+                ) : (
+                    <QuestDetailsModal
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestDetails(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={handleCompleteQuestFromDetails}
+                    />
+                )
             )}
         </div>
     );

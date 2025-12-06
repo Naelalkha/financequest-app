@@ -40,7 +40,7 @@ const Register = () => {
     try {
       await register(email, password, name);
       toast.success(t('register_success') || 'Account created successfully! 🎉');
-      navigate('/onboarding');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
       let errorMessage = t('register_error') || 'Failed to create account';
@@ -56,13 +56,9 @@ const Register = () => {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
-      const result = await loginWithGoogle();
+      await loginWithGoogle();
       toast.success(t('login_success') || 'Welcome back! 🎉');
-      if (result.isNewGoogleUser || !result.onboardingCompleted) {
-        navigate('/onboarding');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
       console.error('Google login error:', err);
       toast.error(t('google_login_error') || 'Failed to login with Google');

@@ -73,7 +73,6 @@ export const AuthProvider = ({ children }) => {
           badges: [],
           totalQuests: 0,
           completedQuests: 0,
-          onboardingCompleted: false,
           // NE PAS inclure : isPremium, premiumStatus, stripeCustomerId, stripeSubscriptionId, currentPeriodEnd, level, totalXP, longestStreak
           lang: additionalData.lang || detectedLang,
           country: additionalData.country || detectedCountry,

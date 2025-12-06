@@ -1,5 +1,6 @@
-import { FaTrash, FaCheckCircle, FaCoins } from 'react-icons/fa';
+import { FaCheckCircle, FaCoins } from 'react-icons/fa';
 import CutSubscriptionCore from './CutSubscriptionCore';
+import icon from './assets/icon.png';
 
 /**
  * Cut Subscription Quest - Metadata
@@ -40,7 +41,7 @@ export const cutSubscriptionQuest = {
   },
 
   icons: {
-    main: FaTrash,
+    main: icon,
     steps: [FaCheckCircle, FaCoins]
   },
 

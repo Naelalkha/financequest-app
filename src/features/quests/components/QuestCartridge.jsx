@@ -50,6 +50,12 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
 
     // Rendre l'icône de la quête si disponible
     const renderQuestIcon = () => {
+        // Si c'est une image (string URL)
+        if (questIcon && typeof questIcon === 'string') {
+            return <img src={questIcon} alt={localizedQuest?.title || quest.title || 'Quest icon'} className="w-full h-full object-contain" />;
+        }
+        
+        // Si c'est un composant React (icône)
         if (questIcon && typeof questIcon === 'function') {
             const IconComponent = questIcon;
             return <IconComponent className="text-4xl" style={{ color: questColors.primary || '#fff' }} />;
@@ -102,15 +108,27 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
                 <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#666_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
                 <div className="flex gap-5 items-center relative z-10">
-                    {/* 3D Icon Container */}
-                    <div className={`
-                    w-20 h-20 flex-shrink-0 rounded-2xl flex items-center justify-center
-                    bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 shadow-inner
-                    transform transition-transform group-hover:scale-105 duration-300
-                `}>
-                        {/* Icône de la quête depuis les métadonnées */}
-                        {renderQuestIcon()}
-                    </div>
+                    {/* Icon/Image Container - Conditionnel selon le type */}
+                    {questIcon && typeof questIcon === 'string' ? (
+                        // Image PNG - pas de conteneur, juste l'image flottante
+                        <div className="flex-shrink-0 transform transition-transform group-hover:scale-105 duration-300">
+                            <img 
+                                src={questIcon} 
+                                alt={localizedQuest?.title || quest.title || 'Quest icon'} 
+                                className="w-32 h-32 object-contain drop-shadow-lg" 
+                            />
+                        </div>
+                    ) : (
+                        // Icône React ou emoji - avec conteneur rond
+                        <div className={`
+                            w-20 h-20 flex-shrink-0 rounded-2xl flex items-center justify-center
+                            bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 shadow-inner
+                            transform transition-transform group-hover:scale-105 duration-300
+                        `}>
+                            {/* Icône de la quête depuis les métadonnées */}
+                            {renderQuestIcon()}
+                        </div>
+                    )}
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">

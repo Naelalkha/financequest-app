@@ -9,7 +9,6 @@ import frQuests from '../locales/fr/quests.json';
 import frProfile from '../locales/fr/profile.json';
 import frHome from '../locales/fr/home.json';
 import frPremium from '../locales/fr/premium.json';
-import frOnboarding from '../locales/fr/onboarding.json';
 import frImpact from '../locales/fr/impact.json';
 
 // Import English translations
@@ -20,7 +19,6 @@ import enQuests from '../locales/en/quests.json';
 import enProfile from '../locales/en/profile.json';
 import enHome from '../locales/en/home.json';
 import enPremium from '../locales/en/premium.json';
-import enOnboarding from '../locales/en/onboarding.json';
 import enImpact from '../locales/en/impact.json';
 
 /**
@@ -46,7 +44,6 @@ const resources = {
         profile: frProfile,
         home: frHome,
         premium: frPremium,
-        onboarding: frOnboarding,
         impact: frImpact
     },
     en: {
@@ -57,7 +54,6 @@ const resources = {
         profile: enProfile,
         home: enHome,
         premium: enPremium,
-        onboarding: enOnboarding,
         impact: enImpact
     }
 };
@@ -69,7 +65,7 @@ i18n
         lng: localStorage.getItem('language') || 'fr',
         fallbackLng: 'fr',
         defaultNS: 'common',
-        ns: ['common', 'auth', 'dashboard', 'quests', 'profile', 'home', 'premium', 'onboarding', 'impact'],
+        ns: ['common', 'auth', 'dashboard', 'quests', 'profile', 'home', 'premium', 'impact'],
 
         interpolation: {
             escapeValue: false
