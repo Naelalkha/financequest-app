@@ -160,6 +160,13 @@ const SmartMissionModal = ({
 
         {/* Title & Description */}
         <div className={`transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'} w-full`}>
+          {/* Codename as small tech label */}
+          {localizedQuest.codename && (
+            <span className="font-mono text-xs text-volt/75 uppercase tracking-[0.2em] block mb-1">
+              {localizedQuest.codename}
+            </span>
+          )}
+          {/* Title as main heading */}
           <h3 className="font-sans font-black text-2xl text-white uppercase leading-tight mb-3">
             {localizedQuest.title}
           </h3>

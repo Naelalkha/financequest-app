@@ -15,17 +15,14 @@ export { default as ProtocolScreen } from './screens/ProtocolScreen';
 export { default as ExecutionScreen } from './screens/ExecutionScreen';
 export { default as DebriefScreen } from './screens/DebriefScreen';
 
-// Supporting components
-export { default as KillListGrid, SUBSCRIPTION_OPTIONS } from './components/KillListGrid';
-export { default as FrequencyToggle } from './components/FrequencyToggle';
-export { default as RollingCounter } from './components/RollingCounter';
-export { default as RewardCard } from './components/RewardCard';
-
 // Quest metadata and core config
 export { default as cutSubscriptionQuest } from './metadata';
-export { default as CutSubscriptionCore } from './CutSubscriptionCore';
 
-// Legacy exports (deprecated - kept for backward compatibility)
-export { default as SubscriptionSelector } from './SubscriptionSelector';
-export { default as AmountInput } from './AmountInput';
-export { default as CancellationGuide } from './CancellationGuide';
+// Insight data for stats and lifestyle comparisons
+export {
+    socialProofSlides,
+    proTips,
+    realityCheckPills,
+    getConcreteImpact,
+    calculateCompoundGrowth
+} from './insightData';

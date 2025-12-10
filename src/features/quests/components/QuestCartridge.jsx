@@ -54,7 +54,7 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
         if (questIcon && typeof questIcon === 'string') {
             return <img src={questIcon} alt={localizedQuest?.title || quest.title || 'Quest icon'} className="w-full h-full object-contain" />;
         }
-        
+
         // Si c'est un composant React (icône)
         if (questIcon && typeof questIcon === 'function') {
             const IconComponent = questIcon;
@@ -112,10 +112,10 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
                     {questIcon && typeof questIcon === 'string' ? (
                         // Image PNG - pas de conteneur, juste l'image flottante
                         <div className="flex-shrink-0 transform transition-transform group-hover:scale-105 duration-300">
-                            <img 
-                                src={questIcon} 
-                                alt={localizedQuest?.title || quest.title || 'Quest icon'} 
-                                className="w-32 h-32 object-contain drop-shadow-lg" 
+                            <img
+                                src={questIcon}
+                                alt={localizedQuest?.title || quest.title || 'Quest icon'}
+                                className="w-32 h-32 object-contain drop-shadow-lg"
                             />
                         </div>
                     ) : (
@@ -149,6 +149,13 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
                                 </span>
                             )}
                         </div>
+
+                        {/* Codename as small tech label */}
+                        {localizedQuest?.codename && (
+                            <span className="font-mono text-[9px] text-volt/75 uppercase tracking-[0.15em] block mb-0.5">
+                                {localizedQuest.codename}
+                            </span>
+                        )}
 
                         <h3 className="font-sans font-bold text-xl text-white leading-tight truncate mb-1">
                             {localizedQuest?.title || quest.title || 'Quest'}

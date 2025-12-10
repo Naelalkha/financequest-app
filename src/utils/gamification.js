@@ -79,8 +79,14 @@ export function getNextMilestone(totalAnnual = 0) {
  * Calcule l'XP gagné pour une quête complétée
  */
 export function calculateQuestXP(quest, score = null) {
-  const difficulty = quest.difficulty || 'beginner';
-  let xp = XP_REWARDS.quest[difficulty] || XP_REWARDS.quest.beginner;
+  // Prioritize quest.xp from metadata if defined
+  let xp = quest.xp || quest.xpReward;
+
+  // Fallback to difficulty-based XP if not defined
+  if (!xp) {
+    const difficulty = quest.difficulty || 'beginner';
+    xp = XP_REWARDS.quest[difficulty] || XP_REWARDS.quest.beginner;
+  }
 
   // Bonus quiz si score >= 80%
   if (score !== null && score >= 80) {

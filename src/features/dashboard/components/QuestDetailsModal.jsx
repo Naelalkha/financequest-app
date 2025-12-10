@@ -107,9 +107,17 @@ const QuestDetailsModal = ({ quest, onClose, onComplete }) => {
                             <span className="font-mono text-[10px] text-volt tracking-widest uppercase block mb-1">
                                 {step === 'INTEL' ? 'PHASE 1 - INTEL' : step === 'EXECUTION' ? 'PHASE 2 - EXEC' : 'PHASE 3 - DEBRIEF'}
                             </span>
-                            <h2 className="font-sans font-bold text-xl text-white leading-tight uppercase truncate max-w-[200px]">
-                                {step === 'INTEL' ? 'MISSION BRIEF' : step === 'EXECUTION' ? 'EXECUTION' : 'DEBRIEF'}
-                            </h2>
+                            {/* Codename as section title */}
+                            {localizedQuest?.codename && (
+                                <h2 className="font-sans font-bold text-xl text-white leading-tight uppercase truncate max-w-[200px]">
+                                    {localizedQuest.codename}
+                                </h2>
+                            )}
+                            {!localizedQuest?.codename && (
+                                <h2 className="font-sans font-bold text-xl text-white leading-tight uppercase truncate max-w-[200px]">
+                                    {step === 'INTEL' ? 'MISSION BRIEF' : step === 'EXECUTION' ? 'EXECUTION' : 'DEBRIEF'}
+                                </h2>
+                            )}
                         </div>
                         <button
                             onClick={onClose}

@@ -23,6 +23,7 @@ export const useLocalizedQuest = (quest) => {
 
         return {
             ...quest,
+            codename: t(`${key}.codename`),
             title: t(`${key}.title`),
             description: t(`${key}.description`),
             objectives: t(`${key}.objectives`, { returnObjects: true }),

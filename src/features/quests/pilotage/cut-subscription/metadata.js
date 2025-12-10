@@ -1,5 +1,4 @@
 import { FaCheckCircle, FaCoins } from 'react-icons/fa';
-import CutSubscriptionCore from './CutSubscriptionCore';
 import icon from './assets/icon.png';
 
 /**
@@ -56,10 +55,7 @@ export const cutSubscriptionQuest = {
   rewards: {
     badge: 'quickwin_first_cancel',
     unlocks: []
-  },
-
-  // React Core component contient les steps
-  core: CutSubscriptionCore
+  }
 };
 
 export default cutSubscriptionQuest;

@@ -45,6 +45,7 @@
         "sub_price_placeholder": "VÉRIFIER LE COÛT"
     },
     "cutSubscription": {
+        "codename": "LA PURGE",
         "title": "Coupe 1 abonnement inutile",
         "description": "Ne paie plus pour ce que tu n'utilises pas ou peu. Une économie moyenne de 156€/an.",
         "objectives": [
@@ -54,46 +55,6 @@
         ],
         "prerequisites": [
             "Aucun"
-        ],
-        "card": {
-            "title": "Couper 1 abonnement inutile",
-            "time": "5 min"
-        },
-        "intro": {
-            "title": "Opération Ciseaux",
-            "desc": "Nous allons identifier un prélèvement récurrent qui ne t'apporte plus de joie."
-        },
-        "steps": {
-            "step1_title": "Quel service ?",
-            "step2_label": "Montant mensuel économisé ?"
-        },
-        "protocol": {
-            "intelLabel": "DATA INTELLIGENCE",
-            "intelTitle": "LE COÛT D'OPPORTUNITÉ",
-            "intelText": "Chaque euro dépensé inutilement est un euro qui ne travaille pas pour toi. Un abonnement de 15€/mois oublié = 2 500€ perdus sur 10 ans avec les intérêts composés.",
-            "tacticsLabel": "PROCÉDURE OPÉRATIONNELLE",
-            "step1": "Ouvre tes réglages",
-            "step2": "Sélectionne l'abo inutile",
-            "step3": "Confirme la résiliation",
-            "cta": "CIBLE ÉLIMINÉE →"
-        },
-        "execution": {
-            "title": "IDENTIFIE LA CIBLE",
-            "amountTitle": "CONFIRMATION DU BUTIN",
-            "perMonth": "/MOIS",
-            "perYear": "/AN",
-            "impactCalc": "Soit {{amount}}€ par an d'impact",
-            "customPlaceholder": "Nom du service...",
-            "cta": "VALIDER L'IMPACT"
-        },
-        "debrief": {
-            "impactLabel": "IMPACT ANNUEL",
-            "perYear": "/ AN",
-            "xpLabel": "XP GAGNÉS",
-            "xpSublabel": "Bonus de performance",
-            "streakLabel": "SÉRIE",
-            "streakDays": "{{count}} jours consécutifs",
-            "cta": "MISSION ACCOMPLIE"
-        }
+        ]
     }
 }

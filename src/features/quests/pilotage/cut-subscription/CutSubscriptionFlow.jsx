@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 import ProtocolScreen from './screens/ProtocolScreen';
 import ExecutionScreen from './screens/ExecutionScreen';
 import DebriefScreen from './screens/DebriefScreen';
 import { trackEvent } from '../../../../utils/analytics';
+import useLocalizedQuest from '../../../../hooks/useLocalizedQuest';
 
 /**
  * CutSubscriptionFlow - Main 3-Phase Quest Flow Controller
@@ -20,6 +21,9 @@ const CutSubscriptionFlow = ({
 }) => {
     const { t, i18n } = useTranslation(['quests', 'common']);
     const locale = i18n.language;
+
+    // Get localized quest with codename
+    const localizedQuest = useLocalizedQuest(quest);
 
     // Phase state
     const [phase, setPhase] = useState('PROTOCOL');
@@ -44,8 +48,8 @@ const CutSubscriptionFlow = ({
 
     const phaseTitles = {
         PROTOCOL: { fr: 'BRIEFING', en: 'BRIEFING' },
-        EXECUTION: { fr: 'EXÉCUTION', en: 'EXECUTION' },
-        DEBRIEF: { fr: 'DÉBRIEFING', en: 'DEBRIEF' }
+        EXECUTION: { fr: 'SÉLECTION CIBLE', en: 'TARGET SELECTION' },
+        DEBRIEF: { fr: 'RAPPORT DE MISSION', en: 'MISSION REPORT' }
     };
 
     // Progress bar width
@@ -73,6 +77,10 @@ const CutSubscriptionFlow = ({
             amount: questData.monthlyAmount
         });
         setPhase('DEBRIEF');
+    };
+
+    const goBackToProtocol = () => {
+        setPhase('PROTOCOL');
     };
 
     // Final completion
@@ -124,13 +132,25 @@ const CutSubscriptionFlow = ({
 
                 {/* Header - Compact */}
                 <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/50">
-                    <div>
-                        <span className="font-mono text-[9px] text-volt tracking-[0.2em] uppercase animate-pulse">
-                            {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
-                        </span>
-                        <h2 className="font-sans font-bold text-lg text-white leading-none mt-1">
-                            {phaseTitles[phase]?.[locale] || phaseTitles[phase]?.fr}
-                        </h2>
+                    <div className="flex items-center gap-4">
+                        {/* Back arrow for middle phases */}
+                        {phase !== 'PROTOCOL' && phase !== 'DEBRIEF' && (
+                            <button
+                                onClick={goBackToProtocol}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                            </button>
+                        )}
+                        <div>
+                            <span className="font-mono text-[9px] text-volt tracking-[0.2em] uppercase animate-pulse">
+                                {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
+                            </span>
+                            {/* Codename as main header, fallback to phase title */}
+                            <h2 className="font-sans font-bold text-lg text-white leading-none mt-1">
+                                {localizedQuest?.codename || phaseTitles[phase]?.[locale] || phaseTitles[phase]?.fr}
+                            </h2>
+                        </div>
                     </div>
 
                     {/* Close button */}
@@ -174,6 +194,7 @@ const CutSubscriptionFlow = ({
                                     data={questData}
                                     onUpdate={handleUpdateData}
                                     onNext={goToDebrief}
+                                    onBack={goBackToProtocol}
                                 />
                             </motion.div>
                         )}

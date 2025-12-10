@@ -45,6 +45,7 @@
         "sub_price_placeholder": "VERIFY COST"
     },
     "cutSubscription": {
+        "codename": "THE PURGE",
         "title": "Cut one unused subscription",
         "description": "Stop paying for what you don't use. Average savings of 156€/year.",
         "objectives": [
@@ -54,46 +55,6 @@
         ],
         "prerequisites": [
             "None"
-        ],
-        "card": {
-            "title": "Cut 1 useless subscription",
-            "time": "5 min"
-        },
-        "intro": {
-            "title": "Operation Scissors",
-            "desc": "We'll identify a recurring charge that no longer brings you joy."
-        },
-        "steps": {
-            "step1_title": "Which service?",
-            "step2_label": "Monthly amount saved?"
-        },
-        "protocol": {
-            "intelLabel": "DATA INTELLIGENCE",
-            "intelTitle": "THE OPPORTUNITY COST",
-            "intelText": "Every euro spent unnecessarily is a euro that can't work for you. A forgotten €15/month subscription = €2,500 lost over 10 years with compound interest.",
-            "tacticsLabel": "OPERATIONAL PROCEDURE",
-            "step1": "Open your settings",
-            "step2": "Select the unused subscription",
-            "step3": "Confirm cancellation",
-            "cta": "TARGET ELIMINATED →"
-        },
-        "execution": {
-            "title": "IDENTIFY THE TARGET",
-            "amountTitle": "CONFIRM THE LOOT",
-            "perMonth": "/MONTH",
-            "perYear": "/YEAR",
-            "impactCalc": "That's {{amount}}€ per year impact",
-            "customPlaceholder": "Service name...",
-            "cta": "VALIDATE IMPACT"
-        },
-        "debrief": {
-            "impactLabel": "ANNUAL IMPACT",
-            "perYear": "/ YEAR",
-            "xpLabel": "XP EARNED",
-            "xpSublabel": "Performance bonus",
-            "streakLabel": "STREAK",
-            "streakDays": "{{count}} consecutive days",
-            "cta": "MISSION COMPLETE"
-        }
+        ]
     }
 }

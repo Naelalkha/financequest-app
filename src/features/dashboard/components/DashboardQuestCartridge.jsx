@@ -58,6 +58,12 @@ const DashboardQuestCartridge = ({ quest, onComplete, onNavigate }) => {
                                 <Clock className="w-3 h-3" /> {quest.duration || 24}H LEFT
                             </span>
                         </div>
+                        {/* Codename as small tech label */}
+                        {localizedQuest?.codename && (
+                            <span className="font-mono text-[9px] text-volt/75 uppercase tracking-[0.15em] block mb-0.5">
+                                {localizedQuest.codename}
+                            </span>
+                        )}
                         <h3 className="font-space font-bold text-xl text-white leading-none tracking-tight truncate mb-1">
                             {localizedQuest?.title || quest.title || 'Quest'}
                         </h3>

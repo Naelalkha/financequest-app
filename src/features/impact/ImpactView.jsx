@@ -19,23 +19,32 @@ const MILESTONES = [
 ];
 
 /**
- * EntryTitle - Component to display localized quest titles or manual entry titles
- * Uses questId to fetch and display translated quest titles dynamically
+ * EntryTitle - Component to display savings event titles
+ * Shows the stored title directly (which includes service name for quest-based entries)
+ * Falls back to localized quest title only if entry.title is missing
  */
 const EntryTitle = ({ entry }) => {
   const { quests } = useLocalQuests();
 
-  // If entry has a questId and it's not 'manual', find the quest and localize it
+  // If entry has a stored title (e.g., "Coupe 1 abo - Netflix"), use it directly
+  if (entry.title) {
+    return (
+      <span className="font-bold uppercase block max-w-[180px] truncate text-[#E5E5E5]">
+        {entry.title}
+      </span>
+    );
+  }
+
+  // Fallback: If no title but has questId, try to get localized quest title
   const quest = entry.questId && entry.questId !== 'manual'
     ? quests?.find(q => q.id === entry.questId)
     : null;
 
   const localizedQuest = useLocalizedQuest(quest);
 
-  // Use localized title for quests, or fallback to stored title for manual entries
   const displayTitle = quest && localizedQuest
     ? localizedQuest.title
-    : entry.title;
+    : 'Manual Entry';
 
   return (
     <span className="font-bold uppercase block max-w-[180px] truncate text-[#E5E5E5]">
