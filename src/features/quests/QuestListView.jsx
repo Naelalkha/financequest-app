@@ -12,6 +12,7 @@ import { updateGamificationOnQuestComplete } from "../../services/gamification";
 import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
 import { CutSubscriptionFlow } from "./pilotage/cut-subscription";
+import { MicroExpensesFlow } from "./pilotage/micro-expenses";
 
 
 /**
@@ -300,6 +301,30 @@ const QuestListView = () => {
                                 id: result.questId,
                                 title: result.serviceName
                                     ? `${t('cutSubscription.title')} - ${result.serviceName}`
+                                    : selectedQuest.title,
+                                monetaryValue: result.monthlyAmount,
+                                xpReward: result.xpEarned
+                            });
+                        }}
+                        userProgress={{
+                            streak: 1,
+                            xpProgress: 50
+                        }}
+                    />
+                ) : selectedQuest.id === 'micro-expenses' ? (
+                    <MicroExpensesFlow
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestModal(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={(result) => {
+                            // Transform result to match expected format
+                            handleCompleteQuest({
+                                ...selectedQuest,
+                                id: result.questId,
+                                title: result.expenseName
+                                    ? `${t('microExpenses.title')} - ${result.expenseName}`
                                     : selectedQuest.title,
                                 monetaryValue: result.monthlyAmount,
                                 xpReward: result.xpEarned

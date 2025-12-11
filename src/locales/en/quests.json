@@ -47,11 +47,24 @@
     "cutSubscription": {
         "codename": "THE PURGE",
         "title": "Cut one unused subscription",
-        "description": "Stop paying for what you don't use. Average savings of 156€/year.",
+        "description": "Exterminate the parasites. These forgotten subscriptions drain your account in silence. Stop the bleeding and recover €156/year on average.",
         "objectives": [
             "Spot 1 subscription you no longer use",
             "Follow the mini-guide to cancel",
             "Add the saving to your Impact"
+        ],
+        "prerequisites": [
+            "None"
+        ]
+    },
+    "microExpenses": {
+        "codename": "STEALTH DRAIN",
+        "title": "Identify micro-expenses",
+        "description": "Your coffees are costing you your summer vacation. These invisible expenses siphon your capital daily without triggering an alert.",
+        "objectives": [
+            "Identify a recurring micro-expense",
+            "Calculate its 5-year impact",
+            "Reveal what this saving could buy you"
         ],
         "prerequisites": [
             "None"

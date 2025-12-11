@@ -10,11 +10,12 @@ import useLocalizedQuest from '../../../../hooks/useLocalizedQuest';
 import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
 
 /**
- * CutSubscriptionFlow - Main 3-Phase Quest Flow Controller
+ * MicroExpensesFlow - Main 3-Phase Quest Flow Controller
  * 
+ * Quest 02: TRAQUE INVISIBLE
  * Clean tactical UI matching the Moniyo Protocol design
  */
-const CutSubscriptionFlow = ({
+const MicroExpensesFlow = ({
     quest = {},
     onComplete,
     onClose,
@@ -31,11 +32,14 @@ const CutSubscriptionFlow = ({
 
     // Quest data state
     const [questData, setQuestData] = useState({
-        subscription: null,
-        serviceName: '',
+        categoryId: null,
+        category: null,
+        expenseName: '',
+        dailyAmount: 0,
         monthlyAmount: 0,
-        annualAmount: 0,
-        frequency: 'MONTHLY',
+        yearlyAmount: 0,
+        tenYearAmount: 0,
+        equivalent: null,
         customName: '',
         ...userProgress
     });
@@ -49,7 +53,7 @@ const CutSubscriptionFlow = ({
 
     const phaseTitles = {
         PROTOCOL: { fr: 'BRIEFING', en: 'BRIEFING' },
-        EXECUTION: { fr: 'SÉLECTION CIBLE', en: 'TARGET SELECTION' },
+        EXECUTION: { fr: "L'AMPLIFICATEUR TEMPOREL", en: 'THE TIME AMPLIFIER' },
         DEBRIEF: { fr: 'RAPPORT DE MISSION', en: 'MISSION REPORT' }
     };
 
@@ -64,7 +68,7 @@ const CutSubscriptionFlow = ({
     // Phase transitions
     const goToExecution = () => {
         trackEvent('quest_phase_completed', {
-            quest_id: 'cut-subscription',
+            quest_id: 'micro-expenses',
             phase: 'PROTOCOL'
         });
         setPhase('EXECUTION');
@@ -72,10 +76,10 @@ const CutSubscriptionFlow = ({
 
     const goToDebrief = () => {
         trackEvent('quest_phase_completed', {
-            quest_id: 'cut-subscription',
+            quest_id: 'micro-expenses',
             phase: 'EXECUTION',
-            service: questData.serviceName,
-            amount: questData.monthlyAmount
+            expense: questData.expenseName,
+            dailyAmount: questData.dailyAmount
         });
         setPhase('DEBRIEF');
     };
@@ -87,18 +91,21 @@ const CutSubscriptionFlow = ({
     // Final completion
     const handleComplete = () => {
         trackEvent('quest_completed', {
-            quest_id: 'cut-subscription',
-            service: questData.serviceName,
-            monthly_amount: questData.monthlyAmount,
-            annual_impact: questData.annualAmount
+            quest_id: 'micro-expenses',
+            expense: questData.expenseName,
+            daily_amount: questData.dailyAmount,
+            yearly_impact: questData.yearlyAmount,
+            ten_year_impact: questData.tenYearAmount
         });
 
         onComplete({
-            questId: 'cut-subscription',
-            serviceName: questData.serviceName,
+            questId: 'micro-expenses',
+            expenseName: questData.expenseName,
+            dailyAmount: questData.dailyAmount,
             monthlyAmount: questData.monthlyAmount,
-            annualAmount: questData.annualAmount || (questData.monthlyAmount * 12),
-            xpEarned: quest.xp || 140,
+            yearlyAmount: questData.yearlyAmount,
+            tenYearAmount: questData.tenYearAmount,
+            xpEarned: quest.xp || 120,
             completedAt: new Date().toISOString()
         });
     };
@@ -214,7 +221,7 @@ const CutSubscriptionFlow = ({
                             >
                                 <DebriefScreen
                                     data={questData}
-                                    xpReward={quest.xp || 140}
+                                    xpReward={quest.xp || 120}
                                     currentStreak={userProgress.streak || 1}
                                     xpProgress={userProgress.xpProgress || 75}
                                     onComplete={handleComplete}
@@ -232,4 +239,4 @@ export { default as ProtocolScreen } from './screens/ProtocolScreen';
 export { default as ExecutionScreen } from './screens/ExecutionScreen';
 export { default as DebriefScreen } from './screens/DebriefScreen';
 
-export default CutSubscriptionFlow;
+export default MicroExpensesFlow;

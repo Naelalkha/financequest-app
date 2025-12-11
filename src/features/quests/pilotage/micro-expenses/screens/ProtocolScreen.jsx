@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Search, Cog, ShieldAlert, HelpCircle } from 'lucide-react';
-import secretDirectoryAsset from '../../../../../assets/secret-directory.png';
+import { ChevronRight, Zap, Clock, RefreshCw, HelpCircle } from 'lucide-react';
 import { socialProofSlides, proTips } from '../insightData';
 
 /**
  * ProtocolScreen - Phase 1: Intel + Tactics
  * 
+ * Quest 02: TRAQUE INVISIBLE
  * Features:
- * - Glass card with 3D asset and Social Proof
- * - Pulsing badge
- * - Timeline with Lucide icons from insightData
+ * - Social Proof carousel with 3 stats
+ * - Tactics timeline with 3 tips
+ * - Hook: "Tes cafés te coûtent une voiture neuve"
  */
 
 // Icon mapping from insightData iconName to Lucide component
 const ICON_MAP = {
-    Search,
-    Cog,
-    ShieldAlert,
+    Zap,
+    Clock,
+    RefreshCw,
     HelpCircle
 };
 
@@ -49,8 +49,22 @@ const ProtocolScreen = ({ onNext }) => {
         });
     };
 
-    // CTA text
-    const ctaText = locale === 'fr' ? 'LANCER LA MISSION →' : 'START MISSION →';
+
+
+    // Labels
+    const labels = {
+        fr: {
+            hook: "Tu surveilles les gros virements, mais tu ignores la petite monnaie. Erreur tactique. L'ennemi n'est pas le montant, c'est la fréquence. Café, Vape, Uber... Mis bout à bout, c'est un treizième mois qui part en fumée.",
+            protocolTitle: "PROTOCOLE D'ACTION",
+            cta: 'LANCER LA MISSION →'
+        },
+        en: {
+            hook: "You watch the big transfers, but you ignore the loose change. Tactical error. The enemy isn't the amount, it's the frequency. Coffee, Vape, Uber... Add them up, and that's a 13th month salary going up in smoke.",
+            protocolTitle: 'ACTION PROTOCOL',
+            cta: 'START MISSION →'
+        }
+    };
+    const currentLabels = labels[locale] || labels.fr;
 
     return (
         <div className="h-full flex flex-col">
@@ -63,26 +77,14 @@ const ProtocolScreen = ({ onNext }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3 }}
-                        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group"
+                        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden"
                     >
                         {/* Gradient overlay */}
                         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
 
-                        {/* 3D Asset Hero */}
-                        <div className="absolute -right-4 -top-4 w-24 h-24 opacity-80 group-hover:scale-110 transition-transform duration-700">
-                            <img
-                                src={secretDirectoryAsset}
-                                alt="Dossier"
-                                className="w-full h-full object-contain drop-shadow-2xl"
-                            />
-                        </div>
-
                         {/* Briefing Text with volt left border */}
-                        <p className="font-sans text-sm text-neutral-300 mb-6 italic border-l-2 border-volt pl-3 relative z-10 max-w-[80%]">
-                            "{locale === 'fr'
-                                ? "Tu tolères des passagers clandestins sur ton compte bancaire. Erreur stratégique. Streaming, Box, Apps... Ces prélèvements automatiques exploitent ton inattention pour drainer tes ressources."
-                                : "You're tolerating stowaways on your bank account. Strategic error. Streaming, Box, Apps... These auto-renewals exploit your inattention to drain your resources."
-                            }"
+                        <p className="font-sans text-sm text-neutral-300 mb-6 italic border-l-2 border-volt pl-3 relative z-10">
+                            "{currentLabels.hook}"
                         </p>
 
                         {/* Carousel Stats (nested dark card) */}
@@ -127,7 +129,7 @@ const ProtocolScreen = ({ onNext }) => {
                     </motion.div>
                 </div>
 
-                {/* ===== ZONE 2: TACTICS (Timeline with Icons) ===== */}
+                {/* ===== ZONE 3: TACTICS (Timeline with Icons) ===== */}
                 <div className="flex-1 px-6 pb-6">
                     {/* Section divider */}
                     <motion.div
@@ -138,7 +140,7 @@ const ProtocolScreen = ({ onNext }) => {
                     >
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
                         <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">
-                            {locale === 'fr' ? "PROTOCOLE D'ACTION" : 'ACTION PROTOCOL'}
+                            {currentLabels.protocolTitle}
                         </span>
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
                     </motion.div>
@@ -191,7 +193,7 @@ const ProtocolScreen = ({ onNext }) => {
                     onClick={onNext}
                     className="w-full bg-volt text-black font-black font-sans py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(226,255,0,0.3)]"
                 >
-                    {ctaText}
+                    {currentLabels.cta}
                 </motion.button>
             </div>
         </div>

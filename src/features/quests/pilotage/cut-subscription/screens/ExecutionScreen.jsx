@@ -136,8 +136,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
                 <div className="text-center">
                     {/* Title */}
                     <motion.h3
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.25 }}
                         className="font-mono text-xs text-zinc-500 tracking-[0.2em] uppercase mb-6"
                     >
                         {currentLabels.title}
@@ -145,17 +146,17 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
 
                     {/* ===== SERVICE GRID ===== */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.25 }}
                         className="grid grid-cols-3 gap-3 mb-5"
                     >
                         {SUBSCRIPTION_SERVICES.map((service, index) => (
                             <motion.button
                                 key={service.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.05 * index }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.2, delay: 0.02 * index }}
                                 onClick={() => handleServiceSelect(service)}
                                 className={`
                                     h-14 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all duration-200
@@ -223,9 +224,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
 
                     {/* ===== GIANT AMOUNT INPUT ===== */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.25 }}
                         className="relative mb-2"
                     >
                         {/* Service name tag */}
@@ -315,9 +316,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             {/* Footer: CTA */}
             <div className="p-6 bg-black border-t border-zinc-800">
                 <motion.button
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.25 }}
                     whileHover={{ scale: isValid ? 1.02 : 1 }}
                     whileTap={{ scale: isValid ? 0.98 : 1 }}
                     onClick={handleNext}

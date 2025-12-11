@@ -1,17 +1,61 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { cutSubscriptionQuest } from '../features/quests/registry';
+import {
+  allQuests,
+  getQuestsByCountry as registryGetQuestsByCountry,
+  getQuestsByCategory as registryGetQuestsByCategory,
+  getFreeQuests as registryGetFreeQuests,
+  getPremiumQuests as registryGetPremiumQuests,
+  getRecommendedQuests as registryGetRecommendedQuests,
+  getQuestById as registryGetQuestById
+} from '../features/quests/registry';
 import { toast } from 'react-toastify';
 
-// Temporary: Simple quest helpers until full registry is implemented
-// Only return the quest for 'global' to avoid duplicates
-const getQuestsByCountry = (country) => country === 'global' ? [cutSubscriptionQuest] : [];
-const getQuestsByCategory = () => [cutSubscriptionQuest];
-const getFreeQuests = () => [cutSubscriptionQuest];
-const getPremiumQuests = () => [];
-const getRecommendedQuests = () => [cutSubscriptionQuest];
-const getQuestById = (id) => id === cutSubscriptionQuest.id ? cutSubscriptionQuest : null;
+// Use registry functions with fallbacks to allQuests
+const getQuestsByCountry = (country, locale) => {
+  try {
+    return registryGetQuestsByCountry(country, locale);
+  } catch {
+    // Fallback: return all quests filtered by country
+    return allQuests.filter(q => !q.country || q.country === 'global' || q.country === country);
+  }
+};
+const getQuestsByCategory = (category, locale, country) => {
+  try {
+    return registryGetQuestsByCategory(category, locale, country);
+  } catch {
+    return allQuests.filter(q => q.category === category);
+  }
+};
+const getFreeQuests = (locale, country) => {
+  try {
+    return registryGetFreeQuests(locale, country);
+  } catch {
+    return allQuests.filter(q => !q.isPremium);
+  }
+};
+const getPremiumQuests = (locale, country) => {
+  try {
+    return registryGetPremiumQuests(locale, country);
+  } catch {
+    return allQuests.filter(q => q.isPremium);
+  }
+};
+const getRecommendedQuests = (completedQuestIds, userLevel, locale, country) => {
+  try {
+    return registryGetRecommendedQuests(completedQuestIds, userLevel, locale, country);
+  } catch {
+    return allQuests.filter(q => !completedQuestIds.includes(q.id)).slice(0, 3);
+  }
+};
+const getQuestById = (id, locale) => {
+  try {
+    return registryGetQuestById(id, locale);
+  } catch {
+    return allQuests.find(q => q.id === id) || null;
+  }
+};
 
 /**
  * Custom hook for managing local quests with country support

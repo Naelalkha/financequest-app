@@ -47,11 +47,24 @@
     "cutSubscription": {
         "codename": "LA PURGE",
         "title": "Coupe 1 abonnement inutile",
-        "description": "Ne paie plus pour ce que tu n'utilises pas ou peu. Une économie moyenne de 156€/an.",
+        "description": "Extermine les parasites. Ces abonnements oubliés pompent ton compte en silence. Coupe l'hémorragie et récupère 156€/an en moyenne.",
         "objectives": [
             "Repère 1 abonnement que tu n'utilises plus",
             "Suis le mini-guide pour annuler",
             "Ajoute l'économie à ton Impact"
+        ],
+        "prerequisites": [
+            "Aucun"
+        ]
+    },
+    "microExpenses": {
+        "codename": "TRAQUE INVISIBLE",
+        "title": "Identifier les micro-dépenses",
+        "description": "Tes cafés te coûtent tes vacances d'été. Ces dépenses invisibles siphonnent ton capital quotidiennement sans déclencher d'alerte.",
+        "objectives": [
+            "Identifie une micro-dépense récurrente",
+            "Calcule son impact sur 5 ans",
+            "Révèle ce que cette économie peut t'acheter"
         ],
         "prerequisites": [
             "Aucun"

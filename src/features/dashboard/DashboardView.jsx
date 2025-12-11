@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ import CategoryGrid from './components/CategoryGrid';
 import SmartMissionModal from './components/SmartMissionModal';
 import QuestDetailsModal from './components/QuestDetailsModal';
 import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
+import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
 
 
 /**
@@ -200,9 +202,17 @@ const DashboardView = () => {
     const handleAcceptQuest = async (quest) => {
         try {
             trackEvent('quest_accepted', { questId: quest.id, source: 'smart_mission' });
-            setShowSmartMission(false);
+
+            // Show the quest FIRST - it appears on top (z-100) covering the modal (z-50)
             setSelectedQuest(quest);
             setShowQuestDetails(true);
+
+            // Close the modal AFTER the quest has appeared
+            // The quest's entry animation takes ~300ms, so we wait a bit longer
+            // to ensure smooth overlap without any flash
+            setTimeout(() => {
+                setShowSmartMission(false);
+            }, 350);
         } catch (error) {
             console.error("Error accepting quest:", error);
             toast.error(t('errors.generic'));
@@ -400,42 +410,71 @@ const DashboardView = () => {
             />
 
             {/* QuestDetails Modal (3-step flow) */}
-            {selectedQuest && (
-                selectedQuest.id === 'cut-subscription' ? (
-                    <CutSubscriptionFlow
-                        quest={selectedQuest}
-                        onClose={() => {
-                            setShowQuestDetails(false);
-                            setSelectedQuest(null);
-                        }}
-                        onComplete={(result) => {
-                            // Transform result to match expected format
-                            handleCompleteQuestFromDetails({
-                                ...selectedQuest,
-                                id: result.questId,
-                                title: result.serviceName
-                                    ? `${t('quests:cutSubscription.title')} - ${result.serviceName}`
-                                    : selectedQuest.title,
-                                monetaryValue: result.monthlyAmount,
-                                xpReward: result.xpEarned
-                            });
-                        }}
-                        userProgress={{
-                            streak: streakDays,
-                            xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
-                        }}
-                    />
-                ) : (
-                    <QuestDetailsModal
-                        quest={selectedQuest}
-                        onClose={() => {
-                            setShowQuestDetails(false);
-                            setSelectedQuest(null);
-                        }}
-                        onComplete={handleCompleteQuestFromDetails}
-                    />
-                )
-            )}
+            <AnimatePresence mode="wait">
+                {selectedQuest && (
+                    selectedQuest.id === 'cut-subscription' ? (
+                        <CutSubscriptionFlow
+                            key="cut-subscription-flow"
+                            quest={selectedQuest}
+                            onClose={() => {
+                                setShowQuestDetails(false);
+                                setSelectedQuest(null);
+                            }}
+                            onComplete={(result) => {
+                                // Transform result to match expected format
+                                handleCompleteQuestFromDetails({
+                                    ...selectedQuest,
+                                    id: result.questId,
+                                    title: result.serviceName
+                                        ? `${t('quests:cutSubscription.title')} - ${result.serviceName}`
+                                        : selectedQuest.title,
+                                    monetaryValue: result.monthlyAmount,
+                                    xpReward: result.xpEarned
+                                });
+                            }}
+                            userProgress={{
+                                streak: streakDays,
+                                xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
+                            }}
+                        />
+                    ) : selectedQuest.id === 'micro-expenses' ? (
+                        <MicroExpensesFlow
+                            key="micro-expenses-flow"
+                            quest={selectedQuest}
+                            onClose={() => {
+                                setShowQuestDetails(false);
+                                setSelectedQuest(null);
+                            }}
+                            onComplete={(result) => {
+                                // Transform result to match expected format
+                                handleCompleteQuestFromDetails({
+                                    ...selectedQuest,
+                                    id: result.questId,
+                                    title: result.expenseName
+                                        ? `${t('quests:microExpenses.title')} - ${result.expenseName}`
+                                        : selectedQuest.title,
+                                    monetaryValue: result.monthlyAmount,
+                                    xpReward: result.xpEarned
+                                });
+                            }}
+                            userProgress={{
+                                streak: streakDays,
+                                xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
+                            }}
+                        />
+                    ) : (
+                        <QuestDetailsModal
+                            key="quest-details-modal"
+                            quest={selectedQuest}
+                            onClose={() => {
+                                setShowQuestDetails(false);
+                                setSelectedQuest(null);
+                            }}
+                            onComplete={handleCompleteQuestFromDetails}
+                        />
+                    )
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -2,7 +2,7 @@
  * Insight Data - Statistics & Facts for Cut Subscription Quest
  * 
  * Enriched data to increase perceived value and psychological impact
- * Sources: Statista, Nielsen, Bankin', Behavioral Economics research
+ * Sources: C+R Research, BRG Research, Business of Apps - All verified 2023/2024
  */
 
 // ===== SOCIAL PROOF CAROUSEL (Protocol Screen) =====
@@ -10,69 +10,77 @@ export const socialProofSlides = {
     fr: [
         {
             id: 'forgotten-subs',
+            title: 'OUBLI FRÉQUENT',
             badge: 'OUBLI FRÉQUENT',
             badgeColor: 'red',
-            stat: '32%',
-            text: "des abonnements payés n'ont même pas été ouverts le mois dernier.",
-            source: 'Nielsen 2023'
+            stat: '85%',
+            text: "des abonnés ont au moins 1 abonnement inutilisé le mois dernier.",
+            source: 'BRG Research 2023'
         },
         {
             id: 'phantom-expenses',
+            title: 'DÉPENSES FANTÔMES',
             badge: 'DÉPENSES FANTÔMES',
             badgeColor: 'orange',
-            stat: '215€',
-            text: "payés chaque année en moyenne pour des abonnements peu ou pas utilisés.",
-            source: 'Bankin 2022'
+            stat: '133$',
+            text: "gaspillés chaque année en moyenne pour des abonnements oubliés.",
+            source: 'C+R Research 2022'
         },
         {
             id: 'avg-subscriptions',
+            title: 'SURCHARGE ABO',
             badge: 'SURCHARGE',
             badgeColor: 'purple',
-            stat: '6.2',
-            text: "abonnements en moyenne, mais seulement 3.8 réellement utilisés.",
-            source: 'Statista 2023'
+            stat: '4',
+            text: "abonnements streaming en moyenne par foyer aux USA.",
+            source: 'Business of Apps 2023'
         },
         {
             id: 'auto-renewal',
+            title: 'EFFET SILENCIEUX',
             badge: 'EFFET SILENCIEUX',
             badgeColor: 'blue',
-            stat: '73%',
-            text: "des utilisateurs oublient au moins 1 abonnement en renouvellement auto.",
-            source: 'Chase Bank Study'
+            stat: '48%',
+            text: "des utilisateurs oublient d'annuler un essai gratuit.",
+            source: 'C+R Research 2022'
         }
     ],
     en: [
         {
             id: 'forgotten-subs',
+            title: 'COMMON OVERSIGHT',
             badge: 'COMMON OVERSIGHT',
             badgeColor: 'red',
-            stat: '32%',
-            text: "of paid subscriptions weren't even opened last month.",
-            source: 'Nielsen 2023'
+            stat: '85%',
+            text: "of subscribers have at least 1 unused subscription last month.",
+            source: 'BRG Research 2023'
         },
         {
             id: 'phantom-expenses',
+            title: 'PHANTOM EXPENSES',
             badge: 'PHANTOM EXPENSES',
             badgeColor: 'orange',
-            stat: '€215',
-            text: "paid yearly on average for rarely or never used subscriptions.",
-            source: 'Bankin 2022'
+            stat: '$133',
+            text: "wasted yearly on average on forgotten subscriptions.",
+            source: 'C+R Research 2022'
         },
         {
             id: 'avg-subscriptions',
+            title: 'SUB OVERLOAD',
             badge: 'OVERLOAD',
             badgeColor: 'purple',
-            stat: '6.2',
-            text: "subscriptions on average, but only 3.8 actually used.",
-            source: 'Statista 2023'
+            stat: '4',
+            text: "streaming subscriptions on average per US household.",
+            source: 'Business of Apps 2023'
         },
         {
             id: 'auto-renewal',
+            title: 'SILENT EFFECT',
             badge: 'SILENT EFFECT',
             badgeColor: 'blue',
-            stat: '73%',
-            text: "of users forget at least 1 auto-renewing subscription.",
-            source: 'Chase Bank Study'
+            stat: '48%',
+            text: "of users forget to cancel a free trial.",
+            source: 'C+R Research 2022'
         }
     ]
 };

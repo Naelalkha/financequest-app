@@ -6,12 +6,14 @@
  */
 
 import { cutSubscriptionQuest } from './pilotage/cut-subscription/metadata.js';
+import { microExpensesQuest } from './pilotage/micro-expenses/metadata.js';
 
 // ========================================
 // EXPORT INDIVIDUEL
 // ========================================
 
 export { cutSubscriptionQuest };
+export { microExpensesQuest };
 
 
 // ========================================
@@ -23,6 +25,7 @@ export { cutSubscriptionQuest };
  */
 export const allQuests = [
   cutSubscriptionQuest,
+  microExpensesQuest,
   // Les prochaines quêtes seront ajoutées ici
 ];
 
