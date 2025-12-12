@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Zap, Flame, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Target } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getConcreteImpact, calculateCompoundGrowth } from '../insightData';
 
 /**
  * DebriefScreen - Phase 3: Celebration & Rewards
  * 
- * Features:
- * - Animated counter for annual impact
- * - Concrete Impact card with emoji icon
- * - XP and Streak reward cards
+ * New streamlined layout:
+ * - Badge: 🎯 CIBLE VERROUILLÉE
+ * - Hero: Big gain number in neon green
+ * - Subtitle: Satisfying message
+ * - Card 1 (Gold): Impact concret
+ * - Card 2 (White, 50/50): XP + Série
+ * - Card 3 (White): Potentiel 5 ans
  */
 const DebriefScreen = ({
     data = {},
     xpReward = 140,
     currentStreak = 1,
-    xpProgress = 75,
     onComplete
 }) => {
     const { i18n } = useTranslation('quests');
@@ -27,17 +29,15 @@ const DebriefScreen = ({
     const annualImpact = data.annualAmount || (data.monthlyAmount * 12) || 0;
     const monthlyAmount = data.monthlyAmount || (data.annualAmount / 12) || 0;
 
-    // Calculate compound growth (10 years at 7%)
-    const compoundGrowth = calculateCompoundGrowth(monthlyAmount, 10, 0.07);
+    // Calculate compound growth (5 years at 7%)
+    const fiveYearGrowth = calculateCompoundGrowth(monthlyAmount, 5, 0.07);
 
     // Get concrete impact (includes icon emoji and text)
     const concreteImpact = getConcreteImpact(annualImpact, locale);
 
-
     // Animation states
     const [animatedSavings, setAnimatedSavings] = useState(0);
-    const [showImpactCard, setShowImpactCard] = useState(false);
-    const [showRewards, setShowRewards] = useState(false);
+    const [showCards, setShowCards] = useState(false);
 
     // Use XP from quest metadata (passed as xpReward prop)
     const calculatedXp = xpReward;
@@ -67,10 +67,8 @@ const DebriefScreen = ({
             if (current >= end) {
                 setAnimatedSavings(end);
                 clearInterval(timer);
-                // Show impact card first
-                setTimeout(() => setShowImpactCard(true), 300);
-                // Then show rewards
-                setTimeout(() => setShowRewards(true), 600);
+                // Show cards after counting animation
+                setTimeout(() => setShowCards(true), 300);
             } else {
                 setAnimatedSavings(Math.round(current));
             }
@@ -84,7 +82,7 @@ const DebriefScreen = ({
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
-                return <span key={i} className="text-yellow-400">{part.slice(2, -2)}</span>;
+                return <span key={i} className="text-amber-400">{part.slice(2, -2)}</span>;
             }
             return part;
         });
@@ -93,25 +91,21 @@ const DebriefScreen = ({
     // Labels
     const labels = {
         fr: {
-            impactLabel: 'IMPACT ANNUEL',
-            perYear: '/AN',
+            successBadge: 'CIBLE VERROUILLÉE',
+            impactLabel: 'GAIN ANNUEL',
+            subtitle: 'Tu viens d\'éliminer un abonnement fantôme.',
             realWorldValue: 'IMPACT CONCRET',
-            xpLabel: 'XP RÉCOLTÉS',
-            streakLabel: 'SÉRIE ACTIVE',
-            streakSublabel: 'Continue sur ta lancée !',
-            compoundLabel: 'POTENTIEL 10 ANS',
-            compoundDesc: 'Placé à 7%/an pendant 10 ans',
+            fiveYearLabel: 'POTENTIEL 5 ANS',
+            fiveYearDesc: 'Si réinvesti à 7%/an',
             cta: 'CLÔTURER LA MISSION'
         },
         en: {
-            impactLabel: 'ANNUAL IMPACT',
-            perYear: '/YEAR',
+            successBadge: 'TARGET LOCKED',
+            impactLabel: 'ANNUAL GAIN',
+            subtitle: 'You just eliminated a ghost subscription.',
             realWorldValue: 'REAL WORLD VALUE',
-            xpLabel: 'XP EARNED',
-            streakLabel: 'ACTIVE STREAK',
-            streakSublabel: 'Keep the momentum!',
-            compoundLabel: '10-YEAR POTENTIAL',
-            compoundDesc: 'If reinvested at 7%/year',
+            fiveYearLabel: '5-YEAR POTENTIAL',
+            fiveYearDesc: 'If reinvested at 7%/year',
             cta: 'CLOSE MISSION'
         }
     };
@@ -125,119 +119,119 @@ const DebriefScreen = ({
                 {/* Background pulse glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-volt/20 rounded-full blur-[80px] animate-pulse" />
 
-                {/* ===== BIG NUMBER ===== */}
+                {/* ===== SUCCESS BADGE ===== */}
                 <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, ease: 'backOut' }}
-                    className="relative z-10 mb-4"
+                    transition={{ duration: 0.4, ease: 'backOut' }}
+                    className="mb-4 relative z-10"
                 >
-                    <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.3em] mb-2 block">
-                        {currentLabels.impactLabel}
-                    </span>
-                    <h2 className="text-6xl md:text-7xl font-black text-volt tracking-tighter" style={{ textShadow: '0 0 30px rgba(226, 255, 0, 0.5)' }}>
-                        +€{animatedSavings}
-                    </h2>
-                    <span className="font-mono text-sm text-neutral-400 uppercase mt-1 block">
-                        {currentLabels.perYear}
-                    </span>
+                    <div className="inline-flex items-center gap-2 bg-volt/10 border border-volt/30 rounded-full px-4 py-2">
+                        <Target className="w-4 h-4 text-volt" />
+                        <span className="font-mono text-[10px] text-volt font-bold uppercase tracking-widest">
+                            {currentLabels.successBadge}
+                        </span>
+                    </div>
                 </motion.div>
 
-                {/* ===== CONCRETE IMPACT CARD ===== */}
-                <AnimatePresence>
-                    {showImpactCard && concreteImpact.text && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="w-full mb-8 relative z-10"
-                        >
-                            <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4 flex items-center gap-4 text-left">
-                                {/* Icon Circle - uses emoji from insightData */}
-                                <div className="w-10 h-10 rounded-full bg-yellow-400/10 flex items-center justify-center flex-shrink-0 border border-yellow-400/30">
-                                    <span className="text-xl">{concreteImpact.icon}</span>
-                                </div>
+                {/* ===== TITLE (small gray) ===== */}
+                <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.3em] mb-2 block relative z-10"
+                >
+                    {currentLabels.impactLabel}
+                </motion.span>
 
-                                {/* Content */}
+                {/* ===== HERO NUMBER (huge neon green) ===== */}
+                <motion.h2
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: 'backOut', delay: 0.15 }}
+                    className="text-6xl md:text-7xl font-black text-volt tracking-tighter relative z-10"
+                    style={{ textShadow: '0 0 40px rgba(226, 255, 0, 0.6)' }}
+                >
+                    +&nbsp;{animatedSavings.toLocaleString('fr-FR')}&nbsp;€
+                </motion.h2>
+
+                {/* ===== SUBTITLE ===== */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-sm text-neutral-400 mt-2 mb-6 relative z-10"
+                >
+                    {currentLabels.subtitle}
+                </motion.p>
+
+                {/* ===== CARDS ===== */}
+                <AnimatePresence>
+                    {showCards && (
+                        <div className="w-full space-y-3 relative z-10">
+
+                            {/* Card 1: Impact Concret (Gold Frame) */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="bg-amber-500/5 border border-amber-500/30 rounded-xl p-4 flex items-center gap-4 text-left"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 border border-amber-500/30">
+                                    <span className="text-xl">🚀</span>
+                                </div>
                                 <div>
-                                    <span className="block font-mono text-[9px] text-yellow-600 uppercase font-bold mb-0.5">
+                                    <span className="block font-mono text-[9px] text-amber-500 uppercase font-bold mb-0.5">
                                         {currentLabels.realWorldValue}
                                     </span>
                                     <span className="text-sm font-bold text-white block leading-tight">
                                         {renderWithBold(concreteImpact.text)}
                                     </span>
                                 </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* ===== LOOT CARDS ===== */}
-                <AnimatePresence>
-                    {showRewards && (
-                        <div className="w-full space-y-3 relative z-10">
-                            {/* Card 1: XP */}
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.25 }}
-                                className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-4 flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center border border-neutral-700">
-                                        <Zap className="w-5 h-5 text-volt fill-volt" />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-bold text-white text-sm">{currentLabels.xpLabel}</div>
-                                        <div className="w-24 h-1 bg-neutral-800 rounded-full mt-1.5 overflow-hidden">
-                                            <motion.div
-                                                className="h-full bg-volt"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${xpProgress}%` }}
-                                                transition={{ delay: 0.2, duration: 0.6 }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <span className="font-mono text-xl font-bold text-white">+{calculatedXp}</span>
                             </motion.div>
 
-                            {/* Card 2: Streak */}
+                            {/* Card 2: XP + Série (White Frame, 50/50 Split) */}
                             <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.25, delay: 0.05 }}
-                                className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-4 flex items-center justify-between"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.05 }}
+                                className="bg-neutral-900/80 border border-neutral-700 rounded-xl p-4 flex items-stretch"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center border border-neutral-700">
-                                        <Flame className="w-5 h-5 text-blue-500 fill-blue-500" />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-bold text-white text-sm">{currentLabels.streakLabel}</div>
-                                        <div className="font-mono text-[9px] text-neutral-500">{currentLabels.streakSublabel}</div>
-                                    </div>
+                                {/* XP Side */}
+                                <div className="flex-1 flex items-center justify-center gap-2 border-r border-neutral-700 pr-4">
+                                    <span className="text-xl">⚡️</span>
+                                    <span className="font-mono text-lg font-bold text-white">+{calculatedXp} XP</span>
                                 </div>
-                                <span className="font-mono text-xl font-bold text-blue-500">+1</span>
+                                {/* Streak Side */}
+                                <div className="flex-1 flex items-center justify-center gap-2 pl-4">
+                                    <span className="text-xl">🔥</span>
+                                    <span className="font-mono text-lg font-bold text-white">SÉRIE</span>
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: 0.5, type: 'spring', stiffness: 400 }}
+                                        className="font-mono text-sm font-bold text-orange-500 bg-orange-500/20 px-2 py-0.5 rounded"
+                                    >
+                                        +1
+                                    </motion.span>
+                                </div>
                             </motion.div>
 
-                            {/* Card 3: Compound Growth (10 years) */}
+                            {/* Card 3: Potentiel 5 ans (White Frame) */}
                             <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.25, delay: 0.1 }}
-                                className="bg-gradient-to-r from-emerald-900/30 to-neutral-900/80 border border-emerald-800/30 rounded-xl p-4 flex items-center justify-between"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="bg-neutral-900/80 border border-neutral-700 rounded-xl p-4 flex items-center justify-between"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-emerald-900/50 flex items-center justify-center border border-emerald-700/50">
-                                        <TrendingUp className="w-5 h-5 text-emerald-400" />
-                                    </div>
+                                    <span className="text-xl">📈</span>
                                     <div className="text-left">
-                                        <div className="font-bold text-white text-sm">{currentLabels.compoundLabel}</div>
-                                        <div className="font-mono text-[9px] text-neutral-500">{currentLabels.compoundDesc}</div>
+                                        <div className="font-bold text-white text-sm">{currentLabels.fiveYearLabel}</div>
+                                        <div className="font-mono text-[9px] text-neutral-500">{currentLabels.fiveYearDesc}</div>
                                     </div>
                                 </div>
-                                <span className="font-mono text-xl font-bold text-emerald-400">+€{compoundGrowth.toLocaleString()}</span>
+                                <span className="font-mono text-xl font-bold text-emerald-400">+{fiveYearGrowth.toLocaleString('fr-FR')} €</span>
                             </motion.div>
                         </div>
                     )}

@@ -7,14 +7,15 @@ import { getPerformance } from 'firebase/performance';
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCnZ3gWmJZYS2UzJMz9p-l0y_jrP4IMxdI",
-  authDomain: "financequest-pwa.firebaseapp.com",
-  projectId: "financequest-pwa",
-  storageBucket: "financequest-pwa.firebasestorage.app",
-  messagingSenderId: "131538371852",
-  appId: "1:131538371852:web:fa4c91813ec0beed097529",
-  measurementId: "G-73ZEYJKER0"
+  apiKey: "AIzaSyBcgZin9_iq1iEqTr61rvxLaWAIVK74YtM",
+  authDomain: "moniyo-7ddbe.firebaseapp.com",
+  projectId: "moniyo-7ddbe",
+  storageBucket: "moniyo-7ddbe.firebasestorage.app",
+  messagingSenderId: "207019269878",
+  appId: "1:207019269878:web:cd8ed8a177c67fed5cd6d7",
+  measurementId: "G-PZ4RDJYB9L"
 };
 
 // Initialize Firebase

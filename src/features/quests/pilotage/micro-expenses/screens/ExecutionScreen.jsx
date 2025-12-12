@@ -170,9 +170,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                     >
                         {/* Big Amount Display - Fixed width container */}
                         <div className="flex items-baseline justify-center gap-2 mb-6">
-                            <span className={`text-4xl font-sans font-bold transition-colors ${dailyAmount > 0 ? 'text-white' : 'text-neutral-700'}`}>
-                                €
-                            </span>
                             <input
                                 type="number"
                                 value={dailyAmount || ''}
@@ -181,6 +178,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                 className="w-28 bg-transparent text-center text-6xl font-mono font-bold text-white placeholder-neutral-800 focus:outline-none caret-volt"
                                 style={{ caretColor: '#E2FF00' }}
                             />
+                            <span className={`text-4xl font-sans font-bold transition-colors ${dailyAmount > 0 ? 'text-white' : 'text-neutral-700'}`}>
+                                €
+                            </span>
                             <span className="font-mono text-base text-neutral-500">{currentLabels.perDay}</span>
                         </div>
 
@@ -211,13 +211,13 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                 {/* Monthly */}
                                 <div className="flex justify-between items-center p-3 rounded-lg border border-white/5 bg-white/5">
                                     <span className="font-mono text-[10px] text-neutral-400 uppercase">{currentLabels.monthly}</span>
-                                    <span className="font-mono text-sm font-bold text-white">€{projections.monthly.toFixed(0)}</span>
+                                    <span className="font-mono text-sm font-bold text-white">{projections.monthly.toFixed(0)} €</span>
                                 </div>
 
                                 {/* Yearly */}
                                 <div className="flex justify-between items-center p-3 rounded-lg border border-white/5 bg-white/5">
                                     <span className="font-mono text-[10px] text-neutral-400 uppercase">{currentLabels.yearly}</span>
-                                    <span className="font-mono text-sm font-bold text-white">€{projections.yearly.toFixed(0)}</span>
+                                    <span className="font-mono text-sm font-bold text-white">{projections.yearly.toFixed(0)} €</span>
                                 </div>
 
                                 {/* 5-Year Hero Card */}
@@ -238,7 +238,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                             className="font-mono text-2xl font-black text-volt block"
                                             style={{ textShadow: '0 0 20px rgba(226, 255, 0, 0.5)' }}
                                         >
-                                            €{projections.tenYear.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                            {projections.tenYear.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                                         </motion.span>
                                     </div>
                                 </div>

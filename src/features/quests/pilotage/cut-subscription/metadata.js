@@ -24,7 +24,7 @@ export const cutSubscriptionQuest = {
   metadata: {
     version: '2.0.0',
     lastUpdated: new Date().toISOString(),
-    author: 'FinanceQuest Team',
+    author: 'Moniyo Team',
     tags: ['starter', 'subscription', 'budgeting', 'quickwin', 'actionnable'],
     relatedQuests: [],
     averageCompletionTime: 6,

@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "rules": "firestore-rules-optimized.rules"
+    "rules": "firestore.rules"
   },
   "storage": {
     "rules": "storage.rules"
@@ -33,4 +33,3 @@
     ]
   }
 }
-

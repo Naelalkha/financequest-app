@@ -1,4 +1,4 @@
-// Analytics utilities for FinanceQuest
+// Analytics utilities for Moniyo
 import { analytics } from '../services/firebase';
 import { logEvent, setUserId, setUserProperties } from 'firebase/analytics';
 import { getSessionId } from './sessionId';

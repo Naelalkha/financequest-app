@@ -25,7 +25,7 @@ export const microExpensesQuest = {
     metadata: {
         version: '1.0.0',
         lastUpdated: new Date().toISOString(),
-        author: 'FinanceQuest Team',
+        author: 'Moniyo Team',
         tags: ['starter', 'micro-expenses', 'budgeting', 'awareness', 'actionnable'],
         relatedQuests: ['cut-subscription'],
         averageCompletionTime: 5,

@@ -114,7 +114,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             customPlaceholder: 'Nom du service...',
             perMonth: '/MOIS',
             perYear: '/AN',
-            impactFeedback: `💰 Soit ${annualSavings.toFixed(2)}€ par an récupérés`,
+            impactFeedback: `💰 Soit ${annualSavings.toFixed(2)} € par an récupérés`,
             cta: 'VALIDER LE BUTIN'
         },
         en: {
@@ -122,7 +122,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             customPlaceholder: 'Service name...',
             perMonth: '/MONTH',
             perYear: '/YEAR',
-            impactFeedback: `💰 That's €${annualSavings.toFixed(2)} recovered per year`,
+            impactFeedback: `💰 That's ${annualSavings.toFixed(2)} € recovered per year`,
             cta: 'CONFIRM THE LOOT'
         }
     };
@@ -227,7 +227,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.25 }}
-                        className="relative mb-2"
+                        className="relative mb-2 mt-8"
                     >
                         {/* Service name tag */}
                         <AnimatePresence>
@@ -236,7 +236,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="absolute -top-4 left-0 w-full text-center"
+                                    className="absolute -top-5 left-0 w-full text-center"
                                 >
                                     <span className="font-mono text-[9px] text-volt bg-volt/10 px-2 py-0.5 rounded border border-volt/20 uppercase">
                                         {customName}
@@ -247,9 +247,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
 
                         {/* Main input row */}
                         <div className="flex items-baseline justify-center gap-1">
-                            <span className={`text-3xl font-sans font-bold transition-colors ${price ? 'text-white' : 'text-zinc-700'}`}>
-                                €
-                            </span>
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -257,9 +254,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
                                 value={price}
                                 onChange={handlePriceChange}
                                 placeholder="00.00"
-                                className="w-full max-w-[280px] bg-transparent text-center text-7xl font-mono font-bold text-white placeholder-zinc-800 focus:outline-none caret-volt"
+                                className="w-full max-w-[200px] bg-transparent text-center text-6xl font-mono font-bold text-white placeholder-zinc-800 focus:outline-none caret-volt"
                                 style={{ caretColor: '#E2FF00' }}
                             />
+                            <span className={`text-4xl font-sans font-bold transition-colors ${price ? 'text-white' : 'text-zinc-700'}`}>
+                                €
+                            </span>
                         </div>
                     </motion.div>
 

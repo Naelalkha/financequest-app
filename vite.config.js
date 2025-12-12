@@ -11,13 +11,13 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'favicon-96x96.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'FinanceQuest - Gamified Financial Learning',
-        short_name: 'FinanceQuest',
+        name: 'Moniyo - Gamified Financial Learning',
+        short_name: 'Moniyo',
         description: 'Master your finances through interactive quests and gamification',
-        theme_color: '#F59E0B',
-        background_color: '#111827',
+        theme_color: '#000000',
+        background_color: '#000000',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -85,7 +85,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/financequest-app\.vercel\.app\/api\/.*/i,
+            urlPattern: /^https:\/\/moniyo\.app\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

@@ -23,7 +23,7 @@ function AppContent() {
               <LoadingSpinner size="lg" />
             </div>
             <p className="text-gray-400 text-lg font-medium">
-              {t('ui.loading_app') || 'Loading FinanceQuest...'}
+              {t('ui.loading_app') || 'Loading Moniyo...'}
             </p>
           </div>
         </div>

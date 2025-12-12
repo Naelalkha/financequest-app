@@ -265,7 +265,7 @@ const FeaturesSection = ({ t }) => {
           animate={{ opacity: 1, y: 0 }}
         >
           <h2 className="text-3xl md:text-4xl text-title text-white mb-4">
-            Why Choose <span className="text-gradient-gold">FinanceQuest?</span>
+            Why Choose <span className="text-gradient-gold">Moniyo?</span>
           </h2>
           <p className="text-gray-400 text-lg text-body">
             Everything you need to master your finances in one gamified platform

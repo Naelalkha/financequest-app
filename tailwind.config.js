@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Custom gold colors for FinanceQuest
+        // Custom gold colors for Moniyo
         gold: {
           50: '#fffbeb',
           100: '#fef3c7',
@@ -178,7 +178,7 @@ export default {
   },
   plugins: [
     // Custom plugin for text shadows
-    function({ addUtilities }) {
+    function ({ addUtilities }) {
       const newUtilities = {
         '.text-shadow-sm': {
           textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
@@ -205,7 +205,7 @@ export default {
       addUtilities(newUtilities)
     },
     // Custom plugin for backdrop filters
-    function({ addUtilities }) {
+    function ({ addUtilities }) {
       const newUtilities = {
         '.backdrop-blur-xs': {
           backdropFilter: 'blur(2px)',
