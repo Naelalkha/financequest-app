@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -8,13 +8,16 @@ import AuthLayout from '../components/layout/AuthLayout';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Login = () => {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user } = useAuth();
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if user is anonymous (logging into existing account will lose progress)
+  const isAnonymous = user?.isAnonymous;
 
   // Load remembered email
   useEffect(() => {
@@ -80,6 +83,26 @@ const Login = () => {
         <h2 className="font-sans font-bold text-xl text-white mb-6 tracking-tight">
           {t('login_title')}
         </h2>
+
+        {/* Warning for anonymous users logging into existing account */}
+        {isAnonymous && (
+          <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-white text-sm font-medium mb-1">
+                  Connexion à un compte existant
+                </p>
+                <p className="text-neutral-400 text-xs">
+                  Ta progression actuelle sera remplacée par celle du compte. Pour conserver ta progression actuelle, 
+                  <Link to="/register" className="text-[#E2FF00] font-medium ml-1">
+                    crée un nouveau compte
+                  </Link>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           {/* Email Input */}

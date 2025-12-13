@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Home from './pages/Home';
@@ -13,8 +13,9 @@ import Impact from './pages/Impact';
 import BottomNav from './components/layout/BottomNav';
 import AppBackground from './components/layout/AppBackground';
 import LoadingSpinner from './components/ui/LoadingSpinner';
+import { PlaceholderOnboarding, onboardingStore } from './features/onboarding';
 
-// Private route wrapper
+// Private route wrapper - Now allows anonymous users!
 function PrivateRoute({ children }) {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -27,12 +28,14 @@ function PrivateRoute({ children }) {
         </AppBackground>
     );
 
-    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    // With anonymous auth, user should always exist after loading
+    // If somehow no user, redirect to root (will trigger anonymous auth)
+    if (!user) return <Navigate to="/" state={{ from: location }} replace />;
 
     return children;
 }
 
-// Public route wrapper (redirects to dashboard if authenticated)
+// Public route wrapper (redirects to dashboard if authenticated and NOT anonymous)
 function PublicRoute({ children }) {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -45,7 +48,8 @@ function PublicRoute({ children }) {
         </AppBackground>
     );
 
-    if (user) return <Navigate to="/dashboard" replace />;
+    // Only redirect if user is logged in with a real account (not anonymous)
+    if (user && !user.isAnonymous) return <Navigate to="/dashboard" replace />;
 
     return children;
 }
@@ -53,6 +57,25 @@ function PublicRoute({ children }) {
 const AppRouter = () => {
     const { user, loading } = useAuth();
     const location = useLocation();
+    
+    // Track onboarding completion (persisted in localStorage)
+    const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
+        onboardingStore.hasCompletedOnboarding()
+    );
+
+    // Listen for onboarding completion (in case it changes)
+    useEffect(() => {
+        const checkOnboarding = () => {
+            setHasCompletedOnboarding(onboardingStore.hasCompletedOnboarding());
+        };
+        
+        // Check on mount and when navigating
+        checkOnboarding();
+        
+        // Listen for storage changes (in case another tab completes onboarding)
+        window.addEventListener('storage', checkOnboarding);
+        return () => window.removeEventListener('storage', checkOnboarding);
+    }, [location.pathname]);
 
     if (loading) {
         return (
@@ -64,8 +87,13 @@ const AppRouter = () => {
         );
     }
 
-    // Routes that show bottom nav
-    const showBottomNav = user && !['/', '/login', '/register'].includes(location.pathname);
+    // If user hasn't completed onboarding, show onboarding first
+    if (!hasCompletedOnboarding && user) {
+        return <PlaceholderOnboarding />;
+    }
+
+    // Routes that show bottom nav (now includes anonymous users)
+    const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
 
     return (
         <>
@@ -73,10 +101,10 @@ const AppRouter = () => {
                 <Routes>
                     {/* Root Route Logic */}
                     <Route path="/" element={
-                        user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+                        user ? <Navigate to="/dashboard" replace /> : <Navigate to="/dashboard" replace />
                     } />
 
-                    {/* Public Routes */}
+                    {/* Auth Routes - for upgrading anonymous accounts */}
                     <Route path="/login" element={
                         <PublicRoute>
                             <Login />
@@ -88,7 +116,7 @@ const AppRouter = () => {
                         </PublicRoute>
                     } />
 
-                    {/* Protected Routes */}
+                    {/* Protected Routes - Now accessible by anonymous users too! */}
                     <Route path="/dashboard" element={
                         <PrivateRoute>
                             <Dashboard />

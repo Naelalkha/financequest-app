@@ -7,7 +7,11 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInAnonymously,
+  linkWithCredential,
+  EmailAuthProvider,
+  linkWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
@@ -125,17 +129,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login function
+  // Login function - for existing accounts
+  // Note: If current user is anonymous and logs into an existing account,
+  // their anonymous data will be lost. Consider warning users about this.
   const login = async (email, password) => {
     try {
       setError(null);
+      
+      // If user is anonymous, they're logging into an EXISTING account
+      // This will replace the anonymous user (data migration would need to be handled separately)
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userData = await createUserDocument(userCredential.user.uid, userCredential.user.email);
       
       // Merge Firebase Auth user with Firestore data
       setUser({
         ...userCredential.user,
-        ...userData
+        ...userData,
+        isAnonymous: false
       });
       
       return userCredential.user;
@@ -145,11 +155,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
+  // Register function - handles both new users and anonymous upgrade
   const register = async (email, password, displayName = null, country = 'fr-FR') => {
     try {
       setError(null);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      let userCredential;
+      const currentUser = auth.currentUser;
+      
+      // Check if current user is anonymous → upgrade instead of create new
+      if (currentUser && currentUser.isAnonymous) {
+        // Link anonymous account with email/password credentials
+        const credential = EmailAuthProvider.credential(email, password);
+        userCredential = await linkWithCredential(currentUser, credential);
+        console.log('Anonymous account upgraded to email/password');
+      } else {
+        // Create new account (normal flow)
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      }
       
       // Update display name if provided
       if (displayName) {
@@ -160,7 +183,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
       
-      // Create user document - ne pas faire échouer l'inscription si ça échoue
+      // Create/update user document - ne pas faire échouer l'inscription si ça échoue
       let userData = {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
@@ -183,7 +206,8 @@ export const AuthProvider = ({ children }) => {
       // Merge Firebase Auth user with Firestore data
       setUser({
         ...userCredential.user,
-        ...userData
+        ...userData,
+        isAnonymous: false
       });
       
       // Capture PostHog signup event
@@ -191,7 +215,8 @@ export const AuthProvider = ({ children }) => {
         posthog.capture('signup', {
           provider: 'email',
           lang: userData.lang || 'en',
-          country: userData.country || 'fr-FR'
+          country: userData.country || 'fr-FR',
+          upgraded_from_anonymous: currentUser?.isAnonymous || false
         });
       } catch (posthogError) {
         console.warn('PostHog tracking failed:', posthogError);
@@ -233,15 +258,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google login/signup function
+  // Google login/signup function - handles both new users and anonymous upgrade
   const loginWithGoogle = async () => {
     try {
       setError(null);
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const currentUser = auth.currentUser;
+      
+      let result;
+      let wasAnonymous = false;
+      
+      // Check if current user is anonymous → upgrade instead of create new
+      if (currentUser && currentUser.isAnonymous) {
+        result = await linkWithPopup(currentUser, provider);
+        wasAnonymous = true;
+        console.log('Anonymous account upgraded to Google');
+      } else {
+        result = await signInWithPopup(auth, provider);
+      }
       
       // Vérifier si c'est un nouveau compte
-      const isNewUser = result._tokenResponse?.isNewUser || false;
+      const isNewUser = result._tokenResponse?.isNewUser || wasAnonymous;
       
       // Create or update user document - ne pas faire échouer si ça échoue
       let userData = {
@@ -271,7 +308,8 @@ export const AuthProvider = ({ children }) => {
       const mergedUser = {
         ...result.user,
         ...userData,
-        isNewGoogleUser: isNewUser // Ajouter cette info pour le composant appelant
+        isNewGoogleUser: isNewUser,
+        isAnonymous: false
       };
       
       setUser(mergedUser);
@@ -282,7 +320,8 @@ export const AuthProvider = ({ children }) => {
           posthog.capture('signup', {
             provider: 'google',
             lang: userData.lang || 'en',
-            country: userData.country || 'fr-FR'
+            country: userData.country || 'fr-FR',
+            upgraded_from_anonymous: wasAnonymous
           });
         } catch (posthogError) {
           console.warn('PostHog tracking failed:', posthogError);
@@ -341,22 +380,36 @@ export const AuthProvider = ({ children }) => {
             // Merge Firebase Auth user with Firestore data
             setUser({
               ...firebaseUser,
-              ...userSnap.data()
+              ...userSnap.data(),
+              isAnonymous: firebaseUser.isAnonymous
             });
           } else {
             // Create user document if it doesn't exist
             const userData = await createUserDocument(firebaseUser.uid, firebaseUser.email);
             setUser({
               ...firebaseUser,
-              ...userData
+              ...userData,
+              isAnonymous: firebaseUser.isAnonymous
             });
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
-          setUser(firebaseUser); // Fallback to just Firebase Auth user
+          setUser({
+            ...firebaseUser,
+            isAnonymous: firebaseUser.isAnonymous
+          }); // Fallback to just Firebase Auth user
         }
       } else {
-        setUser(null);
+        // No user logged in → Sign in anonymously for Guest Mode
+        try {
+          await signInAnonymously(auth);
+          // The onAuthStateChanged will trigger again with the anonymous user
+        } catch (anonymousError) {
+          console.error('Failed to sign in anonymously:', anonymousError);
+          setUser(null);
+          setLoading(false);
+        }
+        return; // Don't setLoading(false) here, wait for anonymous auth to complete
       }
       setLoading(false);
     });

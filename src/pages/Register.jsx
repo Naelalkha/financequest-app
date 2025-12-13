@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -8,7 +8,7 @@ import AuthLayout from '../components/layout/AuthLayout';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Register = () => {
-  const { register, loginWithGoogle } = useAuth();
+  const { register, loginWithGoogle, user } = useAuth();
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
 
@@ -17,6 +17,9 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if user is upgrading from anonymous
+  const isUpgrading = user?.isAnonymous;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +42,10 @@ const Register = () => {
 
     try {
       await register(email, password, name);
-      toast.success(t('register_success') || 'Account created successfully! 🎉');
+      const successMessage = isUpgrading 
+        ? (t('upgrade_success') || 'Compte créé ! Ta progression est sauvegardée 🎉')
+        : (t('register_success') || 'Account created successfully! 🎉');
+      toast.success(successMessage);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
@@ -81,8 +87,25 @@ const Register = () => {
     <AuthLayout>
       <div className="flex flex-col items-center">
         <h2 className="font-sans font-bold text-xl text-white mb-6 tracking-tight">
-          {t('register_title')}
+          {isUpgrading ? (t('upgrade_account') || 'Sauvegarde ta progression') : t('register_title')}
         </h2>
+
+        {/* Info banner for anonymous users upgrading */}
+        {isUpgrading && (
+          <div className="w-full bg-[#E2FF00]/10 border border-[#E2FF00]/30 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-[#E2FF00] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-white text-sm font-medium mb-1">
+                  Ta progression sera conservée
+                </p>
+                <p className="text-neutral-400 text-xs">
+                  Tes XP, badges et économies seront liés à ton nouveau compte.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           {/* Name Input */}

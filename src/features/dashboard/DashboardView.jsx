@@ -25,6 +25,7 @@ import SmartMissionModal from './components/SmartMissionModal';
 import QuestDetailsModal from './components/QuestDetailsModal';
 import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
 import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
+import { SaveProgressBanner } from '../../components/ui';
 
 
 /**
@@ -354,6 +355,9 @@ const DashboardView = () => {
                     }}
                     userAvatar={userData?.photoURL || user?.photoURL}
                 />
+
+                {/* 1.5 Save Progress Banner (for anonymous users) */}
+                <SaveProgressBanner />
 
                 {/* 2. Scoreboard (Impact Hero) */}
                 <div className="space-y-6">
