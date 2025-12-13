@@ -7,7 +7,8 @@ import ExecutionScreen from './screens/ExecutionScreen';
 import DebriefScreen from './screens/DebriefScreen';
 import { trackEvent } from '../../../../utils/analytics';
 import useLocalizedQuest from '../../../../hooks/useLocalizedQuest';
-import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
+import { fullscreenVariants, TRANSITIONS, EASE, SPRING, screenVariants } from '../../../../styles/animationConstants';
+import { haptic } from '../../../../utils/haptics';
 
 /**
  * MicroExpensesFlow - Main 3-Phase Quest Flow Controller
@@ -65,16 +66,18 @@ const MicroExpensesFlow = ({
         setQuestData(prev => ({ ...prev, ...newData }));
     }, []);
 
-    // Phase transitions
-    const goToExecution = () => {
+    // Phase transitions with haptic feedback
+    const goToExecution = useCallback(() => {
+        haptic.medium();
         trackEvent('quest_phase_completed', {
             quest_id: 'micro-expenses',
             phase: 'PROTOCOL'
         });
         setPhase('EXECUTION');
-    };
+    }, []);
 
-    const goToDebrief = () => {
+    const goToDebrief = useCallback(() => {
+        haptic.heavy();
         trackEvent('quest_phase_completed', {
             quest_id: 'micro-expenses',
             phase: 'EXECUTION',
@@ -82,11 +85,12 @@ const MicroExpensesFlow = ({
             dailyAmount: questData.dailyAmount
         });
         setPhase('DEBRIEF');
-    };
+    }, [questData.expenseName, questData.dailyAmount]);
 
-    const goBackToProtocol = () => {
+    const goBackToProtocol = useCallback(() => {
+        haptic.light();
         setPhase('PROTOCOL');
-    };
+    }, []);
 
     // Final completion
     const handleComplete = () => {
@@ -110,12 +114,8 @@ const MicroExpensesFlow = ({
         });
     };
 
-    // Screen transition variants
-    const screenVariants = {
-        initial: { opacity: 0, x: 30 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: -30 }
-    };
+    // Use optimized screen variants from constants
+    // screenVariants.slideForward is imported from animationConstants
 
     return (
         <motion.div
@@ -179,11 +179,11 @@ const MicroExpensesFlow = ({
                         {phase === 'PROTOCOL' && (
                             <motion.div
                                 key="protocol"
-                                variants={screenVariants}
+                                variants={screenVariants.slideForward}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={{ duration: 0.25 }}
+                                transition={SPRING.smooth}
                                 className="h-full"
                             >
                                 <ProtocolScreen onNext={goToExecution} />
@@ -193,11 +193,11 @@ const MicroExpensesFlow = ({
                         {phase === 'EXECUTION' && (
                             <motion.div
                                 key="execution"
-                                variants={screenVariants}
+                                variants={screenVariants.slideForward}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={{ duration: 0.25 }}
+                                transition={SPRING.smooth}
                                 className="h-full"
                             >
                                 <ExecutionScreen
@@ -212,11 +212,11 @@ const MicroExpensesFlow = ({
                         {phase === 'DEBRIEF' && (
                             <motion.div
                                 key="debrief"
-                                variants={screenVariants}
+                                variants={screenVariants.fadeScale}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={{ duration: 0.25 }}
+                                transition={SPRING.bouncy}
                                 className="h-full"
                             >
                                 <DebriefScreen

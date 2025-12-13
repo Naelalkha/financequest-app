@@ -1,8 +1,11 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Coffee, Utensils, Flame, Car, Beer, Plus } from 'lucide-react';
 import { expenseCategories, expenseCategoryLabels, calculateProjections } from '../insightData';
+import { Slider } from '../../../../../components/ui';
+import { haptic } from '../../../../../utils/haptics';
+import { SPRING } from '../../../../../styles/animationConstants';
 
 /**
  * ExecutionScreen - Phase 2: "L'AMPLIFICATEUR TEMPOREL"
@@ -28,7 +31,6 @@ const ICON_MAP = {
 const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
-    const sliderRef = useRef(null);
 
     // Local state
     const [selectedCategoryId, setSelectedCategoryId] = useState(data.categoryId || null);
@@ -41,16 +43,16 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
     // Calculate projections
     const projections = calculateProjections(dailyAmount);
 
-    // Handle category selection
-    const handleCategorySelect = (category) => {
+    // Handle category selection with haptic
+    const handleCategorySelect = useCallback((category) => {
+        haptic.medium();
         setSelectedCategoryId(category.id);
         setDailyAmount(category.defaultAmount);
         setCustomName(categoryLabels[category.id]);
-    };
+    }, [categoryLabels]);
 
-    // Handle slider change
-    const handleSliderChange = useCallback((e) => {
-        const value = parseFloat(e.target.value);
+    // Handle slider change (haptic is built into Slider component)
+    const handleSliderChange = useCallback((value) => {
         setDailyAmount(value);
     }, []);
 
@@ -63,8 +65,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
     // Validation
     const isValid = selectedCategoryId && dailyAmount > 0;
 
-    // Handle next
-    const handleNext = () => {
+    // Handle next with haptic feedback
+    const handleNext = useCallback(() => {
+        haptic.success();
+        
         const category = expenseCategories.find(c => c.id === selectedCategoryId);
         const displayName = categoryLabels[category?.id] || customName;
 
@@ -80,7 +84,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
             customName
         });
         onNext();
-    };
+    }, [selectedCategoryId, categoryLabels, customName, dailyAmount, projections, onUpdate, onNext]);
 
     // Labels
     const labels = {
@@ -110,48 +114,42 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
             <div className="flex flex-col h-full">
                 <div className="text-center mb-6">
                     {/* Title */}
-                    <motion.h3
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="font-mono text-xs text-neutral-500 tracking-[0.2em] uppercase mb-6"
-                    >
+                    <h3 className="font-mono text-xs text-neutral-500 tracking-[0.2em] uppercase mb-6">
                         {currentLabels.title}
-                    </motion.h3>
+                    </h3>
 
-                    {/* ===== ITEM SELECTOR GRID (4 cols, Lucide icons) ===== */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="grid grid-cols-3 gap-3 mb-8"
-                    >
-                        {expenseCategories.map((category, index) => {
+                    {/* ===== ITEM SELECTOR GRID (3 cols, Lucide icons) ===== */}
+                    <div className="grid grid-cols-3 gap-3 mb-8">
+                        {expenseCategories.map((category) => {
                             const IconComponent = ICON_MAP[category.iconName];
                             const isSelected = selectedCategoryId === category.id;
 
                             return (
                                 <motion.button
                                     key={category.id}
-                                    initial={{ opacity: 0 }}
                                     animate={{
-                                        opacity: 1,
-                                        scale: isSelected ? 1.08 : 1
+                                        scale: isSelected ? 1.05 : 1,
                                     }}
-                                    whileHover={{ scale: isSelected ? 1.08 : 1.02 }}
                                     whileTap={{ scale: 0.95 }}
-                                    transition={{ duration: 0.2, delay: 0.02 * index }}
+                                    transition={SPRING.snappy}
                                     onClick={() => handleCategorySelect(category)}
                                     className={`
-                                        py-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all duration-200
+                                        py-4 rounded-xl border flex flex-col items-center justify-center gap-2 transform-gpu
                                         ${isSelected
-                                            ? 'bg-volt text-black border-volt shadow-[0_0_20px_var(--volt-glow)] z-10'
-                                            : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:bg-neutral-800'
+                                            ? 'bg-volt text-black border-volt shadow-[0_0_20px_rgba(226,255,0,0.4)] z-10'
+                                            : 'bg-neutral-900 text-neutral-400 border-neutral-800 active:bg-neutral-800'
                                         }
                                     `}
                                 >
                                     {IconComponent && (
-                                        <IconComponent className={`w-6 h-6 ${isSelected ? 'text-black' : 'text-neutral-400'}`} />
+                                        <motion.div
+                                            animate={{ 
+                                                rotate: isSelected ? [0, -8, 8, 0] : 0,
+                                            }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <IconComponent className={`w-6 h-6 ${isSelected ? 'text-black' : 'text-neutral-400'}`} />
+                                        </motion.div>
                                     )}
                                     <span className={`font-mono text-[9px] font-bold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-neutral-400'}`}>
                                         {categoryLabels[category.id]}
@@ -159,15 +157,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                 </motion.button>
                             );
                         })}
-                    </motion.div>
+                    </div>
 
                     {/* ===== PRICE INPUT + SLIDER ===== */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="mb-8"
-                    >
+                    <div className="mb-8">
                         {/* Big Amount Display - Fixed width container */}
                         <div className="flex items-baseline justify-center gap-2 mb-6">
                             <input
@@ -175,29 +168,30 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                 value={dailyAmount || ''}
                                 onChange={handleInputChange}
                                 placeholder="0"
-                                className="w-28 bg-transparent text-center text-6xl font-mono font-bold text-white placeholder-neutral-800 focus:outline-none caret-volt"
+                                className="w-28 bg-transparent text-center text-6xl font-mono font-bold text-white placeholder-neutral-800 focus:outline-none caret-volt transform-gpu"
                                 style={{ caretColor: '#E2FF00' }}
                             />
-                            <span className={`text-4xl font-sans font-bold transition-colors ${dailyAmount > 0 ? 'text-white' : 'text-neutral-700'}`}>
+                            <span 
+                                className={`text-4xl font-sans font-bold transition-colors duration-200 ${dailyAmount > 0 ? 'text-white' : 'text-neutral-700'}`}
+                            >
                                 €
                             </span>
                             <span className="font-mono text-base text-neutral-500">{currentLabels.perDay}</span>
                         </div>
 
-                        {/* Slider */}
+                        {/* Premium Slider with haptics */}
                         <div className="px-2">
-                            <input
-                                ref={sliderRef}
-                                type="range"
-                                min="1"
-                                max="50"
-                                step="0.5"
+                            <Slider
                                 value={dailyAmount || 0}
                                 onChange={handleSliderChange}
-                                className="w-full accent-volt h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                                min={1}
+                                max={50}
+                                step={0.5}
+                                hapticOnChange={true}
+                                hapticOnSnap={true}
                             />
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* ===== LIVE PROJECTION COUNTERS ===== */}
                     <AnimatePresence>
@@ -221,7 +215,13 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                 </div>
 
                                 {/* 5-Year Hero Card */}
-                                <div className="flex justify-between items-center p-4 rounded-xl border border-volt/30 bg-volt/10 shadow-[0_0_20px_rgba(226,255,0,0.1)]">
+                                <div 
+                                    className={`flex justify-between items-center p-4 rounded-xl border border-volt/30 bg-volt/10 transform-gpu transition-shadow duration-300 ${
+                                        dailyAmount > 20 
+                                            ? 'shadow-[0_0_30px_rgba(226,255,0,0.25)]' 
+                                            : 'shadow-[0_0_15px_rgba(226,255,0,0.1)]'
+                                    }`}
+                                >
                                     <div className="text-left">
                                         <span className="font-mono text-[10px] text-volt font-bold uppercase block mb-1">
                                             {currentLabels.fiveYear}
@@ -231,15 +231,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                                         </span>
                                     </div>
                                     <div className="text-right">
-                                        <motion.span
-                                            key={projections.tenYear}
-                                            initial={{ scale: 0.8, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            className="font-mono text-2xl font-black text-volt block"
+                                        <span
+                                            className="font-mono text-2xl font-black text-volt block transform-gpu"
                                             style={{ textShadow: '0 0 20px rgba(226, 255, 0, 0.5)' }}
                                         >
                                             {projections.tenYear.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                                        </motion.span>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -267,17 +264,17 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
             {/* Footer: CTA */}
             <div className="mt-auto pt-6">
                 <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.25 }}
-                    whileHover={{ scale: isValid ? 1.02 : 1 }}
-                    whileTap={{ scale: isValid ? 0.98 : 1 }}
+                    animate={{ 
+                        scale: 1,
+                    }}
+                    whileTap={isValid ? { scale: 0.97 } : {}}
+                    transition={SPRING.snappy}
                     onClick={handleNext}
                     disabled={!isValid}
                     className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transform-gpu
                         ${isValid
-                            ? 'bg-volt text-black hover:bg-white cursor-pointer shadow-[0_0_20px_rgba(226,255,0,0.3)]'
+                            ? 'bg-volt text-black cursor-pointer shadow-[0_0_25px_rgba(226,255,0,0.35)]'
                             : 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed'
                         }
                     `}

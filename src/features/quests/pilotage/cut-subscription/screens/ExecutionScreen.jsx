@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { FaApple } from 'react-icons/fa';
 import { ArrowLeft } from 'lucide-react';
 import { realityCheckPills } from '../insightData';
+import { haptic } from '../../../../../utils/haptics';
+import { SPRING } from '../../../../../styles/animationConstants';
 
 /**
  * ExecutionScreen - Phase 2: Target Selection & Amount Input
@@ -55,8 +57,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
         }
     }, [selectedServiceId]);
 
-    // Handle service selection
-    const handleServiceSelect = (service) => {
+    // Handle service selection with haptic
+    const handleServiceSelect = useCallback((service) => {
+        haptic.medium();
         setSelectedServiceId(service.id);
         if (!service.isCustom) {
             setPrice(service.defaultPrice.toString());
@@ -65,7 +68,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             setPrice('');
             setCustomName('');
         }
-    };
+    }, []);
 
     // Handle price change
     const handlePriceChange = (e) => {
@@ -91,8 +94,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
     const isCustomValid = !selectedService?.isCustom || (selectedService?.isCustom && customName.trim().length > 0);
     const isValid = selectedServiceId && rawPrice > 0 && isCustomValid;
 
-    // Handle next
-    const handleNext = () => {
+    // Handle next with haptic
+    const handleNext = useCallback(() => {
+        haptic.success();
+        
         const service = SUBSCRIPTION_SERVICES.find(s => s.id === selectedServiceId);
         const displayName = service?.isCustom ? customName : getServiceDisplayName(service);
 
@@ -105,7 +110,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             customName
         });
         onNext();
-    };
+    }, [selectedServiceId, customName, monthlyEquivalent, annualSavings, frequency, onUpdate, onNext]);
 
     // Labels
     const labels = {
@@ -135,50 +140,52 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
 
                 <div className="text-center">
                     {/* Title */}
-                    <motion.h3
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="font-mono text-xs text-zinc-500 tracking-[0.2em] uppercase mb-6"
-                    >
+                    <h3 className="font-mono text-xs text-zinc-500 tracking-[0.2em] uppercase mb-6">
                         {currentLabels.title}
-                    </motion.h3>
+                    </h3>
 
                     {/* ===== SERVICE GRID ===== */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="grid grid-cols-3 gap-3 mb-5"
-                    >
-                        {SUBSCRIPTION_SERVICES.map((service, index) => (
-                            <motion.button
-                                key={service.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.2, delay: 0.02 * index }}
-                                onClick={() => handleServiceSelect(service)}
-                                className={`
-                                    h-14 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all duration-200
-                                    ${selectedServiceId === service.id
-                                        ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)] scale-105 z-10'
-                                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800'
-                                    }
-                                `}
-                            >
-                                {service.useAppleIcon ? (
-                                    <FaApple className={`text-lg ${selectedServiceId === service.id ? 'text-black' : service.color}`} />
-                                ) : (
-                                    <span className={`font-black text-lg ${selectedServiceId === service.id ? 'text-black' : service.color}`}>
-                                        {service.icon}
+                    <div className="grid grid-cols-3 gap-3 mb-5">
+                        {SUBSCRIPTION_SERVICES.map((service) => {
+                            const isSelected = selectedServiceId === service.id;
+                            return (
+                                <motion.button
+                                    key={service.id}
+                                    animate={{ 
+                                        scale: isSelected ? 1.05 : 1,
+                                    }}
+                                    whileTap={{ scale: 0.95 }}
+                                    transition={SPRING.snappy}
+                                    onClick={() => handleServiceSelect(service)}
+                                    className={`
+                                        h-14 rounded-xl border flex flex-col items-center justify-center gap-1 transform-gpu
+                                        ${isSelected
+                                            ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)] z-10'
+                                            : 'bg-zinc-900 text-zinc-400 border-zinc-800 active:bg-zinc-800'
+                                        }
+                                    `}
+                                >
+                                    <motion.div
+                                        animate={{ 
+                                            rotate: isSelected ? [0, -8, 8, 0] : 0,
+                                        }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        {service.useAppleIcon ? (
+                                            <FaApple className={`text-lg ${isSelected ? 'text-black' : service.color}`} />
+                                        ) : (
+                                            <span className={`font-black text-lg ${isSelected ? 'text-black' : service.color}`}>
+                                                {service.icon}
+                                            </span>
+                                        )}
+                                    </motion.div>
+                                    <span className="font-mono text-[8px] font-bold uppercase tracking-wide">
+                                        {getServiceDisplayName(service)}
                                     </span>
-                                )}
-                                <span className="font-mono text-[8px] font-bold uppercase tracking-wide">
-                                    {getServiceDisplayName(service)}
-                                </span>
-                            </motion.button>
-                        ))}
-                    </motion.div>
+                                </motion.button>
+                            );
+                        })}
+                    </div>
 
                     {/* ===== REALITY CHECK PILL ===== */}
                     <AnimatePresence>
@@ -265,36 +272,40 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
 
                     {/* ===== FREQUENCY PILLS ===== */}
                     <div className="flex justify-center gap-2 mb-6">
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            transition={SPRING.snappy}
                             onClick={() => {
+                                haptic.light();
                                 if (frequency !== 'MONTHLY' && rawPrice > 0) {
-                                    // Convert from yearly to monthly
                                     setPrice((rawPrice / 12).toFixed(2));
                                 }
                                 setFrequency('MONTHLY');
                             }}
-                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border transition-all ${frequency === 'MONTHLY'
+                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border ${frequency === 'MONTHLY'
                                 ? 'bg-white text-black border-white'
                                 : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-600'
                                 }`}
                         >
                             {currentLabels.perMonth}
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            transition={SPRING.snappy}
                             onClick={() => {
+                                haptic.light();
                                 if (frequency !== 'YEARLY' && rawPrice > 0) {
-                                    // Convert from monthly to yearly
                                     setPrice((rawPrice * 12).toFixed(2));
                                 }
                                 setFrequency('YEARLY');
                             }}
-                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border transition-all ${frequency === 'YEARLY'
+                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border ${frequency === 'YEARLY'
                                 ? 'bg-white text-black border-white'
                                 : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-600'
                                 }`}
                         >
                             {currentLabels.perYear}
-                        </button>
+                        </motion.button>
                     </div>
 
                     {/* ===== REAL-TIME IMPACT FEEDBACK ===== */}
@@ -316,17 +327,15 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             {/* Footer: CTA */}
             <div className="p-6 bg-black border-t border-zinc-800">
                 <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.25 }}
-                    whileHover={{ scale: isValid ? 1.02 : 1 }}
-                    whileTap={{ scale: isValid ? 0.98 : 1 }}
+                    animate={{ scale: 1 }}
+                    whileTap={isValid ? { scale: 0.97 } : {}}
+                    transition={SPRING.snappy}
                     onClick={handleNext}
                     disabled={!isValid}
                     className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transform-gpu
                         ${isValid
-                            ? 'bg-volt text-black hover:bg-white cursor-pointer shadow-[0_0_20px_rgba(226,255,0,0.3)]'
+                            ? 'bg-volt text-black cursor-pointer shadow-[0_0_25px_rgba(226,255,0,0.35)]'
                             : 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
                         }
                     `}

@@ -17,3 +17,31 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* ===== iOS PWA Flicker Prevention ===== */
+/* Force GPU acceleration on animated elements to prevent flickering */
+button,
+[role="button"],
+.fq-button,
+.fq-slider {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+}
+
+/* Prevent iOS tap highlight flicker */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth animations on iOS */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific fixes */
+  .motion-safe {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}

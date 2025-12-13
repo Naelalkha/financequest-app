@@ -2,9 +2,14 @@
  * Animation Constants
  * Centralized animation values for consistent motion across the app
  * Used with Framer Motion
+ * 
+ * Performance optimized:
+ * - Spring animations for natural feel (GPU-accelerated)
+ * - transform/opacity only (no layout thrashing)
+ * - Reduced motion support
  */
 
-// Easing curves
+// Easing curves (for tween animations)
 export const EASE = {
     // Smooth exit - accelerates out
     outExpo: [0.16, 1, 0.3, 1],
@@ -16,6 +21,8 @@ export const EASE = {
     in: [0.4, 0, 1, 1],
     // Bounce back effect
     backOut: [0.34, 1.56, 0.64, 1],
+    // Premium smooth (Apple-like)
+    premium: [0.25, 0.1, 0.25, 1],
 };
 
 // Standard durations (in seconds)
@@ -26,6 +33,59 @@ export const DURATION = {
     medium: 0.3,
     slow: 0.35,
     slower: 0.5,
+};
+
+/**
+ * Spring configurations for Framer Motion
+ * These create more natural, physics-based animations
+ * 
+ * Usage:
+ *   transition={{ ...SPRING.snappy }}
+ *   transition={{ type: 'spring', ...SPRING.bouncy }}
+ */
+export const SPRING = {
+    // Quick and responsive - for buttons, toggles
+    snappy: {
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+        mass: 1,
+    },
+    // Smooth and elegant - for modals, cards
+    smooth: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+        mass: 1,
+    },
+    // Bouncy - for celebrations, success states
+    bouncy: {
+        type: 'spring',
+        stiffness: 400,
+        damping: 15,
+        mass: 1,
+    },
+    // Gentle - for subtle movements
+    gentle: {
+        type: 'spring',
+        stiffness: 200,
+        damping: 25,
+        mass: 1,
+    },
+    // Slider - optimized for continuous dragging
+    slider: {
+        type: 'spring',
+        stiffness: 500,
+        damping: 35,
+        mass: 0.5,
+    },
+    // Number counter - for animating values
+    counter: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 20,
+        mass: 1,
+    },
 };
 
 // Common animation variants for modals/overlays
@@ -56,6 +116,37 @@ export const fullscreenVariants = {
     }
 };
 
+/**
+ * Screen transition variants for quest phases
+ * Optimized for perceived performance
+ */
+export const screenVariants = {
+    // Slide from right (forward navigation)
+    slideForward: {
+        initial: { opacity: 0, x: 30 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -30 }
+    },
+    // Slide from left (back navigation)
+    slideBack: {
+        initial: { opacity: 0, x: -30 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: 30 }
+    },
+    // Fade + scale (for modals/overlays)
+    fadeScale: {
+        initial: { opacity: 0, scale: 0.95 },
+        animate: { opacity: 1, scale: 1 },
+        exit: { opacity: 0, scale: 0.95 }
+    },
+    // Fade only (minimal)
+    fade: {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 }
+    },
+};
+
 // Common transitions
 export const TRANSITIONS = {
     // For modal/card entry
@@ -80,7 +171,14 @@ export const TRANSITIONS = {
     // For quick micro-interactions
     quick: {
         duration: DURATION.fast
-    }
+    },
+    // For screen transitions (use with screenVariants)
+    screen: {
+        duration: DURATION.normal,
+        ease: EASE.outExpo
+    },
+    // Spring-based screen transition
+    screenSpring: SPRING.smooth,
 };
 
 // Stagger configuration for lists
@@ -88,4 +186,35 @@ export const STAGGER = {
     fast: 0.02,
     normal: 0.05,
     slow: 0.1
+};
+
+/**
+ * Whilte interaction states for buttons/cards
+ * Usage: <motion.button {...INTERACTIONS.button}>
+ */
+export const INTERACTIONS = {
+    button: {
+        whileHover: { scale: 1.02 },
+        whileTap: { scale: 0.97 },
+        transition: SPRING.snappy,
+    },
+    card: {
+        whileHover: { scale: 1.01, y: -2 },
+        whileTap: { scale: 0.99 },
+        transition: SPRING.smooth,
+    },
+    icon: {
+        whileHover: { scale: 1.1, rotate: 5 },
+        whileTap: { scale: 0.9 },
+        transition: SPRING.bouncy,
+    },
+};
+
+/**
+ * Check if user prefers reduced motion
+ * Use to conditionally disable animations
+ */
+export const prefersReducedMotion = () => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };

@@ -1,0 +1,140 @@
+/**
+ * Slider Component Styles
+ * Premium slider with volt accent
+ */
+
+.fq-slider {
+    position: relative;
+    width: 100%;
+    padding: 8px 0;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    user-select: none;
+    /* iOS flicker prevention */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.fq-slider:focus-visible .fq-slider__thumb {
+    box-shadow: 
+        0 0 0 3px rgba(226, 255, 0, 0.3),
+        0 0 20px rgba(226, 255, 0, 0.4);
+}
+
+.fq-slider--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Track */
+.fq-slider__track {
+    position: relative;
+    height: 8px;
+    background: #262626; /* neutral-800 */
+    border-radius: 9999px;
+    cursor: pointer;
+    overflow: visible;
+}
+
+/* Filled portion */
+.fq-slider__fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #E2FF00, #c4e600);
+    border-radius: 9999px;
+    /* Subtle glow */
+    box-shadow: 0 0 12px rgba(226, 255, 0, 0.3);
+    /* iOS flicker prevention */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Thumb */
+.fq-slider__thumb {
+    position: absolute;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px; /* Half of height to center vertically */
+    margin-left: -12px; /* Half of width to center horizontally */
+    background: #E2FF00;
+    border-radius: 50%;
+    cursor: grab;
+    /* Shadow for depth */
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 0 0 2px rgba(226, 255, 0, 0.2);
+    /* Smooth transitions for non-dragging state */
+    transition: box-shadow 0.2s ease;
+    /* iOS flicker prevention - use translate3d for GPU without affecting positioning */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: left;
+}
+
+.fq-slider__thumb:hover {
+    box-shadow: 
+        0 2px 12px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(226, 255, 0, 0.4);
+}
+
+.fq-slider__thumb--active {
+    cursor: grabbing;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(226, 255, 0, 0.5);
+}
+
+/* Glow effect when dragging */
+.fq-slider__thumb-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    margin-left: -20px;
+    background: radial-gradient(circle, rgba(226, 255, 0, 0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Value display */
+.fq-slider__value {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #E2FF00;
+}
+
+/* Dark theme adjustments for different contexts */
+.fq-slider--minimal .fq-slider__track {
+    height: 4px;
+}
+
+.fq-slider--minimal .fq-slider__thumb {
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    margin-left: -8px;
+}
+
+/* Large variant */
+.fq-slider--large .fq-slider__track {
+    height: 12px;
+}
+
+.fq-slider--large .fq-slider__thumb {
+    width: 32px;
+    height: 32px;
+    margin-top: -16px;
+    margin-left: -16px;
+}
