@@ -36,21 +36,10 @@
     color: #0A0A0A;
 }
 
-.fq-button--primary:hover:not(.fq-button--disabled) {
-    background: #F0FF33;
-    box-shadow: 0 0 20px rgba(226, 255, 0, 0.4);
-    transform: translateY(-1px);
-}
-
 .fq-button--secondary {
     background: #2A2A2A;
     color: #E0E0E0;
     border: 1px solid #3A3A3A;
-}
-
-.fq-button--secondary:hover:not(.fq-button--disabled) {
-    background: #3A3A3A;
-    border-color: #4A4A4A;
 }
 
 .fq-button--ghost {
@@ -59,20 +48,34 @@
     border: 1px solid #3A3A3A;
 }
 
-.fq-button--ghost:hover:not(.fq-button--disabled) {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: #E2FF00;
-    color: #E2FF00;
-}
-
 .fq-button--danger {
     background: #FF3E3E;
     color: #FFFFFF;
 }
 
-.fq-button--danger:hover:not(.fq-button--disabled) {
-    background: #FF5555;
-    box-shadow: 0 0 20px rgba(255, 62, 62, 0.3);
+/* Hover states - Only apply on devices with hover capability (not touch) */
+@media (hover: hover) and (pointer: fine) {
+    .fq-button--primary:hover:not(.fq-button--disabled) {
+        background: #F0FF33;
+        box-shadow: 0 0 20px rgba(226, 255, 0, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .fq-button--secondary:hover:not(.fq-button--disabled) {
+        background: #3A3A3A;
+        border-color: #4A4A4A;
+    }
+
+    .fq-button--ghost:hover:not(.fq-button--disabled) {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: #E2FF00;
+        color: #E2FF00;
+    }
+
+    .fq-button--danger:hover:not(.fq-button--disabled) {
+        background: #FF5555;
+        box-shadow: 0 0 20px rgba(255, 62, 62, 0.3);
+    }
 }
 
 /* States */

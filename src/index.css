@@ -45,3 +45,57 @@ button,
     transform: translate3d(0, 0, 0);
   }
 }
+
+/* ===== Mobile Sticky Hover Prevention ===== */
+/* Disable hover effects on touch-only devices to prevent "sticky" hover states */
+@media (hover: none) {
+  /* Common Tailwind hover classes - reset on touch devices */
+  .hover\:bg-white:hover,
+  .hover\:bg-neutral-200:hover,
+  .hover\:bg-neutral-800:hover,
+  .hover\:bg-white\/10:hover {
+    background-color: inherit !important;
+  }
+  
+  .hover\:text-white:hover,
+  .hover\:text-volt:hover {
+    color: inherit !important;
+  }
+  
+  .hover\:border-neutral-600:hover,
+  .hover\:border-neutral-700:hover {
+    border-color: inherit !important;
+  }
+  
+  .hover\:scale-105:hover {
+    transform: none !important;
+  }
+}
+
+/* ===== GPU Acceleration for Screen Transitions ===== */
+/* Prevent flickering during page transitions */
+.gpu-accelerate {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Quest screen containers - force GPU layer */
+.quest-screen {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Slider container overflow prevention */
+.slider-container {
+  /* Allow only the slider to handle touch, prevent page scroll */
+  touch-action: none;
+  -ms-touch-action: none;
+  /* NO overflow hidden - let thumb be visible */
+  overflow: visible;
+}

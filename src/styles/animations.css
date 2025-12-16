@@ -73,8 +73,11 @@
   transition: transform 0.2s ease;
 }
 
-.hover\:scale-105:hover {
-  transform: scale(1.05);
+/* Hover states - Only apply on devices with hover capability (not touch) */
+@media (hover: hover) and (pointer: fine) {
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
 }
 
 /* Animation de gradient pour les textes */
@@ -133,9 +136,12 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-transition:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+/* Hover states - Only apply on devices with hover capability (not touch) */
+@media (hover: hover) and (pointer: fine) {
+  .card-transition:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }
 
 /* Animation de shake pour l'attention */

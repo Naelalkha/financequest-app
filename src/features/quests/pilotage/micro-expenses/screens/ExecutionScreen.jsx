@@ -180,13 +180,13 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext }) => {
                         </div>
 
                         {/* Premium Slider with haptics */}
-                        <div className="px-2">
+                        <div className="px-2 slider-container">
                             <Slider
                                 value={dailyAmount || 0}
                                 onChange={handleSliderChange}
                                 min={1}
-                                max={50}
-                                step={0.5}
+                                max={25}
+                                step={1}
                                 hapticOnChange={true}
                                 hapticOnSnap={true}
                             />

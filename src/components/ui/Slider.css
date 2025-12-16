@@ -1,19 +1,28 @@
 /**
  * Slider Component Styles
- * Premium slider with volt accent
+ * Premium slider with volt accent - Mobile Optimized
  */
 
 .fq-slider {
     position: relative;
     width: 100%;
-    padding: 8px 0;
+    padding: 12px 0;
     outline: none;
     -webkit-tap-highlight-color: transparent;
+    /* Critical for mobile: prevent all browser touch behaviors */
     touch-action: none;
+    -ms-touch-action: none;
     user-select: none;
+    -webkit-user-select: none;
     /* iOS flicker prevention */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Prevent text selection during drag */
+    -webkit-user-drag: none;
+    /* Contain touch within element */
+    contain: layout;
 }
 
 .fq-slider:focus-visible .fq-slider__thumb {
@@ -35,6 +44,10 @@
     border-radius: 9999px;
     cursor: pointer;
     overflow: visible;
+    /* Critical for mobile touch */
+    touch-action: none;
+    -ms-touch-action: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Filled portion */
@@ -58,10 +71,10 @@
 .fq-slider__thumb {
     position: absolute;
     top: 50%;
-    width: 24px;
-    height: 24px;
-    margin-top: -12px; /* Half of height to center vertically */
-    margin-left: -12px; /* Half of width to center horizontally */
+    width: 28px;
+    height: 28px;
+    margin-top: -14px; /* Half of height to center vertically */
+    margin-left: -14px; /* Half of width to center horizontally */
     background: #E2FF00;
     border-radius: 50%;
     cursor: grab;
@@ -69,18 +82,26 @@
     box-shadow: 
         0 2px 8px rgba(0, 0, 0, 0.3),
         0 0 0 2px rgba(226, 255, 0, 0.2);
-    /* Smooth transitions for non-dragging state */
-    transition: box-shadow 0.2s ease;
-    /* iOS flicker prevention - use translate3d for GPU without affecting positioning */
+    /* GPU acceleration for smooth dragging */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    will-change: left;
+    will-change: left, transform;
+    /* Critical for mobile touch */
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Pointer events for better touch targeting */
+    pointer-events: auto;
 }
 
-.fq-slider__thumb:hover {
-    box-shadow: 
-        0 2px 12px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(226, 255, 0, 0.4);
+/* Hover states - Only apply on devices with hover capability (not touch) */
+@media (hover: hover) and (pointer: fine) {
+    .fq-slider__thumb:hover {
+        box-shadow: 
+            0 2px 12px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(226, 255, 0, 0.4);
+    }
 }
 
 .fq-slider__thumb--active {
@@ -121,10 +142,10 @@
 }
 
 .fq-slider--minimal .fq-slider__thumb {
-    width: 16px;
-    height: 16px;
-    margin-top: -8px;
-    margin-left: -8px;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
 }
 
 /* Large variant */
@@ -133,8 +154,8 @@
 }
 
 .fq-slider--large .fq-slider__thumb {
-    width: 32px;
-    height: 32px;
-    margin-top: -16px;
-    margin-left: -16px;
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
+    margin-left: -18px;
 }

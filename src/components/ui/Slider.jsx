@@ -1,16 +1,16 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { haptic } from '../../utils/haptics';
 import { SPRING } from '../../styles/animationConstants';
 import './Slider.css';
 
 /**
- * Premium Slider Component
+ * Premium Slider Component - Mobile Optimized
  * 
  * Features:
+ * - Native touch events for reliable mobile tracking
  * - Haptic feedback on value changes
- * - Smooth spring animations
- * - GPU-accelerated transforms
+ * - GPU-accelerated transforms (no spring during drag)
  * - Accessible (keyboard support)
  * - Snap to steps with haptic ticks
  * 
@@ -41,12 +41,9 @@ const Slider = ({
     const trackRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const lastHapticValue = useRef(value);
+    const isDraggingRef = useRef(false); // Ref for event handlers
 
-    // Motion values for smooth animations
-    const progress = useMotionValue(0);
-    const thumbScale = useMotionValue(1);
-
-    // Calculate progress from value
+    // Calculate progress from value (0-100%)
     const valueToProgress = useCallback((val) => {
         return ((val - min) / (max - min)) * 100;
     }, [min, max]);
@@ -56,17 +53,13 @@ const Slider = ({
         const rawValue = (prog / 100) * (max - min) + min;
         // Snap to step
         const snappedValue = Math.round(rawValue / step) * step;
-        return Math.max(min, Math.min(max, snappedValue));
+        // Round to avoid floating point issues
+        const rounded = Math.round(snappedValue * 1000) / 1000;
+        return Math.max(min, Math.min(max, rounded));
     }, [min, max, step]);
 
-    // Update progress when value changes externally
-    useEffect(() => {
-        const targetProgress = valueToProgress(value);
-        animate(progress, targetProgress, {
-            ...SPRING.slider,
-            onComplete: () => {},
-        });
-    }, [value, valueToProgress, progress]);
+    // Current progress percentage
+    const progress = valueToProgress(value);
 
     // Handle haptic feedback
     const triggerHaptic = useCallback((newValue) => {
@@ -82,7 +75,18 @@ const Slider = ({
         }
     }, [hapticOnChange, hapticOnSnap, step]);
 
-    // Handle drag
+    // Get clientX from either mouse or touch event
+    const getClientX = useCallback((e) => {
+        if (e.touches && e.touches.length > 0) {
+            return e.touches[0].clientX;
+        }
+        if (e.changedTouches && e.changedTouches.length > 0) {
+            return e.changedTouches[0].clientX;
+        }
+        return e.clientX;
+    }, []);
+
+    // Handle drag - updates value directly without animation
     const handleDrag = useCallback((clientX) => {
         if (!trackRef.current || disabled) return;
 
@@ -91,44 +95,82 @@ const Slider = ({
             ((clientX - rect.left) / rect.width) * 100
         ));
 
-        progress.set(percentage);
         const newValue = progressToValue(percentage);
         
         triggerHaptic(newValue);
         onChange?.(newValue);
-    }, [disabled, progress, progressToValue, triggerHaptic, onChange]);
+    }, [disabled, progressToValue, triggerHaptic, onChange]);
 
-    // Mouse/Touch handlers
-    const handlePointerDown = useCallback((e) => {
+    // Touch/Mouse start handler
+    const handleStart = useCallback((e) => {
         if (disabled) return;
         
+        // Prevent default to stop scrolling
         e.preventDefault();
-        setIsDragging(true);
+        e.stopPropagation();
         
-        // Scale up thumb
-        animate(thumbScale, 1.2, SPRING.snappy);
+        isDraggingRef.current = true;
+        setIsDragging(true);
         
         // Initial haptic
         haptic.light();
         
-        handleDrag(e.clientX);
+        // Handle initial position
+        handleDrag(getClientX(e));
+    }, [disabled, handleDrag, getClientX]);
 
-        const handlePointerMove = (moveEvent) => {
-            handleDrag(moveEvent.clientX);
+    // Touch/Mouse move handler
+    const handleMove = useCallback((e) => {
+        if (!isDraggingRef.current || disabled) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        handleDrag(getClientX(e));
+    }, [disabled, handleDrag, getClientX]);
+
+    // Touch/Mouse end handler
+    const handleEnd = useCallback((e) => {
+        if (!isDraggingRef.current) return;
+        
+        e.preventDefault();
+        
+        isDraggingRef.current = false;
+        setIsDragging(false);
+        haptic.medium();
+    }, []);
+
+    // Setup and cleanup global event listeners for drag tracking
+    useEffect(() => {
+        const handleGlobalMove = (e) => {
+            if (isDraggingRef.current) {
+                handleMove(e);
+            }
         };
 
-        const handlePointerUp = () => {
-            setIsDragging(false);
-            animate(thumbScale, 1, SPRING.snappy);
-            haptic.medium();
-            
-            window.removeEventListener('pointermove', handlePointerMove);
-            window.removeEventListener('pointerup', handlePointerUp);
+        const handleGlobalEnd = (e) => {
+            if (isDraggingRef.current) {
+                handleEnd(e);
+            }
         };
 
-        window.addEventListener('pointermove', handlePointerMove);
-        window.addEventListener('pointerup', handlePointerUp);
-    }, [disabled, handleDrag, thumbScale]);
+        // Mouse events
+        window.addEventListener('mousemove', handleGlobalMove, { passive: false });
+        window.addEventListener('mouseup', handleGlobalEnd, { passive: false });
+        
+        // Touch events
+        window.addEventListener('touchmove', handleGlobalMove, { passive: false });
+        window.addEventListener('touchend', handleGlobalEnd, { passive: false });
+        window.addEventListener('touchcancel', handleGlobalEnd, { passive: false });
+
+        return () => {
+            window.removeEventListener('mousemove', handleGlobalMove);
+            window.removeEventListener('mouseup', handleGlobalEnd);
+            window.removeEventListener('touchmove', handleGlobalMove);
+            window.removeEventListener('touchend', handleGlobalEnd);
+            window.removeEventListener('touchcancel', handleGlobalEnd);
+        };
+    }, [handleMove, handleEnd]);
 
     // Keyboard support
     const handleKeyDown = useCallback((e) => {
@@ -167,9 +209,6 @@ const Slider = ({
         onChange?.(newValue);
     }, [disabled, value, min, max, step, onChange]);
 
-    // Transform progress to CSS percentage
-    const progressPercent = useTransform(progress, (p) => `${p}%`);
-
     return (
         <div 
             className={`fq-slider ${disabled ? 'fq-slider--disabled' : ''} ${className}`}
@@ -180,25 +219,32 @@ const Slider = ({
             aria-disabled={disabled}
             tabIndex={disabled ? -1 : 0}
             onKeyDown={handleKeyDown}
+            style={{ touchAction: 'none' }}
         >
             {/* Track */}
             <div 
                 ref={trackRef}
                 className={`fq-slider__track ${trackClassName}`}
-                onPointerDown={handlePointerDown}
+                onMouseDown={handleStart}
+                onTouchStart={handleStart}
+                style={{ touchAction: 'none' }}
             >
-                {/* Filled portion */}
-                <motion.div 
+                {/* Filled portion - direct style update, no animation during drag */}
+                <div 
                     className="fq-slider__fill"
-                    style={{ width: progressPercent }}
+                    style={{ 
+                        width: `${progress}%`,
+                        transition: isDragging ? 'none' : 'width 0.15s ease-out'
+                    }}
                 />
 
-                {/* Thumb */}
-                <motion.div 
+                {/* Thumb - direct position update */}
+                <div 
                     className={`fq-slider__thumb ${isDragging ? 'fq-slider__thumb--active' : ''} ${thumbClassName}`}
                     style={{ 
-                        left: progressPercent,
-                        scale: thumbScale,
+                        left: `${progress}%`,
+                        transform: `translateZ(0) scale(${isDragging ? 1.15 : 1})`,
+                        transition: isDragging ? 'transform 0.1s ease-out' : 'left 0.15s ease-out, transform 0.15s ease-out'
                     }}
                 >
                     {/* Glow effect when dragging */}
@@ -210,7 +256,7 @@ const Slider = ({
                             exit={{ opacity: 0, scale: 0.8 }}
                         />
                     )}
-                </motion.div>
+                </div>
             </div>
 
             {/* Optional value display */}

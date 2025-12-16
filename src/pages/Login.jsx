@@ -125,6 +125,13 @@ const Login = () => {
             />
           </div>
 
+          {/* Forgot Password - right under password field */}
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-xs text-neutral-500 hover:text-[#E2FF00] transition-colors">
+              {t('forgot_password') || 'Mot de passe oublié ?'}
+            </Link>
+          </div>
+
           {/* Primary Action */}
           <button
             type="submit"
@@ -148,7 +155,7 @@ const Login = () => {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isSubmitting}
-            className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-3"
+            className="w-full py-4 bg-zinc-900 border border-zinc-700 rounded-xl text-white font-medium hover:bg-zinc-800 hover:border-zinc-600 transition-colors flex items-center justify-center gap-3"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -183,11 +190,6 @@ const Login = () => {
               {t('continue_as_guest') || 'CONTINUER EN INVITÉ'}
             </Link>
           )}
-
-          {/* Forgot password - least important, at the bottom */}
-          <Link to="/forgot-password" className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors block">
-            {t('forgot_password') || 'Mot de passe oublié ?'}
-          </Link>
         </div>
       </div>
     </AuthLayout>

@@ -184,7 +184,7 @@ const MicroExpensesFlow = ({
                                 animate="animate"
                                 exit="exit"
                                 transition={SPRING.smooth}
-                                className="h-full"
+                                className="h-full quest-screen"
                             >
                                 <ProtocolScreen onNext={goToExecution} />
                             </motion.div>
@@ -198,7 +198,7 @@ const MicroExpensesFlow = ({
                                 animate="animate"
                                 exit="exit"
                                 transition={SPRING.smooth}
-                                className="h-full"
+                                className="h-full quest-screen"
                             >
                                 <ExecutionScreen
                                     data={questData}
@@ -217,7 +217,7 @@ const MicroExpensesFlow = ({
                                 animate="animate"
                                 exit="exit"
                                 transition={SPRING.bouncy}
-                                className="h-full"
+                                className="h-full quest-screen"
                             >
                                 <DebriefScreen
                                     data={questData}

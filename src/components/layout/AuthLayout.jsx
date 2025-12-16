@@ -6,21 +6,21 @@ const AuthLayout = ({ children }) => {
     const { t } = useTranslation('auth');
 
     return (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 py-6 relative overflow-hidden">
 
             {/* Header / Brand */}
-            <div className="relative z-10 flex flex-col items-center mb-6 animate-in fade-in slide-in-from-top-4 duration-700">
-                <div className="relative flex justify-center items-center mb-4">
+            <div className="relative z-10 flex flex-col items-center mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="relative flex justify-center items-center mb-2">
                     {/* Le Logo avec glow subtil */}
                     <img
                         src={logo}
-                        className="relative z-10 w-40"
+                        className="relative z-10 w-28"
                         alt="Moniyo Logo"
                         style={{ filter: 'drop-shadow(rgba(226, 255, 0, 0.45) 0px 0px 6px)' }}
                     />
                 </div>
-                <h1 className="font-sans font-black text-3xl tracking-tighter text-white">MONIYO</h1>
-                <p className="font-mono text-[10px] text-neutral-500 tracking-[0.3em] uppercase mt-2">
+                <h1 className="font-sans font-black text-2xl tracking-tighter text-white">MONIYO</h1>
+                <p className="font-mono text-[9px] text-neutral-500 tracking-[0.3em] uppercase mt-1">
                     {t('system_subtitle')}
                 </p>
             </div>
@@ -31,7 +31,7 @@ const AuthLayout = ({ children }) => {
             </div>
 
             {/* Legal Footer */}
-            <div className="mt-8 text-center opacity-40">
+            <div className="mt-4 text-center opacity-40">
                 <p className="font-mono text-[9px] text-neutral-600">
                     SECURED BY 256-BIT ENCRYPTION
                 </p>
