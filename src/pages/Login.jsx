@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertTriangle, UserX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -89,17 +89,9 @@ const Login = () => {
           <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-white text-sm font-medium mb-1">
-                  Connexion à un compte existant
-                </p>
-                <p className="text-neutral-400 text-xs">
-                  Ta progression actuelle sera remplacée par celle du compte. Pour conserver ta progression actuelle, 
-                  <Link to="/register" className="text-[#E2FF00] font-medium ml-1">
-                    crée un nouveau compte
-                  </Link>.
-                </p>
-              </div>
+              <p className="text-neutral-300 text-xs">
+                <span className="text-amber-500 font-medium">{t('login_warning_attention') || 'Attention :'}</span> {t('login_warning_message') || 'Vous allez basculer sur votre compte existant. La progression "Invité" actuelle (non sauvegardée) sera perdue.'}
+              </p>
             </div>
           </div>
         )}
@@ -170,18 +162,32 @@ const Login = () => {
 
         {/* Footer Links */}
         <div className="mt-8 text-center space-y-4">
-          <Link to="/forgot-password" className="text-xs font-mono text-neutral-500 hover:text-[#E2FF00] transition-colors block">
-            {t('forgot_password') || 'Forgot Password?'}
-          </Link>
-
-          <div className="w-full h-px bg-white/10"></div>
-
+          {/* Primary alternate action */}
           <p className="text-sm text-neutral-400 font-sans">
-            Pas de compte ?{" "}
-            <Link to="/register" className="text-[#E2FF00] font-bold hover:text-[#cce600] transition-colors">
-              Créer un compte
+            {t('no_account') || 'Pas de compte ?'}{' '}
+            <Link 
+              to="/register" 
+              className="text-[#E2FF00] font-bold hover:text-[#cce600] transition-colors"
+            >
+              {t('create_account') || 'Créer un compte'}
             </Link>
           </p>
+
+          {/* Guest Access Option */}
+          {isAnonymous && (
+            <Link 
+              to="/dashboard"
+              className="w-full py-3 rounded-xl border border-dashed border-neutral-700 text-neutral-500 hover:text-white hover:border-neutral-500 transition-all font-mono text-xs flex items-center justify-center gap-2"
+            >
+              <UserX className="w-3 h-3" />
+              {t('continue_as_guest') || 'CONTINUER EN INVITÉ'}
+            </Link>
+          )}
+
+          {/* Forgot password - least important, at the bottom */}
+          <Link to="/forgot-password" className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors block">
+            {t('forgot_password') || 'Mot de passe oublié ?'}
+          </Link>
         </div>
       </div>
     </AuthLayout>

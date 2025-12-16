@@ -903,8 +903,9 @@ const Profile = () => {
                       await deleteUser(currentUser);
                       // The auth listener will automatically create a new anonymous user
                       
-                      // Also reset onboarding
+                      // Also reset onboarding and banner
                       localStorage.removeItem('moniyo-onboarding-completed');
+                      localStorage.removeItem('moniyo-banner-dismissed');
                       
                       toast.success(t('profilePage.reset_progress_success') || 'Progression réinitialisée !');
                       

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, Shield } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Shield, UserX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -176,11 +176,25 @@ const Register = () => {
         {/* Footer Links */}
         <div className="mt-8 text-center space-y-4">
           <p className="text-sm text-neutral-400 font-sans">
-            Vous avez déjà un compte ?{" "}
-            <Link to="/login" className="text-[#E2FF00] font-bold hover:text-[#cce600] transition-colors">
-              Se connecter
+            {t('already_have_account') || 'Tu as déjà un compte ?'}{' '}
+            <Link 
+              to="/login" 
+              className="text-[#E2FF00] font-bold hover:text-[#cce600] transition-colors"
+            >
+              {t('login') || 'Se connecter'}
             </Link>
           </p>
+
+          {/* Guest Access Option */}
+          {isUpgrading && (
+            <Link 
+              to="/dashboard"
+              className="w-full py-3 mt-4 rounded-xl border border-dashed border-neutral-700 text-neutral-500 hover:text-white hover:border-neutral-500 transition-all font-mono text-xs flex items-center justify-center gap-2"
+            >
+              <UserX className="w-3 h-3" />
+              {t('continue_as_guest') || 'CONTINUER EN INVITÉ'}
+            </Link>
+          )}
         </div>
       </div>
     </AuthLayout>

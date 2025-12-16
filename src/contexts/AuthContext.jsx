@@ -406,7 +406,7 @@ export const AuthProvider = ({ children }) => {
           // The onAuthStateChanged will trigger again with the anonymous user
         } catch (anonymousError) {
           console.error('Failed to sign in anonymously:', anonymousError);
-          setUser(null);
+        setUser(null);
           setLoading(false);
         }
         return; // Don't setLoading(false) here, wait for anonymous auth to complete

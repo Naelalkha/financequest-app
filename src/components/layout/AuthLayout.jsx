@@ -31,7 +31,7 @@ const AuthLayout = ({ children }) => {
             </div>
 
             {/* Legal Footer */}
-            <div className="absolute bottom-6 text-center z-10 opacity-40">
+            <div className="mt-8 text-center opacity-40">
                 <p className="font-mono text-[9px] text-neutral-600">
                     SECURED BY 256-BIT ENCRYPTION
                 </p>
