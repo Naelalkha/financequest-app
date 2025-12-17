@@ -18,6 +18,13 @@ import { haptic } from '../../../../utils/haptics';
  * - Centralized navigation state (Protocol pages & Execution steps)
  * - Uniform Header with smart Back Button
  */
+// Custom transition for main screens (fade + subtle scale/slide)
+const mainScreenVariants = {
+    initial: { opacity: 0, scale: 0.99, x: 40 }, // Arrive de la droite (Soft Push)
+    animate: { opacity: 1, scale: 1, x: 0 },     // Se met en place
+    exit: { opacity: 0, scale: 0.99, x: -40 }    // Part vers la gauche
+};
+
 const MicroExpensesFlow = ({
     quest = {},
     onComplete,
@@ -63,9 +70,9 @@ const MicroExpensesFlow = ({
 
     // Phase labels (fil d'Ariane - petit jaune)
     const phaseLabels = {
-        PROTOCOL: { fr: 'TRAQUE INVISIBLE // PHASE 01', en: 'INVISIBLE HUNT // PHASE 01' },
-        EXECUTION: { fr: 'TRAQUE INVISIBLE // PHASE 02', en: 'INVISIBLE HUNT // PHASE 02' },
-        DEBRIEF: { fr: 'TRAQUE INVISIBLE // PHASE 03', en: 'INVISIBLE HUNT // PHASE 03' }
+        PROTOCOL: { fr: 'TRAQUE INVISIBLE', en: 'INVISIBLE HUNT' },
+        EXECUTION: { fr: 'TRAQUE INVISIBLE', en: 'INVISIBLE HUNT' },
+        DEBRIEF: { fr: 'TRAQUE INVISIBLE', en: 'INVISIBLE HUNT' }
     };
 
     // Step titles (ÉNORME blanc - action du moment)
@@ -210,12 +217,20 @@ const MicroExpensesFlow = ({
                 <div className="p-6 pt-8 border-b border-white/5 flex justify-between items-center bg-black/50 backdrop-blur-sm z-40">
                     <div className="flex items-center gap-4">
                         {/* UNIFORM BACK BUTTON */}
-                        <AnimatePresence>
+                        <AnimatePresence mode="popLayout">
                             {showBackButton && (
                                 <motion.button
-                                    initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.8, x: -8 }}
                                     animate={{ opacity: 1, scale: 1, x: 0 }}
-                                    exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                                    exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                                    transition={{ 
+                                        type: 'spring', 
+                                        stiffness: 400, 
+                                        damping: 25,
+                                        opacity: { duration: 0.15 },
+                                        layout: { duration: 0.3, ease: "easeOut" }
+                                    }}
                                     onClick={handleBack}
                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
                                 >
@@ -224,20 +239,43 @@ const MicroExpensesFlow = ({
                             )}
                         </AnimatePresence>
                         
-                        <div>
+                        <motion.div layout className="overflow-hidden">
                             {/* Fil d'Ariane - petit jaune */}
                             <span className="font-mono text-[10px] text-volt tracking-wide uppercase block">
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
-                            {/* Titre de l'étape - ÉNORME blanc */}
-                            <h2 className="font-sans font-black text-2xl text-white leading-none tracking-tight mt-1">
-                                {getStepTitle()[locale] || getStepTitle().fr}
-                            </h2>
-                            {/* Instruction - moyen gris */}
-                            <p className="font-mono text-[10px] text-neutral-500 tracking-wide uppercase mt-1">
-                                {getStepSubtitle()[locale] || getStepSubtitle().fr}
-                            </p>
-                        </div>
+                            {/* Titre de l'étape - ÉNORME blanc - Animated */}
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
+                                    className="overflow-hidden"
+                                >
+                                    <motion.h2 
+                                        initial={{ y: '100%' }}
+                                        animate={{ y: 0 }}
+                                        exit={{ y: '-100%' }}
+                                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                                        className="font-sans font-black text-2xl text-white leading-none tracking-tight mt-1"
+                                        style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}
+                                    >
+                                        {getStepTitle()[locale] || getStepTitle().fr}
+                                    </motion.h2>
+                                </motion.div>
+                            </AnimatePresence>
+                            {/* Instruction - moyen gris - Animated */}
+                            <AnimatePresence mode="wait">
+                                <motion.p 
+                                    key={`${phase}-${protocolPage}-${executionStep}-subtitle`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.15, delay: 0.05 }}
+                                    className="font-mono text-[10px] text-neutral-500 tracking-wide uppercase mt-1"
+                                >
+                                    {getStepSubtitle()[locale] || getStepSubtitle().fr}
+                                </motion.p>
+                            </AnimatePresence>
+                        </motion.div>
                     </div>
 
                     {/* Close button */}
@@ -256,11 +294,11 @@ const MicroExpensesFlow = ({
                         {phase === 'PROTOCOL' && (
                             <motion.div
                                 key="protocol"
-                                variants={screenVariants.slideForward}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.smooth}
+                                transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                 className="h-full quest-screen"
                             >
                                 <ProtocolScreen 
@@ -275,11 +313,11 @@ const MicroExpensesFlow = ({
                         {phase === 'EXECUTION' && (
                             <motion.div
                                 key="execution"
-                                variants={screenVariants.slideForward}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.smooth}
+                                transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                 className="h-full quest-screen"
                             >
                                 <ExecutionScreen

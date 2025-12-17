@@ -106,7 +106,7 @@ export const proTips = {
         },
         {
             id: 'life-hours',
-            title: 'CALCUL EN HEURES DE VIE',
+            title: 'CALCULE EN HEURES DE VIE',
             iconName: 'Clock',
             body: "Ce menu Uber Eats à 20€ ? C'est 2 heures de ton travail net. Demande-toi toujours : **'Est-ce que ce burger vaut 2h de ma vie ?'**"
         },
