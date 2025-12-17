@@ -13,8 +13,10 @@ import { haptic } from '../../../../utils/haptics';
 /**
  * MicroExpensesFlow - Main 3-Phase Quest Flow Controller
  * 
- * Quest 02: TRAQUE INVISIBLE
- * Clean tactical UI matching the Moniyo Protocol design
+ * Quest 02: L'EFFET CUMULÉ
+ * Features:
+ * - Centralized navigation state (Protocol pages & Execution steps)
+ * - Uniform Header with smart Back Button
  */
 const MicroExpensesFlow = ({
     quest = {},
@@ -31,31 +33,65 @@ const MicroExpensesFlow = ({
     // Phase state
     const [phase, setPhase] = useState('PROTOCOL');
 
+    // Internal navigation states (lifted up to control Header Back Button)
+    const [protocolPage, setProtocolPage] = useState(0); // 0 = Context, 1 = Method
+    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation' or 'challenge'
+
     // Quest data state
     const [questData, setQuestData] = useState({
         categoryId: null,
         category: null,
         expenseName: '',
-        dailyAmount: 0,
+        unitPrice: 0,
+        frequencyId: 'weekdays',
+        timesPerWeek: 5,
+        weeklyAmount: 0,
         monthlyAmount: 0,
         yearlyAmount: 0,
+        fiveYearAmount: 0,
+        actionLevel: null,
+        actionSavings: 0,
+        yearlySavings: 0,
+        yearlyEquivalent: null,
+        fiveYearEquivalent: null,
+        dailyAmount: 0,
         tenYearAmount: 0,
         equivalent: null,
         customName: '',
         ...userProgress
     });
 
-    // Phase labels
+    // Phase labels (fil d'Ariane - petit jaune)
     const phaseLabels = {
-        PROTOCOL: { fr: 'PHASE 01 // PROTOCOLE', en: 'PHASE 01 // PROTOCOL' },
-        EXECUTION: { fr: 'PHASE 02 // EXÉCUTION', en: 'PHASE 02 // EXECUTION' },
-        DEBRIEF: { fr: 'PHASE 03 // DÉBRIEFING', en: 'PHASE 03 // DEBRIEF' }
+        PROTOCOL: { fr: 'TRAQUE INVISIBLE // PHASE 01', en: 'INVISIBLE HUNT // PHASE 01' },
+        EXECUTION: { fr: 'TRAQUE INVISIBLE // PHASE 02', en: 'INVISIBLE HUNT // PHASE 02' },
+        DEBRIEF: { fr: 'TRAQUE INVISIBLE // PHASE 03', en: 'INVISIBLE HUNT // PHASE 03' }
     };
 
-    const phaseTitles = {
-        PROTOCOL: { fr: 'BRIEFING', en: 'BRIEFING' },
-        EXECUTION: { fr: "L'AMPLIFICATEUR TEMPOREL", en: 'THE TIME AMPLIFIER' },
-        DEBRIEF: { fr: 'RAPPORT DE MISSION', en: 'MISSION REPORT' }
+    // Step titles (ÉNORME blanc - action du moment)
+    const getStepTitle = () => {
+        if (phase === 'PROTOCOL') {
+            if (protocolPage === 0) return { fr: 'CONTEXTE', en: 'CONTEXT' };
+            return { fr: 'MÉTHODE', en: 'METHOD' };
+        }
+        if (phase === 'EXECUTION') {
+            if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
+            return { fr: 'STRATÉGIE', en: 'STRATEGY' };
+        }
+        return { fr: 'OBJECTIF', en: 'OBJECTIVE' };
+    };
+
+    // Step subtitles (moyen gris - instruction)
+    const getStepSubtitle = () => {
+        if (phase === 'PROTOCOL') {
+            if (protocolPage === 0) return { fr: 'Comprendre le problème', en: 'Understanding the problem' };
+            return { fr: '3 étapes pour reprendre le contrôle', en: '3 steps to take back control' };
+        }
+        if (phase === 'EXECUTION') {
+            if (executionStep === 'revelation') return { fr: 'Configure ta dépense', en: 'Configure your expense' };
+            return { fr: 'Choisis ton approche', en: 'Choose your approach' };
+        }
+        return { fr: 'Plan activé', en: 'Plan activated' };
     };
 
     // Progress bar width
@@ -66,7 +102,25 @@ const MicroExpensesFlow = ({
         setQuestData(prev => ({ ...prev, ...newData }));
     }, []);
 
-    // Phase transitions with haptic feedback
+    // NAVIGATION HANDLERS
+    
+    // 1. Back Button Logic
+    const handleBack = useCallback(() => {
+        haptic.light();
+        
+        if (phase === 'PROTOCOL' && protocolPage === 1) {
+            setProtocolPage(0);
+        } else if (phase === 'EXECUTION') {
+            if (executionStep === 'challenge') {
+                setExecutionStep('revelation');
+            } else {
+                setPhase('PROTOCOL');
+                setProtocolPage(1); // Go back to end of protocol
+            }
+        }
+    }, [phase, protocolPage, executionStep]);
+
+    // 2. Forward Logic
     const goToExecution = useCallback(() => {
         haptic.medium();
         trackEvent('quest_phase_completed', {
@@ -74,6 +128,7 @@ const MicroExpensesFlow = ({
             phase: 'PROTOCOL'
         });
         setPhase('EXECUTION');
+        setExecutionStep('revelation'); // Reset to start of execution
     }, []);
 
     const goToDebrief = useCallback(() => {
@@ -87,24 +142,38 @@ const MicroExpensesFlow = ({
         setPhase('DEBRIEF');
     }, [questData.expenseName, questData.dailyAmount]);
 
-    const goBackToProtocol = useCallback(() => {
+    const goBackToProtocol = useCallback(() => { // Legacy prop compatibility
         haptic.light();
         setPhase('PROTOCOL');
     }, []);
+
+    // Check if Back button should be shown
+    const showBackButton = (phase === 'PROTOCOL' && protocolPage === 1) || (phase === 'EXECUTION');
 
     // Final completion
     const handleComplete = () => {
         trackEvent('quest_completed', {
             quest_id: 'micro-expenses',
             expense: questData.expenseName,
-            daily_amount: questData.dailyAmount,
-            yearly_impact: questData.yearlyAmount,
-            ten_year_impact: questData.tenYearAmount
+            unit_price: questData.unitPrice,
+            frequency: questData.frequencyId,
+            action_level: questData.actionLevel,
+            monthly_savings: questData.actionSavings,
+            yearly_savings: questData.yearlySavings,
+            five_year_potential: questData.fiveYearAmount
         });
 
         onComplete({
             questId: 'micro-expenses',
             expenseName: questData.expenseName,
+            unitPrice: questData.unitPrice,
+            frequencyId: questData.frequencyId,
+            timesPerWeek: questData.timesPerWeek,
+            actionLevel: questData.actionLevel,
+            monthlySavings: questData.actionSavings,
+            yearlySavings: questData.yearlySavings,
+            fiveYearPotential: questData.fiveYearAmount,
+            yearlyEquivalent: questData.yearlyEquivalent,
             dailyAmount: questData.dailyAmount,
             monthlyAmount: questData.monthlyAmount,
             yearlyAmount: questData.yearlyAmount,
@@ -113,9 +182,6 @@ const MicroExpensesFlow = ({
             completedAt: new Date().toISOString()
         });
     };
-
-    // Use optimized screen variants from constants
-    // screenVariants.slideForward is imported from animationConstants
 
     return (
         <motion.div
@@ -140,30 +206,41 @@ const MicroExpensesFlow = ({
                     />
                 </div>
 
-                {/* Header - Compact */}
-                <div className="p-6 pt-8 border-b border-white/5 flex justify-between items-center bg-black/50">
+                {/* Header - Compact & Uniform */}
+                <div className="p-6 pt-8 border-b border-white/5 flex justify-between items-center bg-black/50 backdrop-blur-sm z-40">
                     <div className="flex items-center gap-4">
-                        {/* Back arrow for middle phases */}
-                        {phase !== 'PROTOCOL' && phase !== 'DEBRIEF' && (
-                            <button
-                                onClick={goBackToProtocol}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                        )}
+                        {/* UNIFORM BACK BUTTON */}
+                        <AnimatePresence>
+                            {showBackButton && (
+                                <motion.button
+                                    initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                                    onClick={handleBack}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+                        
                         <div>
-                            <span className="font-mono text-[10px] text-volt tracking-[0.2em] uppercase animate-pulse">
+                            {/* Fil d'Ariane - petit jaune */}
+                            <span className="font-mono text-[10px] text-volt tracking-wide uppercase block">
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
-                            {/* Codename as main header, fallback to phase title */}
-                            <h2 className="font-sans font-bold text-xl text-white leading-none mt-1">
-                                {localizedQuest?.codename || phaseTitles[phase]?.[locale] || phaseTitles[phase]?.fr}
+                            {/* Titre de l'étape - ÉNORME blanc */}
+                            <h2 className="font-sans font-black text-2xl text-white leading-none tracking-tight mt-1">
+                                {getStepTitle()[locale] || getStepTitle().fr}
                             </h2>
+                            {/* Instruction - moyen gris */}
+                            <p className="font-mono text-[10px] text-neutral-500 tracking-wide uppercase mt-1">
+                                {getStepSubtitle()[locale] || getStepSubtitle().fr}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Close button - Larger for fullscreen */}
+                    {/* Close button */}
                     <button
                         onClick={onClose}
                         className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors border border-white/10"
@@ -174,7 +251,7 @@ const MicroExpensesFlow = ({
                 </div>
 
                 {/* Content Body */}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden relative">
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div
@@ -186,7 +263,12 @@ const MicroExpensesFlow = ({
                                 transition={SPRING.smooth}
                                 className="h-full quest-screen"
                             >
-                                <ProtocolScreen onNext={goToExecution} />
+                                <ProtocolScreen 
+                                    onNext={goToExecution}
+                                    // Control internal state from parent
+                                    page={protocolPage}
+                                    setPage={setProtocolPage}
+                                />
                             </motion.div>
                         )}
 
@@ -204,7 +286,9 @@ const MicroExpensesFlow = ({
                                     data={questData}
                                     onUpdate={handleUpdateData}
                                     onNext={goToDebrief}
-                                    onBack={goBackToProtocol}
+                                    // Control internal state from parent
+                                    step={executionStep}
+                                    setStep={setExecutionStep}
                                 />
                             </motion.div>
                         )}
@@ -234,9 +318,5 @@ const MicroExpensesFlow = ({
         </motion.div>
     );
 };
-
-export { default as ProtocolScreen } from './screens/ProtocolScreen';
-export { default as ExecutionScreen } from './screens/ExecutionScreen';
-export { default as DebriefScreen } from './screens/DebriefScreen';
 
 export default MicroExpensesFlow;

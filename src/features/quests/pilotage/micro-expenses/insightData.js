@@ -1,9 +1,37 @@
 /**
  * Insight Data - Statistics & Facts for Micro Expenses Quest
  * 
- * Quest 02: TRAQUE INVISIBLE
+ * Quest 02: L'EFFET CUMULÉ (anciennement TRAQUE INVISIBLE)
  * Enriched data for social proof, tactics, and calculations
+ * 
+ * NOUVELLE LOGIQUE: Prix Unitaire x Fréquence (au lieu de montant/jour)
  */
+
+// ===== FREQUENCY OPTIONS (Execution Screen) =====
+export const frequencyOptions = [
+    { id: 'daily', timesPerWeek: 7, labelKey: 'daily' },
+    { id: 'weekdays', timesPerWeek: 5, labelKey: 'weekdays' },
+    { id: '3x', timesPerWeek: 3, labelKey: '3x' },
+    { id: '2x', timesPerWeek: 2, labelKey: '2x' },
+    { id: '1x', timesPerWeek: 1, labelKey: '1x' },
+];
+
+export const frequencyLabels = {
+    fr: {
+        daily: 'Tous les jours',
+        weekdays: 'En semaine (5j)',
+        '3x': '3x / semaine',
+        '2x': 'Week-end (2j)',
+        '1x': 'Occasionnel (1x)',
+    },
+    en: {
+        daily: 'Every day',
+        weekdays: 'Weekdays (5d)',
+        '3x': '3x / week',
+        '2x': 'Weekend (2d)',
+        '1x': 'Occasional (1x)',
+    }
+};
 
 // ===== SOCIAL PROOF CAROUSEL (Protocol Screen) =====
 export const socialProofSlides = {
@@ -141,6 +169,40 @@ export const expenseCategoryLabels = {
     }
 };
 
+// ===== YEARLY EQUIVALENTS (Concrete tangible rewards) =====
+export const getYearlyEquivalent = (yearlyAmount, locale = 'fr') => {
+    const equivalents = {
+        fr: [
+            { maxAmount: 150, icon: '🎧', text: 'Des écouteurs sans fil' },
+            { maxAmount: 300, icon: '🎧', text: 'Une paire d\'AirPods Pro' },
+            { maxAmount: 500, icon: '🎮', text: 'Une Nintendo Switch' },
+            { maxAmount: 800, icon: '👟', text: 'Des sneakers de luxe' },
+            { maxAmount: 1200, icon: '📱', text: 'Un iPhone 14' },
+            { maxAmount: 1800, icon: '✈️', text: 'Un aller-retour New York' },
+            { maxAmount: 2500, icon: '💻', text: 'Un MacBook Air' },
+            { maxAmount: 4000, icon: '🛵', text: 'Un scooter Vespa' },
+            { maxAmount: 6000, icon: '🏝️', text: 'Un mois de vacances' },
+            { maxAmount: Infinity, icon: '🚀', text: 'Un investissement majeur' }
+        ],
+        en: [
+            { maxAmount: 150, icon: '🎧', text: 'Wireless earbuds' },
+            { maxAmount: 300, icon: '🎧', text: 'AirPods Pro' },
+            { maxAmount: 500, icon: '🎮', text: 'A Nintendo Switch' },
+            { maxAmount: 800, icon: '👟', text: 'Designer sneakers' },
+            { maxAmount: 1200, icon: '📱', text: 'An iPhone 14' },
+            { maxAmount: 1800, icon: '✈️', text: 'A round-trip to New York' },
+            { maxAmount: 2500, icon: '💻', text: 'A MacBook Air' },
+            { maxAmount: 4000, icon: '🛵', text: 'A Vespa scooter' },
+            { maxAmount: 6000, icon: '🏝️', text: 'A month of vacation' },
+            { maxAmount: Infinity, icon: '🚀', text: 'A major investment' }
+        ]
+    };
+
+    const list = equivalents[locale] || equivalents.fr;
+    const match = list.find(item => yearlyAmount <= item.maxAmount);
+    return match || list[list.length - 1];
+};
+
 // ===== 5-YEAR EQUIVALENTS (Based on compound value) =====
 export const get5YearEquivalent = (amount, locale = 'fr') => {
     const equivalents = {
@@ -176,21 +238,123 @@ export const get5YearEquivalent = (amount, locale = 'fr') => {
 // Keep old function for backwards compatibility
 export const get10YearEquivalent = get5YearEquivalent;
 
+// ===== 3 ACTION LEVELS (Optimization strategies) =====
+export const actionLevels = {
+    fr: [
+        {
+            id: 'optimizer',
+            level: 'Facile',
+            title: 'L\'OPTIMISATEUR',
+            description: 'Réduire la fréquence',
+            icon: '🎯',
+            // Reduce frequency by 40%
+            multiplier: 0.6,
+            ctaText: 'Je réduis la fréquence',
+            explanation: 'Tu économises {amount}€/mois sans arrêter.'
+        },
+        {
+            id: 'strategist',
+            level: 'Moyen',
+            title: 'LE STRATÈGE',
+            description: 'Changer la méthode',
+            icon: '🧠',
+            // Replace with cheaper alternative (90% savings)
+            multiplier: 0.1,
+            ctaText: 'Je change la méthode',
+            explanation: 'Tu gardes ton habitude mais tu gagnes {amount}€/mois.'
+        },
+        {
+            id: 'radical',
+            level: 'Difficile',
+            title: 'LE RADICAL',
+            description: 'Arrêter complètement',
+            icon: '⚡',
+            // Full savings (100%)
+            multiplier: 0,
+            ctaText: 'J\'arrête tout',
+            explanation: 'Jackpot total : {amount}€/mois récupérés.'
+        }
+    ],
+    en: [
+        {
+            id: 'optimizer',
+            level: 'Easy',
+            title: 'THE OPTIMIZER',
+            description: 'Reduce frequency',
+            icon: '🎯',
+            multiplier: 0.6,
+            ctaText: 'I reduce the frequency',
+            explanation: 'You save €{amount}/month without stopping.'
+        },
+        {
+            id: 'strategist',
+            level: 'Medium',
+            title: 'THE STRATEGIST',
+            description: 'Change the method',
+            icon: '🧠',
+            multiplier: 0.1,
+            ctaText: 'I change the method',
+            explanation: 'You keep your habit but gain €{amount}/month.'
+        },
+        {
+            id: 'radical',
+            level: 'Hard',
+            title: 'THE RADICAL',
+            description: 'Stop completely',
+            icon: '⚡',
+            multiplier: 0,
+            ctaText: 'I stop everything',
+            explanation: 'Full jackpot: €{amount}/month recovered.'
+        }
+    ]
+};
+
 // ===== COMPOUND INTEREST PROJECTION =====
-export const calculateCompoundGrowth = (dailyAmount, years = 5, rate = 0.07) => {
-    // Convert daily to monthly (× 30)
-    const monthlyAmount = dailyAmount * 30;
+export const calculateCompoundGrowth = (monthlyAmount, years = 5, rate = 0.07) => {
     const monthlyRate = rate / 12;
     const months = years * 12;
     const fv = monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
     return Math.round(fv);
 };
 
-// ===== PROJECTION CALCULATIONS =====
+// ===== NEW: PROJECTION WITH FREQUENCY =====
+/**
+ * Calculate projections based on unit price × frequency
+ * @param {number} unitPrice - Price per item (e.g., 3.50€ for a coffee)
+ * @param {number} timesPerWeek - How many times per week (1-7)
+ * @param {number} years - Years for compound projection (default 5)
+ * @param {number} rate - Annual return rate (default 7%)
+ * @param {string} locale - Locale for equivalents (default 'fr')
+ */
+export const calculateProjectionsWithFrequency = (unitPrice, timesPerWeek, years = 5, rate = 0.07, locale = 'fr') => {
+    // Weekly cost
+    const weekly = unitPrice * timesPerWeek;
+    // Monthly cost (4.33 weeks per month on average)
+    const monthly = Math.round(weekly * 4.33);
+    // Yearly cost (52 weeks)
+    const yearly = Math.round(weekly * 52);
+    // 5-year compound projection
+    const fiveYear = calculateCompoundGrowth(monthly, years, rate);
+
+    return {
+        unitPrice,
+        timesPerWeek,
+        weekly,
+        monthly,
+        yearly,
+        fiveYear,
+        // Yearly equivalent (tangible reward)
+        yearlyEquivalent: getYearlyEquivalent(yearly, locale),
+        // 5-year equivalent (bigger dreams)
+        fiveYearEquivalent: get5YearEquivalent(fiveYear, locale)
+    };
+};
+
+// ===== LEGACY: PROJECTION CALCULATIONS (for backwards compatibility) =====
 export const calculateProjections = (dailyAmount, years = 5, rate = 0.07) => {
     const monthly = dailyAmount * 30;
     const yearly = dailyAmount * 365;
-    const fiveYear = calculateCompoundGrowth(dailyAmount, years, rate);
+    const fiveYear = calculateCompoundGrowth(monthly, years, rate);
 
     return {
         daily: dailyAmount,
@@ -199,6 +363,29 @@ export const calculateProjections = (dailyAmount, years = 5, rate = 0.07) => {
         tenYear: fiveYear, // Keep property name for compatibility
         equivalent: get5YearEquivalent(fiveYear)
     };
+};
+
+/**
+ * Calculate savings for different action levels
+ * @param {number} monthlyAmount - Current monthly spending
+ * @param {string} locale - Locale for labels
+ */
+export const calculateActionLevelSavings = (monthlyAmount, locale = 'fr') => {
+    const levels = actionLevels[locale] || actionLevels.fr;
+    
+    return levels.map(level => {
+        const newMonthly = monthlyAmount * level.multiplier;
+        const savings = Math.round(monthlyAmount - newMonthly);
+        const yearlySavings = savings * 12;
+        
+        return {
+            ...level,
+            savings,
+            yearlySavings,
+            newMonthly: Math.round(newMonthly),
+            explanation: level.explanation.replace('{amount}', savings)
+        };
+    });
 };
 
 // ===== CONCRETE IMPACT (Debrief Screen) =====
@@ -304,8 +491,15 @@ export default {
     proTips,
     expenseCategories,
     expenseCategoryLabels,
+    frequencyOptions,
+    frequencyLabels,
+    actionLevels,
+    getYearlyEquivalent,
+    get5YearEquivalent,
     get10YearEquivalent,
     calculateCompoundGrowth,
     calculateProjections,
+    calculateProjectionsWithFrequency,
+    calculateActionLevelSavings,
     getConcreteImpact
 };
