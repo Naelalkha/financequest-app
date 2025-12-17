@@ -223,18 +223,21 @@ const DashboardView = () => {
     // Handle quest completion from QuestDetailsModal
     const handleCompleteQuestFromDetails = async (modifiedQuest) => {
         try {
-            // Create savings event in Firebase if there's monetary value
-            if (modifiedQuest.monetaryValue && modifiedQuest.monetaryValue > 0) {
-                const annualSavings = modifiedQuest.monetaryValue * 12;
+            // Calculate annual savings - use direct annual value if provided, otherwise monthly × 12
+            const annualSavings = modifiedQuest.annualSavings 
+                || (modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0);
 
+            // Create savings event in Firebase if there's monetary value
+            if (annualSavings > 0) {
                 // OPTIMISTIC UPDATE
                 setLocalImpactBoost(prev => prev + annualSavings);
 
+                // Store annual amount directly to avoid rounding errors (monthly × 12 ≠ yearly)
                 await createSavingsEventInFirestore(user.uid, {
                     title: modifiedQuest.title,
                     questId: modifiedQuest.id,
-                    amount: modifiedQuest.monetaryValue,
-                    period: 'month',
+                    amount: annualSavings,
+                    period: 'year',
                     source: 'quest',
                     proof: {
                         type: 'note',
@@ -253,7 +256,6 @@ const DashboardView = () => {
 
             if (gamificationResult) {
                 const xpGained = gamificationResult.xpGained || 0;
-                const annualSavings = modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0;
 
                 if (annualSavings > 0) {
                     toast.success(
@@ -451,13 +453,14 @@ const DashboardView = () => {
                             }}
                             onComplete={(result) => {
                                 // Transform result to match expected format
+                                // Pass yearlySavings directly to avoid rounding errors (monthly × 12 ≠ yearly)
                                 handleCompleteQuestFromDetails({
                                     ...selectedQuest,
                                     id: result.questId,
                                     title: result.expenseName
                                         ? `${t('quests:microExpenses.title')} - ${result.expenseName}`
                                         : selectedQuest.title,
-                                    monetaryValue: result.monthlyAmount,
+                                    annualSavings: result.yearlySavings,
                                     xpReward: result.xpEarned
                                 });
                             }}

@@ -105,13 +105,21 @@ const QuestListView = () => {
             const questDocId = `${user.uid}_${questId}`;
             const questRef = doc(db, 'userQuests', questDocId);
 
+            // Calculate values - use direct annual value if provided, otherwise monthly × 12
+            const annualSavings = modifiedQuest.annualSavings 
+                || (modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0);
+            const monthlySavings = modifiedQuest.annualSavings 
+                ? Math.round(modifiedQuest.annualSavings / 12)
+                : modifiedQuest.monetaryValue;
+
             await setDoc(questRef, {
                 userId: user.uid,
                 questId: questId,
                 status: 'completed',
                 progress: 100,
                 completedAt: serverTimestamp(),
-                monetaryValue: modifiedQuest.monetaryValue || 0,
+                monetaryValue: monthlySavings || 0,
+                annualSavings: annualSavings || 0,
                 xpReward: xpReward,
                 updatedAt: serverTimestamp()
             }, { merge: true });
@@ -126,7 +134,6 @@ const QuestListView = () => {
 
             // 3. Show success message
             const xpGained = gamificationResult?.xpGained || xpReward;
-            const annualSavings = modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0;
 
             if (annualSavings > 0) {
                 toast.success(
@@ -320,13 +327,14 @@ const QuestListView = () => {
                         }}
                         onComplete={(result) => {
                             // Transform result to match expected format
+                            // Pass yearlySavings directly to avoid rounding errors (monthly × 12 ≠ yearly)
                             handleCompleteQuest({
                                 ...selectedQuest,
                                 id: result.questId,
                                 title: result.expenseName
                                     ? `${t('microExpenses.title')} - ${result.expenseName}`
                                     : selectedQuest.title,
-                                monetaryValue: result.monthlyAmount,
+                                annualSavings: result.yearlySavings,
                                 xpReward: result.xpEarned
                             });
                         }}

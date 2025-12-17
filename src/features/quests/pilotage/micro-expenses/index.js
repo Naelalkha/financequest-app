@@ -1,32 +1,60 @@
 /**
  * Micro Expenses Quest - Moniyo Protocol
  * 
- * Quest 02: TRAQUE INVISIBLE
+ * Quest 02: L'EFFET CUMULÉ (ex TRAQUE INVISIBLE)
+ * 
  * 3-Phase Quest Flow:
- * - PROTOCOL: Briefing + Tactics
- * - EXECUTION: "L'Amplificateur Temporel" Calculator
- * - DEBRIEF: Celebration + Rewards
+ * - PROTOCOL: Briefing + Tactics (ProtocolScreen)
+ * - EXECUTION: Calculator + Challenge Selection (ExecutionScreen)
+ * - DEBRIEF: Celebration + Goal Confirmation (DebriefScreen)
+ * 
+ * Architecture:
+ * - MicroExpensesFlow: Main controller, handles navigation & state
+ * - screens/*: Individual phase components
+ * - insightData.js: Static data (slides, categories, calculations)
+ * - metadata.js: Quest metadata for catalog
  */
 
-// Main flow component
+// ═══════════════════════════════════════════════════════════════
+// MAIN EXPORTS
+// ═══════════════════════════════════════════════════════════════
+
+// Main flow component (use this for quest integration)
 export { default as MicroExpensesFlow } from './MicroExpensesFlow';
 
-// Individual screens (for direct use if needed)
+// Quest metadata for catalog/listing
+export { default as microExpensesQuest } from './metadata';
+
+// ═══════════════════════════════════════════════════════════════
+// SCREENS (for advanced use cases only)
+// ═══════════════════════════════════════════════════════════════
+
 export { default as ProtocolScreen } from './screens/ProtocolScreen';
 export { default as ExecutionScreen } from './screens/ExecutionScreen';
 export { default as DebriefScreen } from './screens/DebriefScreen';
 
-// Quest metadata and core config
-export { default as microExpensesQuest } from './metadata';
+// ═══════════════════════════════════════════════════════════════
+// DATA & UTILITIES
+// ═══════════════════════════════════════════════════════════════
 
-// Insight data for stats and lifestyle comparisons
 export {
+    // Static content
     socialProofSlides,
     proTips,
     expenseCategories,
     expenseCategoryLabels,
-    get10YearEquivalent,
+    frequencyOptions,
+    frequencyLabels,
+    
+    // Calculation utilities
     calculateCompoundGrowth,
+    calculateProjectionsWithFrequency,
+    get5YearEquivalent,
+    getYearlyEquivalent,
+    getConcreteImpact,
+    
+    // Legacy (deprecated)
+    get10YearEquivalent,
     calculateProjections,
-    getConcreteImpact
+    calculateActionLevelSavings
 } from './insightData';

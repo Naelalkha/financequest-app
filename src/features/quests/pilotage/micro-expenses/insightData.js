@@ -238,7 +238,15 @@ export const get5YearEquivalent = (amount, locale = 'fr') => {
 // Keep old function for backwards compatibility
 export const get10YearEquivalent = get5YearEquivalent;
 
-// ===== 3 ACTION LEVELS (Optimization strategies) =====
+// ===== ACTION LEVELS =====
+// NOTE: The authoritative action level config is now in ExecutionScreen.jsx (actionConfig)
+// This legacy data is kept for reference but multipliers here are DIFFERENT (they represent
+// the % of expense KEPT, not the % SAVED). Use ExecutionScreen.actionConfig for calculations.
+// 
+// ExecutionScreen.actionConfig multipliers (% SAVED):
+// - optimizer: 0.25 (save 25%)
+// - strategist: 0.5 (save 50%)  
+// - radical: 1 (save 100%)
 export const actionLevels = {
     fr: [
         {
@@ -246,33 +254,21 @@ export const actionLevels = {
             level: 'Facile',
             title: 'L\'OPTIMISATEUR',
             description: 'Réduire la fréquence',
-            icon: '🎯',
-            // Reduce frequency by 40%
-            multiplier: 0.6,
-            ctaText: 'Je réduis la fréquence',
-            explanation: 'Tu économises {amount}€/mois sans arrêter.'
+            icon: '🎯'
         },
         {
             id: 'strategist',
             level: 'Moyen',
             title: 'LE STRATÈGE',
             description: 'Changer la méthode',
-            icon: '🧠',
-            // Replace with cheaper alternative (90% savings)
-            multiplier: 0.1,
-            ctaText: 'Je change la méthode',
-            explanation: 'Tu gardes ton habitude mais tu gagnes {amount}€/mois.'
+            icon: '🧠'
         },
         {
             id: 'radical',
             level: 'Difficile',
             title: 'LE RADICAL',
             description: 'Arrêter complètement',
-            icon: '⚡',
-            // Full savings (100%)
-            multiplier: 0,
-            ctaText: 'J\'arrête tout',
-            explanation: 'Jackpot total : {amount}€/mois récupérés.'
+            icon: '⚡'
         }
     ],
     en: [
@@ -281,30 +277,21 @@ export const actionLevels = {
             level: 'Easy',
             title: 'THE OPTIMIZER',
             description: 'Reduce frequency',
-            icon: '🎯',
-            multiplier: 0.6,
-            ctaText: 'I reduce the frequency',
-            explanation: 'You save €{amount}/month without stopping.'
+            icon: '🎯'
         },
         {
             id: 'strategist',
             level: 'Medium',
             title: 'THE STRATEGIST',
             description: 'Change the method',
-            icon: '🧠',
-            multiplier: 0.1,
-            ctaText: 'I change the method',
-            explanation: 'You keep your habit but gain €{amount}/month.'
+            icon: '🧠'
         },
         {
             id: 'radical',
             level: 'Hard',
             title: 'THE RADICAL',
             description: 'Stop completely',
-            icon: '⚡',
-            multiplier: 0,
-            ctaText: 'I stop everything',
-            explanation: 'Full jackpot: €{amount}/month recovered.'
+            icon: '⚡'
         }
     ]
 };
@@ -366,26 +353,21 @@ export const calculateProjections = (dailyAmount, years = 5, rate = 0.07) => {
 };
 
 /**
- * Calculate savings for different action levels
- * @param {number} monthlyAmount - Current monthly spending
- * @param {string} locale - Locale for labels
+ * @deprecated Use actionConfig in ExecutionScreen.jsx instead.
+ * This function uses outdated multiplier logic and is kept only for backwards compatibility.
+ * The authoritative savings calculation is: yearlySavings = projections.yearly * actionConfig.multiplier
  */
 export const calculateActionLevelSavings = (monthlyAmount, locale = 'fr') => {
+    console.warn('calculateActionLevelSavings is deprecated. Use actionConfig in ExecutionScreen.jsx');
     const levels = actionLevels[locale] || actionLevels.fr;
     
-    return levels.map(level => {
-        const newMonthly = monthlyAmount * level.multiplier;
-        const savings = Math.round(monthlyAmount - newMonthly);
-        const yearlySavings = savings * 12;
-        
-        return {
-            ...level,
-            savings,
-            yearlySavings,
-            newMonthly: Math.round(newMonthly),
-            explanation: level.explanation.replace('{amount}', savings)
-        };
-    });
+    // Simplified version - just return level info without calculations
+    return levels.map(level => ({
+        ...level,
+        savings: 0,
+        yearlySavings: 0,
+        newMonthly: monthlyAmount
+    }));
 };
 
 // ===== CONCRETE IMPACT (Debrief Screen) =====

@@ -24,17 +24,15 @@ const IconMap = {
     RefreshCw: RefreshCw
 };
 
-// Page transition variants
+// Page transition variants (fade only for consistency with parent)
 const pageVariants = {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
 };
 
 const pageTransition = {
-    type: 'tween',
-    duration: 0.25,
-    ease: [0.25, 0.1, 0.25, 1]
+    duration: 0.25
 };
 
 const ProtocolScreen = ({ onNext, page, setPage }) => {
@@ -149,9 +147,9 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                 
                                 {/* ===== CARD 1: THE PROBLEM ===== */}
                                 <motion.div 
-                                    initial={{ opacity: 0, y: 15 }}
+                                    initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1, duration: 0.3 }}
+                                    transition={{ delay: 0.1, duration: 0.25 }}
                                     className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 relative overflow-hidden"
                                 >
                                     
@@ -185,9 +183,9 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
 
                                 {/* ===== CARD 2: STATS CAROUSEL ===== */}
                                 <motion.div 
-                                    initial={{ opacity: 0, y: 15 }}
+                                    initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2, duration: 0.3 }}
+                                    transition={{ delay: 0.15, duration: 0.25 }}
                                     className="bg-[#0A0A0A] border border-white/10 rounded-2xl px-6 py-8 relative overflow-hidden"
                                 >
                                     
@@ -230,10 +228,10 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                             <AnimatePresence mode="wait">
                                                 <motion.div
                                                     key={currentSlideIndex}
-                                                    initial={{ opacity: 0, scale: 0.95 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    exit={{ opacity: 0, scale: 0.95 }}
-                                                    transition={{ duration: 0.2 }}
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    exit={{ opacity: 0 }}
+                                                    transition={{ duration: 0.3 }}
                                                     className="text-center"
                                                 >
                                                     <h3 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">
@@ -289,25 +287,24 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                             return (
                                                 <motion.div
                                                     key={tip.id}
-                                                    initial={{ opacity: 0, x: -15 }}
-                                                    animate={{ opacity: 1, x: 0 }}
+                                                    initial={{ opacity: 0, y: 8 }}
+                                                    animate={{ opacity: 1, y: 0 }}
                                                     transition={{ 
-                                                        delay: 0.15 + index * 0.1,
-                                                        duration: 0.3,
-                                                        ease: [0.25, 0.1, 0.25, 1]
+                                                        delay: 0.1 + index * 0.08,
+                                                        duration: 0.25
                                                     }}
                                                     className="relative flex gap-5"
                                                 >
                                                     {/* Number Circle */}
                                                     <div className="relative z-10 flex-shrink-0">
                                                         <motion.div 
-                                                            initial={{ scale: 0.5, opacity: 0 }}
+                                                            initial={{ scale: 0.8, opacity: 0 }}
                                                             animate={{ scale: 1, opacity: 1 }}
                                                             transition={{ 
-                                                                delay: 0.2 + index * 0.1,
+                                                                delay: 0.15 + index * 0.08,
                                                                 type: 'spring',
                                                                 stiffness: 400,
-                                                                damping: 20
+                                                                damping: 25
                                                             }}
                                                             className="w-10 h-10 rounded-full bg-[#0A0A0A] border-2 border-volt/50 flex items-center justify-center ring-4 ring-[#0A0A0A]"
                                                         >
@@ -348,13 +345,13 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                     {page === 0 ? (
                         <motion.button
                             key="cta-context"
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
                             transition={{ 
                                 type: 'spring',
-                                stiffness: 500,
-                                damping: 30
+                                stiffness: 400,
+                                damping: 25
                             }}
                             whileTap={{ scale: 0.97 }}
                             onClick={goToMethod}
@@ -365,13 +362,13 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                     ) : (
                         <motion.button
                             key="cta-method"
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
                             transition={{ 
                                 type: 'spring',
-                                stiffness: 500,
-                                damping: 30
+                                stiffness: 400,
+                                damping: 25
                             }}
                             whileTap={{ scale: 0.97 }}
                             onClick={handleLaunch}

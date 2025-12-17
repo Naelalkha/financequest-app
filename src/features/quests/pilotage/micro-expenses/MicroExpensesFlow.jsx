@@ -6,8 +6,7 @@ import ProtocolScreen from './screens/ProtocolScreen';
 import ExecutionScreen from './screens/ExecutionScreen';
 import DebriefScreen from './screens/DebriefScreen';
 import { trackEvent } from '../../../../utils/analytics';
-import useLocalizedQuest from '../../../../hooks/useLocalizedQuest';
-import { fullscreenVariants, TRANSITIONS, EASE, SPRING, screenVariants } from '../../../../styles/animationConstants';
+import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
 import { haptic } from '../../../../utils/haptics';
 
 /**
@@ -18,11 +17,11 @@ import { haptic } from '../../../../utils/haptics';
  * - Centralized navigation state (Protocol pages & Execution steps)
  * - Uniform Header with smart Back Button
  */
-// Custom transition for main screens (fade + subtle scale/slide)
+// Custom transition for main screens (fade only for stability)
 const mainScreenVariants = {
-    initial: { opacity: 0, scale: 0.99, x: 40 }, // Arrive de la droite (Soft Push)
-    animate: { opacity: 1, scale: 1, x: 0 },     // Se met en place
-    exit: { opacity: 0, scale: 0.99, x: -40 }    // Part vers la gauche
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
 };
 
 const MicroExpensesFlow = ({
@@ -33,9 +32,6 @@ const MicroExpensesFlow = ({
 }) => {
     const { t, i18n } = useTranslation(['quests', 'common']);
     const locale = i18n.language;
-
-    // Get localized quest with codename
-    const localizedQuest = useLocalizedQuest(quest);
 
     // Phase state
     const [phase, setPhase] = useState('PROTOCOL');
@@ -85,7 +81,7 @@ const MicroExpensesFlow = ({
             if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
             return { fr: 'STRATÉGIE', en: 'STRATEGY' };
         }
-        return { fr: 'OBJECTIF', en: 'OBJECTIVE' };
+        return { fr: 'IMPACT', en: 'IMPACT' };
     };
 
     // Step subtitles (moyen gris - instruction)
@@ -98,7 +94,7 @@ const MicroExpensesFlow = ({
             if (executionStep === 'revelation') return { fr: 'Configure ta dépense', en: 'Configure your expense' };
             return { fr: 'Choisis ton approche', en: 'Choose your approach' };
         }
-        return { fr: 'Plan activé', en: 'Plan activated' };
+        return { fr: 'Potentiel débloqué', en: 'Potential unlocked' };
     };
 
     // Progress bar width
@@ -334,11 +330,11 @@ const MicroExpensesFlow = ({
                         {phase === 'DEBRIEF' && (
                             <motion.div
                                 key="debrief"
-                                variants={screenVariants.fadeScale}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.bouncy}
+                                transition={{ duration: 0.3 }}
                                 className="h-full quest-screen"
                             >
                                 <DebriefScreen

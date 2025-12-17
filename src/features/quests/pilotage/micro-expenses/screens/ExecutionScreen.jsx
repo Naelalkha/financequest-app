@@ -1,19 +1,16 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Coffee, Utensils, Flame, Car, Beer, Plus, Check, ChevronRight, Zap, Music, Headphones, Plane, Smartphone, Bike, Target, Minus, Scissors, X, Wallet } from 'lucide-react';
+import { Coffee, Utensils, Flame, Car, Beer, Plus, ChevronRight, Zap, Music, Headphones, Plane, Smartphone, Bike, Minus, Scissors, X, Wallet } from 'lucide-react';
 import { 
     expenseCategories, 
     expenseCategoryLabels, 
     frequencyOptions,
     frequencyLabels,
-    calculateProjectionsWithFrequency,
-    calculateActionLevelSavings,
-    actionLevels
+    calculateProjectionsWithFrequency
 } from '../insightData';
 import { Slider } from '../../../../../components/ui';
 import { haptic } from '../../../../../utils/haptics';
-import { SPRING } from '../../../../../styles/animationConstants';
 
 /**
  * ExecutionScreen - Phase 2: "L'EFFET CUMULÉ"
@@ -52,8 +49,8 @@ const DifficultyStars = ({ level, color }) => {
     );
 };
 
-// Concrete reward icon based on amount
-const getConcreteRewardIcon = (amount, locale = 'fr') => {
+// Concrete reward icon based on amount - EXPORTED for reuse
+export const getConcreteRewardIcon = (amount, locale = 'fr') => {
     const labels = {
         fr: {
             streaming: '1 an de streaming',
@@ -100,7 +97,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     // Get category and frequency labels
     const categoryLabels = expenseCategoryLabels[locale] || expenseCategoryLabels.fr;
     const freqLabels = frequencyLabels[locale] || frequencyLabels.fr;
-    const currentActionLevels = actionLevels[locale] || actionLevels.fr;
 
     // Get selected frequency
     const selectedFrequency = useMemo(() => 
@@ -112,12 +108,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const projections = useMemo(() => 
         calculateProjectionsWithFrequency(unitPrice, selectedFrequency.timesPerWeek, 5, 0.07, locale),
         [unitPrice, selectedFrequency.timesPerWeek, locale]
-    );
-
-    // Calculate action level savings
-    const actionSavings = useMemo(() => 
-        calculateActionLevelSavings(projections.monthly, locale),
-        [projections.monthly, locale]
     );
 
     // Animate counter when amount changes and category is selected
@@ -186,7 +176,13 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
 
         const category = expenseCategories.find(c => c.id === selectedCategoryId);
         const displayName = categoryLabels[category?.id] || customName;
-        const selectedAction = actionSavings.find(a => a.id === selectedActionLevel);
+        
+        // Find the selected action config to get the correct multiplier
+        const selectedConfig = actionConfig.find(c => c.id === selectedActionLevel);
+        
+        // Calculate savings using the SAME logic as the display
+        const yearlySavings = Math.round(projections.yearly * (selectedConfig?.multiplier || 1));
+        const monthlySavings = Math.round(yearlySavings / 12);
 
         onUpdate({
             categoryId: selectedCategoryId,
@@ -200,16 +196,44 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             yearlyAmount: projections.yearly,
             fiveYearAmount: projections.fiveYear,
             actionLevel: selectedActionLevel,
-            actionSavings: selectedAction?.savings || projections.monthly,
-            yearlySavings: selectedAction?.yearlySavings || projections.yearly,
+            actionSavings: monthlySavings,
+            yearlySavings: yearlySavings,
             yearlyEquivalent: projections.yearlyEquivalent,
             fiveYearEquivalent: projections.fiveYearEquivalent,
             customName,
-            dailyAmount: Math.round(projections.yearly / 365),
+            dailyAmount: Math.round(yearlySavings / 365),
             tenYearAmount: projections.fiveYear
         });
         onNext();
-    }, [selectedCategoryId, categoryLabels, customName, unitPrice, selectedFrequencyId, selectedFrequency, projections, selectedActionLevel, actionSavings, onUpdate, onNext]);
+    }, [selectedCategoryId, categoryLabels, customName, unitPrice, selectedFrequencyId, selectedFrequency, projections, selectedActionLevel, onUpdate, onNext]);
+
+    // Action level config - defined here to be accessible in handleComplete
+    const actionConfig = [
+        { 
+            id: 'optimizer', 
+            multiplier: 0.25,
+            labelFr: 'RÉDUIRE',
+            labelEn: 'REDUCE',
+            descFr: 'Diminue ta fréquence de 25%',
+            descEn: 'Reduce your frequency by 25%'
+        },
+        { 
+            id: 'strategist', 
+            multiplier: 0.5,
+            labelFr: 'DIVISER',
+            labelEn: 'HALVE',
+            descFr: 'Coupe ta dépense en deux',
+            descEn: 'Cut your expense in half'
+        },
+        { 
+            id: 'radical', 
+            multiplier: 1,
+            labelFr: 'STOPPER',
+            labelEn: 'STOP',
+            descFr: 'Élimine complètement cette dépense',
+            descEn: 'Completely eliminate this expense'
+        }
+    ];
 
     // Labels
     const labels = {
@@ -352,10 +376,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         <AnimatePresence>
                             {selectedCategoryId && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 20 }}
-                                    transition={{ type: 'spring', damping: 20 }}
+                                    exit={{ opacity: 0, y: 8 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                                     className="w-full bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6"
                                 >
                                     <div className="flex flex-col items-center">
@@ -381,9 +405,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         {/* Concrete Reward Badge */}
                                         {hasRevealed && (
                                             <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
+                                                initial={{ opacity: 0, y: 6 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.2 }}
+                                                transition={{ delay: 0.15, duration: 0.25 }}
                                                 className="flex items-center gap-3 bg-yellow-400/10 border border-yellow-400/20 px-4 py-2 rounded-xl"
                                             >
                                                 {getConcreteRewardIcon(projections.yearly, locale).icon}
@@ -402,6 +426,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                 {/* Footer CTA */}
                 <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
                     <motion.button
+                        key="cta-revelation"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                         whileTap={canProceedToChallenge ? { scale: 0.97 } : {}}
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
@@ -425,36 +454,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     // STEP 2: LE CHOIX DU DÉFI (Clean Design)
     // ═══════════════════════════════════════════════════════════════
     
-    // Clean action level config with explicit icons
-    const actionConfig = [
-        { 
-            id: 'optimizer', 
-            icon: <Minus className="w-6 h-6" />,
-            multiplier: 0.25,
-            labelFr: 'RÉDUIRE',
-            labelEn: 'REDUCE',
-            descFr: 'Diminue ta fréquence de 25%',
-            descEn: 'Reduce your frequency by 25%'
-        },
-        { 
-            id: 'strategist', 
-            icon: <Scissors className="w-6 h-6" />,
-            multiplier: 0.5,
-            labelFr: 'DIVISER',
-            labelEn: 'HALVE',
-            descFr: 'Coupe ta dépense en deux',
-            descEn: 'Cut your expense in half'
-        },
-        { 
-            id: 'radical', 
-            icon: <X className="w-6 h-6" />,
-            multiplier: 1,
-            labelFr: 'STOPPER',
-            labelEn: 'STOP',
-            descFr: 'Élimine complètement cette dépense',
-            descEn: 'Completely eliminate this expense'
-        }
-    ];
+    // Icon map for action levels
+    const actionIconMap = {
+        optimizer: <Minus className="w-6 h-6" />,
+        strategist: <Scissors className="w-6 h-6" />,
+        radical: <X className="w-6 h-6" />
+    };
 
     return (
         <div className="h-full flex flex-col">
@@ -491,9 +496,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                             return (
                                 <motion.button
                                     key={config.id}
-                                    initial={{ opacity: 0, y: 15 }}
+                                    initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
+                                    transition={{ delay: index * 0.06, duration: 0.25 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleActionLevelSelect(config.id)}
                                     className={`
@@ -513,7 +518,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                                 : 'bg-neutral-800 text-neutral-400'
                                             }
                                         `}>
-                                            {config.icon}
+                                            {actionIconMap[config.id]}
                                         </div>
                                         
                                         {/* Content */}
@@ -544,6 +549,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             {/* Footer CTA */}
             <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
                 <motion.button
+                    key="cta-challenge"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     whileTap={canComplete ? { scale: 0.97 } : {}}
                     onClick={handleComplete}
                     disabled={!canComplete}
