@@ -365,7 +365,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             }}
                             whileTap={{ scale: 0.97 }}
                             onClick={goToMethod}
-                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(226,255,0,0.3)] transition-all"
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
                         >
                             {L.contextCta} <ArrowRight className="w-5 h-5" />
                         </motion.button>
@@ -382,7 +382,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             }}
                             whileTap={{ scale: 0.97 }}
                             onClick={handleLaunch}
-                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(226,255,0,0.3)] transition-all"
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
                         >
                             <Zap className="w-5 h-5 fill-current" />
                             {L.methodCta}

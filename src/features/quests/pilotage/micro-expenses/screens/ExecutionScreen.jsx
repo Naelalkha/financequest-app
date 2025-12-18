@@ -455,10 +455,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
                             ${canProceedToChallenge
-                                ? 'bg-volt text-black shadow-[0_0_20px_rgba(226,255,0,0.3)]'
-                                : 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed'
+                                ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                                : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                             }
                         `}
                     >
@@ -577,11 +577,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     whileTap={canComplete ? { scale: 0.97 } : {}}
                     onClick={handleComplete}
                     disabled={!canComplete}
-                    className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all
+                        className={`
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
                         ${canComplete
-                            ? 'bg-volt text-black shadow-[0_0_20px_rgba(226,255,0,0.3)]'
-                            : 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed'
+                            ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                            : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                         }
                     `}
                 >

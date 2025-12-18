@@ -210,7 +210,7 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }
               <button 
                 onClick={handleAccept} 
                 disabled={isAccepting} 
-                className="flex-1 bg-volt text-black font-black font-sans rounded-2xl flex items-center justify-center gap-2 active:scale-95 py-4 disabled:opacity-80"
+                className="flex-1 bg-volt text-black font-black font-sans rounded-xl flex items-center justify-center gap-2 active:scale-95 py-4 disabled:opacity-80 shadow-volt-glow-strong border-[3px] border-black"
                 aria-label={t('accept')}
               >
                 {isAccepting ? (

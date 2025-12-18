@@ -48,7 +48,6 @@ const DashboardView = () => {
     const { gamification } = useGamification();
 
     // Local State
-    const [isGenerating, setIsGenerating] = useState(false);
     const [showSmartMission, setShowSmartMission] = useState(false);
     const [recommendedQuest, setRecommendedQuest] = useState(null);
     const [showQuestDetails, setShowQuestDetails] = useState(false);
@@ -332,7 +331,7 @@ const DashboardView = () => {
                 <SaveProgressBanner />
 
                 {/* 2. Scoreboard (Impact Hero) */}
-                <div className="space-y-6">
+                <div className="space-y-6 mb-8">
                     <DashboardScoreboard
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
@@ -347,7 +346,6 @@ const DashboardView = () => {
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
-                            isLoading={isGenerating}
                         />
                     </div>
                 )}

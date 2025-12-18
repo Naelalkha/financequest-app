@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, ChevronRight, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 // RollingCounter component for animated numbers
@@ -45,65 +45,49 @@ const RollingCounter = ({ value, currency }) => {
     );
 };
 
-const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, userId = "884-XJ" }) => {
+const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest }) => {
     const { t } = useTranslation('dashboard');
-    const progressPercentage = 65;
 
     return (
         <section className="px-6 pt-4 pb-12 relative z-20 animate-slide-up">
-            {/* The Score Card */}
+            {/* The Score Card - COMPACT & CLEAN */}
             <div
-                className="relative w-full aspect-[4/3] md:aspect-[21/9] bg-[#0A0A0A] backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 flex flex-col justify-between overflow-hidden active:scale-[0.98] transition-transform"
+                className="relative w-full bg-[#0A0A0A] backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 pt-8 pb-8 flex flex-col items-start justify-center overflow-hidden active:scale-[0.98] transition-transform"
             >
 
                 {/* Background Texture */}
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
 
-                {/* Top Meta */}
-                <div className="flex justify-between items-start relative z-10">
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-neutral-400">
-                            <span className="font-mono text-[10px] tracking-[0.2em] uppercase">{t('netImpactYTD')}</span>
-                            <ChevronRight className="w-3 h-3 text-neutral-600" />
-                        </div>
-                        {/* VOLT accent */}
-                        <div className="flex items-center gap-2 text-volt font-mono text-xs bg-volt/10 px-2 py-0.5 rounded border border-volt/20 w-fit">
-                            <ArrowUpRight className="w-3 h-3" />
-                            <span className="font-bold">+12%</span>
-                        </div>
+                {/* Content Container - No useless meta, just raw data */}
+                <div className="relative z-10 w-full flex flex-col gap-2">
+                    
+                    {/* Label */}
+                    <div className="flex items-center gap-2 text-neutral-500 mb-0">
+                        <span className="font-mono text-xs tracking-[0.15em] uppercase font-bold text-neutral-600">{t('netImpactYTD')}</span>
+                        {/* Removed: +12% badge & ID */}
                     </div>
-                    <div className="font-mono text-[9px] text-neutral-600 border border-neutral-800 px-2 py-1 rounded bg-black/50">
-                        ID: {userId}
-                    </div>
-                </div>
 
-                {/* Massive Value Ticker - ELECTRIC VOLT */}
-                <div className="mt-4 relative z-10">
-                    <h1 className="text-6xl md:text-7xl lg:text-8xl text-volt font-mono font-bold tracking-tighter leading-none text-glow-volt">
+                    {/* Massive Value */}
+                    <h1 className="text-6xl md:text-7xl text-volt font-mono font-bold tracking-tighter leading-none text-glow-volt -ml-1">
                         <span className="text-volt/50 mr-1">+</span>
                         <RollingCounter value={impactAnnual || 0} currency={currency} />
                     </h1>
-                    <div className="flex items-center gap-3 mt-3">
-                        <span className="font-sans text-sm text-neutral-400 font-medium uppercase tracking-wider">
+
+                    {/* Subtitle */}
+                    <div className="flex items-center gap-2 mt-1">
+                        <div className="h-px w-8 bg-neutral-800"></div>
+                        <span className="font-mono text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
                             {t('perYearSaved')}
                         </span>
                     </div>
                 </div>
-
-                {/* Bottom Progress Bar - Volt gradient */}
-                <div className="w-full h-1.5 bg-neutral-900/80 rounded-full mt-auto overflow-hidden relative z-10 border border-white/5">
-                    <div
-                        className="h-full bg-gradient-to-r from-volt via-white to-volt shadow-[0_0_20px_rgba(226,255,0,0.5)]"
-                        style={{ width: `${progressPercentage}%` }}
-                    />
-                </div>
             </div>
 
-            {/* Main CTA - Floating Pill - VOLT */}
+            {/* Main CTA - Floating Button */}
             <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-full max-w-[70%] z-30">
                 <button
                     onClick={onStartQuest}
-                    className="w-full bg-volt text-black font-sans font-bold text-lg py-3.5 rounded-full shadow-volt-glow-strong flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden active:scale-95 transition-transform duration-75"
+                    className="w-full bg-volt text-black font-sans font-bold text-lg py-4 rounded-xl shadow-volt-glow-strong flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden active:scale-95 transition-transform duration-75"
                 >
                     <Zap className="w-5 h-5 fill-current" />
                     {t('startQuest')}

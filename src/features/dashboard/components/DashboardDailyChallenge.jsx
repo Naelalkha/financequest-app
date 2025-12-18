@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Timer, Zap, ArrowRight } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 
-const DashboardDailyChallenge = ({ challenge, onStart, isLoading }) => {
+const DashboardDailyChallenge = ({ challenge, onStart }) => {
     const { t } = useTranslation('dashboard');
     const [timeLeft, setTimeLeft] = useState("");
 
@@ -34,8 +34,8 @@ const DashboardDailyChallenge = ({ challenge, onStart, isLoading }) => {
     return (
         <div className="px-6 mt-6 animate-slide-up delay-100">
             <div className="relative group cursor-pointer" onClick={onStart}>
-                {/* Holographic Border Gradient */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#E5FF00] via-[#10b981] to-[#3b82f6] rounded-2xl opacity-75 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
+                {/* Holographic Border Gradient - MONOCHROME VOLT */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-volt via-white/50 to-volt rounded-2xl opacity-50 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
 
                 {/* Card Body */}
                 <div className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 flex items-center justify-between overflow-hidden">
