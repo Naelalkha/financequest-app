@@ -259,12 +259,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             perYear: '/ an',
             equivalent: 'C\'est',
             thrownAway: 'jeté par la fenêtre chaque année.',
-            revelationCta: 'VOIR MES OPTIONS',
+            revelationCta: 'CHOISIR MA STRATÉGIE',
             // Step 2: Challenge
             challengeTitle: 'DÉFI',
             challengeSubtitle: 'Choisis ta stratégie',
             yourExpense: 'Ta dépense',
-            challengeCta: 'ACTIVER CETTE STRATÉGIE',
+            challengeCta: 'ACTIVER LA STRATÉGIE',
             back: 'Retour'
         },
         en: {
@@ -276,11 +276,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             perYear: '/ year',
             equivalent: 'That\'s',
             thrownAway: 'thrown out the window every year.',
-            revelationCta: 'SEE MY OPTIONS',
+            revelationCta: 'CHOOSE MY STRATEGY',
             challengeTitle: 'CHALLENGE',
             challengeSubtitle: 'Choose your strategy',
             yourExpense: 'Your expense',
-            challengeCta: 'ACTIVATE THIS STRATEGY',
+            challengeCta: 'ACTIVATE STRATEGY',
             back: 'Back'
         }
     };

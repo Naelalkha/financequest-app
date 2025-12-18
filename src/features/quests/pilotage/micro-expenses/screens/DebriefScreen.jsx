@@ -85,7 +85,7 @@ const DebriefScreen = ({
             projectionLabel: 'POTENTIEL 5 ANS',
             projectionDesc: 'Si réinvesti à 7%/an',
             xpLabel: 'RÉCOMPENSES',
-            cta: 'VALIDER MON OBJECTIF'
+            cta: 'MISSION ACCOMPLIE'
         },
         en: {
             pageTitle: 'IMPACT',
@@ -97,7 +97,7 @@ const DebriefScreen = ({
             projectionLabel: '5-YEAR POTENTIAL',
             projectionDesc: 'If reinvested at 7%/year',
             xpLabel: 'REWARDS',
-            cta: 'VALIDATE MY GOAL'
+            cta: 'MISSION ACCOMPLISHED'
         }
     };
     const L = labels[locale] || labels.fr;

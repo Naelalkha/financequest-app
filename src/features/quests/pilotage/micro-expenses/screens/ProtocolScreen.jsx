@@ -106,7 +106,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
             // Page 2
             methodTitle: 'MÉTHODE',
             methodSubtitle: '3 étapes pour reprendre le contrôle',
-            methodCta: 'LANCER LA MISSION'
+            methodCta: 'PASSER À L\'ACTION'
         },
         en: {
             contextTitle: 'CONTEXT',
@@ -118,7 +118,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
             contextCta: 'SEE THE PROTOCOL',
             methodTitle: 'METHOD',
             methodSubtitle: '3 steps to take back control',
-            methodCta: 'LAUNCH MISSION'
+            methodCta: 'TAKE ACTION'
         }
     };
     const L = labels[locale] || labels.fr;
