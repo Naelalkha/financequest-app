@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { toast } from 'react-toastify';
 
 /**
  * SubscriptionManager - Manage user subscriptions
@@ -43,11 +42,9 @@ const SubscriptionManager = () => {
             const functions = getFunctions();
             const cancelSubscription = httpsCallable(functions, 'cancelSubscription');
             await cancelSubscription();
-            toast.success(t('profile.subscription.canceled') || 'Subscription canceled');
             await loadSubscription();
         } catch (error) {
             console.error('Error canceling subscription:', error);
-            toast.error(t('profile.subscription.cancel_error') || 'Error canceling subscription');
         } finally {
             setLoading(false);
         }

@@ -281,32 +281,33 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                         className="absolute left-[19px] top-10 bottom-6 w-px bg-gradient-to-b from-volt/40 via-neutral-700 to-neutral-800" 
                                     />
                                     
-                                    <div className="space-y-8">
+                                    <div className="space-y-6">
                                         {tips.map((tip, index) => {
                                             const IconComponent = IconMap[tip.iconName] || Zap;
                                             return (
                                                 <motion.div
                                                     key={tip.id}
-                                                    initial={{ opacity: 0, y: 8 }}
-                                                    animate={{ opacity: 1, y: 0 }}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
                                                     transition={{ 
-                                                        delay: 0.1 + index * 0.08,
-                                                        duration: 0.25
+                                                        delay: 0.1 + index * 0.1,
+                                                        duration: 0.3,
+                                                        ease: "easeOut"
                                                     }}
-                                                    className="relative flex gap-5"
+                                                    className="relative flex gap-4 items-start"
                                                 >
-                                                    {/* Number Circle */}
-                                                    <div className="relative z-10 flex-shrink-0">
+                                                    {/* Number Circle - Aligned with top of card */}
+                                                    <div className="relative z-10 flex-shrink-0 pt-5">
                                                         <motion.div 
                                                             initial={{ scale: 0.8, opacity: 0 }}
                                                             animate={{ scale: 1, opacity: 1 }}
                                                             transition={{ 
-                                                                delay: 0.15 + index * 0.08,
+                                                                delay: 0.15 + index * 0.1,
                                                                 type: 'spring',
                                                                 stiffness: 400,
                                                                 damping: 25
                                                             }}
-                                                            className="w-10 h-10 rounded-full bg-[#0A0A0A] border-2 border-volt/50 flex items-center justify-center ring-4 ring-[#0A0A0A]"
+                                                            className="w-8 h-8 rounded-full bg-[#0A0A0A] border-2 border-volt/50 flex items-center justify-center ring-4 ring-[#0A0A0A] shadow-[0_0_15px_rgba(226,255,0,0.1)] relative -top-4"
                                                         >
                                                             <span className="font-mono text-sm font-bold text-volt">
                                                                 {index + 1}
@@ -314,18 +315,27 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                         </motion.div>
                                                     </div>
 
-                                                    {/* Content */}
-                                                    <div className="pt-1.5 flex-1">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <IconComponent className="w-4 h-4 text-volt/70" />
-                                                            <h4 className="font-mono text-sm text-white font-bold uppercase tracking-wide">
+                                                    {/* Content Card */}
+                                                    <div className="flex-1 bg-neutral-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-sm relative overflow-hidden group">
+                                                        {/* Hover glow effect */}
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-volt/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                                        
+                                                        {/* Watermark Icon - Top Right, Subtle */}
+                                                        <div className="absolute -right-3 -top-3 text-volt opacity-5 transform rotate-12 pointer-events-none">
+                                                            <IconComponent strokeWidth={1.5} className="w-24 h-24" />
+                                                        </div>
+
+                                                        <div className="relative z-10">
+                                                            {/* Title - No padding right needed as icon is very transparent */}
+                                                            <h4 className="font-sans text-lg font-bold text-white leading-tight mb-3">
                                                                 {tip.title}
                                                             </h4>
+                                                            
+                                                            {/* Body */}
+                                                            <p className="text-[15px] text-neutral-300 font-sans leading-relaxed">
+                                                                {renderWithBold(tip.body)}
+                                                            </p>
                                                         </div>
-                                                        
-                                                        <p className="text-[15px] text-neutral-400 font-sans leading-relaxed">
-                                                            {renderWithBold(tip.body)}
-                                                        </p>
                                                     </div>
                                                 </motion.div>
                                             );

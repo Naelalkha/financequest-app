@@ -90,9 +90,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const [selectedActionLevel, setSelectedActionLevel] = useState(null);
     const [customName, setCustomName] = useState(data.customName || '');
     
-    // Animated counter for dramatic reveal
+    // Animated counter - tracks previous value for smooth transitions
     const [animatedAmount, setAnimatedAmount] = useState(0);
     const [hasRevealed, setHasRevealed] = useState(false);
+    const previousAmountRef = useRef(0);
 
     // Get category and frequency labels
     const categoryLabels = expenseCategoryLabels[locale] || expenseCategoryLabels.fr;
@@ -110,23 +111,30 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
         [unitPrice, selectedFrequency.timesPerWeek, locale]
     );
 
-    // Animate counter when amount changes and category is selected
+    // Animate counter when amount changes - smooth transition between values
     useEffect(() => {
         if (selectedCategoryId && projections.yearly > 0) {
             const target = projections.yearly;
-            const duration = 800;
-            const steps = 30;
-            const increment = target / steps;
-            let current = 0;
+            const start = previousAmountRef.current;
+            const difference = target - start;
+            
+            // Quick animation if just updating, longer for first reveal
+            const duration = start === 0 ? 800 : 300;
+            const steps = start === 0 ? 30 : 15;
+            let step = 0;
             
             const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
+                step++;
+                if (step >= steps) {
                     setAnimatedAmount(target);
+                    previousAmountRef.current = target;
                     clearInterval(timer);
                     setHasRevealed(true);
                 } else {
-                    setAnimatedAmount(Math.round(current));
+                    // Ease-out animation
+                    const progress = step / steps;
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    setAnimatedAmount(Math.round(start + difference * eased));
                 }
             }, duration / steps);
             
@@ -137,12 +145,16 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     // Handlers
     const handleCategorySelect = useCallback((category) => {
         haptic.medium();
+        // Reset animation only on first category selection
+        if (!selectedCategoryId) {
+            setAnimatedAmount(0);
+            previousAmountRef.current = 0;
+        }
         setSelectedCategoryId(category.id);
         setUnitPrice(category.defaultAmount);
         setCustomName(categoryLabels[category.id]);
         setHasRevealed(false);
-        setAnimatedAmount(0);
-    }, [categoryLabels]);
+    }, [categoryLabels, selectedCategoryId]);
 
     const handleFrequencySelect = useCallback((freq) => {
         haptic.light();
@@ -402,18 +414,26 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         {/* Divider */}
                                         <div className="h-px w-full bg-neutral-800 mb-4" />
 
-                                        {/* Concrete Reward Badge */}
+                                        {/* Concrete Reward Badge - Redesigned as Info (not CTA) */}
                                         {hasRevealed && (
                                             <motion.div
                                                 initial={{ opacity: 0, y: 6 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.15, duration: 0.25 }}
-                                                className="flex items-center gap-3 bg-yellow-400/10 border border-yellow-400/20 px-4 py-2 rounded-xl"
+                                                className="flex flex-col items-center gap-1 mt-1"
                                             >
-                                                {getConcreteRewardIcon(projections.yearly, locale).icon}
-                                                <span className="font-mono text-xs text-yellow-400 font-bold uppercase">
-                                                    = {getConcreteRewardIcon(projections.yearly, locale).text}
+                                                <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wide">
+                                                    {L.equivalent}
                                                 </span>
+                                                <div className="flex items-center gap-2 text-volt">
+                                                    {/* Clone icon to enforce size without modifying data file */}
+                                                    <div className="w-5 h-5 flex items-center justify-center">
+                                                        {getConcreteRewardIcon(projections.yearly, locale).icon}
+                                                    </div>
+                                                    <span className="font-sans font-bold uppercase text-sm">
+                                                        {getConcreteRewardIcon(projections.yearly, locale).text}
+                                                    </span>
+                                                </div>
                                             </motion.div>
                                         )}
                                     </div>

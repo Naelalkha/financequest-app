@@ -13,6 +13,9 @@
     "missionBriefing": "BRIEFING DE MISSION",
     "reward": "Récompense",
     "estTime": "Temps Est.",
+    "accept": "ACCEPTER",
+    "rerollMission": "Changer de mission",
+    "close": "Fermer",
     "streak": "Série",
     "noRecentImpact": "Aucun impact récent",
     "categories_list": {

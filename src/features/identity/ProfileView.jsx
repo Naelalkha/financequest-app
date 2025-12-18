@@ -27,7 +27,6 @@ import {
   UserPlus,
   Sparkles
 } from 'lucide-react';
-import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import AppBackground from '../../components/layout/AppBackground';
 import { auth, db } from '../../services/firebase';
@@ -74,7 +73,6 @@ const Profile = () => {
 
   const handleManageSubscription = async () => {
     if (!user) {
-      toast.error(t('profilePage.toast.login_required_subscription') || 'Veuillez vous connecter pour gérer votre abonnement');
       return;
     }
 
@@ -82,7 +80,6 @@ const Profile = () => {
       posthog.capture('portal_open_click');
 
       if (!auth.currentUser) {
-        toast.error(t('profilePage.toast.session_expired_refresh') || 'Session expirée. Veuillez rafraîchir la page.');
         return;
       }
 
@@ -109,17 +106,9 @@ const Profile = () => {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Portal error:', response.status, errorData);
-
-        if (response.status === 401) {
-          toast.error(t('profilePage.toast.session_expired_relogin') || 'Session expirée. Veuillez vous reconnecter.');
-          return;
-        }
-
-        toast.error(t('profilePage.toast.portal_open_failed') || 'Impossible d\'ouvrir le portail client');
       }
     } catch (error) {
       console.error('Erreur portail Stripe:', error);
-      toast.error(t('profilePage.toast.portal_error') || 'Erreur lors de l\'ouverture du portail');
     }
   };
 
@@ -137,13 +126,8 @@ const Profile = () => {
         country: newCountry
       }));
 
-      toast.success(t('profilePage.toast.country_updated') || '✨ Pays mis à jour !', {
-        position: "bottom-center",
-        autoClose: 2000
-      });
     } catch (error) {
       console.error('Error updating country:', error);
-      toast.error(t('profilePage.toast.update_error') || 'Erreur lors de la mise à jour');
     } finally {
       setUpdatingCountry(false);
     }
@@ -152,13 +136,8 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success(t('profilePage.toast.logout_success') || '👋 À bientôt !', {
-        position: "bottom-center",
-        autoClose: 2000
-      });
     } catch (error) {
       console.error('Error logging out:', error);
-      toast.error(t('profilePage.toast.logout_error') || 'Erreur lors de la déconnexion');
     }
   };
 
@@ -788,11 +767,9 @@ const Profile = () => {
                   try {
                     setResetSending(true);
                     await resetPassword(user?.email);
-                    toast.success(t('profilePage.change_password_modal_success') || 'Password reset email sent');
                     setShowPasswordModal(false);
                   } catch (e) {
                     console.error('Error resetting password:', e);
-                    toast.error(t('profilePage.change_password_modal_failed') || "Failed to send email");
                   } finally {
                     setResetSending(false);
                   }
@@ -907,8 +884,6 @@ const Profile = () => {
                       localStorage.removeItem('moniyo-onboarding-completed');
                       localStorage.removeItem('moniyo-banner-dismissed');
                       
-                      toast.success(t('profilePage.reset_progress_success') || 'Progression réinitialisée !');
-                      
                       setTimeout(() => {
                         window.location.href = '/';
                       }, 1000);
@@ -920,7 +895,6 @@ const Profile = () => {
 
                     if (providerId === 'password') {
                       if (!deletePassword) {
-                        toast.error(t('profilePage.delete_account_modal_password_required') || 'Mot de passe requis');
                         return;
                       }
                       const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
@@ -939,8 +913,6 @@ const Profile = () => {
 
                     console.log('Deleting Auth account...');
                     await deleteUser(currentUser);
-
-                    toast.success(t('profilePage.delete_account_modal_success') || 'Compte et données supprimés');
 
                     setTimeout(() => {
                       window.location.href = '/';
@@ -961,7 +933,7 @@ const Profile = () => {
                       errorMessage = t('profilePage.delete_account_modal_network_error') || 'Erreur réseau. Vérifie ta connexion.';
                     }
 
-                    toast.error(errorMessage);
+                    console.error('Delete account error:', errorMessage);
                   } finally {
                     setDeleteSending(false);
                     setShowDeleteModal(false);

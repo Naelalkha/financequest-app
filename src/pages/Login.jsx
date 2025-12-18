@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, AlertTriangle, UserX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 import AuthLayout from '../components/layout/AuthLayout';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
@@ -30,7 +29,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error(t('fill_all_fields') || 'Please fill in all fields');
       return;
     }
 
@@ -39,15 +37,9 @@ const Login = () => {
     try {
       await login(email, password);
       localStorage.setItem('rememberedEmail', email);
-      toast.success(t('login_success') || 'Welcome back! 🎉');
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      let errorMessage = t('login_error') || 'Invalid email or password';
-      if (err.code === 'auth/user-not-found') errorMessage = t('user_not_found') || 'No account found with this email';
-      else if (err.code === 'auth/wrong-password') errorMessage = t('wrong_password') || 'Incorrect password';
-      else if (err.code === 'auth/invalid-email') errorMessage = t('invalid_email') || 'Invalid email address';
-      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -57,11 +49,9 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       await loginWithGoogle();
-      toast.success(t('login_success') || 'Welcome back! 🎉');
       navigate('/dashboard');
     } catch (err) {
       console.error('Google login error:', err);
-      toast.error(t('google_login_error') || 'Failed to login with Google');
     } finally {
       setIsSubmitting(false);
     }

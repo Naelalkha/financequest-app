@@ -10,7 +10,6 @@ import {
   getRecommendedQuests as registryGetRecommendedQuests,
   getQuestById as registryGetQuestById
 } from '../features/quests/registry';
-import { toast } from 'react-toastify';
 
 // Use registry functions with fallbacks to allQuests
 const getQuestsByCountry = (country, locale) => {
@@ -103,7 +102,7 @@ export const useLocalQuests = (filters = {}) => {
       console.error('Error fetching quests:', err);
       setError(err);
       setLoading(false);
-      toast.error(t('errors.quest_load_failed') || 'Failed to load quests');
+      console.error('Failed to load quests');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userCountry, i18n.language]);

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Shield, UserX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 import AuthLayout from '../components/layout/AuthLayout';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
@@ -24,17 +23,17 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
-      toast.error(t('fill_all_fields') || 'Please fill in all fields');
+      // Validation silencieuse - pas de toast
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error(t('passwords_do_not_match') || 'Passwords do not match');
+      // Validation silencieuse - pas de toast
       return;
     }
 
     if (password.length < 6) {
-      toast.error(t('password_too_short') || 'Password must be at least 6 characters');
+      // Validation silencieuse - pas de toast
       return;
     }
 
@@ -42,18 +41,11 @@ const Register = () => {
 
     try {
       await register(email, password, name);
-      const successMessage = isUpgrading 
-        ? (t('upgrade_success') || 'Compte créé ! Ta progression est sauvegardée 🎉')
-        : (t('register_success') || 'Account created successfully! 🎉');
-      toast.success(successMessage);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
-      let errorMessage = t('register_error') || 'Failed to create account';
-      if (err.code === 'auth/email-already-in-use') errorMessage = t('email_in_use') || 'Email already in use';
-      else if (err.code === 'auth/invalid-email') errorMessage = t('invalid_email') || 'Invalid email address';
-      else if (err.code === 'auth/weak-password') errorMessage = t('weak_password') || 'Password is too weak';
-      toast.error(errorMessage);
+      // Erreur silencieuse - log console uniquement
+      console.error('Registration failed:', err.code);
     } finally {
       setIsSubmitting(false);
     }
@@ -63,11 +55,9 @@ const Register = () => {
     setIsSubmitting(true);
     try {
       await loginWithGoogle();
-      toast.success(t('login_success') || 'Welcome back! 🎉');
       navigate('/dashboard');
     } catch (err) {
       console.error('Google login error:', err);
-      toast.error(t('google_login_error') || 'Failed to login with Google');
     } finally {
       setIsSubmitting(false);
     }

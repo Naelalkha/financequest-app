@@ -241,23 +241,25 @@ const MicroExpensesFlow = ({
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
                             {/* Titre de l'étape - ÉNORME blanc - Animated */}
+                            <div className="h-7 mt-1">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
-                                    className="overflow-hidden"
+                                        className="overflow-hidden h-full"
                                 >
                                     <motion.h2 
                                         initial={{ y: '100%' }}
                                         animate={{ y: 0 }}
                                         exit={{ y: '-100%' }}
                                         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                        className="font-sans font-black text-2xl text-white leading-none tracking-tight mt-1"
+                                            className="font-sans font-black text-2xl text-white leading-none tracking-tight"
                                         style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}
                                     >
                                         {getStepTitle()[locale] || getStepTitle().fr}
                                     </motion.h2>
                                 </motion.div>
                             </AnimatePresence>
+                            </div>
                             {/* Instruction - moyen gris - Animated */}
                             <AnimatePresence mode="wait">
                                 <motion.p 

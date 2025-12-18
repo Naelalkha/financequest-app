@@ -16,7 +16,6 @@ import {
   hasQuickWinSavings,
 } from '../utils/gamification';
 import { trackEvent } from '../utils/analytics';
-import { toast } from 'react-toastify';
 
 /**
  * Met à jour la gamification après qu'une quête soit complétée
@@ -81,7 +80,7 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
 
     if (level > oldLevel) {
       trackEvent('level_up', { level, xp_total: newXP });
-      toast.success(`🎉 Niveau ${level} atteint !`, { autoClose: 3000 });
+      // Toast désactivé - animations intégrées à implémenter
     }
 
     newBadges.forEach(badgeId => {
@@ -170,10 +169,18 @@ export async function updateGamificationOnSavingsChange(userId, context = {}) {
     });
 
     // Analytics
-    newMilestones.forEach(milestone => {
-      trackEvent('milestone_unlocked', { amount: milestone, impact_total: totalAnnualImpact });
-      toast.success(`🎉 Bravo ! +${milestone}€/an franchis !`, { autoClose: 4000 });
-    });
+    // Analytics & Notifications
+    if (newMilestones.length > 0) {
+      // Find the highest milestone
+      const highestMilestone = Math.max(...newMilestones);
+      
+      // Track each milestone
+      newMilestones.forEach(milestone => {
+        trackEvent('milestone_unlocked', { amount: milestone, impact_total: totalAnnualImpact });
+      });
+
+      // Toast désactivé - animations intégrées à implémenter
+    }
 
     newBadges.forEach(badgeId => {
       trackEvent('badge_unlocked', { badge_id: badgeId });

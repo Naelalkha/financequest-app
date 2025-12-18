@@ -1,8 +1,8 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './contexts/AuthContext';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+// import { ToastContainer } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
 import './styles/animations.css';
 import AppBackground from './components/layout/AppBackground';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -33,30 +33,6 @@ function AppContent() {
 
   return (
     <AppBackground>
-      {/* Toast Container with custom dark theme */}
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-        toastStyle={{
-          backgroundColor: '#2D2D2D',
-          color: '#FFFFFF',
-          borderRadius: '0.75rem',
-          fontSize: '0.875rem',
-          fontWeight: '500'
-        }}
-        progressStyle={{
-          background: 'linear-gradient(to right, #FFD700, #FFA500)'
-        }}
-      />
-
       <AppRouter />
     </AppBackground>
   );

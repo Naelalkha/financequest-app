@@ -118,19 +118,10 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
       });
       setErrors({});
 
-      // Toast notification (si disponible)
-      if (window.toast) {
-        window.toast.success(t('impact.modal.success'));
-      }
-
       onClose();
     } catch (error) {
       console.error('Error adding savings:', error);
       setErrors({ submit: t('impact.modal.error') });
-
-      if (window.toast) {
-        window.toast.error(t('impact.modal.error'));
-      }
     } finally {
       setIsSubmitting(false);
     }

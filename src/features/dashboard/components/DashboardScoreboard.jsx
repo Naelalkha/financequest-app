@@ -45,7 +45,7 @@ const RollingCounter = ({ value, currency }) => {
     );
 };
 
-const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, isLoading, userId = "884-XJ" }) => {
+const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, userId = "884-XJ" }) => {
     const { t } = useTranslation('dashboard');
     const progressPercentage = 65;
 
@@ -103,17 +103,10 @@ const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, isL
             <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-full max-w-[70%] z-30">
                 <button
                     onClick={onStartQuest}
-                    disabled={isLoading}
-                    className="w-full bg-volt text-black font-sans font-bold text-lg py-3.5 rounded-full shadow-volt-glow-strong hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full bg-volt text-black font-sans font-bold text-lg py-3.5 rounded-full shadow-volt-glow-strong flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden active:scale-95 transition-transform duration-75"
                 >
-                    {isLoading ? (
-                        <span className="font-mono text-xs animate-pulse">{t('generating')}</span>
-                    ) : (
-                        <>
-                            <Zap className="w-5 h-5 fill-current" />
-                            {t('startQuest')}
-                        </>
-                    )}
+                    <Zap className="w-5 h-5 fill-current" />
+                    {t('startQuest')}
 
                     {/* Sheen Effect */}
                     <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/60 to-transparent transform skew-x-12 animate-[shimmer_3s_infinite]" />

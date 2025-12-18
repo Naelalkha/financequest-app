@@ -8,7 +8,6 @@ import { useGamification } from '../../hooks/useGamification';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
 import { computeLevel } from '../../utils/gamification';
 import { trackEvent } from '../../utils/analytics';
-import { toast } from 'react-toastify';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { getUserDailyChallenge } from '../../services/dailyChallenge';
@@ -152,33 +151,20 @@ const DashboardView = () => {
     }, []);
 
     // Handlers
-    const handleStartQuest = async () => {
-        if (isGenerating) return;
-        setIsGenerating(true);
+    const handleStartQuest = () => {
+        if (showSmartMission) return; // Prevent double-open
+        
+        // Get available quests
+        const availableQuests = (quests || []).filter(
+            q => !completedQuestIds.includes(q.id)
+        );
 
-        try {
-            // Get available quests
-            const availableQuests = (quests || []).filter(
-                q => !completedQuestIds.includes(q.id)
-            );
+        if (availableQuests.length === 0) return;
 
-            if (availableQuests.length === 0) {
-                toast.info(t('quests.no_quests') || 'All quests completed! 🎉');
-                setIsGenerating(false);
-                return;
-            }
-
-            // Generate a recommendation
-            const recommended = getRecommendedQuest(availableQuests);
-            setRecommendedQuest(recommended);
-            setShowSmartMission(true);
-
-        } catch (error) {
-            console.error("❌ Error starting quest:", error);
-            toast.error("System malfunction. Try again.");
-        } finally {
-            setIsGenerating(false);
-        }
+        // Generate a recommendation and open modal immediately
+        const recommended = getRecommendedQuest(availableQuests);
+        setRecommendedQuest(recommended);
+        setShowSmartMission(true);
     };
 
     // Get recommended quest based on user data
@@ -208,15 +194,14 @@ const DashboardView = () => {
             setSelectedQuest(quest);
             setShowQuestDetails(true);
 
-            // Close the modal AFTER the quest has appeared
-            // The quest's entry animation takes ~300ms, so we wait a bit longer
-            // to ensure smooth overlap without any flash
+            // Close the modal during the warp animation
+            // The warp takes 400ms, so we close it slightly after (500ms)
+            // to ensure the new quest view is fully mounted and opaque
             setTimeout(() => {
                 setShowSmartMission(false);
-            }, 350);
+            }, 500);
         } catch (error) {
             console.error("Error accepting quest:", error);
-            toast.error(t('errors.generic'));
         }
     };
 
@@ -254,20 +239,7 @@ const DashboardView = () => {
                 allQuests: quests || []
             });
 
-            if (gamificationResult) {
-                const xpGained = gamificationResult.xpGained || 0;
-
-                if (annualSavings > 0) {
-                    toast.success(
-                        `🎉 ${modifiedQuest.title} completed!\n💰 +€${annualSavings.toFixed(2)}/year\n⚡ +${xpGained} XP`,
-                        { autoClose: 5000 }
-                    );
-                } else {
-                    toast.success(`🎉 ${modifiedQuest.title} completed! +${xpGained} XP`);
-                }
-            } else {
-                toast.success(`🎉 ${modifiedQuest.title} completed!`);
-            }
+            // Succès silencieux - animations intégrées à implémenter
 
             // Track analytics
             trackEvent('quest_completed', {
@@ -294,7 +266,6 @@ const DashboardView = () => {
 
         } catch (error) {
             console.error("❌ Error completing quest:", error);
-            toast.error(t('errors.complete_quest_failed') || 'Failed to save quest completion');
         }
     };
 
@@ -306,7 +277,6 @@ const DashboardView = () => {
         );
 
         if (availableQuests.length === 0) {
-            toast.info('No other quests available');
             return recommendedQuest;
         }
 
@@ -367,7 +337,6 @@ const DashboardView = () => {
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
                         onStartQuest={handleStartQuest}
-                        isLoading={isGenerating}
                     />
                 </div>
 

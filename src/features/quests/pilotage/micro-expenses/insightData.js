@@ -363,7 +363,7 @@ export const calculateActionLevelSavings = (monthlyAmount, locale = 'fr') => {
     
     // Simplified version - just return level info without calculations
     return levels.map(level => ({
-        ...level,
+            ...level,
         savings: 0,
         yearlySavings: 0,
         newMonthly: monthlyAmount

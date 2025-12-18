@@ -35,7 +35,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
-import { toast } from 'react-toastify';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { logPremiumEvent } from '../utils/analytics';
@@ -194,7 +193,6 @@ const Premium = () => {
 
   const handleSubscribe = async (plan = selectedPlan) => {
     if (!user) {
-      toast.info('🔐 ' + (t('auth.login_required') || 'Please login to subscribe'));
       navigate('/login');
       return;
     }
@@ -239,7 +237,6 @@ const Premium = () => {
         console.error('API response not ok:', response.status, response.statusText, errorData);
 
         if (response.status === 401) {
-          toast.error('🔐 ' + (t('auth.session_expired') || 'Session expired. Please login again.'));
           navigate('/login');
           return;
         }
@@ -262,9 +259,7 @@ const Premium = () => {
 
       if (error) {
         console.error('Stripe redirect error:', error);
-        if (error.type === 'card_error' || error.type === 'validation_error') {
-          toast.error('❌ ' + (error.message || 'Payment error occurred'));
-        } else {
+        if (error.type !== 'card_error' && error.type !== 'validation_error') {
           throw error;
         }
       }
@@ -272,14 +267,8 @@ const Premium = () => {
     } catch (error) {
       console.error('Error creating checkout session:', error);
 
-      // Messages d'erreur plus spécifiques
-      if (error.message.includes('network') || error.message.includes('fetch')) {
-        toast.error('🌐 ' + (t('errors.network_error') || 'Network error. Please check your connection.'));
-      } else if (error.message.includes('Stripe not initialized')) {
-        toast.error('⚙️ ' + (t('errors.config_error') || 'Payment system not configured. Please try again later.'));
-      } else {
-        toast.error('❌ ' + (t('errors.subscription_failed') || 'Failed to start subscription. Please try again.'));
-      }
+      // Log erreur uniquement
+      console.error('Checkout error:', error.message);
     } finally {
       setLoading(false);
     }
@@ -316,11 +305,8 @@ const Premium = () => {
               plan: selectedPlan,
               sessionId: sessionId
             });
-
-            toast.success('✨ ' + (t('premium.subscribe_success') || 'Welcome to Premium!'));
           } else {
             console.warn('Premium status not updated after checkout, webhook may have failed');
-            toast.info('⏳ ' + (t('premium.processing_subscription') || 'Processing your subscription... Please refresh the page in a few minutes.'));
           }
         }
       }, 3000); // Vérifier toutes les 3 secondes
@@ -329,13 +315,12 @@ const Premium = () => {
 
     } catch (error) {
       console.error('Error handling Stripe return:', error);
-      toast.error('❌ ' + (t('errors.subscription_processing') || 'Error processing subscription. Please contact support.'));
     }
   };
 
   const handleManageSubscription = async () => {
     if (!user) {
-      toast.error(t('auth.login_required') || 'Please login to manage subscription');
+      navigate('/login');
       return;
     }
 
@@ -365,7 +350,6 @@ const Premium = () => {
         console.error('Portal session error:', response.status, errorData);
 
         if (response.status === 401) {
-          toast.error('🔐 ' + (t('auth.session_expired') || 'Session expired. Please login again.'));
           navigate('/login');
           return;
         }
@@ -383,11 +367,7 @@ const Premium = () => {
     } catch (error) {
       console.error('Error creating portal session:', error);
 
-      if (error.message.includes('network') || error.message.includes('fetch')) {
-        toast.error('🌐 ' + (t('errors.network_error') || 'Network error. Please check your connection.'));
-      } else {
-        toast.error('❌ ' + (t('errors.portal_error') || 'Error opening subscription portal. Please try again.'));
-      }
+      console.error('Portal error:', error.message);
     } finally {
       setLoading(false);
     }

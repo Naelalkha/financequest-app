@@ -6,7 +6,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { toast } from 'react-toastify';
 import { trackEvent } from '../utils/analytics';
 
 export const useUserQuests = (userId) => {
@@ -77,10 +76,8 @@ export const useUserQuests = (userId) => {
             });
 
             trackEvent('quest_completed', { questId });
-            toast.success('Quest completed! 🎉');
         } catch (error) {
             console.error('Error completing quest:', error);
-            toast.error('Failed to complete quest');
             throw error;
         }
     };

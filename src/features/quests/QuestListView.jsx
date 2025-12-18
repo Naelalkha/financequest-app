@@ -7,7 +7,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLocalQuests } from "../../hooks/useLocalQuests";
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../services/firebase";
-import { toast } from "react-toastify";
 import { updateGamificationOnQuestComplete } from "../../services/gamification";
 import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
@@ -132,22 +131,7 @@ const QuestListView = () => {
                 allQuests: quests || []
             });
 
-            // 3. Show success message
-            const xpGained = gamificationResult?.xpGained || xpReward;
-
-            if (annualSavings > 0) {
-                toast.success(
-                    `🎉 Quest completed!\n💰 +€${annualSavings.toFixed(2)}/year\n⚡ +${xpGained} XP`,
-                    { position: 'top-center', autoClose: 5000 }
-                );
-            } else {
-                toast.success(
-                    `🎉 Quest completed! +${xpGained} XP`,
-                    { position: 'top-center' }
-                );
-            }
-
-            // 4. Refresh progress to hide completed quest
+            // 3. Refresh progress to hide completed quest
             const progressQuery = query(
                 collection(db, 'userQuests'),
                 where('userId', '==', user.uid)
@@ -165,16 +149,11 @@ const QuestListView = () => {
             });
             setUserProgress(progress);
 
-            // 5. Close modal
+            // 4. Close modal
             setShowQuestModal(false);
             setSelectedQuest(null);
         } catch (error) {
             console.error('Error completing quest:', error);
-            toast.error(
-                error.code === 'permission-denied'
-                    ? 'Permission denied. Please check your Firestore rules.'
-                    : 'Error completing quest. Please try again.'
-            );
         }
     };
 
