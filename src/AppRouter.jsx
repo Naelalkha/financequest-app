@@ -13,7 +13,7 @@ import Impact from './pages/Impact';
 import BottomNav from './components/layout/BottomNav';
 import AppBackground from './components/layout/AppBackground';
 import LoadingSpinner from './components/ui/LoadingSpinner';
-import { PlaceholderOnboarding, onboardingStore } from './features/onboarding';
+import { OnboardingFlow, onboardingStore } from './features/onboarding';
 
 // Private route wrapper - Now allows anonymous users!
 function PrivateRoute({ children }) {
@@ -89,7 +89,7 @@ const AppRouter = () => {
 
     // If user hasn't completed onboarding, show onboarding first
     if (!hasCompletedOnboarding && user) {
-        return <PlaceholderOnboarding />;
+        return <OnboardingFlow />;
     }
 
     // Routes that show bottom nav (now includes anonymous users)

@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import AppBackground from '../../components/layout/AppBackground';
+import { onboardingStore } from '../onboarding';
 import { auth, db } from '../../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
@@ -880,8 +881,10 @@ const Profile = () => {
                       await deleteUser(currentUser);
                       // The auth listener will automatically create a new anonymous user
                       
-                      // Also reset onboarding and banner
-                      localStorage.removeItem('moniyo-onboarding-completed');
+                      // Reset onboarding to restart the full experience
+                      onboardingStore.resetOnboarding();
+                      
+                      // Also reset banner dismissed state
                       localStorage.removeItem('moniyo-banner-dismissed');
                       
                       setTimeout(() => {
