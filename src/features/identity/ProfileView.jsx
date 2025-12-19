@@ -30,6 +30,7 @@ import {
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import AppBackground from '../../components/layout/AppBackground';
 import { onboardingStore } from '../onboarding';
+import { resetFirstRun } from '../dashboard/components/FirstRunMissionModal';
 import { auth, db } from '../../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
@@ -883,6 +884,9 @@ const Profile = () => {
                       
                       // Reset onboarding to restart the full experience
                       onboardingStore.resetOnboarding();
+                      
+                      // Reset first run modal
+                      resetFirstRun();
                       
                       // Also reset banner dismissed state
                       localStorage.removeItem('moniyo-banner-dismissed');

@@ -22,6 +22,7 @@ import DashboardDailyChallenge from './components/DashboardDailyChallenge';
 import CategoryGrid from './components/CategoryGrid';
 import SmartMissionModal from './components/SmartMissionModal';
 import QuestDetailsModal from './components/QuestDetailsModal';
+import FirstRunMissionModal, { hasShownFirstRun } from './components/FirstRunMissionModal';
 import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
 import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
 import { SaveProgressBanner } from '../../components/ui';
@@ -52,6 +53,9 @@ const DashboardView = () => {
     const [recommendedQuest, setRecommendedQuest] = useState(null);
     const [showQuestDetails, setShowQuestDetails] = useState(false);
     const [selectedQuest, setSelectedQuest] = useState(null);
+
+    // First Run Modal State (shown after onboarding)
+    const [showFirstRunModal, setShowFirstRunModal] = useState(false);
 
     // Local impact override for optimistic updates
     const [localImpactBoost, setLocalImpactBoost] = useState(0);
@@ -147,6 +151,15 @@ const DashboardView = () => {
     // Effects
     useEffect(() => {
         trackEvent('dashboard_viewed');
+        
+        // Show first run modal if not shown before
+        if (!hasShownFirstRun()) {
+            // Small delay to let dashboard render first
+            const timer = setTimeout(() => {
+                setShowFirstRunModal(true);
+            }, 800);
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     // Handlers
@@ -449,6 +462,24 @@ const DashboardView = () => {
                     )
                 )}
             </AnimatePresence>
+
+            {/* First Run Mission Modal (shown once after onboarding) */}
+            <FirstRunMissionModal
+                isOpen={showFirstRunModal}
+                onClose={() => setShowFirstRunModal(false)}
+                onStartMission={() => {
+                    setShowFirstRunModal(false);
+                    // Start the recommended first mission (micro-expenses / Traque Invisible)
+                    const microExpensesQuest = (quests || []).find(q => q.id === 'micro-expenses');
+                    if (microExpensesQuest) {
+                        setSelectedQuest(microExpensesQuest);
+                        setShowQuestDetails(true);
+                    } else {
+                        // Fallback to SmartMission if micro-expenses not found
+                        handleStartQuest();
+                    }
+                }}
+            />
         </div>
     );
 };

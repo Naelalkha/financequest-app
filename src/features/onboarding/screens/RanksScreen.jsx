@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Crown, Shield, Zap, Gift, Lock } from 'lucide-react';
+import { Star, Crown, Shield, Zap, Gift, Lock, Trophy } from 'lucide-react';
 import { haptic } from '../../../utils/haptics';
 
 const RANKS = [
@@ -20,7 +20,7 @@ const RANKS = [
     bgColor: 'rgba(107, 114, 128, 0.1)',
     borderColor: 'rgba(107, 114, 128, 0.3)',
     icon: Shield,
-    description: 'Premiers pas dans la mission',
+    description: 'Premiers pas vers l\'indépendance',
     isYou: true,
   },
   {
@@ -31,7 +31,7 @@ const RANKS = [
     bgColor: 'rgba(217, 119, 6, 0.1)',
     borderColor: 'rgba(217, 119, 6, 0.3)',
     icon: Zap,
-    description: 'Maître des économies tactiques',
+    description: 'Maîtrise du cashflow',
     isYou: false,
   },
   {
@@ -42,7 +42,7 @@ const RANKS = [
     bgColor: 'rgba(251, 191, 36, 0.1)',
     borderColor: 'rgba(251, 191, 36, 0.3)',
     icon: Crown,
-    description: 'Accès aux fonctionnalités secrètes',
+    description: 'Liberté Financière débloquée',
     isYou: false,
     hasSecrets: true,
   },
@@ -151,9 +151,9 @@ const RankBadge = ({ rank, index, isAnimating }) => {
 
 const RewardPreview = () => {
   const rewards = [
-    { icon: '🏆', label: 'Badges exclusifs' },
-    { icon: '🎁', label: 'Récompenses réelles' },
-    { icon: '⚡', label: 'Boost XP quotidien' },
+    { icon: Trophy, label: 'Badges exclusifs' },
+    { icon: Gift, label: 'Récompenses réelles' },
+    { icon: Zap, label: 'Boost XP quotidien' },
   ];
 
   return (
@@ -176,8 +176,8 @@ const RewardPreview = () => {
             className="text-center"
           >
             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 
-                          flex items-center justify-center text-xl mb-2">
-              {reward.icon}
+                          flex items-center justify-center mb-2">
+              <reward.icon className="w-5 h-5 text-[#E2FF00]" />
             </div>
             <p className="text-neutral-500 text-[10px]">{reward.label}</p>
           </motion.div>

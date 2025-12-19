@@ -9,6 +9,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { haptic } from '../../../utils/haptics';
+import { Target, Zap, TrendingUp, Cpu } from 'lucide-react';
 
 // Fake code lines for the matrix effect
 const CODE_LINES = [
@@ -226,7 +227,7 @@ const InitScreen = ({ onNext }) => {
           )}
         </AnimatePresence>
 
-        {/* Tagline cards */}
+        {/* Value proposition cards */}
         <AnimatePresence>
           {showContent && (
             <motion.div
@@ -236,19 +237,36 @@ const InitScreen = ({ onNext }) => {
               className="w-full max-w-sm space-y-3 mb-10"
             >
               {[
-                { icon: '🎯', text: 'Un jeu tactique pour tes finances' },
-                { icon: '⚡', text: 'Des missions pour économiser' },
-                { icon: '💰', text: 'De l\'argent réel + du fun' },
+                { 
+                  icon: Target, 
+                  title: 'GAMEPLAY TACTIQUE',
+                  subtitle: 'Gamifie tes finances'
+                },
+                { 
+                  icon: Zap, 
+                  title: 'OPTIMISATION FLUIDE',
+                  subtitle: 'Transforme tes pertes en capital'
+                },
+                { 
+                  icon: TrendingUp, 
+                  title: 'STRATÉGIE & CROISSANCE',
+                  subtitle: 'Apprends à investir comme un pro'
+                },
               ].map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + index * 0.15 }}
-                  className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
+                  className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                 >
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="text-white/80 text-sm font-medium">{item.text}</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#E2FF00]/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-5 h-5 text-[#E2FF00]" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-sm tracking-wide">{item.title}</span>
+                    <span className="text-neutral-400 text-xs">{item.subtitle}</span>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -274,7 +292,7 @@ const InitScreen = ({ onNext }) => {
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 0.5, delay: 1.5 }}
               >
-                ⚡
+                <Cpu className="w-5 h-5" />
               </motion.span>
               INITIALISER LE PROTOCOLE
             </motion.button>

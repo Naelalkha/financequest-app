@@ -13,7 +13,6 @@ export const ONBOARDING_STEPS = {
   TUTORIAL: 'tutorial',   // Écran 2: CIBLER. ÉLIMINER.
   RANKS: 'ranks',         // Écran 3: MONTE EN GRADE
   NOTIFICATIONS: 'notifications', // Écran 4: CANAL SÉCURISÉ
-  TACTICAL_MAP: 'tactical_map',   // Écran 5: TON QG (Carte Tactique)
   COMPLETED: 'completed'
 };
 
@@ -22,7 +21,6 @@ const STEP_ORDER = [
   ONBOARDING_STEPS.TUTORIAL,
   ONBOARDING_STEPS.RANKS,
   ONBOARDING_STEPS.NOTIFICATIONS,
-  ONBOARDING_STEPS.TACTICAL_MAP,
   ONBOARDING_STEPS.COMPLETED
 ];
 

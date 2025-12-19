@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, Bell, BellOff, Shield, Zap, Target } from 'lucide-react';
+import { Radio, Bell, BellOff, Shield, Zap, Target, CheckCircle2 } from 'lucide-react';
 import { haptic } from '../../../utils/haptics';
 import { onboardingStore } from '../onboardingStore';
 
@@ -277,7 +277,7 @@ const NotificationsScreen = ({ onComplete }) => {
                        flex items-center justify-center gap-2"
           >
             <BellOff className="w-4 h-4" />
-            Rester en silence radio
+            Pas pour l'instant
           </motion.button>
         </motion.div>
 
@@ -288,10 +288,11 @@ const NotificationsScreen = ({ onComplete }) => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="mt-4 text-center"
+              className="mt-4 text-center flex items-center justify-center gap-2"
             >
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <p className="text-emerald-400 text-sm font-medium">
-                ✓ Canal activé avec succès
+                Canal activé avec succès
               </p>
             </motion.div>
           )}

@@ -15,7 +15,6 @@ export {
   TutorialScreen,
   RanksScreen,
   NotificationsScreen,
-  TacticalMapScreen,
   TransitionScreen,
 } from './screens';
 

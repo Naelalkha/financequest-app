@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Check, Minus } from 'lucide-react';
+import { Coffee, Check, Minus, TrendingUp, MousePointerClick, Lightbulb } from 'lucide-react';
 import { haptic } from '../../../utils/haptics';
 import { onboardingStore } from '../onboardingStore';
 
@@ -20,6 +20,7 @@ const TUTORIAL_EXPENSE = {
   icon: Coffee,
   savingsIfReduced: 35,
   xpReward: 20,
+  investmentPotential: 6400, // 35€/mois sur 10 ans à 7% (S&P500)
 };
 
 const XPPopup = ({ amount, onComplete }) => {
@@ -162,7 +163,7 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
         >
           <span className="flex items-center justify-center gap-2">
             <Minus className="w-4 h-4" />
-            Réduire
+            Réduire & Investir
           </span>
         </motion.button>
       </div>
@@ -176,8 +177,9 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
             exit={{ opacity: 0, height: 0 }}
             className="px-5 pb-4"
           >
-            <p className="text-xs text-neutral-500 text-center">
-              💡 Réduire = <span className="text-emerald-400 font-medium">+{expense.savingsIfReduced}€ économisés</span>
+            <p className="text-xs text-neutral-500 text-center flex items-center justify-center gap-1.5">
+              <Lightbulb className="w-3 h-3 text-[#E2FF00]" />
+              Réduire = <span className="text-emerald-400 font-medium">+{expense.savingsIfReduced}€ économisés</span>
             </p>
           </motion.div>
         )}
@@ -257,7 +259,7 @@ const TutorialScreen = ({ onNext }) => {
             transition={{ delay: 0.2 }}
             className="text-[#E2FF00] font-mono text-xs tracking-[0.3em] mb-3"
           >
-            BRIEFING TACTIQUE
+            PREMIÈRE ACTION
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
@@ -265,7 +267,7 @@ const TutorialScreen = ({ onNext }) => {
             transition={{ delay: 0.3 }}
             className="text-3xl md:text-4xl font-black text-white tracking-tight"
           >
-            CIBLER. ÉLIMINER.
+            DÉTECTER. OPTIMISER.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -291,8 +293,8 @@ const TutorialScreen = ({ onNext }) => {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="inline-flex items-center gap-2 text-[#E2FF00] text-sm font-medium"
               >
-                <span>👆</span>
-                <span className="font-mono tracking-wide">CLIQUE SUR UNE ACTION</span>
+                <MousePointerClick className="w-4 h-4" />
+                <span className="font-mono tracking-wide">FAIS TON CHOIX</span>
               </motion.div>
             </motion.div>
           )}
@@ -325,7 +327,7 @@ const TutorialScreen = ({ onNext }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="text-center mt-8"
+              className="text-center mt-8 max-w-sm mx-auto"
             >
               {actionTaken === 'reduce' ? (
                 <>
@@ -334,11 +336,30 @@ const TutorialScreen = ({ onNext }) => {
                     animate={{ opacity: 1 }}
                     className="text-emerald-400 font-bold text-lg mb-2"
                   >
-                    Bien joué, Agent.
+                    Bien joué.
                   </motion.p>
-                  <p className="text-neutral-400 text-sm">
-                    Tu viens de transformer une dépense en capital.
+                  <p className="text-neutral-400 text-sm mb-4">
+                    Tu as libéré <span className="text-white font-bold">{TUTORIAL_EXPENSE.savingsIfReduced}€/mois</span>.
                   </p>
+                  
+                  {/* Investment projection */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-gradient-to-r from-emerald-500/10 to-[#E2FF00]/10 border border-emerald-500/30 rounded-xl px-4 py-3"
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-neutral-400" />
+                      <span className="text-neutral-400 text-xs font-mono">POTENTIEL SUR 10 ANS</span>
+                    </div>
+                    <p className="text-2xl font-black text-[#E2FF00]">
+                      +{TUTORIAL_EXPENSE.investmentPotential.toLocaleString('fr-FR')} €
+                    </p>
+                    <p className="text-neutral-500 text-[10px] mt-1">
+                      Investi sur le S&P500 à 7%/an
+                    </p>
+                  </motion.div>
                 </>
               ) : (
                 <>
@@ -376,7 +397,7 @@ const TutorialScreen = ({ onNext }) => {
                            active:scale-[0.98] transition-all duration-200
                            uppercase tracking-wider text-base flex items-center justify-center gap-3"
               >
-                AFFIRMATIF
+                CONTINUER
                 <span className="text-lg">→</span>
               </motion.button>
             </motion.div>

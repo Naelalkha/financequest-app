@@ -18,7 +18,6 @@ import {
   TutorialScreen,
   RanksScreen,
   NotificationsScreen,
-  TacticalMapScreen,
   TransitionScreen,
 } from './screens';
 
@@ -78,11 +77,11 @@ const OnboardingFlow = () => {
     navigate('/dashboard', { replace: true });
   }, [navigate]);
 
-  // Handle notifications step completion (stores preference but continues flow)
-  const handleNotificationsNext = useCallback((notificationsEnabled) => {
+  // Handle notifications step completion (final step before completion)
+  const handleNotificationsComplete = useCallback((notificationsEnabled) => {
     onboardingStore.setNotificationsEnabled(notificationsEnabled);
-    handleNext();
-  }, [handleNext]);
+    handleComplete();
+  }, [handleComplete]);
 
   // Render current screen based on step
   const renderScreen = () => {
@@ -102,10 +101,7 @@ const OnboardingFlow = () => {
         return <RanksScreen onNext={handleNext} />;
       
       case ONBOARDING_STEPS.NOTIFICATIONS:
-        return <NotificationsScreen onComplete={handleNotificationsNext} />;
-      
-      case ONBOARDING_STEPS.TACTICAL_MAP:
-        return <TacticalMapScreen onNext={handleComplete} />;
+        return <NotificationsScreen onComplete={handleNotificationsComplete} />;
       
       case ONBOARDING_STEPS.COMPLETED:
         // Should have transitioned already, but fallback
