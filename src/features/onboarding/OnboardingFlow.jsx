@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useBackground } from '../../contexts/BackgroundContext';
 import { onboardingStore, ONBOARDING_STEPS } from './onboardingStore';
 import {
   InitScreen,
@@ -43,6 +44,16 @@ const OnboardingFlow = () => {
   const [direction, setDirection] = useState(1);
   const [showTransition, setShowTransition] = useState(false);
 
+  // Use background context to set theme (Macro + Blur)
+  const { setBackgroundMode } = useBackground();
+
+  useEffect(() => {
+    // Use same macro background as dashboard, but with subtle blur for smooth transition
+    setBackgroundMode('macro', { blur: true, blurAmount: 2 });
+    // Reset when leaving onboarding (Dashboard will set it to macro without blur)
+    return () => setBackgroundMode('macro');
+  }, [setBackgroundMode]);
+
   // Initialize onboarding state
   useEffect(() => {
     // If already completed, redirect to dashboard
@@ -67,7 +78,7 @@ const OnboardingFlow = () => {
   const handleComplete = useCallback(() => {
     // Mark as completed
     onboardingStore.completeOnboarding();
-    
+
     // Show transition screen
     setShowTransition(true);
   }, []);
@@ -93,27 +104,27 @@ const OnboardingFlow = () => {
     switch (currentStep) {
       case ONBOARDING_STEPS.INIT:
         return <InitScreen onNext={handleNext} />;
-      
+
       case ONBOARDING_STEPS.TUTORIAL:
         return <TutorialScreen onNext={handleNext} />;
-      
+
       case ONBOARDING_STEPS.RANKS:
         return <RanksScreen onNext={handleNext} />;
-      
+
       case ONBOARDING_STEPS.NOTIFICATIONS:
         return <NotificationsScreen onComplete={handleNotificationsComplete} />;
-      
+
       case ONBOARDING_STEPS.COMPLETED:
         // Should have transitioned already, but fallback
         return <TransitionScreen onComplete={handleTransitionComplete} />;
-      
+
       default:
         return <InitScreen onNext={handleNext} />;
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-[#050505] overflow-hidden">
+    <div className="fixed inset-0 bg-transparent overflow-hidden">
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
           key={showTransition ? 'transition' : currentStep}

@@ -50,7 +50,7 @@ const MatrixRain = () => {
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none opacity-20"
     >
@@ -61,8 +61,8 @@ const MatrixRain = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 0.6, y: '100vh' }}
             exit={{ opacity: 0 }}
-            transition={{ 
-              duration: 8, 
+            transition={{
+              duration: 8,
               delay: line.delay,
               ease: 'linear'
             }}
@@ -113,7 +113,7 @@ const PulsingLogo = () => {
         }}
         style={{ filter: 'blur(10px)' }}
       />
-      
+
       {/* Logo container */}
       <motion.div
         className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-[#E2FF00] to-[#B8CC00] flex items-center justify-center shadow-[0_0_40px_rgba(226,255,0,0.4)]"
@@ -175,7 +175,7 @@ const InitScreen = ({ onNext }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col items-center justify-center relative overflow-hidden">
       {/* Matrix rain background */}
       <MatrixRain />
 
@@ -189,7 +189,7 @@ const InitScreen = ({ onNext }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center px-6">
-        
+
         {/* Logo with pulse effect */}
         <div className="mb-12">
           <PulsingLogo />
@@ -237,18 +237,18 @@ const InitScreen = ({ onNext }) => {
               className="w-full max-w-sm space-y-3 mb-10"
             >
               {[
-                { 
-                  icon: Target, 
+                {
+                  icon: Target,
                   title: 'GAMEPLAY TACTIQUE',
                   subtitle: 'Gamifie tes finances'
                 },
-                { 
-                  icon: Zap, 
+                {
+                  icon: Zap,
                   title: 'OPTIMISATION FLUIDE',
                   subtitle: 'Transforme tes pertes en capital'
                 },
-                { 
-                  icon: TrendingUp, 
+                {
+                  icon: TrendingUp,
                   title: 'STRATÉGIE & CROISSANCE',
                   subtitle: 'Apprends à investir comme un pro'
                 },

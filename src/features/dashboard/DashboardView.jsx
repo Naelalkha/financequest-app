@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
 import { useGamification } from '../../hooks/useGamification';
 import { useLocalQuests } from '../../hooks/useLocalQuests';
+import { useBackground } from '../../contexts/BackgroundContext';
 import { computeLevel } from '../../utils/gamification';
 import { trackEvent } from '../../utils/analytics';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -34,6 +35,7 @@ import { SaveProgressBanner } from '../../components/ui';
  */
 const DashboardView = () => {
     const { t, i18n } = useTranslation('dashboard');
+    const { setBackgroundMode } = useBackground();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -151,7 +153,8 @@ const DashboardView = () => {
     // Effects
     useEffect(() => {
         trackEvent('dashboard_viewed');
-        
+        setBackgroundMode('macro');
+
         // Show first run modal if not shown before
         if (!hasShownFirstRun()) {
             // Small delay to let dashboard render first
@@ -160,12 +163,12 @@ const DashboardView = () => {
             }, 800);
             return () => clearTimeout(timer);
         }
-    }, []);
+    }, [setBackgroundMode]);
 
     // Handlers
     const handleStartQuest = () => {
         if (showSmartMission) return; // Prevent double-open
-        
+
         // Get available quests
         const availableQuests = (quests || []).filter(
             q => !completedQuestIds.includes(q.id)
@@ -221,7 +224,7 @@ const DashboardView = () => {
     const handleCompleteQuestFromDetails = async (modifiedQuest) => {
         try {
             // Calculate annual savings - use direct annual value if provided, otherwise monthly × 12
-            const annualSavings = modifiedQuest.annualSavings 
+            const annualSavings = modifiedQuest.annualSavings
                 || (modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0);
 
             // Create savings event in Firebase if there's monetary value
@@ -334,8 +337,8 @@ const DashboardView = () => {
                     stats={{
                         streakDays: streakDays,
                         level: levelData.level,
-                        currentXp: levelData.currentLevelXP,
-                        nextLevelXp: levelData.xpForNextLevel
+                        xpInCurrentLevel: levelData.xpInCurrentLevel,
+                        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
                     }}
                     userAvatar={userData?.photoURL || user?.photoURL}
                 />

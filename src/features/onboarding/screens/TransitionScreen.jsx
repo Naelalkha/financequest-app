@@ -48,25 +48,25 @@ const TransitionScreen = ({ onComplete }) => {
 
   useEffect(() => {
     haptic.heavy();
-    
+
     const timers = [
       // Phase 1: Initial state
       setTimeout(() => {
         setPhase(1);
         haptic.medium();
       }, 300),
-      
+
       // Phase 2: "Connexion établie"
       setTimeout(() => {
         setPhase(2);
         haptic.light();
       }, 1000),
-      
+
       // Phase 3: "Redirection..."
       setTimeout(() => {
         setPhase(3);
       }, 1800),
-      
+
       // Complete transition
       setTimeout(() => {
         haptic.success();
@@ -138,7 +138,7 @@ const TransitionScreen = ({ onComplete }) => {
               </p>
             </motion.div>
           )}
-          
+
           {phase >= 3 && (
             <motion.div
               key="redirect"
@@ -150,7 +150,7 @@ const TransitionScreen = ({ onComplete }) => {
               <h1 className="text-xl md:text-2xl font-black text-white tracking-tight mb-2">
                 REDIRECTION VERS LE QG...
               </h1>
-              
+
               {/* Progress bar */}
               <div className="w-48 h-1 bg-white/10 rounded-full mx-auto mt-4 overflow-hidden">
                 <motion.div

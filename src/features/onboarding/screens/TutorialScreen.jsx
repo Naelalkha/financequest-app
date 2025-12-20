@@ -34,7 +34,7 @@ const XPPopup = ({ amount, onComplete }) => {
       initial={{ scale: 0, y: 20 }}
       animate={{ scale: 1, y: 0 }}
       exit={{ scale: 0, opacity: 0 }}
-      transition={{ 
+      transition={{
         type: 'spring',
         stiffness: 400,
         damping: 15
@@ -57,7 +57,7 @@ const XPPopup = ({ amount, onComplete }) => {
 
 const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
   const Icon = expense.icon;
-  
+
   const handleAction = (action) => {
     if (disabled) return;
     haptic.medium();
@@ -67,19 +67,19 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0, y: 30 }}
-      animate={{ 
-        scale: actionTaken ? 0.95 : 1, 
-        opacity: 1, 
+      animate={{
+        scale: actionTaken ? 0.95 : 1,
+        opacity: 1,
         y: 0,
         backgroundColor: actionTaken === 'reduce' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)'
       }}
-      exit={{ 
-        scale: 0.8, 
+      exit={{
+        scale: 0.8,
         opacity: 0,
         x: actionTaken === 'reduce' ? 100 : 0,
         rotateZ: actionTaken === 'reduce' ? 5 : 0
       }}
-      transition={{ 
+      transition={{
         type: 'spring',
         stiffness: 300,
         damping: 25
@@ -87,8 +87,8 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
       className={`
         relative w-full max-w-sm mx-auto rounded-2xl overflow-hidden
         border transition-colors duration-300
-        ${actionTaken === 'reduce' 
-          ? 'border-emerald-500/50' 
+        ${actionTaken === 'reduce'
+          ? 'border-emerald-500/50'
           : 'border-white/10'
         }
       `}
@@ -121,7 +121,7 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
           <div className="w-14 h-14 rounded-xl bg-[#E2FF00]/10 flex items-center justify-center">
             <Icon className="w-7 h-7 text-[#E2FF00]" />
           </div>
-          
+
           {/* Info */}
           <div className="flex-1">
             <h3 className="text-white font-bold text-lg">{expense.name}</h3>
@@ -148,7 +148,7 @@ const ExpenseCard = ({ expense, onAction, disabled, actionTaken }) => {
         >
           Garder
         </motion.button>
-        
+
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => handleAction('reduce')}
@@ -196,17 +196,17 @@ const TutorialScreen = ({ onNext }) => {
 
   const handleAction = (action) => {
     setActionTaken(action);
-    
+
     if (action === 'reduce') {
       // Success flow
       haptic.success();
-      
+
       // Show XP popup after card animation
       setTimeout(() => {
         setShowXP(true);
         onboardingStore.addTutorialXp(TUTORIAL_EXPENSE.xpReward);
       }, 400);
-      
+
       // Show success message
       setTimeout(() => {
         setShowSuccess(true);
@@ -231,22 +231,26 @@ const TutorialScreen = ({ onNext }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
-      {/* Background grid */}
-      <div 
-        className="absolute inset-0 opacity-5"
+    <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
+      {/* Atmospheric Guilloche Pattern (same as dashboard) with subtle blur */}
+      <div
+        className="absolute inset-0"
         style={{
+          backgroundColor: '#050505',
+          filter: 'blur(2px)',
           backgroundImage: `
-            linear-gradient(rgba(226, 255, 0, 0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(226, 255, 0, 0.3) 1px, transparent 1px)
+            radial-gradient(circle at 50% 0%, rgba(26, 33, 0, 0.03) 0%, transparent 70%),
+            repeating-radial-gradient(circle at 0 0, transparent 0, transparent 29px, rgba(255, 255, 255, 0.07) 29px, rgba(255, 255, 255, 0.07) 30px),
+            repeating-radial-gradient(circle at 100% 0, transparent 0, transparent 29px, rgba(255, 255, 255, 0.07) 29px, rgba(255, 255, 255, 0.07) 30px)
           `,
-          backgroundSize: '40px 40px',
+          backgroundAttachment: 'fixed',
+          backgroundSize: '100% 100%, 100% 100%, 100% 100%'
         }}
       />
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col px-6 py-12">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -312,8 +316,8 @@ const TutorialScreen = ({ onNext }) => {
           {/* XP Popup */}
           <AnimatePresence>
             {showXP && (
-              <XPPopup 
-                amount={TUTORIAL_EXPENSE.xpReward} 
+              <XPPopup
+                amount={TUTORIAL_EXPENSE.xpReward}
                 onComplete={handleXPComplete}
               />
             )}
@@ -341,7 +345,7 @@ const TutorialScreen = ({ onNext }) => {
                   <p className="text-neutral-400 text-sm mb-4">
                     Tu as libéré <span className="text-white font-bold">{TUTORIAL_EXPENSE.savingsIfReduced}€/mois</span>.
                   </p>
-                  
+
                   {/* Investment projection */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}

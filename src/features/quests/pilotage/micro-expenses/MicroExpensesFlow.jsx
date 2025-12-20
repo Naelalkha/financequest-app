@@ -106,11 +106,11 @@ const MicroExpensesFlow = ({
     }, []);
 
     // NAVIGATION HANDLERS
-    
+
     // 1. Back Button Logic
     const handleBack = useCallback(() => {
         haptic.light();
-        
+
         if (phase === 'PROTOCOL' && protocolPage === 1) {
             setProtocolPage(0);
         } else if (phase === 'EXECUTION') {
@@ -188,16 +188,26 @@ const MicroExpensesFlow = ({
 
     return (
         <motion.div
-            className="fixed inset-0 z-[100] bg-black"
+            className="fixed inset-0 z-[100] bg-[#050505]"
+            style={{
+                background: 'radial-gradient(circle at 50% 30%, #111111 0%, #050505 60%, #000000 100%)'
+            }}
             {...fullscreenVariants.enter}
             transition={TRANSITIONS.overlayEntry}
         >
+            {/* Texture Overlay (Micro Mode) - Pattern extends to top, covers 100vh, visible behind header */}
+            <div
+                className="fixed top-0 left-0 w-full h-screen opacity-[0.03] pointer-events-none z-[1]"
+                style={{
+                    backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zzM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+                }}
+            />
 
             {/* Main Container - Fullscreen */}
             <motion.div
                 {...fullscreenVariants.content}
                 transition={{ duration: TRANSITIONS.modalEntry.duration, ease: EASE.outExpo }}
-                className="w-full h-full min-h-screen bg-[#0A0A0A] overflow-hidden relative flex flex-col"
+                className="w-full h-full min-h-screen bg-transparent overflow-hidden relative flex flex-col z-10"
             >
 
                 {/* Progress Bar */}
@@ -209,8 +219,15 @@ const MicroExpensesFlow = ({
                     />
                 </div>
 
-                {/* Header - Compact & Uniform */}
-                <div className="p-6 pt-8 border-b border-white/5 flex justify-between items-center bg-black/50 backdrop-blur-sm z-40">
+                {/* Header - Tactical Glass Effect: Floating above pattern with very light gradient + backdrop blur */}
+                <div 
+                    className="absolute top-0 left-0 w-full p-6 pt-8 flex justify-between items-center z-40"
+                    style={{
+                        background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%)',
+                        backdropFilter: 'blur(1px)',
+                        WebkitBackdropFilter: 'blur(1px)'
+                    }}
+                >
                     <div className="flex items-center gap-4">
                         {/* UNIFORM BACK BUTTON */}
                         <AnimatePresence mode="popLayout">
@@ -220,9 +237,9 @@ const MicroExpensesFlow = ({
                                     initial={{ opacity: 0, scale: 0.8, x: -8 }}
                                     animate={{ opacity: 1, scale: 1, x: 0 }}
                                     exit={{ opacity: 0, scale: 0.8, x: -8 }}
-                                    transition={{ 
-                                        type: 'spring', 
-                                        stiffness: 400, 
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 400,
                                         damping: 25,
                                         opacity: { duration: 0.15 },
                                         layout: { duration: 0.3, ease: "easeOut" }
@@ -234,41 +251,41 @@ const MicroExpensesFlow = ({
                                 </motion.button>
                             )}
                         </AnimatePresence>
-                        
+
                         <motion.div layout className="overflow-hidden">
                             {/* Fil d'Ariane - petit jaune */}
-                            <span className="font-mono text-[10px] text-volt tracking-wide uppercase block">
+                            <span className="font-mono text-[11px] text-volt tracking-wide uppercase block">
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
                             {/* Titre de l'étape - ÉNORME blanc - Animated */}
                             <div className="h-7 mt-1">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
                                         className="overflow-hidden h-full"
-                                >
-                                    <motion.h2 
-                                        initial={{ y: '100%' }}
-                                        animate={{ y: 0 }}
-                                        exit={{ y: '-100%' }}
-                                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                            className="font-sans font-black text-2xl text-white leading-none tracking-tight"
-                                        style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}
                                     >
-                                        {getStepTitle()[locale] || getStepTitle().fr}
-                                    </motion.h2>
-                                </motion.div>
-                            </AnimatePresence>
+                                        <motion.h2
+                                            initial={{ y: '100%' }}
+                                            animate={{ y: 0 }}
+                                            exit={{ y: '-100%' }}
+                                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                                            className="font-sans font-black text-2xl text-white leading-none tracking-tight"
+                                            style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}
+                                        >
+                                            {getStepTitle()[locale] || getStepTitle().fr}
+                                        </motion.h2>
+                                    </motion.div>
+                                </AnimatePresence>
                             </div>
                             {/* Instruction - moyen gris - Animated */}
                             <AnimatePresence mode="wait">
-                                <motion.p 
+                                <motion.p
                                     key={`${phase}-${protocolPage}-${executionStep}-subtitle`}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.15, delay: 0.05 }}
-                                    className="font-mono text-[10px] text-neutral-500 tracking-wide uppercase mt-1"
+                                    className="font-mono text-[11px] text-neutral-400 tracking-wide uppercase mt-1"
                                 >
                                     {getStepSubtitle()[locale] || getStepSubtitle().fr}
                                 </motion.p>
@@ -286,8 +303,8 @@ const MicroExpensesFlow = ({
                     </button>
                 </div>
 
-                {/* Content Body */}
-                <div className="flex-1 overflow-hidden relative">
+                {/* Content Body - Padding top to account for absolute header */}
+                <div className="flex-1 overflow-hidden relative pt-32">
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div
@@ -299,7 +316,7 @@ const MicroExpensesFlow = ({
                                 transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                 className="h-full quest-screen"
                             >
-                                <ProtocolScreen 
+                                <ProtocolScreen
                                     onNext={goToExecution}
                                     // Control internal state from parent
                                     page={protocolPage}

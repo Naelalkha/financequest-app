@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Coffee, Utensils, Flame, Car, Beer, Plus, ChevronRight, Zap, Music, Headphones, Plane, Smartphone, Bike, Minus, Scissors, X, Wallet } from 'lucide-react';
-import { 
-    expenseCategories, 
-    expenseCategoryLabels, 
+import {
+    expenseCategories,
+    expenseCategoryLabels,
     frequencyOptions,
     frequencyLabels,
     calculateProjectionsWithFrequency
@@ -38,8 +38,8 @@ const DifficultyStars = ({ level, color }) => {
     return (
         <div className="flex gap-0.5">
             {[1, 2, 3].map((i) => (
-                <span 
-                    key={i} 
+                <span
+                    key={i}
                     className={`text-xs ${i <= stars ? color : 'text-neutral-700'}`}
                 >
                     ★
@@ -89,7 +89,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const [selectedFrequencyId, setSelectedFrequencyId] = useState(data.frequencyId || 'weekdays');
     const [selectedActionLevel, setSelectedActionLevel] = useState(null);
     const [customName, setCustomName] = useState(data.customName || '');
-    
+
     // Animated counter - tracks previous value for smooth transitions
     const [animatedAmount, setAnimatedAmount] = useState(0);
     const [hasRevealed, setHasRevealed] = useState(false);
@@ -100,13 +100,13 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const freqLabels = frequencyLabels[locale] || frequencyLabels.fr;
 
     // Get selected frequency
-    const selectedFrequency = useMemo(() => 
+    const selectedFrequency = useMemo(() =>
         frequencyOptions.find(f => f.id === selectedFrequencyId) || frequencyOptions[1],
         [selectedFrequencyId]
     );
 
     // Calculate projections
-    const projections = useMemo(() => 
+    const projections = useMemo(() =>
         calculateProjectionsWithFrequency(unitPrice, selectedFrequency.timesPerWeek, 5, 0.07, locale),
         [unitPrice, selectedFrequency.timesPerWeek, locale]
     );
@@ -117,12 +117,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             const target = projections.yearly;
             const start = previousAmountRef.current;
             const difference = target - start;
-            
+
             // Quick animation if just updating, longer for first reveal
             const duration = start === 0 ? 800 : 300;
             const steps = start === 0 ? 30 : 15;
             let step = 0;
-            
+
             const timer = setInterval(() => {
                 step++;
                 if (step >= steps) {
@@ -137,7 +137,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     setAnimatedAmount(Math.round(start + difference * eased));
                 }
             }, duration / steps);
-            
+
             return () => clearInterval(timer);
         }
     }, [selectedCategoryId, projections.yearly]);
@@ -188,10 +188,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
 
         const category = expenseCategories.find(c => c.id === selectedCategoryId);
         const displayName = categoryLabels[category?.id] || customName;
-        
+
         // Find the selected action config to get the correct multiplier
         const selectedConfig = actionConfig.find(c => c.id === selectedActionLevel);
-        
+
         // Calculate savings using the SAME logic as the display
         const yearlySavings = Math.round(projections.yearly * (selectedConfig?.multiplier || 1));
         const monthlySavings = Math.round(yearlySavings / 12);
@@ -221,24 +221,24 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
 
     // Action level config - defined here to be accessible in handleComplete
     const actionConfig = [
-        { 
-            id: 'optimizer', 
+        {
+            id: 'optimizer',
             multiplier: 0.25,
             labelFr: 'RÉDUIRE',
             labelEn: 'REDUCE',
             descFr: 'Diminue ta fréquence de 25%',
             descEn: 'Reduce your frequency by 25%'
         },
-        { 
-            id: 'strategist', 
+        {
+            id: 'strategist',
             multiplier: 0.5,
             labelFr: 'DIVISER',
             labelEn: 'HALVE',
             descFr: 'Coupe ta dépense en deux',
             descEn: 'Cut your expense in half'
         },
-        { 
-            id: 'radical', 
+        {
+            id: 'radical',
             multiplier: 1,
             labelFr: 'STOPPER',
             labelEn: 'STOP',
@@ -294,7 +294,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             <div className="h-full flex flex-col">
                 <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="flex flex-col p-6 pt-2 pb-32">
-                        
+
                         {/* CATEGORY GRID (2 rows x 3 columns) */}
                         <div className="grid grid-cols-3 gap-3 mb-8">
                             {expenseCategories.map((category) => {
@@ -317,7 +317,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         {IconComponent && (
                                             <IconComponent className={`w-6 h-6 ${isSelected ? 'text-black' : 'text-neutral-400'}`} />
                                         )}
-                                        <span className={`font-mono text-[9px] font-bold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-neutral-400'}`}>
+                                        <span className={`font-mono text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-neutral-400'}`}>
                                             {categoryLabels[category.id]}
                                         </span>
                                     </motion.button>
@@ -328,7 +328,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         {/* PRICE INPUT (Slider + Big Number) */}
                         <div className="mb-6 w-full">
                             <div className="flex justify-between items-end mb-3 px-1">
-                                <label className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide">
+                                <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide">
                                     {L.priceLabel}
                                 </label>
                                 <div className="flex items-baseline">
@@ -358,7 +358,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
 
                         {/* FREQUENCY GRID */}
                         <div className="mb-8 w-full">
-                            <label className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide mb-3 block px-1">
+                            <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-3 block px-1">
                                 {L.frequencyLabel}
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -370,7 +370,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleFrequencySelect(freq)}
                                             className={`
-                                                py-3 rounded-xl font-mono text-[10px] font-bold border transition-all
+                                                py-3 rounded-xl font-mono text-[11px] font-bold border transition-all
                                                 ${isSelected
                                                     ? 'bg-volt text-black border-volt shadow-[0_0_12px_rgba(226,255,0,0.25)]'
                                                     : 'bg-neutral-900 text-neutral-500 border-neutral-800'
@@ -392,17 +392,17 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 8 }}
                                     transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                                    className="w-full bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6"
+                                    className="w-full bg-neutral-900/60 border border-white/5 rounded-2xl p-6 backdrop-blur-[20px]"
                                 >
                                     <div className="flex flex-col items-center">
                                         {/* Label */}
-                                        <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide mb-1">
+                                        <span className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-1">
                                             {L.resultLabel}
                                         </span>
-                                        
+
                                         {/* BIG NUMBER */}
                                         <div className="flex items-baseline gap-2 mb-4">
-                                            <motion.span 
+                                            <motion.span
                                                 key={animatedAmount}
                                                 className="text-5xl font-black text-white tracking-tighter"
                                             >
@@ -422,7 +422,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                                 transition={{ delay: 0.15, duration: 0.25 }}
                                                 className="flex flex-col items-center gap-1 mt-1"
                                             >
-                                                <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wide">
+                                                <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide">
                                                     {L.equivalent}
                                                 </span>
                                                 <div className="flex items-center gap-2 text-volt">
@@ -473,7 +473,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     // ═══════════════════════════════════════════════════════════════
     // STEP 2: LE CHOIX DU DÉFI (Clean Design)
     // ═══════════════════════════════════════════════════════════════
-    
+
     // Icon map for action levels
     const actionIconMap = {
         optimizer: <Minus className="w-6 h-6" />,
@@ -487,11 +487,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                 <div className="flex flex-col p-6 pt-2 pb-32">
 
                     {/* Recap Card - Context */}
-                    <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4">
+                    <div className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <Wallet className="w-5 h-5 text-neutral-500" />
-                                <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-wide">{L.yourExpense}</span>
+                                <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">{L.yourExpense}</span>
                             </div>
                             <div className="flex items-baseline gap-1">
                                 <span className="font-mono text-xl font-bold text-white">
@@ -524,7 +524,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                     className={`
                                         w-full rounded-2xl border transition-all text-left
                                         ${isSelected
-                                            ? 'bg-volt/10 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
+                                            ? 'bg-neutral-900 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
                                             : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
                                         }
                                     `}
@@ -533,14 +533,14 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         {/* Icon Circle */}
                                         <div className={`
                                             w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-                                            ${isSelected 
-                                                ? 'bg-volt text-black' 
+                                            ${isSelected
+                                                ? 'bg-volt text-black'
                                                 : 'bg-neutral-800 text-neutral-400'
                                             }
                                         `}>
                                             {actionIconMap[config.id]}
                                         </div>
-                                        
+
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
@@ -551,7 +551,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                                     <span className="font-mono text-lg font-bold text-volt">
                                                         +€{yearlySavings.toLocaleString('fr-FR')}
                                                     </span>
-                                                    <span className="text-[10px] text-neutral-500">{L.perYear}</span>
+                                                    <span className="text-[11px] text-neutral-500">{L.perYear}</span>
                                                 </div>
                                             </div>
                                             <p className="text-sm text-neutral-500">
@@ -577,7 +577,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     whileTap={canComplete ? { scale: 0.97 } : {}}
                     onClick={handleComplete}
                     disabled={!canComplete}
-                        className={`
+                    className={`
                         w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
                         ${canComplete
                             ? 'bg-volt text-black border-black shadow-volt-glow-strong'

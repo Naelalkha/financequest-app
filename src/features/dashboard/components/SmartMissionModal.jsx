@@ -46,12 +46,12 @@ const highlightNumbers = (text) => {
 const QuestIcon = ({ quest, questColor }) => {
   if (!quest) return <span className="text-5xl">🎯</span>;
   const icon = quest.icons?.main;
-  
+
   if (typeof icon === 'function') {
     const IconComponent = icon;
     return <IconComponent className="w-12 h-12" style={{ color: questColor }} />;
   }
-  
+
   if (typeof icon === 'string' && (icon.includes('/') || icon.includes('.'))) {
     return (
       <div className="relative mb-6">
@@ -60,7 +60,7 @@ const QuestIcon = ({ quest, questColor }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="relative mb-6">
       <div className="absolute inset-0 -m-6 rounded-full blur-xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(234, 179, 8, 0.2) 0%, transparent 70%)' }} />
@@ -133,9 +133,9 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }
           animate="visible"
           exit="exit"
           transition={TRANSITIONS.overlayEntry}
-          style={{ 
-            backdropFilter: isAccepting ? 'blur(20px)' : 'blur(12px)', 
-            backgroundColor: 'rgba(0, 0, 0, 0.9)' 
+          style={{
+            backdropFilter: isAccepting ? 'blur(20px)' : 'blur(12px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)'
           }}
         >
           <motion.div
@@ -147,8 +147,8 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }
             transition={TRANSITIONS.modalEntry}
           >
             {!isAccepting && (
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="absolute top-4 right-4 p-3 rounded-full bg-white/5 active:bg-white/10 transition-colors z-20"
                 aria-label={t('close')}
               >
@@ -194,29 +194,29 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }
             </AnimatePresence>
 
             <div className="w-full flex gap-3 items-center">
-              <button 
-                onClick={handleReroll} 
-                disabled={isRerolling || isAccepting} 
+              <button
+                onClick={handleReroll}
+                disabled={isRerolling || isAccepting}
                 className="w-14 h-14 flex-shrink-0 rounded-full bg-transparent border-2 border-white/20 text-gray-400 active:border-volt active:text-volt active:bg-volt/5 transition-colors flex items-center justify-center disabled:opacity-50"
                 aria-label={t('rerollMission')}
               >
-                <motion.div 
+                <motion.div
                   animate={{ rotate: rotation }}
                   transition={rotation === 0 ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
                 >
                   <Shuffle className="w-6 h-6" />
                 </motion.div>
               </button>
-              <button 
-                onClick={handleAccept} 
-                disabled={isAccepting} 
+              <button
+                onClick={handleAccept}
+                disabled={isAccepting}
                 className="flex-1 bg-volt text-black font-black font-sans rounded-xl flex items-center justify-center gap-2 active:scale-95 py-4 disabled:opacity-80 shadow-volt-glow-strong border-[3px] border-black"
                 aria-label={t('accept')}
               >
                 {isAccepting ? (
-                  <motion.div 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"
                     aria-label="Loading"
                   />

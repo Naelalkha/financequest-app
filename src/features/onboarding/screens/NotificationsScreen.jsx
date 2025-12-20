@@ -24,7 +24,7 @@ const RadarAnimation = () => {
           }}
         />
       ))}
-      
+
       {/* Radar sweep */}
       <motion.div
         className="absolute inset-0"
@@ -125,17 +125,17 @@ const NotificationsScreen = ({ onComplete }) => {
       // Request permission
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
-      
+
       if (permission === 'granted') {
         haptic.success();
         onboardingStore.setNotificationsEnabled(true);
-        
+
         // Show a test notification
         new Notification('MONIYO', {
           body: 'Canal sécurisé activé. Prêt pour les missions.',
           icon: '/pwa-192x192.png',
         });
-        
+
         setTimeout(() => handleComplete(true), 1000);
       } else {
         handleComplete(false);
@@ -159,9 +159,9 @@ const NotificationsScreen = ({ onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
       {/* Background effect */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse at 50% 30%, rgba(226, 255, 0, 0.03) 0%, transparent 50%)',
@@ -170,7 +170,7 @@ const NotificationsScreen = ({ onComplete }) => {
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col px-6 py-12">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -225,19 +225,19 @@ const NotificationsScreen = ({ onComplete }) => {
           transition={{ delay: 0.9 }}
           className="space-y-4 max-w-sm mx-auto w-full mb-auto"
         >
-          <BenefitItem 
-            icon={Target} 
-            title="Alertes de nouvelles missions" 
+          <BenefitItem
+            icon={Target}
+            title="Alertes de nouvelles missions"
             delay={1}
           />
-          <BenefitItem 
-            icon={Zap} 
-            title="Rappels pour tes défis quotidiens" 
+          <BenefitItem
+            icon={Zap}
+            title="Rappels pour tes défis quotidiens"
             delay={1.1}
           />
-          <BenefitItem 
-            icon={Shield} 
-            title="Notifications de dépenses suspectes" 
+          <BenefitItem
+            icon={Shield}
+            title="Notifications de dépenses suspectes"
             delay={1.2}
           />
         </motion.div>

@@ -112,16 +112,26 @@ const CutSubscriptionFlow = ({
 
     return (
         <motion.div
-            className="fixed inset-0 z-[100] bg-black"
+            className="fixed inset-0 z-[100] bg-[#050505]"
+            style={{
+                background: 'radial-gradient(circle at 50% 30%, #111111 0%, #050505 60%, #000000 100%)'
+            }}
             {...fullscreenVariants.enter}
             transition={TRANSITIONS.overlayEntry}
         >
+            {/* Texture Overlay (Micro Mode) */}
+            <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
+                style={{
+                    backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zzM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+                }}
+            />
 
             {/* Main Container - Fullscreen */}
             <motion.div
                 {...fullscreenVariants.content}
                 transition={{ duration: TRANSITIONS.modalEntry.duration, ease: EASE.outExpo }}
-                className="w-full h-full min-h-screen bg-[#0A0A0A] overflow-hidden relative flex flex-col"
+                className="w-full h-full min-h-screen bg-transparent overflow-hidden relative flex flex-col z-10"
             >
 
                 {/* Progress Bar */}

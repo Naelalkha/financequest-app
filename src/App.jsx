@@ -1,6 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './contexts/AuthContext';
+import { BackgroundProvider } from './contexts/BackgroundContext';
 // import { ToastContainer } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
 import './styles/animations.css';
@@ -42,7 +43,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <BackgroundProvider>
+        <AppContent />
+      </BackgroundProvider>
     </Router>
   );
 }

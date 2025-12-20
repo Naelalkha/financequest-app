@@ -57,7 +57,7 @@ function PublicRoute({ children }) {
 const AppRouter = () => {
     const { user, loading } = useAuth();
     const location = useLocation();
-    
+
     // Track onboarding completion (persisted in localStorage)
     const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
         onboardingStore.hasCompletedOnboarding()
@@ -68,10 +68,10 @@ const AppRouter = () => {
         const checkOnboarding = () => {
             setHasCompletedOnboarding(onboardingStore.hasCompletedOnboarding());
         };
-        
+
         // Check on mount and when navigating
         checkOnboarding();
-        
+
         // Listen for storage changes (in case another tab completes onboarding)
         window.addEventListener('storage', checkOnboarding);
         return () => window.removeEventListener('storage', checkOnboarding);

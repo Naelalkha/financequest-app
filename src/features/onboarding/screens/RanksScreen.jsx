@@ -50,16 +50,16 @@ const RANKS = [
 
 const RankBadge = ({ rank, index, isAnimating }) => {
   const Icon = rank.icon;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      animate={{ 
-        opacity: 1, 
-        scale: isAnimating && index === 0 ? [1, 1.05, 1] : 1, 
-        y: 0 
+      animate={{
+        opacity: 1,
+        scale: isAnimating && index === 0 ? [1, 1.05, 1] : 1,
+        y: 0
       }}
-      transition={{ 
+      transition={{
         delay: 0.3 + index * 0.2,
         duration: 0.5,
         scale: { duration: 0.4, repeat: isAnimating && index === 0 ? 2 : 0 }
@@ -70,7 +70,7 @@ const RankBadge = ({ rank, index, isAnimating }) => {
       {rank.isYou && (
         <motion.div
           className="absolute inset-0 rounded-2xl"
-          style={{ 
+          style={{
             background: `radial-gradient(circle, ${rank.color}40 0%, transparent 70%)`,
             filter: 'blur(20px)',
           }}
@@ -103,19 +103,19 @@ const RankBadge = ({ rank, index, isAnimating }) => {
         )}
 
         {/* Icon */}
-        <div 
+        <div
           className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3"
           style={{ backgroundColor: `${rank.color}20` }}
         >
-          <Icon 
-            className="w-8 h-8" 
+          <Icon
+            className="w-8 h-8"
             style={{ color: rank.color }}
             strokeWidth={2.5}
           />
         </div>
 
         {/* Rank name */}
-        <h3 
+        <h3
           className="text-center font-black text-lg mb-1"
           style={{ color: rank.color }}
         >
@@ -192,7 +192,7 @@ const RanksScreen = ({ onNext }) => {
 
   useEffect(() => {
     haptic.medium();
-    
+
     // Stop badge pulsing after initial animation
     const timer = setTimeout(() => setIsAnimating(false), 3000);
     return () => clearTimeout(timer);
@@ -204,9 +204,9 @@ const RanksScreen = ({ onNext }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
       {/* Decorative gradient */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse at 50% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 50%)',
@@ -215,7 +215,7 @@ const RanksScreen = ({ onNext }) => {
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col px-6 py-12">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -252,9 +252,9 @@ const RanksScreen = ({ onNext }) => {
         <div className="flex-1 flex flex-col justify-center">
           <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto w-full">
             {RANKS.map((rank, index) => (
-              <RankBadge 
-                key={rank.id} 
-                rank={rank} 
+              <RankBadge
+                key={rank.id}
+                rank={rank}
                 index={index}
                 isAnimating={isAnimating}
               />
@@ -272,7 +272,7 @@ const RanksScreen = ({ onNext }) => {
                           rounded-full px-4 py-2 text-sm">
               <Star className="w-4 h-4 text-[#E2FF00]" />
               <span className="text-neutral-300">
-                <span className="text-[#E2FF00] font-bold">1€ économisé</span> = 
+                <span className="text-[#E2FF00] font-bold">1€ économisé</span> =
                 <span className="text-white font-bold"> 1 XP</span>
               </span>
             </div>

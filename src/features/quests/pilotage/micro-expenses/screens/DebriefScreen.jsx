@@ -30,7 +30,7 @@ const DebriefScreen = ({
     const yearlySavings = data.yearlySavings || data.yearlyAmount || (data.dailyAmount * 365) || 0;
     const monthlySavings = data.actionSavings || data.monthlyAmount || Math.round(yearlySavings / 12);
     const fiveYearAmount = data.fiveYearAmount || data.tenYearAmount || calculateCompoundGrowth(monthlySavings, 5, 0.07);
-    
+
     // Get concrete icon for display (consistent with ExecutionScreen)
     const concreteIcon = getConcreteRewardIcon(yearlySavings, locale);
     const yearlyEquivalent = data.yearlyEquivalent || null;
@@ -110,83 +110,83 @@ const DebriefScreen = ({
 
                     {/* ===== HERO SECTION ===== */}
                     <div className="text-center mb-8 pt-4">
-                        
+
                         {/* Label */}
-                <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                            className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide mb-2 block"
-                >
+                        <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-2 block"
+                        >
                             {L.goalLabel}
-                </motion.span>
+                        </motion.span>
 
                         {/* HERO NUMBER */}
-                <motion.h2
+                        <motion.h2
                             initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
+                            animate={{ scale: 1, opacity: 1 }}
                             transition={{ duration: 0.4, ease: 'backOut', delay: 0.15 }}
                             className="text-5xl md:text-6xl font-black text-volt tracking-tighter"
                             style={{ textShadow: '0 0 30px rgba(226, 255, 0, 0.5)' }}
-                >
+                        >
                             +{animatedSavings.toLocaleString('fr-FR')} €
-                </motion.h2>
+                        </motion.h2>
 
                         {/* Subtitle - HONEST */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                             transition={{ delay: 0.25 }}
                             className="text-sm text-neutral-500 mt-2"
-                >
+                        >
                             {L.subtitle}
-                </motion.p>
+                        </motion.p>
                     </div>
 
                     {/* ===== CARDS - Unified Style ===== */}
-                <AnimatePresence>
+                    <AnimatePresence>
                         {showContent && (
                             <div className="space-y-3">
 
                                 {/* Card 1: Equivalent Value */}
-                            <motion.div
+                                <motion.div
                                     initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.25 }}
-                                    className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4"
-                            >
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-xl bg-volt/10 flex items-center justify-center flex-shrink-0">
                                             {concreteIcon.icon}
-                                </div>
-                                        <div className="flex-1 text-left">
-                                            <span className="block font-mono text-[10px] text-neutral-500 uppercase font-bold mb-1">
-                                                {L.equivalent}
-                                    </span>
-                                    <span className="text-sm font-bold text-white block leading-tight">
-                                                {concreteIcon.text}
-                                    </span>
                                         </div>
-                                </div>
-                            </motion.div>
+                                        <div className="flex-1 text-left">
+                                            <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-1">
+                                                {L.equivalent}
+                                            </span>
+                                            <span className="text-sm font-bold text-white block leading-tight">
+                                                {concreteIcon.text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
 
                                 {/* Card 2: Monthly + Projection (Combined) */}
-                            <motion.div
+                                <motion.div
                                     initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.25, delay: 0.04 }}
-                                    className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4"
-                            >
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
                                     <div className="flex items-center justify-between mb-4 pb-4 border-b border-neutral-800">
-                                <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3">
                                             <TrendingUp className="w-5 h-5 text-neutral-500" />
-                                            <span className="font-mono text-[10px] text-neutral-400 uppercase">
+                                            <span className="font-mono text-[11px] text-neutral-400 uppercase">
                                                 {L.monthlyLabel}
-                                    </span>
-                                </div>
+                                            </span>
+                                        </div>
                                         <span className="font-mono text-xl font-bold text-white">
-                                    +{monthlySavings.toLocaleString('fr-FR')} €
-                                </span>
+                                            +{monthlySavings.toLocaleString('fr-FR')} €
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -194,11 +194,11 @@ const DebriefScreen = ({
                                             <Sparkles className="w-5 h-5 text-volt" />
                                             <div className="text-left">
                                                 {/* Label: White & Bold to distinguish from monthly line */}
-                                                <div className="font-mono text-[10px] text-white font-bold uppercase">
+                                                <div className="font-mono text-[11px] text-white font-bold uppercase">
                                                     {L.projectionLabel}
                                                 </div>
                                                 {/* Subtext: Lighter gray for accessibility */}
-                                                <div className="font-mono text-[9px] text-neutral-400">
+                                                <div className="font-mono text-[10px] text-neutral-400">
                                                     {L.projectionDesc}
                                                 </div>
                                             </div>
@@ -207,16 +207,16 @@ const DebriefScreen = ({
                                             +{fiveYearAmount.toLocaleString('fr-FR')} €
                                         </span>
                                     </div>
-                            </motion.div>
+                                </motion.div>
 
                                 {/* Card 3: Rewards (XP + Streak) */}
-                            <motion.div
+                                <motion.div
                                     initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.25, delay: 0.08 }}
-                                    className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4"
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                                 >
-                                    <span className="block font-mono text-[10px] text-neutral-500 uppercase font-bold mb-3">
+                                    <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-3">
                                         {L.xpLabel}
                                     </span>
                                     <div className="flex items-center">
@@ -226,28 +226,28 @@ const DebriefScreen = ({
                                             <span className="font-mono text-lg font-bold text-white">
                                                 +{xpReward} XP
                                             </span>
-                                </div>
+                                        </div>
                                         {/* Streak */}
-                                <div className="flex-1 flex items-center justify-center gap-2 pl-4">
+                                        <div className="flex-1 flex items-center justify-center gap-2 pl-4">
                                             <Flame className="w-5 h-5 text-orange-500" />
                                             <span className="font-mono text-lg font-bold text-white">
                                                 SÉRIE
                                             </span>
-                                    <motion.span
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
+                                            <motion.span
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
                                                 transition={{ delay: 0.4, type: 'spring', stiffness: 400, damping: 25 }}
-                                        className="font-mono text-sm font-bold text-orange-500 bg-orange-500/20 px-2 py-0.5 rounded"
-                                    >
-                                        +1
-                                    </motion.span>
-                                </div>
+                                                className="font-mono text-sm font-bold text-orange-500 bg-orange-500/20 px-2 py-0.5 rounded"
+                                            >
+                                                +1
+                                            </motion.span>
+                                        </div>
                                     </div>
-                            </motion.div>
+                                </motion.div>
 
-                        </div>
-                    )}
-                </AnimatePresence>
+                            </div>
+                        )}
+                    </AnimatePresence>
 
                 </div>
             </div>
@@ -257,9 +257,9 @@ const DebriefScreen = ({
                 <motion.button
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                        type: 'spring', 
-                        stiffness: 400, 
+                    transition={{
+                        type: 'spring',
+                        stiffness: 400,
                         damping: 25,
                         delay: 0.6
                     }}

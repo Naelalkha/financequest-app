@@ -50,11 +50,11 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
     // Auto-slide every 5 seconds
     useEffect(() => {
         if (page !== 0) return;
-        
+
         const timer = setInterval(() => {
             setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
         }, 5000);
-        
+
         return () => clearInterval(timer);
     }, [page, slides.length]);
 
@@ -102,7 +102,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
             hookHighlight: "L'ennemi n'est pas le montant, c'est la fréquence.",
             statLabel: 'LA RÉALITÉ',
             contextCta: 'VOIR LE PROTOCOLE',
-            
+
             // Page 2
             methodTitle: 'MÉTHODE',
             methodSubtitle: '3 étapes pour reprendre le contrôle',
@@ -144,36 +144,37 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             className="h-full overflow-y-auto custom-scrollbar"
                         >
                             <div className="flex flex-col gap-4 p-6 pt-2 pb-32">
-                                
-                                {/* ===== CARD 1: THE PROBLEM ===== */}
-                                <motion.div 
+
+                                {/* ===== CARD 1: THE PROBLEM ===== "Verre Fumé" - rgb(36 36 36 / 50%) */}
+                                <motion.div
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1, duration: 0.25 }}
-                                    className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 relative overflow-hidden"
+                                    className="border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-[20px]"
+                                    style={{ backgroundColor: 'rgb(36 36 36 / 50%)' }}
                                 >
-                                    
+
                                     {/* Dossier image - corner top-right, slightly cropped for integration effect */}
                                     <div className="absolute -right-6 -top-6 w-36 h-36 opacity-40 pointer-events-none">
-                                        <img 
-                                            src={secretDirectoryAsset} 
-                                            alt="" 
-                                            className="w-full h-full object-contain drop-shadow-lg" 
+                                        <img
+                                            src={secretDirectoryAsset}
+                                            alt=""
+                                            className="w-full h-full object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    
+
                                     {/* Content */}
                                     <div className="relative z-10">
                                         {/* Label */}
-                                        <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide mb-4 block">
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-4 block">
                                             {L.hookLabel}
                                         </span>
-                                        
+
                                         {/* Hook quote */}
                                         <h3 className="font-sans font-semibold text-lg md:text-xl text-white leading-relaxed max-w-[80%]">
                                             "{L.hook}"
                                         </h3>
-                                        
+
                                         {/* Punch line */}
                                         <p className="text-volt font-bold text-sm mt-4">
                                             {L.hookHighlight}
@@ -181,20 +182,18 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                     </div>
                                 </motion.div>
 
-                                {/* ===== CARD 2: STATS CAROUSEL ===== */}
-                                <motion.div 
+                                {/* ===== CARD 2: STATS CAROUSEL ===== "Verre Profond" - rgb(17 17 17 / 60%) */}
+                                <motion.div
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15, duration: 0.25 }}
-                                    className="bg-[#0A0A0A] border border-white/10 rounded-2xl px-6 py-8 relative overflow-hidden"
+                                    className="border border-white/5 rounded-2xl px-6 py-8 relative overflow-hidden backdrop-blur-[20px]"
+                                    style={{ backgroundColor: 'rgb(17 17 17 / 60%)' }}
                                 >
-                                    
-                                    {/* Subtle pattern */}
-                                    <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
-                                    
+
                                     {/* Header */}
                                     <div className="relative z-10 flex justify-between items-center mb-6">
-                                        <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide">
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">
                                             {L.statLabel}
                                         </span>
                                         {/* Progress dots */}
@@ -203,11 +202,10 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                 <button
                                                     key={idx}
                                                     onClick={() => setCurrentSlideIndex(idx)}
-                                                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                                                        idx === currentSlideIndex 
-                                                            ? 'w-5 bg-volt' 
-                                                            : 'w-1.5 bg-neutral-700'
-                                                    }`}
+                                                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlideIndex
+                                                        ? 'w-5 bg-volt'
+                                                        : 'w-1.5 bg-neutral-700'
+                                                        }`}
                                                 />
                                             ))}
                                         </div>
@@ -216,8 +214,8 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                     {/* Carousel Content - Fixed height to prevent arrow movement */}
                                     <div className="relative flex items-center justify-between h-[130px]">
                                         {/* Left Arrow */}
-                                        <button 
-                                            onClick={prevSlide} 
+                                        <button
+                                            onClick={prevSlide}
                                             className="p-2 -ml-1 text-neutral-500 active:scale-90 active:text-white transition-all flex-shrink-0"
                                         >
                                             <ChevronLeft className="w-6 h-6" />
@@ -245,8 +243,8 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                         </div>
 
                                         {/* Right Arrow */}
-                                        <button 
-                                            onClick={nextSlide} 
+                                        <button
+                                            onClick={nextSlide}
                                             className="p-2 -mr-1 text-neutral-500 active:scale-90 active:text-white transition-all flex-shrink-0"
                                         >
                                             <ChevronRight className="w-6 h-6" />
@@ -274,13 +272,13 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                 {/* ===== TIMELINE LAYOUT ===== */}
                                 <div className="relative">
                                     {/* Vertical Line - Animated */}
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ scaleY: 0, originY: 0 }}
                                         animate={{ scaleY: 1 }}
                                         transition={{ delay: 0.2, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                                        className="absolute left-[19px] top-10 bottom-6 w-px bg-gradient-to-b from-volt/40 via-neutral-700 to-neutral-800" 
+                                        className="absolute left-[19px] top-10 bottom-6 w-px bg-gradient-to-b from-volt/40 via-neutral-700 to-neutral-800"
                                     />
-                                    
+
                                     <div className="space-y-6">
                                         {tips.map((tip, index) => {
                                             const IconComponent = IconMap[tip.iconName] || Zap;
@@ -289,7 +287,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                     key={tip.id}
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ 
+                                                    transition={{
                                                         delay: 0.1 + index * 0.1,
                                                         duration: 0.3,
                                                         ease: "easeOut"
@@ -298,10 +296,10 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                 >
                                                     {/* Number Circle - Aligned with top of card */}
                                                     <div className="relative z-10 flex-shrink-0 pt-5">
-                                                        <motion.div 
+                                                        <motion.div
                                                             initial={{ scale: 0.8, opacity: 0 }}
                                                             animate={{ scale: 1, opacity: 1 }}
-                                                            transition={{ 
+                                                            transition={{
                                                                 delay: 0.15 + index * 0.1,
                                                                 type: 'spring',
                                                                 stiffness: 400,
@@ -316,21 +314,16 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                     </div>
 
                                                     {/* Content Card */}
-                                                    <div className="flex-1 bg-neutral-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-sm relative overflow-hidden group">
+                                                    <div className="flex-1 bg-neutral-900/60 border border-white/5 rounded-2xl p-5 backdrop-blur-[1px] relative overflow-hidden group">
                                                         {/* Hover glow effect */}
                                                         <div className="absolute inset-0 bg-gradient-to-r from-volt/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                                        
-                                                        {/* Watermark Icon - Top Right, Subtle */}
-                                                        <div className="absolute -right-3 -top-3 text-volt opacity-5 transform rotate-12 pointer-events-none">
-                                                            <IconComponent strokeWidth={1.5} className="w-24 h-24" />
-                                                        </div>
 
                                                         <div className="relative z-10">
                                                             {/* Title - No padding right needed as icon is very transparent */}
                                                             <h4 className="font-sans text-lg font-bold text-white leading-tight mb-3">
                                                                 {tip.title}
                                                             </h4>
-                                                            
+
                                                             {/* Body */}
                                                             <p className="text-[15px] text-neutral-300 font-sans leading-relaxed">
                                                                 {renderWithBold(tip.body)}
@@ -358,7 +351,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            transition={{ 
+                            transition={{
                                 type: 'spring',
                                 stiffness: 400,
                                 damping: 25
@@ -375,7 +368,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            transition={{ 
+                            transition={{
                                 type: 'spring',
                                 stiffness: 400,
                                 damping: 25

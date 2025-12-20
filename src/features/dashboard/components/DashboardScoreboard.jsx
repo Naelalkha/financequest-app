@@ -60,7 +60,7 @@ const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest }) =
 
                 {/* Content Container - No useless meta, just raw data */}
                 <div className="relative z-10 w-full flex flex-col gap-2">
-                    
+
                     {/* Label */}
                     <div className="flex items-center gap-2 text-neutral-500 mb-0">
                         <span className="font-mono text-xs tracking-[0.15em] uppercase font-bold text-neutral-600">{t('netImpactYTD')}</span>

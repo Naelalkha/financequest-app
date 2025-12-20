@@ -8,11 +8,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Target, 
-  TrendingUp, 
-  Zap, 
-  Trophy, 
+import {
+  Target,
+  TrendingUp,
+  Zap,
+  Trophy,
   Calendar,
   ChevronRight,
   Crosshair
@@ -124,13 +124,13 @@ const HotSpot = ({ zone, isActive, onClick, index }) => {
         style={{
           backgroundColor: isActive ? zone.color : `${zone.color}20`,
           borderColor: zone.color,
-          boxShadow: isActive 
-            ? `0 0 30px ${zone.color}60` 
+          boxShadow: isActive
+            ? `0 0 30px ${zone.color}60`
             : `0 0 15px ${zone.color}30`,
         }}
         whileTap={{ scale: 0.95 }}
       >
-        <Icon 
+        <Icon
           className={`${size.icon} transition-colors duration-300`}
           style={{ color: isActive ? '#0A0A0A' : zone.color }}
           strokeWidth={2.5}
@@ -144,9 +144,9 @@ const HotSpot = ({ zone, isActive, onClick, index }) => {
         transition={{ delay: 0.8 + index * 0.1 }}
         className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap"
       >
-        <span 
+        <span
           className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded"
-          style={{ 
+          style={{
             color: zone.color,
             backgroundColor: `${zone.color}15`,
           }}
@@ -170,7 +170,7 @@ const ZoneDetailPanel = ({ zone, onClose }) => {
       transition={{ type: 'spring', damping: 25 }}
       className="absolute bottom-24 left-4 right-4 z-30"
     >
-      <div 
+      <div
         className="rounded-2xl p-5 border"
         style={{
           backgroundColor: '#0A0A0A',
@@ -180,7 +180,7 @@ const ZoneDetailPanel = ({ zone, onClose }) => {
       >
         <div className="flex items-start gap-4">
           {/* Icon */}
-          <div 
+          <div
             className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: `${zone.color}20` }}
           >
@@ -189,7 +189,7 @@ const ZoneDetailPanel = ({ zone, onClose }) => {
 
           {/* Content */}
           <div className="flex-1">
-            <h3 
+            <h3
               className="font-black text-sm mb-1"
               style={{ color: zone.color }}
             >
@@ -201,7 +201,7 @@ const ZoneDetailPanel = ({ zone, onClose }) => {
           </div>
 
           {/* Close hint */}
-          <button 
+          <button
             onClick={onClose}
             className="text-neutral-600 hover:text-white transition-colors p-1"
           >
@@ -220,7 +220,7 @@ const DashboardPreview = ({ activeZone, onZoneClick }) => {
       {/* Dashboard background */}
       <div className="absolute inset-0 bg-[#0A0A0A]">
         {/* Grid pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `
@@ -271,7 +271,7 @@ const DashboardPreview = ({ activeZone, onZoneClick }) => {
       ))}
 
       {/* Vignette effect */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(circle at 50% 50%, transparent 30%, rgba(5, 5, 5, 0.8) 100%)',
@@ -288,7 +288,7 @@ const TacticalMapScreen = ({ onNext }) => {
 
   useEffect(() => {
     haptic.medium();
-    
+
     // Auto-cycle through zones for demo if user doesn't interact
     const timer = setTimeout(() => {
       if (visitedZones.size === 0) {
@@ -322,9 +322,9 @@ const TacticalMapScreen = ({ onNext }) => {
   const allVisited = visitedZones.size >= 3; // Require at least 3 zones explored
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
       {/* Background radial */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse at 50% 30%, rgba(226, 255, 0, 0.03) 0%, transparent 60%)',
@@ -333,7 +333,7 @@ const TacticalMapScreen = ({ onNext }) => {
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col px-6 py-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -388,7 +388,7 @@ const TacticalMapScreen = ({ onNext }) => {
 
         {/* Dashboard preview with hotspots */}
         <div className="flex-1 flex items-center justify-center relative">
-          <DashboardPreview 
+          <DashboardPreview
             activeZone={activeZone}
             onZoneClick={handleZoneClick}
           />
@@ -396,8 +396,8 @@ const TacticalMapScreen = ({ onNext }) => {
           {/* Zone detail panel */}
           <AnimatePresence>
             {activeZone && (
-              <ZoneDetailPanel 
-                zone={activeZone} 
+              <ZoneDetailPanel
+                zone={activeZone}
                 onClose={handleCloseDetail}
               />
             )}
@@ -440,8 +440,8 @@ const TacticalMapScreen = ({ onNext }) => {
             className={`
               w-full max-w-sm mx-auto py-4 px-8 rounded-xl font-black uppercase tracking-wider text-base 
               flex items-center justify-center gap-3 transition-all duration-300
-              ${allVisited 
-                ? 'bg-[#E2FF00] text-black shadow-[0_0_30px_rgba(226,255,0,0.3)] hover:shadow-[0_0_50px_rgba(226,255,0,0.5)]' 
+              ${allVisited
+                ? 'bg-[#E2FF00] text-black shadow-[0_0_30px_rgba(226,255,0,0.3)] hover:shadow-[0_0_50px_rgba(226,255,0,0.5)]'
                 : 'bg-white/10 text-white/70 border border-white/20'
               }
             `}
