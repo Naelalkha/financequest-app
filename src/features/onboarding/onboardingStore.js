@@ -9,16 +9,18 @@ const ONBOARDING_DATA_KEY = 'moniyo-onboarding-data';
 
 // Onboarding steps
 export const ONBOARDING_STEPS = {
-  INIT: 'init',           // Écran 1: SYSTEM ONLINE
-  TUTORIAL: 'tutorial',   // Écran 2: CIBLER. ÉLIMINER.
-  RANKS: 'ranks',         // Écran 3: MONTE EN GRADE
-  NOTIFICATIONS: 'notifications', // Écran 4: CANAL SÉCURISÉ
+  INIT: 'init',                           // Écran 1: SYSTEM ONLINE
+  STRATEGY_CALIBRATION: 'strategy',       // Écran 2: CHOISIS TON VECTEUR
+  IMPACT_PROJECTION: 'impact',            // Écran 3: POTENTIEL DÉVERROUILLÉ
+  RANKS: 'ranks',                         // Écran 4: MONTE EN GRADE
+  NOTIFICATIONS: 'notifications',         // Écran 5: CANAL SÉCURISÉ
   COMPLETED: 'completed'
 };
 
 const STEP_ORDER = [
   ONBOARDING_STEPS.INIT,
-  ONBOARDING_STEPS.TUTORIAL,
+  ONBOARDING_STEPS.STRATEGY_CALIBRATION,
+  ONBOARDING_STEPS.IMPACT_PROJECTION,
   ONBOARDING_STEPS.RANKS,
   ONBOARDING_STEPS.NOTIFICATIONS,
   ONBOARDING_STEPS.COMPLETED
@@ -34,7 +36,7 @@ const getDefaultState = () => ({
   startedAt: null,
   completedAt: null,
   notificationsEnabled: false,
-  tutorialXpEarned: 0,
+  selectedStrategyId: null,  // 'defense' | 'offense' | 'expansion'
   agentCallsign: null,
 });
 
@@ -43,7 +45,7 @@ const getDefaultState = () => ({
  */
 const loadState = () => {
   if (typeof window === 'undefined') return getDefaultState();
-  
+
   try {
     const saved = localStorage.getItem(ONBOARDING_KEY);
     if (saved) {
@@ -52,7 +54,7 @@ const loadState = () => {
   } catch (e) {
     console.warn('Failed to load onboarding state:', e);
   }
-  
+
   return getDefaultState();
 };
 
@@ -61,7 +63,7 @@ const loadState = () => {
  */
 const saveState = (state) => {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.setItem(ONBOARDING_KEY, JSON.stringify(state));
   } catch (e) {
@@ -77,7 +79,7 @@ export const onboardingStore = {
    * Get current state
    */
   getState: () => ({ ...currentState }),
-  
+
   /**
    * Check if user has completed onboarding
    */
@@ -89,12 +91,12 @@ export const onboardingStore = {
    * Get current step
    */
   getCurrentStep: () => currentState.currentStep,
-  
+
   /**
    * Get current step index (0-based)
    */
   getStepIndex: () => currentState.stepIndex,
-  
+
   /**
    * Get total steps count (excluding completed)
    */
@@ -119,7 +121,7 @@ export const onboardingStore = {
     const currentIndex = STEP_ORDER.indexOf(currentState.currentStep);
     const nextIndex = Math.min(currentIndex + 1, STEP_ORDER.length - 1);
     const nextStep = STEP_ORDER[nextIndex];
-    
+
     currentState = {
       ...currentState,
       currentStep: nextStep,
@@ -127,7 +129,7 @@ export const onboardingStore = {
       completed: nextStep === ONBOARDING_STEPS.COMPLETED,
       completedAt: nextStep === ONBOARDING_STEPS.COMPLETED ? new Date().toISOString() : null,
     };
-    
+
     saveState(currentState);
     return currentState;
   },
@@ -138,13 +140,13 @@ export const onboardingStore = {
   prevStep: () => {
     const currentIndex = STEP_ORDER.indexOf(currentState.currentStep);
     const prevIndex = Math.max(currentIndex - 1, 0);
-    
+
     currentState = {
       ...currentState,
       currentStep: STEP_ORDER[prevIndex],
       stepIndex: prevIndex,
     };
-    
+
     saveState(currentState);
     return currentState;
   },
@@ -155,13 +157,13 @@ export const onboardingStore = {
   goToStep: (step) => {
     const stepIndex = STEP_ORDER.indexOf(step);
     if (stepIndex === -1) return currentState;
-    
+
     currentState = {
       ...currentState,
       currentStep: step,
       stepIndex,
     };
-    
+
     saveState(currentState);
     return currentState;
   },
@@ -194,12 +196,12 @@ export const onboardingStore = {
   },
 
   /**
-   * Add XP earned during tutorial
+   * Set selected strategic archetype
    */
-  addTutorialXp: (xp) => {
+  setSelectedStrategy: (strategyId) => {
     currentState = {
       ...currentState,
-      tutorialXpEarned: (currentState.tutorialXpEarned || 0) + xp,
+      selectedStrategyId: strategyId,
     };
     saveState(currentState);
     return currentState;

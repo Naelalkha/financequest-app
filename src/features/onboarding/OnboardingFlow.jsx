@@ -1,12 +1,13 @@
 /**
  * 🎮 OnboardingFlow - Main Onboarding Orchestrator
  * 
- * Manages the flow through all 4 onboarding screens + transition:
+ * Manages the flow through all 5 onboarding screens + transition:
  * 1. InitScreen - "SYSTEM ONLINE" (Hook)
- * 2. TutorialScreen - "CIBLER. ÉLIMINER." (Interactive mini-tuto)
- * 3. RanksScreen - "MONTE EN GRADE" (Gamification promise)
- * 4. NotificationsScreen - "CANAL SÉCURISÉ" (Permissions)
- * 5. TransitionScreen - Warp animation to Dashboard
+ * 2. StrategyCalibrationScreen - "CHOISIS TON VECTEUR" (Strategic archetype)
+ * 3. ImpactProjectionScreen - "POTENTIEL DÉVERROUILLÉ" (Triple Impact)
+ * 4. RanksScreen - "MONTE EN GRADE" (Gamification promise)
+ * 5. NotificationsScreen - "CANAL SÉCURISÉ" (Permissions)
+ * 6. TransitionScreen - Warp animation to Dashboard
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -16,7 +17,8 @@ import { useBackground } from '../../contexts/BackgroundContext';
 import { onboardingStore, ONBOARDING_STEPS } from './onboardingStore';
 import {
   InitScreen,
-  TutorialScreen,
+  StrategyCalibrationScreen,
+  ImpactProjectionScreen,
   RanksScreen,
   NotificationsScreen,
   TransitionScreen,
@@ -105,8 +107,11 @@ const OnboardingFlow = () => {
       case ONBOARDING_STEPS.INIT:
         return <InitScreen onNext={handleNext} />;
 
-      case ONBOARDING_STEPS.TUTORIAL:
-        return <TutorialScreen onNext={handleNext} />;
+      case ONBOARDING_STEPS.STRATEGY_CALIBRATION:
+        return <StrategyCalibrationScreen onNext={handleNext} />;
+
+      case ONBOARDING_STEPS.IMPACT_PROJECTION:
+        return <ImpactProjectionScreen onNext={handleNext} />;
 
       case ONBOARDING_STEPS.RANKS:
         return <RanksScreen onNext={handleNext} />;
