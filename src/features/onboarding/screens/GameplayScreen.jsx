@@ -1,339 +1,166 @@
 /**
- * 🎮 ÉCRAN 3 : LE GAMEPLAY (La Méthode)
- * "DES MISSIONS, PAS DES TABLEURS" - Montrer que c'est ludique et rapide
+ * 🎮 ÉCRAN 3 : LE GAMEPLAY (La Méthode) - VERSION "MONEY SHOT"
+ * "DES MISSIONS, PAS DES TABLEURS" - Montrer l'instant de victoire, pas la tâche
  * 
- * Visuel: Carte de Mission style Glass/Tactique
- * Animation: Touche "VALIDER" -> Explosion particules dorées + XP/Grade reveal
+ * Stratégie: Vendre la récompense, pas la mission
+ * Visuel: Carte de mission en état "SUCCESS" avec trophée 3D qui sort de la carte
+ * Effet: Grosse lueur jaune + chiffres €€€ + XP en évidence
  */
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { haptic } from '../../../utils/haptics';
-import { Target, Clock, Sparkles, Play, Check } from 'lucide-react';
+import { Sparkles, Check, Euro } from 'lucide-react';
+import trophyAsset from '../../../assets/onboarding-trophy.png';
 
-// Golden particles explosion component
-const GoldenParticles = ({ isActive }) => {
-    if (!isActive) return null;
-
-    const particles = Array.from({ length: 20 }, (_, i) => ({
-        id: i,
-        angle: (i / 20) * 360,
-        distance: 50 + Math.random() * 80,
-        size: 4 + Math.random() * 8,
-        delay: Math.random() * 0.2,
-    }));
-
+// Mission Card Component - Version "Grand Chelem" (déjà en état SUCCESS)
+const MissionCard = () => {
     return (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible z-20">
-            {particles.map((particle) => (
+        <div className="relative w-full max-w-sm mx-auto">
+            {/* Grosse lueur jaune derrière la carte - Statique */}
+            <div
+                className="absolute -inset-8 rounded-3xl bg-[#E2FF00]/30"
+                style={{ filter: 'blur(30px)' }}
+            />
+
+            {/* Main Card - État SUCCESS */}
+            <div 
+                className="relative rounded-2xl overflow-visible backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+                style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                }}
+            >
+                {/* Gradient Overlay (Background aesthetic) */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-0" />
+                
+                {/* Trophée 3D qui sort de la carte - SEUL ÉLÉMENT ANIMÉ (floating très lent) */}
                 <motion.div
-                    key={particle.id}
-                    className="absolute rounded-full bg-[#E2FF00]"
-                    style={{
-                        width: particle.size,
-                        height: particle.size,
-                        boxShadow: '0 0 10px rgba(226, 255, 0, 0.8)',
-                    }}
-                    initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+                    className="absolute -top-12 -right-12 w-48 h-48 z-20 pointer-events-none"
+                    initial={{ scale: 0, y: 0 }}
                     animate={{
-                        scale: [0, 1.5, 0],
-                        x: Math.cos(particle.angle * Math.PI / 180) * particle.distance,
-                        y: Math.sin(particle.angle * Math.PI / 180) * particle.distance,
-                        opacity: [1, 1, 0],
+                        scale: 1,
+                        y: [0, -8, 0],
                     }}
                     transition={{
-                        duration: 0.8,
-                        delay: particle.delay,
-                        ease: 'easeOut',
+                        scale: {
+                            duration: 0.8,
+                            delay: 0.5,
+                            type: 'spring',
+                            stiffness: 200,
+                            damping: 20,
+                        },
+                        y: {
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 1,
+                        },
                     }}
-                />
-            ))}
+                >
+                    <img
+                        src={trophyAsset}
+                        alt="Trophée"
+                        className="w-full h-full object-contain drop-shadow-[0_0_40px_rgba(226,255,0,0.9)]"
+                    />
+                </motion.div>
+
+                {/* Card Header */}
+                <div className="px-5 pt-5 pb-4 relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                        {/* Halo jaune pour "MISSION ACCOMPLIE" - Statique */}
+                        <span 
+                            className="text-[10px] font-mono text-[#E2FF00] tracking-[0.2em] uppercase flex items-center gap-2"
+                            style={{
+                                textShadow: '0 0 15px rgba(226, 255, 0, 0.6)',
+                            }}
+                        >
+                            <Check className="w-3 h-3" />
+                            MISSION ACCOMPLIE
+                        </span>
+                    </div>
+
+                    <h3 className="text-xl font-black text-white mb-1 tracking-tight">
+                        MISSION : LA PURGE
+                    </h3>
+                    <p className="text-sm text-neutral-300">
+                        Optimisation des charges fixes
+                    </p>
+                </div>
+
+                {/* Card Stats - Version "Money Shot" - Épurée, sans boîtes */}
+                <div className="px-5 py-4 border-t border-white/5 space-y-4 relative z-10">
+                    {/* Gain en argent - Texte statique, sans boîte */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Euro className="w-4 h-4 text-neutral-400" />
+                            <span className="text-xs font-mono text-neutral-300 uppercase tracking-wider">GAIN</span>
+                        </div>
+                        <span className="text-2xl font-black text-[#E2FF00] tracking-tight">
+                            +35€ / MOIS
+                        </span>
+                    </div>
+
+                    {/* Récompense XP - Texte statique, sans boîte */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-neutral-400" />
+                            <span className="text-xs font-mono text-neutral-300 uppercase tracking-wider">RÉCOMPENSE</span>
+                        </div>
+                        <span className="text-2xl font-black text-[#E2FF00] tracking-tight">
+                            +250 XP
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
 
-// XP Badge reveal component
-const XPReward = ({ isVisible }) => {
-    return (
-        <AnimatePresence>
-            {isVisible && (
-                <motion.div
-                    initial={{ scale: 0, opacity: 0, y: 20 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 15,
-                        delay: 0.3
-                    }}
-                    className="flex flex-col items-center gap-3"
-                >
-                    {/* XP Amount */}
-                    <motion.div
-                        className="flex items-center gap-2"
-                        animate={{
-                            scale: [1, 1.05, 1],
-                        }}
-                        transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        }}
-                    >
-                        <Sparkles className="w-6 h-6 text-[#E2FF00]" />
-                        <span className="text-4xl font-black text-[#E2FF00] tracking-tight">
-                            +250 XP
-                        </span>
-                    </motion.div>
-
-                    {/* Grade Badge */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="px-4 py-2 rounded-lg bg-white/10 border border-[#E2FF00]/30"
-                    >
-                        <span className="text-xs font-mono text-neutral-400 tracking-widest">
-                            GRADE :
-                        </span>
-                        <span className="ml-2 text-sm font-black text-white tracking-wide">
-                            STRATÈGE
-                        </span>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-// Mission Card Component
-const MissionCard = ({ onValidate, isValidating, isValidated }) => {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 30, rotateX: -10 }}
-            animate={{
-                opacity: 1,
-                y: 0,
-                rotateX: 0,
-                scale: isValidated ? 0.95 : 1,
-            }}
-            transition={{
-                duration: 0.6,
-                delay: 0.3,
-                type: 'spring',
-                stiffness: 200
-            }}
-            className="relative w-full max-w-sm mx-auto"
-            style={{ perspective: 1000 }}
-        >
-            {/* Card glow effect */}
-            <motion.div
-                className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-[#E2FF00]/20 to-transparent opacity-50"
-                animate={!isValidated ? {
-                    opacity: [0.3, 0.6, 0.3],
-                } : {}}
-                transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                }}
-                style={{ filter: 'blur(10px)' }}
-            />
-
-            {/* Main Card */}
-            <div className={`
-        relative rounded-2xl overflow-hidden backdrop-blur-xl
-        border transition-all duration-500
-        ${isValidated
-                    ? 'bg-emerald-500/10 border-emerald-500/30'
-                    : 'bg-white/5 border-white/10'
-                }
-      `}>
-                {/* Card Header */}
-                <div className="px-5 pt-5 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-mono text-[#E2FF00] tracking-[0.2em] uppercase">
-                            MISSION #001
-                        </span>
-                        <div className="flex items-center gap-1 text-neutral-500">
-                            <Clock className="w-3 h-3" />
-                            <span className="text-xs">5 min</span>
-                        </div>
-                    </div>
-
-                    <h3 className="text-lg font-black text-white mb-2">
-                        Identifier une Fuite
-                    </h3>
-
-                    <p className="text-sm text-neutral-400 leading-relaxed">
-                        Repère une dépense récurrente que tu pourrais éliminer ou réduire.
-                    </p>
-                </div>
-
-                {/* Card Stats */}
-                <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                            <Target className="w-4 h-4 text-[#E2FF00]" />
-                            <span className="text-xs text-neutral-400">Difficulté</span>
-                            <span className="text-xs font-bold text-white">Facile</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#E2FF00]" />
-                        <span className="text-xs font-bold text-[#E2FF00]">+250 XP</span>
-                    </div>
-                </div>
-
-                {/* Validate Button */}
-                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 -mx-6">
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={onValidate}
-                        disabled={isValidating || isValidated}
-                        className={`
-              w-full py-4 rounded-xl font-bold font-sans
-              flex items-center justify-center gap-2 transition-all border-[3px]
-              ${isValidated
-                                ? 'bg-emerald-500 text-white border-black'
-                                : 'bg-volt text-black border-black shadow-volt-glow-strong'
-                            }
-            `}
-                    >
-                        {isValidated ? (
-                            <>
-                                <Check className="w-5 h-5" />
-                                MISSION VALIDÉE
-                            </>
-                        ) : (
-                            <>
-                                <Play className="w-5 h-5" fill="currentColor" />
-                                VALIDER
-                            </>
-                        )}
-                    </motion.button>
-                </div>
-            </div>
-
-            {/* Particles explosion */}
-            <GoldenParticles isActive={isValidating} />
-        </motion.div>
-    );
-};
-
 const GameplayScreen = ({ onNext }) => {
-    const [isValidating, setIsValidating] = useState(false);
-    const [isValidated, setIsValidated] = useState(false);
-    const [showReward, setShowReward] = useState(false);
-
-    const handleValidate = () => {
-        if (isValidating || isValidated) return;
-
-        haptic.heavy();
-        setIsValidating(true);
-
-        // Trigger explosion
-        setTimeout(() => {
-            setIsValidating(false);
-            setIsValidated(true);
-            setShowReward(true);
-            haptic.success();
-        }, 600);
-    };
-
     const handleContinue = () => {
-        haptic.medium();
+        haptic.heavy();
         onNext();
     };
 
     return (
         <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
-            {/* Subtle background gradient */}
+            {/* Background gradient renforcé */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    background: 'radial-gradient(ellipse at 50% 40%, rgba(226, 255, 0, 0.03) 0%, transparent 60%)',
+                    background: 'radial-gradient(ellipse at 50% 40%, rgba(226, 255, 0, 0.08) 0%, transparent 60%)',
                 }}
             />
 
             {/* Content */}
             <div className="relative z-10 flex-1 flex flex-col px-6 py-12 pb-24">
 
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-8"
-                >
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-[#E2FF00] font-mono text-xs tracking-[0.3em] mb-3"
-                    >
-                        LA MÉTHODE
-                    </motion.p>
-                    <motion.h1
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-3xl md:text-4xl font-black text-white tracking-tight"
-                    >
+                {/* Header - Statique */}
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-4">
                         DES MISSIONS, PAS DES TABLEURS.
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-neutral-500 mt-3 text-sm max-w-xs mx-auto"
-                    >
-                        Progressez mission par mission. Gagnez de l'XP, montez en grade et débloquez votre liberté financière,
-                        <span className="text-white font-medium"> 5 minutes à la fois</span>.
-                    </motion.p>
-                </motion.div>
-
-                {/* Mission Card */}
-                <div className="flex-1 flex flex-col justify-center items-center">
-                    <MissionCard
-                        onValidate={handleValidate}
-                        isValidating={isValidating}
-                        isValidated={isValidated}
-                    />
-
-                    {/* XP Reward reveal */}
-                    <div className="mt-8 h-24 flex items-center justify-center">
-                        <XPReward isVisible={showReward} />
-                    </div>
+                    </h1>
+                    <p className="text-neutral-400 mt-3 text-sm max-w-md mx-auto leading-relaxed">
+                        Gagnez de l'XP à chaque euro économisé. Transformez votre gestion en jeu de stratégie.
+                    </p>
                 </div>
 
-                {/* CTA Button - appears after validation */}
-                <AnimatePresence>
-                    {showReward && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            transition={{ delay: 0.8, type: 'spring', stiffness: 400, damping: 25 }}
-                            className="w-full mt-4"
+                {/* Mission Card - Version "Grand Chelem" */}
+                <div className="flex-1 flex flex-col justify-center items-center">
+                    <MissionCard />
+                </div>
+
+                {/* CTA Button - Statique */}
+                <div className="w-full mt-8">
+                    <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 -mx-6">
+                        <button
+                            onClick={handleContinue}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all active:scale-[0.97]"
                         >
-                            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 -mx-6">
-                                <motion.button
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={handleContinue}
-                                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
-                                >
-                                    COMMENCER L'AVENTURE
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            CRÉER MON PROFIL AGENT
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Progress indicator */}
