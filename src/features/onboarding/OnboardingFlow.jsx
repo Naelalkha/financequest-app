@@ -1,13 +1,12 @@
 /**
  * 🎮 OnboardingFlow - Main Onboarding Orchestrator
  * 
- * Manages the flow through all 5 onboarding screens + transition:
- * 1. InitScreen - "SYSTEM ONLINE" (Hook)
- * 2. StrategyCalibrationScreen - "CHOISIS TON VECTEUR" (Strategic archetype)
- * 3. ImpactProjectionScreen - "POTENTIEL DÉVERROUILLÉ" (Triple Impact)
- * 4. RanksScreen - "MONTE EN GRADE" (Gamification promise)
- * 5. NotificationsScreen - "CANAL SÉCURISÉ" (Permissions)
- * 6. TransitionScreen - Warp animation to Dashboard
+ * "Briefing Stratégique" format - 3 screens + notifications:
+ * 1. InitScreen - "LA PROMESSE" (L'Identité)
+ * 2. FourPillarsScreen - "LA STRATÉGIE" (Les 4 Piliers)
+ * 3. GameplayScreen - "LE GAMEPLAY" (La Méthode)
+ * 4. NotificationsScreen - "CANAL SÉCURISÉ" (Configuration)
+ * 5. TransitionScreen - Warp animation to Dashboard
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -17,9 +16,8 @@ import { useBackground } from '../../contexts/BackgroundContext';
 import { onboardingStore, ONBOARDING_STEPS } from './onboardingStore';
 import {
   InitScreen,
-  StrategyCalibrationScreen,
-  ImpactProjectionScreen,
-  RanksScreen,
+  FourPillarsScreen,
+  GameplayScreen,
   NotificationsScreen,
   TransitionScreen,
 } from './screens';
@@ -107,14 +105,11 @@ const OnboardingFlow = () => {
       case ONBOARDING_STEPS.INIT:
         return <InitScreen onNext={handleNext} />;
 
-      case ONBOARDING_STEPS.STRATEGY_CALIBRATION:
-        return <StrategyCalibrationScreen onNext={handleNext} />;
+      case ONBOARDING_STEPS.FOUR_PILLARS:
+        return <FourPillarsScreen onNext={handleNext} />;
 
-      case ONBOARDING_STEPS.IMPACT_PROJECTION:
-        return <ImpactProjectionScreen onNext={handleNext} />;
-
-      case ONBOARDING_STEPS.RANKS:
-        return <RanksScreen onNext={handleNext} />;
+      case ONBOARDING_STEPS.GAMEPLAY:
+        return <GameplayScreen onNext={handleNext} />;
 
       case ONBOARDING_STEPS.NOTIFICATIONS:
         return <NotificationsScreen onComplete={handleNotificationsComplete} />;

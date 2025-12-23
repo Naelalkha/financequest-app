@@ -7,21 +7,19 @@
 const ONBOARDING_KEY = 'moniyo-onboarding';
 const ONBOARDING_DATA_KEY = 'moniyo-onboarding-data';
 
-// Onboarding steps
+// Onboarding steps - "Briefing Stratégique" format
 export const ONBOARDING_STEPS = {
-  INIT: 'init',                           // Écran 1: SYSTEM ONLINE
-  STRATEGY_CALIBRATION: 'strategy',       // Écran 2: CHOISIS TON VECTEUR
-  IMPACT_PROJECTION: 'impact',            // Écran 3: POTENTIEL DÉVERROUILLÉ
-  RANKS: 'ranks',                         // Écran 4: MONTE EN GRADE
-  NOTIFICATIONS: 'notifications',         // Écran 5: CANAL SÉCURISÉ
+  INIT: 'init',                           // Écran 1: LA PROMESSE
+  FOUR_PILLARS: 'pillars',                // Écran 2: LA STRATÉGIE (4 Piliers)
+  GAMEPLAY: 'gameplay',                   // Écran 3: LE GAMEPLAY
+  NOTIFICATIONS: 'notifications',         // Écran 4: CANAL SÉCURISÉ
   COMPLETED: 'completed'
 };
 
 const STEP_ORDER = [
   ONBOARDING_STEPS.INIT,
-  ONBOARDING_STEPS.STRATEGY_CALIBRATION,
-  ONBOARDING_STEPS.IMPACT_PROJECTION,
-  ONBOARDING_STEPS.RANKS,
+  ONBOARDING_STEPS.FOUR_PILLARS,
+  ONBOARDING_STEPS.GAMEPLAY,
   ONBOARDING_STEPS.NOTIFICATIONS,
   ONBOARDING_STEPS.COMPLETED
 ];

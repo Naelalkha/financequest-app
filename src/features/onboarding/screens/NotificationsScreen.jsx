@@ -169,7 +169,7 @@ const NotificationsScreen = ({ onComplete }) => {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col px-6 py-12">
+      <div className="relative z-10 flex-1 flex flex-col px-6 py-12 pb-24">
 
         {/* Header */}
         <motion.div
@@ -243,43 +243,53 @@ const NotificationsScreen = ({ onComplete }) => {
         </motion.div>
 
         {/* Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.4 }}
-          className="mt-8 space-y-3 max-w-sm mx-auto w-full"
-        >
-          {/* Main CTA */}
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={requestNotificationPermission}
-            disabled={isRequesting}
-            className={`
-              w-full bg-[#E2FF00] text-black font-black py-4 px-8 rounded-xl 
-              shadow-[0_0_30px_rgba(226,255,0,0.3)] 
-              hover:shadow-[0_0_50px_rgba(226,255,0,0.5)]
-              active:scale-[0.98] transition-all duration-200
-              uppercase tracking-wider text-base flex items-center justify-center gap-3
-              ${isRequesting ? 'opacity-70' : ''}
-            `}
+        <div className="w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.4, type: 'spring', stiffness: 400, damping: 25 }}
+            className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 -mx-6 mt-8"
           >
-            <Bell className="w-5 h-5" />
-            {isRequesting ? 'ACTIVATION...' : 'ACTIVER LES NOTIFICATIONS'}
-          </motion.button>
+            {/* Main CTA */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={requestNotificationPermission}
+              disabled={isRequesting}
+              className={`
+                w-full bg-volt text-black font-bold font-sans py-4 rounded-xl 
+                flex items-center justify-center gap-2 shadow-volt-glow-strong 
+                border-[3px] border-black transition-all
+                ${isRequesting ? 'opacity-70' : ''}
+              `}
+            >
+              <Bell className="w-5 h-5" />
+              {isRequesting ? 'ACTIVATION...' : 'ACTIVER LES NOTIFICATIONS'}
+            </motion.button>
+          </motion.div>
 
           {/* Skip button */}
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={handleSkip}
-            disabled={isRequesting}
-            className="w-full py-3 px-8 rounded-xl font-bold text-sm uppercase tracking-wide
-                       text-neutral-500 hover:text-neutral-300 transition-colors
-                       flex items-center justify-center gap-2"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="px-6 pb-4"
           >
-            <BellOff className="w-4 h-4" />
-            Pas pour l'instant
-          </motion.button>
-        </motion.div>
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSkip}
+              disabled={isRequesting}
+              className="w-full py-3 px-8 rounded-xl font-bold text-sm uppercase tracking-wide
+                         text-neutral-500 hover:text-neutral-300 transition-colors
+                         flex items-center justify-center gap-2"
+            >
+              <BellOff className="w-4 h-4" />
+              Pas pour l'instant
+            </motion.button>
+          </motion.div>
+        </div>
 
         {/* Permission status feedback */}
         <AnimatePresence>
