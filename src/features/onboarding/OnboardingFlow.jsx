@@ -1,12 +1,10 @@
 /**
  * 🎮 OnboardingFlow - Main Onboarding Orchestrator
  * 
- * "Briefing Stratégique" format - 3 screens + notifications:
- * 1. InitScreen - "LA PROMESSE" (L'Identité)
- * 2. FourPillarsScreen - "LA STRATÉGIE" (Les 4 Piliers)
- * 3. GameplayScreen - "LE GAMEPLAY" (La Méthode)
- * 4. NotificationsScreen - "CANAL SÉCURISÉ" (Configuration)
- * 5. TransitionScreen - Warp animation to Dashboard
+ * New "Hook & Choose" format - 2 screens:
+ * 1. ScanScreen - "LE SCAN" (Hook émotionnel)
+ * 2. PainPointScreen - "LE CHOIX" (Personnalisation)
+ * → Then navigate to Dashboard with spotlight
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,11 +13,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { onboardingStore, ONBOARDING_STEPS } from './onboardingStore';
 import {
-  InitScreen,
-  FourPillarsScreen,
-  GameplayScreen,
-  NotificationsScreen,
-  TransitionScreen,
+  ScanScreen,
+  PainPointScreen,
 } from './screens';
 
 // Screen transition variants
@@ -40,17 +35,15 @@ const screenVariants = {
 
 const OnboardingFlow = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(ONBOARDING_STEPS.INIT);
+  const [currentStep, setCurrentStep] = useState(ONBOARDING_STEPS.SCAN);
   const [direction, setDirection] = useState(1);
-  const [showTransition, setShowTransition] = useState(false);
 
-  // Use background context to set theme (Macro + Blur)
+  // Use background context to set theme
   const { setBackgroundMode } = useBackground();
 
   useEffect(() => {
-    // Use same macro background as dashboard, but with subtle blur for smooth transition
+    // Use macro background with subtle blur
     setBackgroundMode('macro', { blur: true, blurAmount: 2 });
-    // Reset when leaving onboarding (Dashboard will set it to macro without blur)
     return () => setBackgroundMode('macro');
   }, [setBackgroundMode]);
 
@@ -71,55 +64,43 @@ const OnboardingFlow = () => {
   const handleNext = useCallback(() => {
     setDirection(1);
     const state = onboardingStore.nextStep();
+
+    // If completed, navigate to dashboard with firstRun flag
+    if (state.currentStep === ONBOARDING_STEPS.COMPLETED) {
+      onboardingStore.completeOnboarding();
+      navigate('/dashboard?firstRun=true', { replace: true });
+      return;
+    }
+
     setCurrentStep(state.currentStep);
-  }, []);
+  }, [navigate]);
 
-  // Handle onboarding completion
-  const handleComplete = useCallback(() => {
-    // Mark as completed
+  // Handle skipping onboarding
+  const handleSkip = useCallback(() => {
+    // Mark as completed and go to dashboard without spotlight
     onboardingStore.completeOnboarding();
-
-    // Show transition screen
-    setShowTransition(true);
-  }, []);
-
-  // Handle transition complete - navigate to dashboard
-  const handleTransitionComplete = useCallback(() => {
     navigate('/dashboard', { replace: true });
   }, [navigate]);
 
-  // Handle notifications step completion (final step before completion)
-  const handleNotificationsComplete = useCallback((notificationsEnabled) => {
-    onboardingStore.setNotificationsEnabled(notificationsEnabled);
-    handleComplete();
-  }, [handleComplete]);
+  // Handle pain point selection
+  const handlePainPointSelect = useCallback((option) => {
+    // PainPointScreen already saved the selection via onboardingStore
+    // Now complete onboarding and go to dashboard with spotlight
+    onboardingStore.completeOnboarding();
+    navigate('/dashboard?firstRun=true', { replace: true });
+  }, [navigate]);
 
   // Render current screen based on step
   const renderScreen = () => {
-    // If showing transition, render that instead
-    if (showTransition) {
-      return <TransitionScreen onComplete={handleTransitionComplete} />;
-    }
-
     switch (currentStep) {
-      case ONBOARDING_STEPS.INIT:
-        return <InitScreen onNext={handleNext} />;
+      case ONBOARDING_STEPS.SCAN:
+        return <ScanScreen onNext={handleNext} onSkip={handleSkip} />;
 
-      case ONBOARDING_STEPS.FOUR_PILLARS:
-        return <FourPillarsScreen onNext={handleNext} />;
-
-      case ONBOARDING_STEPS.GAMEPLAY:
-        return <GameplayScreen onNext={handleNext} />;
-
-      case ONBOARDING_STEPS.NOTIFICATIONS:
-        return <NotificationsScreen onComplete={handleNotificationsComplete} />;
-
-      case ONBOARDING_STEPS.COMPLETED:
-        // Should have transitioned already, but fallback
-        return <TransitionScreen onComplete={handleTransitionComplete} />;
+      case ONBOARDING_STEPS.PAIN_POINT:
+        return <PainPointScreen onNext={handlePainPointSelect} onSkip={handleSkip} />;
 
       default:
-        return <InitScreen onNext={handleNext} />;
+        return <ScanScreen onNext={handleNext} onSkip={handleSkip} />;
     }
   };
 
@@ -127,7 +108,7 @@ const OnboardingFlow = () => {
     <div className="fixed inset-0 bg-transparent overflow-hidden">
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
-          key={showTransition ? 'transition' : currentStep}
+          key={currentStep}
           custom={direction}
           variants={screenVariants}
           initial="enter"

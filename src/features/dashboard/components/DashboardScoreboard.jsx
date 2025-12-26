@@ -45,11 +45,11 @@ const RollingCounter = ({ value, currency }) => {
     );
 };
 
-const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest }) => {
+const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, buttonRef, containerRef }) => {
     const { t } = useTranslation('dashboard');
 
     return (
-        <section className="px-6 pt-4 pb-12 relative z-20 animate-slide-up">
+        <section ref={containerRef} className="px-6 pt-4 pb-12 relative z-20 animate-slide-up">
             {/* The Score Card - COMPACT & CLEAN */}
             <div
                 className="relative w-full bg-[#0A0A0A] backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 pt-8 pb-8 flex flex-col items-start justify-center overflow-hidden active:scale-[0.98] transition-transform"
@@ -86,6 +86,7 @@ const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest }) =
             {/* Main CTA - Floating Button */}
             <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-full max-w-[70%] z-30">
                 <button
+                    ref={buttonRef}
                     onClick={onStartQuest}
                     className="w-full bg-volt text-black font-sans font-bold text-lg py-4 rounded-xl shadow-volt-glow-strong flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden active:scale-95 transition-transform duration-75"
                 >

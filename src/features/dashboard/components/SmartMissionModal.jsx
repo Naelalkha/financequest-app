@@ -71,7 +71,7 @@ const QuestIcon = ({ quest, questColor }) => {
   );
 };
 
-const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }) => {
+const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, hideReroll = false }) => {
   const { t } = useTranslation('dashboard');
   const [rerolledQuest, setRerolledQuest] = useState(null);
   const [isRerolling, setIsRerolling] = useState(false);
@@ -193,20 +193,22 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest }
               )}
             </AnimatePresence>
 
-            <div className="w-full flex gap-3 items-center">
-              <button
-                onClick={handleReroll}
-                disabled={isRerolling || isAccepting}
-                className="w-14 h-14 flex-shrink-0 rounded-full bg-transparent border-2 border-white/20 text-gray-400 active:border-volt active:text-volt active:bg-volt/5 transition-colors flex items-center justify-center disabled:opacity-50"
-                aria-label={t('rerollMission')}
-              >
-                <motion.div
-                  animate={{ rotate: rotation }}
-                  transition={rotation === 0 ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
+            <div className={`w-full flex gap-3 items-center ${hideReroll ? 'justify-center' : ''}`}>
+              {!hideReroll && (
+                <button
+                  onClick={handleReroll}
+                  disabled={isRerolling || isAccepting}
+                  className="w-14 h-14 flex-shrink-0 rounded-full bg-transparent border-2 border-white/20 text-gray-400 active:border-volt active:text-volt active:bg-volt/5 transition-colors flex items-center justify-center disabled:opacity-50"
+                  aria-label={t('rerollMission')}
                 >
-                  <Shuffle className="w-6 h-6" />
-                </motion.div>
-              </button>
+                  <motion.div
+                    animate={{ rotate: rotation }}
+                    transition={rotation === 0 ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
+                  >
+                    <Shuffle className="w-6 h-6" />
+                  </motion.div>
+                </button>
+              )}
               <button
                 onClick={handleAccept}
                 disabled={isAccepting}

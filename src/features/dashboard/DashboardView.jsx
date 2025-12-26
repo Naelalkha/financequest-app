@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
@@ -23,10 +23,12 @@ import DashboardDailyChallenge from './components/DashboardDailyChallenge';
 import CategoryGrid from './components/CategoryGrid';
 import SmartMissionModal from './components/SmartMissionModal';
 import QuestDetailsModal from './components/QuestDetailsModal';
-import FirstRunMissionModal, { hasShownFirstRun } from './components/FirstRunMissionModal';
+import { markFirstRunShown } from './components/FirstRunMissionModal';
+import SpotlightOverlay from './components/SpotlightOverlay';
 import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
 import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
 import { SaveProgressBanner } from '../../components/ui';
+import { onboardingStore } from '../onboarding/onboardingStore';
 
 
 /**
@@ -38,6 +40,11 @@ const DashboardView = () => {
     const { setBackgroundMode } = useBackground();
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Refs for spotlight targets (Impact card + button)
+    const missionButtonRef = useRef(null);
+    const scoreboardContainerRef = useRef(null);
 
     // State for Firestore data
     const [userData, setUserData] = useState(null);
@@ -56,8 +63,11 @@ const DashboardView = () => {
     const [showQuestDetails, setShowQuestDetails] = useState(false);
     const [selectedQuest, setSelectedQuest] = useState(null);
 
-    // First Run Modal State (shown after onboarding)
-    const [showFirstRunModal, setShowFirstRunModal] = useState(false);
+    // Spotlight overlay state (shown after new onboarding)
+    const [showSpotlight, setShowSpotlight] = useState(false);
+
+    // Track if this is the first run mission (to hide reroll button)
+    const [isFirstRunMission, setIsFirstRunMission] = useState(false);
 
     // Local impact override for optimistic updates
     const [localImpactBoost, setLocalImpactBoost] = useState(0);
@@ -150,20 +160,47 @@ const DashboardView = () => {
         achievedAt: new Date()
     }));
 
-    // Effects
+    // Track if we've already processed firstRun to prevent race conditions
+    const hasProcessedFirstRun = useRef(false);
+    const [shouldTriggerSpotlight, setShouldTriggerSpotlight] = useState(false);
+
+    // Effect for dashboard init (no spotlight logic here)
     useEffect(() => {
         trackEvent('dashboard_viewed');
         setBackgroundMode('macro');
-
-        // Show first run modal if not shown before
-        if (!hasShownFirstRun()) {
-            // Small delay to let dashboard render first
-            const timer = setTimeout(() => {
-                setShowFirstRunModal(true);
-            }, 800);
-            return () => clearTimeout(timer);
-        }
     }, [setBackgroundMode]);
+
+    // Check firstRun on mount and set trigger
+    useEffect(() => {
+        const isFirstRun = searchParams.get('firstRun') === 'true';
+        console.log('🎯 Dashboard - firstRun check:', isFirstRun, 'hasProcessed:', hasProcessedFirstRun.current);
+
+        if (isFirstRun && !hasProcessedFirstRun.current) {
+            hasProcessedFirstRun.current = true;
+            markFirstRunShown();
+
+            // Clean URL
+            searchParams.delete('firstRun');
+            setSearchParams(searchParams, { replace: true });
+
+            // Trigger spotlight via state (survives StrictMode)
+            setShouldTriggerSpotlight(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Separate effect to show spotlight with delay (triggered by state change)
+    useEffect(() => {
+        if (!shouldTriggerSpotlight) return;
+
+        console.log('🎯 Spotlight trigger activated, waiting 700ms...');
+        const timer = setTimeout(() => {
+            console.log('🎯 Showing spotlight NOW, refs ready:', !!scoreboardContainerRef.current, !!missionButtonRef.current);
+            setShowSpotlight(true);
+        }, 700);
+
+        return () => clearTimeout(timer);
+    }, [shouldTriggerSpotlight]);
 
     // Handlers
     const handleStartQuest = () => {
@@ -352,6 +389,8 @@ const DashboardView = () => {
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
                         onStartQuest={handleStartQuest}
+                        buttonRef={missionButtonRef}
+                        containerRef={scoreboardContainerRef}
                     />
                 </div>
 
@@ -389,13 +428,17 @@ const DashboardView = () => {
 
             </div>
 
-            {/* SmartMission Modal */}
+            {/* SmartMission Modal (Briefing Mission) */}
             <SmartMissionModal
                 isOpen={showSmartMission}
-                onClose={() => setShowSmartMission(false)}
+                onClose={() => {
+                    setShowSmartMission(false);
+                    setIsFirstRunMission(false);
+                }}
                 onAccept={handleAcceptQuest}
                 onReroll={handleRerollQuest}
                 initialQuest={recommendedQuest}
+                hideReroll={isFirstRunMission}
             />
 
             {/* QuestDetails Modal (3-step flow) */}
@@ -466,20 +509,36 @@ const DashboardView = () => {
                 )}
             </AnimatePresence>
 
-            {/* First Run Mission Modal (shown once after onboarding) */}
-            <FirstRunMissionModal
-                isOpen={showFirstRunModal}
-                onClose={() => setShowFirstRunModal(false)}
-                onStartMission={() => {
-                    setShowFirstRunModal(false);
-                    // Start the recommended first mission (micro-expenses / Traque Invisible)
-                    const microExpensesQuest = (quests || []).find(q => q.id === 'micro-expenses');
-                    if (microExpensesQuest) {
-                        setSelectedQuest(microExpensesQuest);
-                        setShowQuestDetails(true);
+            {/* Note: FirstRunMissionModal (legacy) has been replaced by SpotlightOverlay + SmartMissionModal flow */}
+
+            {/* Spotlight Overlay (shown after new onboarding) */}
+            <SpotlightOverlay
+                isVisible={showSpotlight}
+                targetRef={scoreboardContainerRef}
+                buttonRef={missionButtonRef}
+                onDismiss={() => {
+                    setShowSpotlight(false);
+                    markFirstRunShown();
+                }}
+                onSpotlightClick={() => {
+                    setShowSpotlight(false);
+                    markFirstRunShown();
+                    // Get the mission based on pain point selection and open briefing modal
+                    const selectedMissionId = onboardingStore.getSelectedMissionId();
+                    const targetQuest = (quests || []).find(q => q.id === selectedMissionId);
+                    if (targetQuest) {
+                        // Open the SmartMissionModal with the selected quest (no reroll for first run)
+                        setRecommendedQuest(targetQuest);
+                        setIsFirstRunMission(true);
+                        setShowSmartMission(true);
                     } else {
-                        // Fallback to SmartMission if micro-expenses not found
-                        handleStartQuest();
+                        // Fallback to micro-expenses
+                        const fallbackQuest = (quests || []).find(q => q.id === 'micro-expenses');
+                        if (fallbackQuest) {
+                            setRecommendedQuest(fallbackQuest);
+                            setIsFirstRunMission(true);
+                            setShowSmartMission(true);
+                        }
                     }
                 }}
             />

@@ -1,26 +1,35 @@
 /**
- * 🎯 Onboarding Store - Enhanced
+ * 🎯 Onboarding Store - Refactored for new flow
  * Manages onboarding state, steps, and user preferences
  * Persists to localStorage for anonymous users
+ * 
+ * New Flow:
+ * 1. SCAN - Hook émotionnel avec stats animées
+ * 2. PAIN_POINT - Choix du problème principal
+ * 3. COMPLETED - Dashboard avec spotlight
  */
 
 const ONBOARDING_KEY = 'moniyo-onboarding';
 const ONBOARDING_DATA_KEY = 'moniyo-onboarding-data';
 
-// Onboarding steps - "Briefing Stratégique" format
+// Onboarding steps - New "Hook & Choose" format
 export const ONBOARDING_STEPS = {
-  INIT: 'init',                           // Écran 1: LA PROMESSE
-  FOUR_PILLARS: 'pillars',                // Écran 2: LA STRATÉGIE (4 Piliers)
-  GAMEPLAY: 'gameplay',                   // Écran 3: LE GAMEPLAY
-  NOTIFICATIONS: 'notifications',         // Écran 4: CANAL SÉCURISÉ
+  SCAN: 'scan',                           // Écran 1: LE SCAN (hook émotionnel)
+  PAIN_POINT: 'pain-point',               // Écran 2: CHOIX DU PAIN POINT
   COMPLETED: 'completed'
 };
 
+// Pain point options mapping to quests
+export const PAIN_POINT_MISSIONS = {
+  subscriptions: 'cut-subscription',      // LA PURGE
+  micro: 'micro-expenses',                // DÉTOX EXPRESS
+  contracts: 'micro-expenses',            // RENÉGOCIATION (fallback)
+  unknown: 'micro-expenses',              // LE DIAGNOSTIC (fallback)
+};
+
 const STEP_ORDER = [
-  ONBOARDING_STEPS.INIT,
-  ONBOARDING_STEPS.FOUR_PILLARS,
-  ONBOARDING_STEPS.GAMEPLAY,
-  ONBOARDING_STEPS.NOTIFICATIONS,
+  ONBOARDING_STEPS.SCAN,
+  ONBOARDING_STEPS.PAIN_POINT,
   ONBOARDING_STEPS.COMPLETED
 ];
 
@@ -28,14 +37,14 @@ const STEP_ORDER = [
  * Get default onboarding state
  */
 const getDefaultState = () => ({
-  currentStep: ONBOARDING_STEPS.INIT,
+  currentStep: ONBOARDING_STEPS.SCAN,
   stepIndex: 0,
   completed: false,
   startedAt: null,
   completedAt: null,
   notificationsEnabled: false,
-  selectedStrategyId: null,  // 'defense' | 'offense' | 'expansion'
-  agentCallsign: null,
+  selectedPainPoint: null,  // 'subscriptions' | 'micro' | 'contracts' | 'unknown'
+  selectedMissionId: null,  // Quest ID based on pain point
 });
 
 /**
@@ -194,27 +203,31 @@ export const onboardingStore = {
   },
 
   /**
-   * Set selected strategic archetype
+   * Set selected pain point and corresponding mission
    */
-  setSelectedStrategy: (strategyId) => {
+  setSelectedPainPoint: (painPoint) => {
+    const missionId = PAIN_POINT_MISSIONS[painPoint] || 'micro-expenses';
     currentState = {
       ...currentState,
-      selectedStrategyId: strategyId,
+      selectedPainPoint: painPoint,
+      selectedMissionId: missionId,
     };
     saveState(currentState);
     return currentState;
   },
 
   /**
-   * Set agent callsign
+   * Get selected mission ID based on pain point
    */
-  setAgentCallsign: (callsign) => {
-    currentState = {
-      ...currentState,
-      agentCallsign: callsign,
-    };
-    saveState(currentState);
-    return currentState;
+  getSelectedMissionId: () => {
+    return currentState.selectedMissionId || 'micro-expenses';
+  },
+
+  /**
+   * Get selected pain point
+   */
+  getSelectedPainPoint: () => {
+    return currentState.selectedPainPoint;
   },
 
   /**
@@ -240,7 +253,7 @@ export const onboardingStore = {
    * Check if on last step before completion
    */
   isLastStep: () => {
-    return currentState.currentStep === ONBOARDING_STEPS.NOTIFICATIONS;
+    return currentState.currentStep === ONBOARDING_STEPS.PAIN_POINT;
   },
 };
 
