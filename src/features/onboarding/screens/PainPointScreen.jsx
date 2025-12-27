@@ -67,8 +67,16 @@ const OptionCard = ({ option, isSelected, onSelect, index }) => {
             }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(option)}
+            style={{
+                // Force GPU acceleration to prevent iOS Safari flickering
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+            }}
             className={`
-                w-full rounded-2xl border transition-all text-left
+                w-full rounded-2xl border text-left
+                transition-colors transition-shadow duration-200
                 ${isSelected
                     ? 'bg-neutral-900 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
                     : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
