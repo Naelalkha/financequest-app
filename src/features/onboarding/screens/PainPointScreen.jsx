@@ -30,7 +30,7 @@ const PAIN_POINTS = [
         id: 'micro',
         icon: Coffee,
         title: 'Des petits plaisirs quotidiens',
-        subtitle: 'Café, clopes, Uber Eats, snacks...',
+        subtitle: 'Café, vape, uber eats, snacks...',
         missionId: 'micro-expenses',
         missionName: 'DÉTOX EXPRESS',
     },
@@ -92,7 +92,7 @@ const OptionCard = ({ option, isSelected, onSelect, index }) => {
                     <h3 className={`font-sans font-bold text-sm leading-tight mb-1 ${isSelected ? 'text-volt' : 'text-white'}`}>
                         {option.title}
                     </h3>
-                    <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide truncate">
+                    <p className="font-mono text-[10px] text-neutral-400 uppercase tracking-wide truncate">
                         {option.subtitle}
                     </p>
                 </div>
@@ -119,12 +119,12 @@ const PainPointScreen = ({ onNext, onSkip }) => {
         onboardingStore.setSelectedPainPoint(option.id);
 
         setIsTransitioning(true);
-        
+
         // Fade to black d'abord
         setTimeout(() => {
             setIsFadingOut(true);
         }, 300);
-        
+
         // Puis naviguer
         setTimeout(() => {
             haptic.heavy();
@@ -164,7 +164,7 @@ const PainPointScreen = ({ onNext, onSkip }) => {
 
             {/* Main content */}
             <div className="relative z-10 w-full max-w-sm flex-1 flex flex-col items-center justify-center">
-                
+
                 {/* Logo - appears on Screen 2 */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}

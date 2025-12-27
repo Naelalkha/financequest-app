@@ -115,6 +115,20 @@
   animation: glow 2s ease-in-out infinite;
 }
 
+/* Animation de glow pulsant pour le texte (shadow only, text stays fixed) */
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(226, 255, 0, 0.3), 0 0 20px rgba(226, 255, 0, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(226, 255, 0, 0.6), 0 0 40px rgba(226, 255, 0, 0.4), 0 0 60px rgba(226, 255, 0, 0.2);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
 /* Animation de confetti pour le succès */
 @keyframes confetti {
   0% {

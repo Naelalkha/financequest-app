@@ -97,11 +97,11 @@ const IntelCard = ({ item, isActive, index }) => {
     const isActiveCard = isActive;
 
     return (
-        <div 
+        <div
             className={`
                 flex items-center justify-between rounded-2xl border transition-all duration-300
-                ${isActiveCard 
-                    ? 'bg-neutral-900 border-neutral-800 opacity-100' 
+                ${isActiveCard
+                    ? 'bg-neutral-900 border-neutral-800 opacity-100'
                     : 'bg-neutral-900 border-neutral-800 opacity-[0.15]'
                 }
             `}
@@ -110,8 +110,8 @@ const IntelCard = ({ item, isActive, index }) => {
                 {/* Icon container */}
                 <div className={`
                     w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors
-                    ${isActiveCard 
-                        ? 'bg-neutral-800 text-white' 
+                    ${isActiveCard
+                        ? 'bg-neutral-800 text-white'
                         : 'bg-neutral-800/20 text-neutral-700'
                     }
                 `}>
@@ -124,7 +124,7 @@ const IntelCard = ({ item, isActive, index }) => {
                         {item.title}
                     </h4>
                     <div className={`transition-all duration-500 origin-left ${isActiveCard ? 'opacity-100' : 'opacity-50'}`}>
-                        <p className="font-mono text-[10px] text-neutral-500 font-black uppercase tracking-wide">
+                        <p className="font-mono text-[10px] text-neutral-400 font-normal uppercase tracking-wide">
                             {item.stat}
                         </p>
                     </div>
@@ -197,7 +197,7 @@ const ScanScreen = ({ onNext, onSkip }) => {
 
             {/* Header Pass */}
             <div className="w-full flex justify-end relative z-10 pb-2">
-                <button 
+                <button
                     onClick={handleSkip}
                     className="text-neutral-600 font-mono text-[10px] uppercase tracking-widest hover:text-white transition-colors pr-2"
                 >
@@ -230,10 +230,10 @@ const ScanScreen = ({ onNext, onSkip }) => {
 
                 {/* Total Area Impact */}
                 <div className={`text-center transition-all duration-700 w-full ${activeItems >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                    <div className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.3em] mb-2">
+                    <div className="font-mono text-[10px] text-neutral-300 uppercase tracking-[0.3em] mb-2">
                         EN MOYENNE, ÇA REPRÉSENTE
                     </div>
-                    <h2 className="text-6xl font-black text-volt tracking-tighter mb-2 text-glow-volt animate-pulse">
+                    <h2 className="text-6xl font-black text-volt tracking-tighter mb-2 animate-glow-pulse">
                         {activeItems >= 4 ? (
                             <>
                                 <AnimatedCounter value={TOTAL_ANNUAL} duration={0.3} instant={false} />
@@ -246,7 +246,7 @@ const ScanScreen = ({ onNext, onSkip }) => {
                     <div className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.1em] mb-8">
                         d'argent récupérable
                     </div>
-                    
+
                     {/* Pivot */}
                     <h3 className="font-sans font-black text-xl text-white mb-8 italic">
                         Et toi, combien tu perds ?
@@ -266,9 +266,9 @@ const ScanScreen = ({ onNext, onSkip }) => {
                     >
                         <motion.button
                             initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ 
-                                opacity: 1, 
-                                scale: shouldPulse ? [1, 1.02, 1] : 1 
+                            animate={{
+                                opacity: 1,
+                                scale: shouldPulse ? [1, 1.02, 1] : 1
                             }}
                             transition={{
                                 type: 'spring',
