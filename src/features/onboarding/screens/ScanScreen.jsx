@@ -193,7 +193,7 @@ const ScanScreen = ({ onNext, onSkip }) => {
     return (
         <div className="fixed inset-0 z-[500] bg-transparent flex flex-col items-center p-6 overflow-hidden">
             {/* Background Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] z-0 opacity-40"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] z-0 opacity-50"></div>
 
             {/* Header Pass */}
             <div className="w-full flex justify-end relative z-10 pb-2">

@@ -262,7 +262,7 @@ const MicroExpensesFlow = ({
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
-                                        className="overflow-hidden h-full"
+                                        className="h-full"
                                     >
                                         <motion.h2
                                             initial={{ y: '100%' }}

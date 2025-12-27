@@ -42,8 +42,8 @@ const OnboardingFlow = () => {
   const { setBackgroundMode } = useBackground();
 
   useEffect(() => {
-    // Use macro background with subtle blur
-    setBackgroundMode('macro', { blur: true, blurAmount: 2 });
+    // Use macro background with subtle blur and increased pattern opacity for onboarding
+    setBackgroundMode('macro', { blur: true, blurAmount: 1, patternOpacity: 0.1 });
     return () => setBackgroundMode('macro');
   }, [setBackgroundMode]);
 

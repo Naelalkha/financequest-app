@@ -45,8 +45,8 @@ const AppBackground = memo(({
           filter: config?.blur ? `blur(${config.blurAmount || 4}px)` : 'none',
           backgroundImage: `
             radial-gradient(circle at 50% 0%, rgba(26, 33, 0, 0.03) 0%, transparent 70%),
-            repeating-radial-gradient(circle at 0 0, transparent 0, transparent 29px, rgba(255, 255, 255, 0.07) 29px, rgba(255, 255, 255, 0.07) 30px),
-            repeating-radial-gradient(circle at 100% 0, transparent 0, transparent 29px, rgba(255, 255, 255, 0.07) 29px, rgba(255, 255, 255, 0.07) 30px)
+            repeating-radial-gradient(circle at 0 0, transparent 0, transparent 29px, rgba(255, 255, 255, ${config?.patternOpacity || 0.07}) 29px, rgba(255, 255, 255, ${config?.patternOpacity || 0.07}) 30px),
+            repeating-radial-gradient(circle at 100% 0, transparent 0, transparent 29px, rgba(255, 255, 255, ${config?.patternOpacity || 0.07}) 29px, rgba(255, 255, 255, ${config?.patternOpacity || 0.07}) 30px)
           `,
           backgroundAttachment: 'fixed',
           backgroundSize: '100% 100%, 100% 100%, 100% 100%'

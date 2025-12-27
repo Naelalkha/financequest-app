@@ -57,5 +57,9 @@
         "advanced_apprentice": "Advanced Apprentice",
         "ambitious_novice": "Ambitious Novice",
         "motivated_beginner": "Motivated Beginner"
-    }
+    },
+    "systemDetection": "PRIORITY ALERT",
+    "opportunityUnlocked": "NEW OPPORTUNITY",
+    "spotlight": "Click here to discover a personalized mission based on your needs.",
+    "dismissHint": "Tap anywhere to dismiss"
 }

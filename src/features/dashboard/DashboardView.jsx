@@ -28,6 +28,7 @@ import SpotlightOverlay from './components/SpotlightOverlay';
 import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
 import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
 import { SaveProgressBanner } from '../../components/ui';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { onboardingStore } from '../onboarding/onboardingStore';
 
 
@@ -37,6 +38,7 @@ import { onboardingStore } from '../onboarding/onboardingStore';
  */
 const DashboardView = () => {
     const { t, i18n } = useTranslation('dashboard');
+    const { t: tCommon } = useTranslation('common');
     const { setBackgroundMode } = useBackground();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -64,7 +66,16 @@ const DashboardView = () => {
     const [selectedQuest, setSelectedQuest] = useState(null);
 
     // Spotlight overlay state (shown after new onboarding)
-    const [showSpotlight, setShowSpotlight] = useState(false);
+    // Track si le spotlight a été fermé pour éviter toute réactivation
+    const spotlightDismissedRef = useRef(false);
+    
+    // Initialiser showSpotlight directement à true si firstRun est détecté
+    // Ceci évite le clignotement où le dashboard est visible sans overlay
+    // Utiliser une fonction pour calculer la valeur initiale de façon synchrone
+    const [showSpotlight, setShowSpotlight] = useState(() => {
+        const isFirstRun = searchParams.get('firstRun') === 'true';
+        return isFirstRun && !spotlightDismissedRef.current;
+    });
 
     // Track if this is the first run mission (to hide reroll button)
     const [isFirstRunMission, setIsFirstRunMission] = useState(false);
@@ -162,7 +173,6 @@ const DashboardView = () => {
 
     // Track if we've already processed firstRun to prevent race conditions
     const hasProcessedFirstRun = useRef(false);
-    const [shouldTriggerSpotlight, setShouldTriggerSpotlight] = useState(false);
 
     // Effect for dashboard init (no spotlight logic here)
     useEffect(() => {
@@ -170,37 +180,23 @@ const DashboardView = () => {
         setBackgroundMode('macro');
     }, [setBackgroundMode]);
 
-    // Check firstRun on mount and set trigger
+    // Check firstRun on mount and clean URL if needed
+    // Note: showSpotlight est déjà initialisé à true dans useState si firstRun est détecté
     useEffect(() => {
         const isFirstRun = searchParams.get('firstRun') === 'true';
         console.log('🎯 Dashboard - firstRun check:', isFirstRun, 'hasProcessed:', hasProcessedFirstRun.current);
 
-        if (isFirstRun && !hasProcessedFirstRun.current) {
+        if (isFirstRun && !hasProcessedFirstRun.current && !spotlightDismissedRef.current) {
             hasProcessedFirstRun.current = true;
             markFirstRunShown();
 
-            // Clean URL
+            // Clean URL (showSpotlight est déjà true grâce à l'initialisation dans useState)
             searchParams.delete('firstRun');
             setSearchParams(searchParams, { replace: true });
-
-            // Trigger spotlight via state (survives StrictMode)
-            setShouldTriggerSpotlight(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Separate effect to show spotlight with delay (triggered by state change)
-    useEffect(() => {
-        if (!shouldTriggerSpotlight) return;
-
-        console.log('🎯 Spotlight trigger activated, waiting 700ms...');
-        const timer = setTimeout(() => {
-            console.log('🎯 Showing spotlight NOW, refs ready:', !!scoreboardContainerRef.current, !!missionButtonRef.current);
-            setShowSpotlight(true);
-        }, 700);
-
-        return () => clearTimeout(timer);
-    }, [shouldTriggerSpotlight]);
 
     // Handlers
     const handleStartQuest = () => {
@@ -354,12 +350,20 @@ const DashboardView = () => {
         { id: 3, label: 'Bike Commute', time: '2d ago', val: '12€' },
     ];
 
-    if (loading || questsLoading) {
+    // If this is firstRun (from onboarding), bypass loading screen
+    // The spotlight overlay will cover everything anyway
+    const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
+    
+    if ((loading || questsLoading) && !isFirstRun) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E5FF00] mx-auto"></div>
-                    <p className="mt-4 text-gray-400">Loading...</p>
+                    <div className="mb-6 flex items-center justify-center">
+                        <LoadingSpinner size="lg" />
+                    </div>
+                    <p className="text-gray-400 text-lg font-medium">
+                        {tCommon('ui.loading_app') || 'Loading Moniyo...'}
+                    </p>
                 </div>
             </div>
         );
@@ -514,14 +518,15 @@ const DashboardView = () => {
             {/* Spotlight Overlay (shown after new onboarding) */}
             <SpotlightOverlay
                 isVisible={showSpotlight}
-                targetRef={scoreboardContainerRef}
                 buttonRef={missionButtonRef}
                 onDismiss={() => {
                     setShowSpotlight(false);
+                    spotlightDismissedRef.current = true; // Marquer comme fermé pour éviter toute réactivation
                     markFirstRunShown();
                 }}
                 onSpotlightClick={() => {
                     setShowSpotlight(false);
+                    spotlightDismissedRef.current = true; // Marquer comme fermé pour éviter toute réactivation
                     markFirstRunShown();
                     // Get the mission based on pain point selection and open briefing modal
                     const selectedMissionId = onboardingStore.getSelectedMissionId();

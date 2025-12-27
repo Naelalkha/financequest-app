@@ -192,3 +192,13 @@
   content: '';
   animation: loadingDots 1.5s infinite;
 }
+
+/* Animation de scan pour l'effet HUD (SpotlightOverlay) */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}

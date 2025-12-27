@@ -81,10 +81,10 @@ const OptionCard = ({ option, isSelected, onSelect, index }) => {
                     w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
                     ${isSelected
                         ? 'bg-volt text-black'
-                        : 'bg-neutral-800 text-neutral-400'
+                        : 'bg-neutral-800 text-white'
                     }
                 `}>
-                    <Icon className={`w-5 h-5 ${isSelected ? 'text-black' : 'text-neutral-400'}`} />
+                    <Icon className={`w-5 h-5 ${isSelected ? 'text-black' : 'text-white'}`} />
                 </div>
 
                 {/* Text content */}
@@ -107,6 +107,7 @@ const OptionCard = ({ option, isSelected, onSelect, index }) => {
 const PainPointScreen = ({ onNext, onSkip }) => {
     const [selectedOption, setSelectedOption] = useState(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [isFadingOut, setIsFadingOut] = useState(false);
 
     const handleSelect = (option) => {
         if (isTransitioning) return;
@@ -117,12 +118,18 @@ const PainPointScreen = ({ onNext, onSkip }) => {
         // Save selection to store
         onboardingStore.setSelectedPainPoint(option.id);
 
-        // Auto-continue after brief delay
         setIsTransitioning(true);
+        
+        // Fade to black d'abord
+        setTimeout(() => {
+            setIsFadingOut(true);
+        }, 300);
+        
+        // Puis naviguer
         setTimeout(() => {
             haptic.heavy();
             onNext(option);
-        }, 400);
+        }, 600);
     };
 
     const handleSkip = () => {
@@ -134,8 +141,16 @@ const PainPointScreen = ({ onNext, onSkip }) => {
 
     return (
         <div className="fixed inset-0 z-[500] bg-transparent flex flex-col items-center p-6 overflow-hidden">
+            {/* Overlay de transition - fade to black */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isFadingOut ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 bg-black z-[600] pointer-events-none"
+            />
+
             {/* Background Grid - same as Screen 1 */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] z-0 opacity-40" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] z-0 opacity-50" />
 
             {/* Header - PASSER button same style as Screen 1 */}
             <div className="w-full flex justify-end relative z-10 pb-2">
@@ -155,9 +170,9 @@ const PainPointScreen = ({ onNext, onSkip }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="flex justify-center items-center gap-2 mb-8"
+                    className="flex justify-center items-center gap-2 mb-10"
                 >
-                    <img src={logoMoniyo} alt="Moniyo" className="w-7 h-7 object-contain" />
+                    <img src={logoMoniyo} alt="Moniyo" className="w-[3.25rem] h-[3.25rem] object-contain" />
                     <span className="text-white font-black text-lg tracking-tight">MONIYO</span>
                 </motion.div>
 

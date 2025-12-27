@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, ChevronLeft, Zap, ArrowRight, Clock, RefreshCw } from 'lucide-react';
@@ -46,26 +46,50 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
     // Carousel state
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const currentSlide = slides[currentSlideIndex];
+    const timerRef = useRef(null);
 
-    // Auto-slide every 5 seconds
+    // Function to reset the auto-slide timer
+    const resetAutoSlide = () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+        if (page === 0) {
+            timerRef.current = setInterval(() => {
+                setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+            }, 10000);
+        }
+    };
+
+    // Auto-slide every 10 seconds
     useEffect(() => {
-        if (page !== 0) return;
+        if (page !== 0) {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            return;
+        }
 
-        const timer = setInterval(() => {
-            setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-        }, 5000);
+        resetAutoSlide();
 
-        return () => clearInterval(timer);
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
     }, [page, slides.length]);
 
     // Carousel navigation
     const nextSlide = () => {
         haptic.light();
         setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+        resetAutoSlide();
     };
     const prevSlide = () => {
         haptic.light();
         setCurrentSlideIndex((prev) => (prev - 1 + slides.length) % slides.length);
+        resetAutoSlide();
     };
 
     // Page navigation

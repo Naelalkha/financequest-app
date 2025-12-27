@@ -57,5 +57,9 @@
         "advanced_apprentice": "Apprenti Avancé",
         "ambitious_novice": "Novice Ambitieux",
         "motivated_beginner": "Débutant Motivé"
-    }
+    },
+    "systemDetection": "DÉTECTION SYSTÈME",
+    "opportunityUnlocked": "OPPORTUNITÉ DÉBLOQUÉE",
+    "spotlight": "Clique ici pour découvrir une mission personnalisée selon tes besoins.",
+    "dismissHint": "Appuyez n'importe où pour ignorer"
 }
