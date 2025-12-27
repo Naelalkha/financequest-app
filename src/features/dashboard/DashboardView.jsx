@@ -68,7 +68,7 @@ const DashboardView = () => {
     // Spotlight overlay state (shown after new onboarding)
     // Track si le spotlight a été fermé pour éviter toute réactivation
     const spotlightDismissedRef = useRef(false);
-    
+
     // Initialiser showSpotlight directement à true si firstRun est détecté
     // Ceci évite le clignotement où le dashboard est visible sans overlay
     // Utiliser une fonction pour calculer la valeur initiale de façon synchrone
@@ -353,7 +353,7 @@ const DashboardView = () => {
     // If this is firstRun (from onboarding), bypass loading screen
     // The spotlight overlay will cover everything anyway
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
-    
+
     if ((loading || questsLoading) && !isFirstRun) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -525,25 +525,29 @@ const DashboardView = () => {
                     markFirstRunShown();
                 }}
                 onSpotlightClick={() => {
-                    setShowSpotlight(false);
-                    spotlightDismissedRef.current = true; // Marquer comme fermé pour éviter toute réactivation
-                    markFirstRunShown();
                     // Get the mission based on pain point selection and open briefing modal
                     const selectedMissionId = onboardingStore.getSelectedMissionId();
                     const targetQuest = (quests || []).find(q => q.id === selectedMissionId);
-                    if (targetQuest) {
-                        // Open the SmartMissionModal with the selected quest (no reroll for first run)
-                        setRecommendedQuest(targetQuest);
+                    const questToShow = targetQuest || (quests || []).find(q => q.id === 'micro-expenses');
+
+                    if (questToShow) {
+                        // FIRST: Open the SmartMissionModal (its overlay will cover the screen)
+                        setRecommendedQuest(questToShow);
                         setIsFirstRunMission(true);
                         setShowSmartMission(true);
+
+                        // THEN: Close spotlight after modal overlay is fully visible
+                        // SmartMissionModal backdrop animation takes 250ms (DURATION.normal)
+                        setTimeout(() => {
+                            setShowSpotlight(false);
+                            spotlightDismissedRef.current = true;
+                            markFirstRunShown();
+                        }, 300); // Wait for modal backdrop to be fully opaque
                     } else {
-                        // Fallback to micro-expenses
-                        const fallbackQuest = (quests || []).find(q => q.id === 'micro-expenses');
-                        if (fallbackQuest) {
-                            setRecommendedQuest(fallbackQuest);
-                            setIsFirstRunMission(true);
-                            setShowSmartMission(true);
-                        }
+                        // No quest available - just close
+                        setShowSpotlight(false);
+                        spotlightDismissedRef.current = true;
+                        markFirstRunShown();
                     }
                 }}
             />

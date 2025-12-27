@@ -126,7 +126,7 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, 
     <AnimatePresence>
       {isOpen && localizedQuest && (
         <motion.div
-          key="smart-mission-modal"
+          key={`smart-mission-modal-${initialQuest?.id || 'default'}`}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           variants={modalVariants.backdrop}
           initial="hidden"
@@ -165,7 +165,7 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, 
             <AnimatePresence mode="wait">
               {!isAccepting && (
                 <motion.div
-                  key={localizedQuest.id || localizedQuest.title}
+                  key={`content-${initialQuest?.id || 'loading'}`}
                   className="flex flex-col items-center w-full"
                   variants={contentVariants}
                   initial="hidden"
