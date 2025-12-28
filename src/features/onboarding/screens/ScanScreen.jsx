@@ -262,6 +262,13 @@ const ScanScreen = ({ onNext, onSkip }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
                         transition={{ duration: 0.5 }}
+                        style={{
+                            // Force GPU acceleration to prevent iOS Safari flickering
+                            transform: 'translateZ(0)',
+                            WebkitTransform: 'translateZ(0)',
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                        }}
                         className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 bg-black/90 backdrop-blur-sm border-t border-neutral-800"
                     >
                         <motion.button
@@ -282,7 +289,15 @@ const ScanScreen = ({ onNext, onSkip }) => {
                             }}
                             whileTap={{ scale: 0.97 }}
                             onClick={handleContinue}
-                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
+                            style={{
+                                // Force GPU acceleration to prevent iOS Safari flickering
+                                transform: 'translateZ(0)',
+                                WebkitTransform: 'translateZ(0)',
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                                willChange: 'transform',
+                            }}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black"
                         >
                             <Zap className="w-5 h-5" />
                             LANCER MON DIAGNOSTIC
