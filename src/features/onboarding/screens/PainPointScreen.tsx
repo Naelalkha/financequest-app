@@ -29,15 +29,15 @@ const PAIN_POINTS: PainPoint[] = [
     {
         id: 'subscriptions',
         iconSrc: onboarding5,
-        title: "Des abos que j'utilise à peine",
-        subtitle: 'Netflix, Spotify, salle de sport, apps...',
+        title: 'Abonnements oubliés',
+        subtitle: 'Netflix, Spotify, apps...',
         missionId: 'cut-subscription',
         missionName: 'LA PURGE',
     },
     {
         id: 'micro',
         iconSrc: onboarding6,
-        title: 'Des petits plaisirs quotidiens',
+        title: 'Petits plaisirs',
         subtitle: 'Café, vape, uber eats, snacks...',
         missionId: 'micro-expenses',
         missionName: 'DÉTOX EXPRESS',
@@ -45,8 +45,8 @@ const PAIN_POINTS: PainPoint[] = [
     {
         id: 'contracts',
         iconSrc: onboarding7,
-        title: 'Des forfaits jamais renégociés',
-        subtitle: 'Mobile, box internet, assurance...',
+        title: 'Forfaits négligés',
+        subtitle: 'Mobile, box, assurance...',
         missionId: 'micro-expenses',
         missionName: 'RENÉGOCIATION',
     },
@@ -104,10 +104,10 @@ const OptionCard: React.FC<OptionCardProps> = ({ option, isSelected, onSelect, i
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className={`font-sans font-bold text-sm leading-tight mb-2 ${isSelected ? 'text-volt' : 'text-white'}`}>
+                    <h3 className={`font-sans font-black text-[15px] leading-[1.1] tracking-tight mb-2 ${isSelected ? 'text-volt' : 'text-white'}`}>
                         {option.title}
                     </h3>
-                    <p className="font-mono text-[10px] text-neutral-300 tracking-wide truncate">
+                    <p className="font-mono text-[10px] text-neutral-300 font-semibold tracking-wide">
                         {option.subtitle}
                     </p>
                 </div>

@@ -36,7 +36,7 @@ const SCAN_STATS: ScanStat[] = [
     {
         id: 'banking',
         iconSrc: onboarding2,
-        title: 'Frais bancaires évitables',
+        title: 'Frais bancaires',
         stat: '72% payent trop',
         amount: '~15€',
         period: '/mois',
@@ -44,7 +44,7 @@ const SCAN_STATS: ScanStat[] = [
     {
         id: 'insurance',
         iconSrc: onboarding3,
-        title: 'Assurances sur-cotées',
+        title: 'Assurances',
         stat: "65% n'ont jamais comparé",
         amount: '~38€',
         period: '/mois',
@@ -52,8 +52,8 @@ const SCAN_STATS: ScanStat[] = [
     {
         id: 'contracts',
         iconSrc: onboarding4,
-        title: 'Forfaits non optimisés',
-        stat: '58% payent plus que nécessaire',
+        title: 'Forfaits',
+        stat: '58% payent trop',
         amount: '~12€',
         period: '/mois',
     },
@@ -130,11 +130,11 @@ const IntelCard: React.FC<IntelCardProps> = ({ item, isActive }) => {
                 </div>
 
                 <div className="text-left flex-1 min-w-0">
-                    <h4 className="font-sans font-bold text-sm text-white leading-none mb-2">
+                    <h4 className="font-sans font-black text-[15px] text-white leading-[1.1] tracking-tight mb-2">
                         {item.title}
                     </h4>
                     <div className={`transition-all duration-500 origin-left ${isActive ? 'opacity-100' : 'opacity-50'}`}>
-                        <p className="font-mono text-[10px] text-neutral-300 font-normal tracking-wide">
+                        <p className="font-mono text-[10px] text-neutral-300 font-semibold tracking-wide">
                             {item.stat}
                         </p>
                     </div>
@@ -240,7 +240,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({ onNext, onSkip }) => {
                     <div className="font-mono text-[10px] text-neutral-300 uppercase tracking-[0.3em] mb-2">
                         EN MOYENNE, ÇA REPRÉSENTE
                     </div>
-                    <h2 className="text-6xl font-black text-volt tracking-tighter mb-2 animate-glow-pulse">
+                    <h2 className="text-6xl font-black text-volt tracking-tighter mb-6 animate-glow-pulse">
                         {activeItems >= 4 ? (
                             <>
                                 <AnimatedCounter value={TOTAL_ANNUAL} duration={0.3} instant={false} />
@@ -250,9 +250,6 @@ const ScanScreen: React.FC<ScanScreenProps> = ({ onNext, onSkip }) => {
                             '0€/an'
                         )}
                     </h2>
-                    <div className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.1em] mb-8">
-                        d'argent récupérable
-                    </div>
 
                     <h3 className="font-sans font-black text-xl text-white mb-6 italic">
                         Et toi, combien tu perds ?
