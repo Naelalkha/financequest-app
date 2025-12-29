@@ -10,17 +10,68 @@ import {
   checkMilestones,
   checkBadges,
   calculateQuestXP,
-  calculateSavingsXP,
   groupSavingsByCategory,
   countCompletedQuests,
   hasQuickWinSavings,
+  QuestForXP,
+  SavingsEvent,
+  BadgeContext,
 } from '../utils/gamification';
 import { trackEvent } from '../utils/analytics';
+
+/** Quest completion context */
+export interface QuestCompleteContext {
+  quest: QuestForXP & { id: string };
+  score?: number | null;
+  userProgress?: Record<string, { completed?: boolean }>;
+  allQuests?: Array<{ id: string; starterPack?: boolean; tags?: string[] }>;
+}
+
+/** Quest completion result */
+export interface QuestCompleteResult {
+  xpGained: number;
+  newXP: number;
+  level: number;
+  oldLevel: number;
+  newBadges: string[];
+  levelUp: boolean;
+}
+
+/** Savings change context */
+export interface SavingsChangeContext {
+  totalAnnualImpact?: number;
+  savingsEvents?: SavingsEvent[];
+  questsById?: Record<string, { category?: string }>;
+  userProgress?: Record<string, { completed?: boolean }>;
+  allQuests?: Array<{ id: string; starterPack?: boolean; tags?: string[] }>;
+  eventSource?: string;
+  currentStreak?: number;
+}
+
+/** Savings change result */
+export interface SavingsChangeResult {
+  newMilestones: number[];
+  newBadges: string[];
+  totalAnnualImpact: number;
+}
+
+/** User gamification data */
+export interface UserGamificationData {
+  xpTotal: number;
+  level: number;
+  nextLevelXP: number;
+  milestones: Record<string, string>;
+  badges: string[];
+  updatedAt: Date | null;
+}
 
 /**
  * Met à jour la gamification après qu'une quête soit complétée
  */
-export async function updateGamificationOnQuestComplete(userId, context = {}) {
+export async function updateGamificationOnQuestComplete(
+  userId: string,
+  context: QuestCompleteContext = { quest: { id: '', xp: 0 } }
+): Promise<QuestCompleteResult | null> {
   if (!userId) return null;
 
   try {
@@ -34,7 +85,7 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
     // Récupérer le doc utilisateur
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (!userSnap.exists()) {
       console.warn('User doc not found');
       return null;
@@ -43,7 +94,7 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
     const userData = userSnap.data();
     const currentXP = userData.xpTotal || 0;
     const currentGamif = userData.gamification || {};
-    const currentBadges = currentGamif.badges || [];
+    const currentBadges: string[] = currentGamif.badges || [];
 
     // Calculer XP gagné
     const xpGained = calculateQuestXP(quest, score);
@@ -55,7 +106,7 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
 
     // Vérifier nouveaux badges
     const questStats = countCompletedQuests(userProgress, allQuests);
-    const newBadgesContext = {
+    const newBadgesContext: BadgeContext = {
       completedQuestsCount: questStats.total,
       starterQuestsCompleted: questStats.starterCount,
       completedQuestIds: questStats.completedIds,
@@ -80,12 +131,10 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
 
     if (level > oldLevel) {
       trackEvent('level_up', { level, xp_total: newXP });
-      // Toast désactivé - animations intégrées à implémenter
     }
 
     newBadges.forEach(badgeId => {
       trackEvent('badge_unlocked', { badge_id: badgeId });
-      // Toast géré par le composant BadgeNotification si nécessaire
     });
 
     return {
@@ -106,7 +155,10 @@ export async function updateGamificationOnQuestComplete(userId, context = {}) {
 /**
  * Met à jour la gamification après un changement de savings event
  */
-export async function updateGamificationOnSavingsChange(userId, context = {}) {
+export async function updateGamificationOnSavingsChange(
+  userId: string,
+  context: SavingsChangeContext = {}
+): Promise<SavingsChangeResult | null> {
   if (!userId) return null;
 
   try {
@@ -116,14 +168,13 @@ export async function updateGamificationOnSavingsChange(userId, context = {}) {
       questsById = {},
       userProgress = {},
       allQuests = [],
-      eventSource = 'manual',
       currentStreak = 0,
     } = context;
 
     // Récupérer le doc utilisateur
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (!userSnap.exists()) {
       console.warn('User doc not found');
       return null;
@@ -146,7 +197,7 @@ export async function updateGamificationOnSavingsChange(userId, context = {}) {
     const savingsByCategory = groupSavingsByCategory(savingsEvents, questsById);
     const questStats = countCompletedQuests(userProgress, allQuests);
     const hasQuickWin = hasQuickWinSavings(savingsEvents);
-    
+
     const { level } = computeLevel(currentXP);
 
     const badgesContext = {
@@ -173,7 +224,7 @@ export async function updateGamificationOnSavingsChange(userId, context = {}) {
     if (newMilestones.length > 0) {
       // Find the highest milestone
       const highestMilestone = Math.max(...newMilestones);
-      
+
       // Track each milestone
       newMilestones.forEach(milestone => {
         trackEvent('milestone_unlocked', { amount: milestone, impact_total: totalAnnualImpact });
@@ -207,7 +258,7 @@ export async function getUserGamification(userId) {
   try {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (!userSnap.exists()) {
       return null;
     }

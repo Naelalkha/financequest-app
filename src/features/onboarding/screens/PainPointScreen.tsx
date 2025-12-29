@@ -5,14 +5,20 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Tv, Coffee, Smartphone, HelpCircle, ChevronRight, LucideIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { haptic } from '../../../utils/haptics';
 import { onboardingStore } from '../onboardingStore';
 import logoMoniyo from '../../../assets/logo-moniyo.png';
 
+// Import PNG icons
+import onboarding5 from '../assets/onboarding5.png';
+import onboarding6 from '../assets/onboarding6.png';
+import onboarding7 from '../assets/onboarding7.png';
+import onboarding8 from '../assets/onboarding8.png';
+
 interface PainPoint {
     id: string;
-    icon: LucideIcon;
+    iconSrc: string;
     title: string;
     subtitle: string;
     missionId: string;
@@ -22,7 +28,7 @@ interface PainPoint {
 const PAIN_POINTS: PainPoint[] = [
     {
         id: 'subscriptions',
-        icon: Tv,
+        iconSrc: onboarding5,
         title: "Des abos que j'utilise à peine",
         subtitle: 'Netflix, Spotify, salle de sport, apps...',
         missionId: 'cut-subscription',
@@ -30,7 +36,7 @@ const PAIN_POINTS: PainPoint[] = [
     },
     {
         id: 'micro',
-        icon: Coffee,
+        iconSrc: onboarding6,
         title: 'Des petits plaisirs quotidiens',
         subtitle: 'Café, vape, uber eats, snacks...',
         missionId: 'micro-expenses',
@@ -38,7 +44,7 @@ const PAIN_POINTS: PainPoint[] = [
     },
     {
         id: 'contracts',
-        icon: Smartphone,
+        iconSrc: onboarding7,
         title: 'Des forfaits jamais renégociés',
         subtitle: 'Mobile, box internet, assurance...',
         missionId: 'micro-expenses',
@@ -46,7 +52,7 @@ const PAIN_POINTS: PainPoint[] = [
     },
     {
         id: 'unknown',
-        icon: HelpCircle,
+        iconSrc: onboarding8,
         title: 'Honnêtement, je sais pas',
         subtitle: 'On va trouver ensemble',
         missionId: 'micro-expenses',
@@ -62,8 +68,6 @@ interface OptionCardProps {
 }
 
 const OptionCard: React.FC<OptionCardProps> = ({ option, isSelected, onSelect, index }) => {
-    const Icon = option.icon;
-
     return (
         <motion.button
             initial={{ opacity: 0, y: 20 }}
@@ -91,21 +95,19 @@ const OptionCard: React.FC<OptionCardProps> = ({ option, isSelected, onSelect, i
       `}
         >
             <div className="px-4 py-3 flex items-center gap-4">
-                <div className={`
-          w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-          ${isSelected
-                        ? 'bg-volt text-black'
-                        : 'bg-neutral-800 text-white'
-                    }
-        `}>
-                    <Icon className={`w-5 h-5 ${isSelected ? 'text-black' : 'text-white'}`} />
+                <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
+                    <img
+                        src={option.iconSrc}
+                        alt={option.title}
+                        className="w-14 h-14 object-contain transition-opacity opacity-100"
+                    />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className={`font-sans font-bold text-sm leading-tight mb-1 ${isSelected ? 'text-volt' : 'text-white'}`}>
+                    <h3 className={`font-sans font-bold text-sm leading-tight mb-2 ${isSelected ? 'text-volt' : 'text-white'}`}>
                         {option.title}
                     </h3>
-                    <p className="font-mono text-[10px] text-neutral-300 uppercase tracking-wide truncate">
+                    <p className="font-mono text-[10px] text-neutral-300 tracking-wide truncate">
                         {option.subtitle}
                     </p>
                 </div>
@@ -195,12 +197,12 @@ const PainPointScreen: React.FC<PainPointScreenProps> = ({ onNext, onSkip }) => 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide text-center mb-8"
+                    className="font-mono text-[10px] text-neutral-300 font-normal tracking-wide text-center mb-6"
                 >
                     Choisis ce qui te parle le plus. Ta première mission en dépend.
                 </motion.p>
 
-                <div className="space-y-3 w-full">
+                <div className="space-y-3 w-full mb-8">
                     {PAIN_POINTS.map((option, index) => (
                         <OptionCard
                             key={option.id}
@@ -216,7 +218,7 @@ const PainPointScreen: React.FC<PainPointScreenProps> = ({ onNext, onSkip }) => 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
-                    className="font-mono text-[10px] text-neutral-600 text-center mt-8"
+                    className="font-mono text-[10px] text-neutral-600 text-center mt-0"
                 >
                     Tu pourras faire toutes les missions plus tard
                 </motion.p>

@@ -10,20 +10,41 @@
  * - Animation "Scale In" sur l'ouverture du trou
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '../../../utils/haptics';
 
-const SpotlightOverlay = ({
+/** Spotlight position and dimensions */
+interface SpotlightPosition {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    btnWidth: number;
+    btnHeight: number;
+}
+
+/** Exit mode for smooth transitions */
+type ExitMode = 'none' | 'toModal' | 'dismiss';
+
+/** SpotlightOverlay component props */
+interface SpotlightOverlayProps {
+    isVisible: boolean;
+    onDismiss: () => void;
+    buttonRef: RefObject<HTMLButtonElement>;
+    onSpotlightClick: () => void;
+}
+
+const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
     isVisible,
     onDismiss,
     buttonRef,
     onSpotlightClick
 }) => {
     const { t } = useTranslation('dashboard');
-    const [spotlight, setSpotlight] = useState(null);
+    const [spotlight, setSpotlight] = useState<SpotlightPosition | null>(null);
 
     // Track if the spotlight mask is ready to prevent flash of raw dashboard
     // This ensures smooth visual continuity from PainPointScreen's fade-to-black
@@ -31,7 +52,7 @@ const SpotlightOverlay = ({
 
     // Track exit animation state for smooth dismissal
     // 'none' = not exiting, 'toModal' = CTA clicked (keep black), 'dismiss' = outside click (fade overlay only)
-    const [exitMode, setExitMode] = useState('none');
+    const [exitMode, setExitMode] = useState<ExitMode>('none');
 
     // Mark overlay as ready once spotlight position is calculated
     useEffect(() => {
@@ -44,7 +65,7 @@ const SpotlightOverlay = ({
 
     // Handle smooth exit for CTA click (to SmartMissionModal)
     // Keeps black overlay visible until modal is ready
-    const handleExitToModal = (callback) => {
+    const handleExitToModal = (callback: (() => void) | undefined): void => {
         if (exitMode !== 'none') return;
         setExitMode('toModal');
         haptic.medium();
@@ -55,7 +76,7 @@ const SpotlightOverlay = ({
     };
 
     // Handle dismiss (click outside) - fade overlay but keep spotlight hole visible
-    const handleDismiss = (callback) => {
+    const handleDismiss = (callback: (() => void) | undefined): void => {
         if (exitMode !== 'none') return;
         setExitMode('dismiss');
         haptic.light();
@@ -70,7 +91,7 @@ const SpotlightOverlay = ({
     const irisAnimation = {
         initial: { scale: 0, opacity: 1 },
         animate: { scale: 1, opacity: 1 },
-        transition: { delay: 0.1, type: "spring", damping: 20, stiffness: 300 }
+        transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
     };
 
     useEffect(() => {

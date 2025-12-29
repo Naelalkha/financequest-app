@@ -35,23 +35,44 @@ import { auth, db } from '../../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 
-const Profile = () => {
+/** Tab options for profile view */
+type ProfileTab = 'ID_CARD' | 'SYSTEM' | 'UPGRADE';
+
+/** Billing cycle options */
+type BillingCycle = 'MONTHLY' | 'YEARLY';
+
+/** User data extended with profile-specific fields */
+interface ProfileUserData {
+  uid?: string;
+  email?: string;
+  displayName?: string;
+  isPremium?: boolean;
+  premiumStatus?: 'active' | 'canceled' | 'trialing';
+  level?: string | number;
+  country?: string;
+  currentPeriodEnd?: string | Date;
+  isAnonymous?: boolean;
+}
+
+const Profile: React.FC = () => {
   const { user, updateUserProfile, logout, resetPassword } = useAuth();
   const { t, i18n } = useTranslation('profile');
   const navigate = useNavigate();
-  const setLanguage = (lang) => i18n.changeLanguage(lang);
-  const [userData, setUserData] = useState(null);
+  const setLanguage = (lang: string): void => {
+    i18n.changeLanguage(lang);
+  };
+  const [userData, setUserData] = useState<ProfileUserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingCountry, setUpdatingCountry] = useState(false);
-  const [activeTab, setActiveTab] = useState('ID_CARD');
-  const [billingCycle, setBillingCycle] = useState('MONTHLY');
+  const [activeTab, setActiveTab] = useState<ProfileTab>('ID_CARD');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSending, setResetSending] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteSending, setDeleteSending] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
-  
+
   // Check if user is anonymous (Guest Mode)
   const isAnonymous = user?.isAnonymous;
 
@@ -61,13 +82,13 @@ const Profile = () => {
     }
   }, [user]);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (): Promise<void> => {
     try {
       setLoading(true);
-      setUserData(user);
+      setUserData(user as ProfileUserData);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      setUserData(user);
+      setUserData(user as ProfileUserData);
     } finally {
       setLoading(false);
     }
@@ -114,7 +135,7 @@ const Profile = () => {
     }
   };
 
-  const handleCountryChange = async (newCountry) => {
+  const handleCountryChange = async (newCountry: string): Promise<void> => {
     if (!user || updatingCountry) return;
 
     setUpdatingCountry(true);
@@ -123,10 +144,10 @@ const Profile = () => {
         country: newCountry
       });
 
-      setUserData(prev => ({
+      setUserData(prev => prev ? ({
         ...prev,
         country: newCountry
-      }));
+      }) : null);
 
     } catch (error) {
       console.error('Error updating country:', error);
@@ -135,7 +156,7 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       await logout();
     } catch (error) {
@@ -235,7 +256,7 @@ const Profile = () => {
 
           <div className="flex-1 min-w-0">
             <h1 className="font-sans font-black text-2xl text-white tracking-tight truncate uppercase">
-              {isAnonymous 
+              {isAnonymous
                 ? (t('guestUser') || 'UTILISATEUR')
                 : (userData?.displayName || user?.email?.split('@')[0] || t('defaultUsername'))
               }
@@ -243,7 +264,7 @@ const Profile = () => {
             <div className="flex items-center gap-2 text-neutral-500 mb-2">
               <Mail className="w-3 h-3" />
               <span className="font-mono text-[10px] truncate">
-                {isAnonymous 
+                {isAnonymous
                   ? (t('guestMode') || 'Mode Invité')
                   : user?.email
                 }
@@ -269,7 +290,7 @@ const Profile = () => {
             return (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveTab(tab as ProfileTab)}
                 className={`flex-1 py-3 text-[10px] font-mono font-bold rounded-full transition-all duration-300 relative ${isActive
                   ? 'text-black shadow-[0_0_20px_rgba(226,255,0,0.2)]'
                   : 'text-neutral-500 hover:text-white'
@@ -316,7 +337,7 @@ const Profile = () => {
                           </p>
                         </div>
                       </div>
-                      
+
                       <p className="font-sans text-neutral-300 text-sm mb-4 leading-relaxed">
                         {t('guestWarning') || 'En mode invité, tes données sont stockées localement. Crée un compte pour ne jamais perdre tes XP, badges et économies.'}
                       </p>
@@ -359,7 +380,7 @@ const Profile = () => {
                     </label>
                     <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white font-mono text-xs flex justify-between items-center group-hover:border-white/20 transition-colors backdrop-blur-sm">
                       <span className="opacity-80">
-                        {isAnonymous 
+                        {isAnonymous
                           ? (t('noEmail') || 'Aucun email (mode invité)')
                           : user?.email
                         }
@@ -768,7 +789,7 @@ const Profile = () => {
                 onClick={async () => {
                   try {
                     setResetSending(true);
-                    await resetPassword(user?.email);
+                    await resetPassword(user?.email || '');
                     setShowPasswordModal(false);
                   } catch (e) {
                     console.error('Error resetting password:', e);
@@ -796,7 +817,7 @@ const Profile = () => {
               </div>
               <div>
                 <h4 className="text-white text-lg font-bold">
-                  {isAnonymous 
+                  {isAnonymous
                     ? (t('profilePage.reset_progress_modal_title') || 'Réinitialiser la progression')
                     : (t('profilePage.delete_account_modal_title') || 'Delete Account')
                   }
@@ -809,7 +830,7 @@ const Profile = () => {
 
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
               <p className="text-red-200 text-sm mb-2 font-medium">
-                {isAnonymous 
+                {isAnonymous
                   ? (t('profilePage.reset_progress_modal_data_warning') || 'Toutes tes données seront supprimées :')
                   : (t('profilePage.delete_account_modal_data_warning') || 'All your data will be deleted:')
                 }
@@ -826,7 +847,7 @@ const Profile = () => {
             {isAnonymous ? (
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-4">
                 <p className="text-amber-200 text-sm">
-                  {t('profilePage.reset_progress_modal_anonymous_info') || 
+                  {t('profilePage.reset_progress_modal_anonymous_info') ||
                     'Tu recommenceras à zéro avec un nouveau profil invité.'}
                 </p>
               </div>
@@ -881,16 +902,16 @@ const Profile = () => {
                       await cleanupUserData(currentUser.uid);
                       await deleteUser(currentUser);
                       // The auth listener will automatically create a new anonymous user
-                      
+
                       // Reset onboarding to restart the full experience
                       onboardingStore.resetOnboarding();
-                      
+
                       // Reset first run modal
                       resetFirstRun();
-                      
+
                       // Also reset banner dismissed state
                       localStorage.removeItem('moniyo-banner-dismissed');
-                      
+
                       setTimeout(() => {
                         window.location.href = '/';
                       }, 1000);
@@ -925,18 +946,19 @@ const Profile = () => {
                       window.location.href = '/';
                     }, 1500);
 
-                  } catch (e) {
+                  } catch (e: unknown) {
                     console.error('Error deleting account:', e);
 
                     let errorMessage = t('profilePage.delete_account_modal_failed') || 'Échec de la suppression';
+                    const error = e as { code?: string };
 
-                    if (e.code === 'auth/wrong-password') {
+                    if (error.code === 'auth/wrong-password') {
                       errorMessage = t('profilePage.delete_account_modal_wrong_password') || 'Mot de passe incorrect';
-                    } else if (e.code === 'auth/requires-recent-login') {
+                    } else if (error.code === 'auth/requires-recent-login') {
                       errorMessage = t('profilePage.delete_account_modal_requires_recent_login') || 'Réauthentification requise. Réessaie.';
-                    } else if (e.code === 'auth/popup-closed-by-user') {
+                    } else if (error.code === 'auth/popup-closed-by-user') {
                       errorMessage = t('profilePage.delete_account_modal_popup_closed') || 'Authentification annulée. Réessaie.';
-                    } else if (e.code === 'auth/network-request-failed') {
+                    } else if (error.code === 'auth/network-request-failed') {
                       errorMessage = t('profilePage.delete_account_modal_network_error') || 'Erreur réseau. Vérifie ta connexion.';
                     }
 
@@ -953,13 +975,13 @@ const Profile = () => {
                 {deleteSending ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                    {isAnonymous 
+                    {isAnonymous
                       ? (t('profilePage.reset_progress_modal_resetting') || 'Réinitialisation…')
                       : (t('profilePage.delete_account_modal_deleting') || 'Suppression…')
                     }
                   </div>
                 ) : (
-                  isAnonymous 
+                  isAnonymous
                     ? (t('profilePage.reset_progress_modal_confirm') || 'Réinitialiser')
                     : (t('profilePage.delete_account_modal_confirm') || 'Supprimer définitivement')
                 )}

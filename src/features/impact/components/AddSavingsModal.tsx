@@ -1,23 +1,62 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
 import { FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createSavingsEventInFirestore } from '../../../services/savingsEvents';
 import { trackEvent } from '../../../utils/analytics';
 
-const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) => {
+/** Form data structure */
+interface FormData {
+  title: string;
+  amount: string;
+  period: 'month' | 'year';
+  note: string;
+}
+
+/** Form validation errors */
+interface FormErrors {
+  title?: string;
+  amount?: string;
+  period?: string;
+  submit?: string;
+}
+
+/** Initial values for editing */
+interface InitialValues {
+  title?: string;
+  amount?: number;
+  period?: 'month' | 'year';
+  note?: string;
+  source?: string;
+  questId?: string;
+}
+
+/** AddSavingsModal component props */
+interface AddSavingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  initialValues?: InitialValues | null;
+}
+
+const AddSavingsModal: React.FC<AddSavingsModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialValues = null
+}) => {
   const { t } = useTranslation('common');
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: initialValues?.title || '',
     amount: initialValues?.amount !== undefined ? String(initialValues.amount) : '',
     period: initialValues?.period || 'month',
     note: initialValues?.note || '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPeriodOpen, setIsPeriodOpen] = useState(false);
-  const periodSelectRef = useRef(null);
+  const periodSelectRef = useRef<HTMLDivElement>(null);
 
   // Mettre à jour le formData quand initialValues change
   useEffect(() => {
@@ -31,17 +70,17 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
     }
   }, [initialValues]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Effacer l'erreur quand l'utilisateur corrige
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  const validate = () => {
-    const newErrors = {};
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
 
     if (!formData.title.trim()) {
       newErrors.title = t('impact.modal.validation.title_required');
@@ -64,7 +103,7 @@ const AddSavingsModal = ({ isOpen, onClose, onSuccess, initialValues = null }) =
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (!validate()) {

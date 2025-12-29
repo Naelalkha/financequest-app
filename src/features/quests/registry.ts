@@ -9,6 +9,71 @@ import { cutSubscriptionQuest } from './pilotage/cut-subscription/metadata.js';
 import { microExpensesQuest } from './pilotage/micro-expenses/metadata.js';
 
 // ========================================
+// TYPES
+// ========================================
+
+/** Quest difficulty levels */
+export type QuestDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+/** Quest category types */
+export type QuestCategory = 'budget' | 'savings' | 'debt' | 'investing' | 'income' | 'planning' | 'pilotage' | 'defense' | 'growth' | 'strategy';
+
+/** Quest estimated impact */
+export interface QuestEstimatedImpact {
+  amount: number;
+  period: 'once' | 'day' | 'week' | 'month' | 'year';
+}
+
+/** Quest placement configuration */
+export interface QuestPlacement {
+  starterPack?: {
+    order?: number;
+  };
+}
+
+/** Quest metadata interface */
+export interface Quest {
+  id: string;
+  title?: string;
+  description?: string;
+  category: QuestCategory;
+  difficulty?: QuestDifficulty;
+  duration?: number;
+  xp?: number;
+  xpReward?: number;
+  isPremium?: boolean;
+  starterPack?: boolean;
+  country?: string;
+  availableIn?: string[];
+  prerequisites?: string[];
+  estimatedImpact?: QuestEstimatedImpact;
+  placement?: QuestPlacement;
+  order?: number;
+  i18nKey?: string;
+  tags?: string[];
+  iconType?: string;
+}
+
+/** User profile for quest filtering */
+export interface UserProfile {
+  isPremium?: boolean;
+  completedQuestIds?: string[];
+  country?: string;
+  level?: number | string;
+}
+
+/** Quest stats */
+export interface QuestsStats {
+  total: number;
+  free: number;
+  premium: number;
+  starter: number;
+  totalPotentialImpact: number;
+  byCategory: Array<{ category: string; count: number; impact: number }>;
+  byDifficulty: Array<{ difficulty: string; count: number }>;
+}
+
+// ========================================
 // EXPORT INDIVIDUEL
 // ========================================
 
@@ -23,9 +88,9 @@ export { microExpensesQuest };
 /**
  * Toutes les quêtes actives
  */
-export const allQuests = [
-  cutSubscriptionQuest,
-  microExpensesQuest,
+export const allQuests: Quest[] = [
+  cutSubscriptionQuest as Quest,
+  microExpensesQuest as Quest,
   // Les prochaines quêtes seront ajoutées ici
 ];
 
@@ -33,31 +98,31 @@ export const allQuests = [
  * Quêtes du Starter Pack
  * Affichées en premier, optimisées pour quick wins
  */
-export const starterPackQuests = allQuests
+export const starterPackQuests: Quest[] = allQuests
   .filter(q => q.starterPack === true)
   .sort((a, b) => (a.placement?.starterPack?.order || 999) - (b.placement?.starterPack?.order || 999));
 
 /**
  * Alias pour compatibilité
  */
-export const getStarterPackQuests = (locale = 'fr') => {
+export const getStarterPackQuests = (locale: string = 'fr'): (Quest | null)[] => {
   return starterPackQuests.map(quest => getLocalizedQuest(quest.id, locale));
 };
 
 /**
  * Quêtes gratuites
  */
-export const freeQuests = allQuests.filter(q => q.isPremium === false);
+export const freeQuests: Quest[] = allQuests.filter(q => q.isPremium === false);
 
 /**
  * Quêtes premium
  */
-export const premiumQuests = allQuests.filter(q => q.isPremium === true);
+export const premiumQuests: Quest[] = allQuests.filter(q => q.isPremium === true);
 
 /**
  * Quêtes par catégorie
  */
-export const questsByCategory = {
+export const questsByCategory: Record<string, Quest[]> = {
   budget: allQuests.filter(q => q.category === 'budget'),
   savings: allQuests.filter(q => q.category === 'savings'),
   debt: allQuests.filter(q => q.category === 'debt'),
@@ -69,7 +134,7 @@ export const questsByCategory = {
 /**
  * Quêtes par difficulté
  */
-export const questsByDifficulty = {
+export const questsByDifficulty: Record<string, Quest[]> = {
   beginner: allQuests.filter(q => q.difficulty === 'beginner'),
   intermediate: allQuests.filter(q => q.difficulty === 'intermediate'),
   advanced: allQuests.filter(q => q.difficulty === 'advanced'),
@@ -82,11 +147,8 @@ export const questsByDifficulty = {
 
 /**
  * Récupère les quêtes par pays (compatibilité avec ancien système)
- * @param {string} country - Code pays (fr-FR, en-US, global)
- * @param {string} locale - Locale pour localisation
- * @returns {Array} - Quêtes disponibles pour ce pays
  */
-export const getQuestsByCountry = (country = 'fr-FR', locale = 'fr') => {
+export const getQuestsByCountry = (country: string = 'fr-FR', locale: string = 'fr'): (Quest | null)[] => {
   return allQuests
     .filter(quest => {
       // Si la quête n'a pas de restriction de pays, elle est disponible partout
@@ -108,11 +170,8 @@ export const getQuestsByCountry = (country = 'fr-FR', locale = 'fr') => {
 
 /**
  * Récupère une quête par son ID
- * @param {string} questId - ID de la quête
- * @param {string} locale - Locale optionnelle pour localisation directe
- * @returns {Object|null} - La quête (localisée si locale fournie)
  */
-export const getQuestById = (questId, locale = null) => {
+export const getQuestById = (questId: string, locale: string | null = null): Quest | null => {
   const quest = allQuests.find(q => q.id === questId) || null;
 
   // Si locale fournie, retourner version localisée
@@ -140,12 +199,12 @@ export const getLocalizedQuest = (questId, locale = 'fr') => {
 
 /**
  * Récupère les quêtes par catégorie (avec support pays)
- * @param {string} category - Catégorie
- * @param {string} locale - Locale
- * @param {string} country - Code pays (optionnel)
- * @returns {Array} - Quêtes de cette catégorie
  */
-export const getQuestsByCategory = (category, locale = 'fr', country = null) => {
+export const getQuestsByCategory = (
+  category: string,
+  locale: string = 'fr',
+  country: string | null = null
+): Quest[] => {
   let quests = allQuests.filter(q => q.category === category);
 
   // Filtrer par pays si spécifié
@@ -161,6 +220,7 @@ export const getQuestsByCategory = (category, locale = 'fr', country = null) => 
 
   return quests
     .map(quest => getLocalizedQuest(quest.id, locale))
+    .filter((q): q is Quest => q !== null)
     .sort((a, b) => (a.order || 999) - (b.order || 999));
 };
 
@@ -213,7 +273,7 @@ export const getPremiumQuests = (locale = 'fr', country = null) => {
 /**
  * Calcule l'impact annuel d'une quête
  */
-export const calculateQuestAnnualImpact = (quest) => {
+export const calculateQuestAnnualImpact = (quest: Quest | null): number => {
   if (!quest?.estimatedImpact) return 0;
 
   const { amount, period } = quest.estimatedImpact;
@@ -236,7 +296,7 @@ export const calculateQuestAnnualImpact = (quest) => {
 /**
  * Calcule l'impact total potentiel de toutes les quêtes
  */
-export const calculateTotalPotentialImpact = () => {
+export const calculateTotalPotentialImpact = (): number => {
   return allQuests.reduce((total, quest) => {
     return total + calculateQuestAnnualImpact(quest);
   }, 0);
@@ -244,10 +304,11 @@ export const calculateTotalPotentialImpact = () => {
 
 /**
  * Filtre les quêtes disponibles pour un utilisateur
- * @param {Object} userProfile - Profil utilisateur (premium, completedQuests, etc.)
- * @param {string} locale - Locale (fr-FR, en-US, etc.)
  */
-export const getAvailableQuests = (userProfile = {}, locale = 'fr-FR') => {
+export const getAvailableQuests = (
+  userProfile: UserProfile = {},
+  locale: string = 'fr-FR'
+): Quest[] => {
   const { isPremium = false, completedQuestIds = [], country = 'fr-FR' } = userProfile;
 
   return allQuests.filter(quest => {

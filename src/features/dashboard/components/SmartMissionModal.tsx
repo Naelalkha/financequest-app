@@ -5,6 +5,33 @@ import { useTranslation } from 'react-i18next';
 import { useLocalizedQuest } from '../../../hooks/useLocalizedQuest';
 import { modalVariants, TRANSITIONS } from '../../../styles/animationConstants';
 
+/** Quest interface for SmartMissionModal */
+interface SmartMissionQuest {
+  id: string;
+  title?: string;
+  description?: string;
+  codename?: string;
+  xpReward?: number;
+  duration?: number;
+  estimatedTime?: string | number;
+  icons?: {
+    main?: string | React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  };
+  colors?: {
+    primary?: string;
+  };
+}
+
+/** SmartMissionModal props */
+interface SmartMissionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAccept: (quest: SmartMissionQuest) => void;
+  onReroll: () => SmartMissionQuest;
+  initialQuest: SmartMissionQuest | null;
+  hideReroll?: boolean;
+}
+
 /**
  * SmartMissionModal - Mission Briefing UI
  * Premium "Hard Tech" aesthetic modal with HUD-style elements
@@ -25,10 +52,10 @@ const contentVariants = {
 /**
  * Highlights monetary values and time durations in text
  */
-const highlightNumbers = (text) => {
+const highlightNumbers = (text: string | undefined): React.ReactNode => {
   if (!text) return text;
   const pattern = /(€\d+[\d,\.]*\/?[a-zA-Z]*|\d+[\d,\.]*\s*[€%]|\d+[\d,\.]*\s*(?:an|mois|jours?|ans?|heures?|minutes?|h|m)\b)/gi;
-  const result = [];
+  const result: React.ReactNode[] = [];
   let lastIndex = 0;
   let match;
   while ((match = pattern.exec(text)) !== null) {
@@ -40,10 +67,16 @@ const highlightNumbers = (text) => {
   return result.length > 0 ? result : text;
 };
 
+/** Quest icon props */
+interface QuestIconProps {
+  quest: SmartMissionQuest | null;
+  questColor: string;
+}
+
 /**
  * Quest Icon Component
  */
-const QuestIcon = ({ quest, questColor }) => {
+const QuestIcon: React.FC<QuestIconProps> = ({ quest, questColor }) => {
   if (!quest) return <span className="text-5xl">🎯</span>;
   const icon = quest.icons?.main;
 
@@ -71,13 +104,20 @@ const QuestIcon = ({ quest, questColor }) => {
   );
 };
 
-const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, hideReroll = false }) => {
+const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
+  isOpen,
+  onClose,
+  onAccept,
+  onReroll,
+  initialQuest,
+  hideReroll = false
+}) => {
   const { t } = useTranslation('dashboard');
-  const [rerolledQuest, setRerolledQuest] = useState(null);
+  const [rerolledQuest, setRerolledQuest] = useState<SmartMissionQuest | null>(null);
   const [isRerolling, setIsRerolling] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [rotation, setRotation] = useState(0);
-  const rerollTimeoutRef = useRef(null);
+  const rerollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentQuest = rerolledQuest || initialQuest;
   const localizedQuest = useLocalizedQuest(currentQuest);
@@ -108,7 +148,7 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, 
   }, [isRerolling, isAccepting, onReroll]);
 
   const handleAccept = useCallback(() => {
-    if (isAccepting) return;
+    if (isAccepting || !currentQuest) return;
     setIsAccepting(true);
     onAccept(currentQuest);
   }, [isAccepting, currentQuest, onAccept]);
@@ -119,7 +159,7 @@ const SmartMissionModal = ({ isOpen, onClose, onAccept, onReroll, initialQuest, 
     opacity: 0,
     filter: "blur(15px)",
     y: -20,
-    transition: { duration: ANIMATION_DURATION.warp, ease: [0.4, 0, 0.2, 1] }
+    transition: { duration: ANIMATION_DURATION.warp, ease: [0.4, 0, 0.2, 1] as const }
   };
 
   return (

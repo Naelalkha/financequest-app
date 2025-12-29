@@ -3,12 +3,44 @@ import { analytics } from '../services/firebase';
 import { logEvent, setUserId, setUserProperties } from 'firebase/analytics';
 import { getSessionId } from './sessionId';
 
+/** Analytics event parameters */
+export interface AnalyticsEventParams {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/** Quest data for analytics */
+export interface QuestAnalyticsData {
+  questId?: string;
+  questTitle?: string;
+  questCategory?: string;
+  questDifficulty?: string;
+  questXP?: number;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/** Premium analytics data */
+export interface PremiumAnalyticsData {
+  plan?: string;
+  price?: number;
+  currency?: string;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/** User analytics data */
+export interface AnalyticsUser {
+  uid: string;
+  isPremium?: boolean;
+  level?: string | number;
+  xp?: number;
+  completedQuests?: number;
+  language?: string;
+  createdAt?: string;
+}
+
 /**
  * Log a custom analytics event
- * @param {string} eventName - Name of the event
- * @param {object} parameters - Event parameters
  */
-export const logAnalyticsEvent = (eventName, parameters = {}) => {
+export const logAnalyticsEvent = (eventName: string, parameters: AnalyticsEventParams = {}): void => {
   try {
     if (analytics) {
       // Enrichir tous les événements avec session_id et timestamp
@@ -26,9 +58,8 @@ export const logAnalyticsEvent = (eventName, parameters = {}) => {
 
 /**
  * Set the user ID for analytics
- * @param {string} userId - User ID
  */
-export const setAnalyticsUserId = (userId) => {
+export const setAnalyticsUserId = (userId: string): void => {
   try {
     if (analytics && userId) {
       setUserId(analytics, userId);
@@ -40,9 +71,8 @@ export const setAnalyticsUserId = (userId) => {
 
 /**
  * Set user properties for analytics
- * @param {object} properties - User properties
  */
-export const setAnalyticsUserProperties = (properties) => {
+export const setAnalyticsUserProperties = (properties: Record<string, string | number | boolean>): void => {
   try {
     if (analytics && properties) {
       setUserProperties(analytics, properties);
@@ -56,26 +86,22 @@ export const setAnalyticsUserProperties = (properties) => {
 
 /**
  * Log user signup event
- * @param {string} method - Signup method (email, google, etc.)
  */
-export const logSignupEvent = (method = 'email') => {
+export const logSignupEvent = (method: string = 'email'): void => {
   logAnalyticsEvent('sign_up', { method });
 };
 
 /**
  * Log user login event
- * @param {string} method - Login method
  */
-export const logLoginEvent = (method = 'email') => {
+export const logLoginEvent = (method: string = 'email'): void => {
   logAnalyticsEvent('login', { method });
 };
 
 /**
  * Log quest-related events
- * @param {string} action - Quest action (view, start, complete, abandon)
- * @param {object} questData - Quest information
  */
-export const logQuestEvent = (action, questData = {}) => {
+export const logQuestEvent = (action: string, questData: QuestAnalyticsData = {}): void => {
   const eventName = `quest_${action}`;
   logAnalyticsEvent(eventName, {
     quest_id: questData.questId,
@@ -89,10 +115,8 @@ export const logQuestEvent = (action, questData = {}) => {
 
 /**
  * Log premium/subscription events
- * @param {string} action - Premium action (view, subscribe, cancel)
- * @param {object} data - Additional data
  */
-export const logPremiumEvent = (action, data = {}) => {
+export const logPremiumEvent = (action: string, data: PremiumAnalyticsData = {}): void => {
   const eventName = `premium_${action}`;
   logAnalyticsEvent(eventName, {
     plan: data.plan,
@@ -104,10 +128,8 @@ export const logPremiumEvent = (action, data = {}) => {
 
 /**
  * Log level up event
- * @param {number} newLevel - New user level
- * @param {number} totalXP - Total XP earned
  */
-export const logLevelUpEvent = (newLevel, totalXP) => {
+export const logLevelUpEvent = (newLevel: number, totalXP: number): void => {
   logAnalyticsEvent('level_up', {
     new_level: newLevel,
     total_xp: totalXP
@@ -116,10 +138,8 @@ export const logLevelUpEvent = (newLevel, totalXP) => {
 
 /**
  * Log badge earned event
- * @param {string} badgeId - Badge identifier
- * @param {string} badgeName - Badge name
  */
-export const logBadgeEarnedEvent = (badgeId, badgeName) => {
+export const logBadgeEarnedEvent = (badgeId: string, badgeName: string): void => {
   logAnalyticsEvent('badge_earned', {
     badge_id: badgeId,
     badge_name: badgeName
@@ -128,10 +148,8 @@ export const logBadgeEarnedEvent = (badgeId, badgeName) => {
 
 /**
  * Log streak event
- * @param {number} streakDays - Current streak days
- * @param {string} action - Streak action (maintained, broken, milestone)
  */
-export const logStreakEvent = (streakDays, action = 'maintained') => {
+export const logStreakEvent = (streakDays: number, action: string = 'maintained'): void => {
   logAnalyticsEvent(`streak_${action}`, {
     streak_days: streakDays
   });
@@ -139,10 +157,8 @@ export const logStreakEvent = (streakDays, action = 'maintained') => {
 
 /**
  * Log share event
- * @param {string} contentType - Type of content shared
- * @param {string} method - Share method (social, copy, etc.)
  */
-export const logShareEvent = (contentType, method) => {
+export const logShareEvent = (contentType: string, method: string): void => {
   logAnalyticsEvent('share', {
     content_type: contentType,
     method: method
@@ -151,10 +167,8 @@ export const logShareEvent = (contentType, method) => {
 
 /**
  * Log navigation event
- * @param {string} screenName - Screen/page name
- * @param {string} previousScreen - Previous screen name
  */
-export const logScreenView = (screenName, previousScreen = null) => {
+export const logScreenView = (screenName: string, previousScreen: string | null = null): void => {
   logAnalyticsEvent('screen_view', {
     screen_name: screenName,
     previous_screen: previousScreen
@@ -163,11 +177,8 @@ export const logScreenView = (screenName, previousScreen = null) => {
 
 /**
  * Log error event
- * @param {string} errorType - Type of error
- * @param {string} errorMessage - Error message
- * @param {object} additionalData - Additional error data
  */
-export const logErrorEvent = (errorType, errorMessage, additionalData = {}) => {
+export const logErrorEvent = (errorType: string, errorMessage: string, additionalData: AnalyticsEventParams = {}): void => {
   logAnalyticsEvent('app_error', {
     error_type: errorType,
     error_message: errorMessage,
@@ -177,11 +188,8 @@ export const logErrorEvent = (errorType, errorMessage, additionalData = {}) => {
 
 /**
  * Log performance event
- * @param {string} metricName - Performance metric name
- * @param {number} value - Metric value
- * @param {string} unit - Unit of measurement
  */
-export const logPerformanceEvent = (metricName, value, unit = 'ms') => {
+export const logPerformanceEvent = (metricName: string, value: number, unit: string = 'ms'): void => {
   logAnalyticsEvent('performance_metric', {
     metric_name: metricName,
     value: value,
@@ -191,24 +199,21 @@ export const logPerformanceEvent = (metricName, value, unit = 'ms') => {
 
 /**
  * Log user engagement metrics
- * @param {string} action - Engagement action
- * @param {object} data - Engagement data
  */
-export const logEngagementEvent = (action, data = {}) => {
+export const logEngagementEvent = (action: string, data: AnalyticsEventParams = {}): void => {
   logAnalyticsEvent(`engagement_${action}`, data);
 };
 
 /**
  * Initialize analytics with user properties
- * @param {object} user - User object
  */
-export const initializeAnalytics = (user) => {
+export const initializeAnalytics = (user: AnalyticsUser | null): void => {
   if (!user) return;
 
   setAnalyticsUserId(user.uid);
   setAnalyticsUserProperties({
     account_type: user.isPremium ? 'premium' : 'free',
-    user_level: user.level || 'Novice',
+    user_level: String(user.level || 'Novice'),
     total_xp: user.xp || 0,
     completed_quests: user.completedQuests || 0,
     preferred_language: user.language || 'en',
@@ -218,9 +223,8 @@ export const initializeAnalytics = (user) => {
 
 /**
  * Track user session
- * @param {string} action - Session action (start, end)
  */
-export const trackSession = (action = 'start') => {
+export const trackSession = (action: string = 'start'): void => {
   logAnalyticsEvent(`session_${action}`, {
     timestamp: new Date().toISOString()
   });
@@ -228,10 +232,8 @@ export const trackSession = (action = 'start') => {
 
 /**
  * Track feature usage
- * @param {string} featureName - Name of the feature
- * @param {object} data - Additional feature data
  */
-export const trackFeatureUsage = (featureName, data = {}) => {
+export const trackFeatureUsage = (featureName: string, data: AnalyticsEventParams = {}): void => {
   logAnalyticsEvent('feature_usage', {
     feature_name: featureName,
     ...data
@@ -240,10 +242,8 @@ export const trackFeatureUsage = (featureName, data = {}) => {
 
 /**
  * Track custom event (alias for logAnalyticsEvent for compatibility)
- * @param {string} eventName - Name of the event
- * @param {object} parameters - Event parameters
  */
-export const trackEvent = (eventName, parameters = {}) => {
+export const trackEvent = (eventName: string, parameters: AnalyticsEventParams = {}): void => {
   logAnalyticsEvent(eventName, parameters);
 };
 

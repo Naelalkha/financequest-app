@@ -8,6 +8,14 @@ import { useBackground } from '../../contexts/BackgroundContext';
 export interface AppBackgroundProps {
     children?: React.ReactNode;
     className?: string;
+    /** Background variant (kept for legacy compatibility) */
+    variant?: 'default' | 'finance' | 'quest';
+    /** Enable grain effect */
+    grain?: boolean;
+    /** Enable grid pattern */
+    grid?: boolean;
+    /** Enable animations */
+    animate?: boolean;
 }
 
 /**

@@ -4,16 +4,23 @@
  */
 
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { useAuth } from '../contexts/AuthContext';
-import { getUserGamification } from '../services/gamification';
+import { doc, onSnapshot, FirestoreError } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
+import { useAuth } from '../../../contexts/AuthContext';
+import { getUserGamification, UserGamificationData } from '../../../services/gamification';
 
-export const useGamification = () => {
+/** Return type for useGamification hook */
+export interface UseGamificationReturn {
+  gamification: UserGamificationData | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export const useGamification = (): UseGamificationReturn => {
   const { user } = useAuth();
-  const [gamification, setGamification] = useState(null);
+  const [gamification, setGamification] = useState<UserGamificationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -31,7 +38,7 @@ export const useGamification = () => {
       async (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const gamificationData = {
+          const gamificationData: UserGamificationData = {
             xpTotal: data.xpTotal || 0,
             level: data.gamification?.level || 1,
             nextLevelXP: data.gamification?.nextLevelXP || 300,
@@ -54,7 +61,7 @@ export const useGamification = () => {
         }
         setLoading(false);
       },
-      (err) => {
+      (err: FirestoreError) => {
         console.error('Error fetching gamification:', err);
         setError(err.message);
         setLoading(false);
@@ -70,6 +77,3 @@ export const useGamification = () => {
     error,
   };
 };
-
-
-

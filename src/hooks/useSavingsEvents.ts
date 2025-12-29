@@ -8,24 +8,49 @@ import {
   getAllSavingsEvents,
   getSavingsEventById,
   calculateTotalSavings,
-  getSavingsByQuest
+  getSavingsByQuest,
+  SavingsEventData,
+  CreateSavingsEventInput,
+  UpdateSavingsEventInput,
+  SavingsEventsQueryOptions
 } from '../services/savingsEvents';
+
+/** Deleted snapshot for undo functionality */
+interface DeletedSnapshot {
+  id: string;
+  data: SavingsEventData;
+}
+
+/** Return type for useSavingsEvents hook */
+export interface UseSavingsEventsReturn {
+  events: SavingsEventData[];
+  loading: boolean;
+  error: string | null;
+  loadEvents: (options?: SavingsEventsQueryOptions) => Promise<void>;
+  createEvent: (eventData: CreateSavingsEventInput) => Promise<SavingsEventData>;
+  updateEvent: (eventId: string, updates: UpdateSavingsEventInput) => Promise<void>;
+  editEvent: (eventId: string, updates: UpdateSavingsEventInput) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+  undoDelete: () => Promise<void>;
+  getEventById: (eventId: string) => Promise<SavingsEventData | null>;
+  getTotalSavings: (period?: 'month' | 'year' | null) => Promise<{ total: number; count: number; byPeriod: { month: number; year: number } }>;
+  getEventsByQuest: () => Promise<Map<string, SavingsEventData[]>>;
+}
 
 /**
  * Hook personnalisé pour gérer les événements d'économie
- * @returns {Object}
  */
-export const useSavingsEvents = () => {
+export const useSavingsEvents = (): UseSavingsEventsReturn => {
   const { user } = useAuth();
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<SavingsEventData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const deletedSnapshotRef = useRef(null); // Pour stocker le snapshot lors d'un delete
+  const [error, setError] = useState<string | null>(null);
+  const deletedSnapshotRef = useRef<DeletedSnapshot | null>(null);
 
   /**
    * Charge tous les événements d'économie
    */
-  const loadEvents = useCallback(async (options = {}) => {
+  const loadEvents = useCallback(async (options: SavingsEventsQueryOptions = {}): Promise<void> => {
     if (!user) return;
 
     setLoading(true);
@@ -33,10 +58,10 @@ export const useSavingsEvents = () => {
 
     try {
       const fetchedEvents = await getAllSavingsEvents(user.uid, options);
-      setEvents(fetchedEvents);
+      setEvents(fetchedEvents as SavingsEventData[]);
     } catch (err) {
       console.error('Error loading savings events:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -45,7 +70,7 @@ export const useSavingsEvents = () => {
   /**
    * Crée un nouvel événement d'économie
    */
-  const createEvent = useCallback(async (eventData) => {
+  const createEvent = useCallback(async (eventData: CreateSavingsEventInput): Promise<SavingsEventData> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -58,7 +83,8 @@ export const useSavingsEvents = () => {
       return newEvent;
     } catch (err) {
       console.error('Error creating savings event:', err);
-      setError(err.message);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
       throw err;
     }
   }, [user]);
@@ -66,7 +92,7 @@ export const useSavingsEvents = () => {
   /**
    * Met à jour un événement d'économie (alias pour editEvent)
    */
-  const updateEvent = useCallback(async (eventId, updates) => {
+  const updateEvent = useCallback(async (eventId: string, updates: UpdateSavingsEventInput): Promise<void> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -75,16 +101,17 @@ export const useSavingsEvents = () => {
 
     try {
       await updateSavingsEventInFirestore(user.uid, eventId, updates);
-      
+
       // Mettre à jour localement
-      setEvents(prev => prev.map(event => 
-        event.id === eventId 
+      setEvents(prev => prev.map(event =>
+        event.id === eventId
           ? { ...event, ...updates, updatedAt: new Date() }
           : event
       ));
     } catch (err) {
       console.error('Error updating savings event:', err);
-      setError(err.message);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
       throw err;
     }
   }, [user]);
@@ -92,7 +119,7 @@ export const useSavingsEvents = () => {
   /**
    * Édite un événement d'économie avec optimistic UI
    */
-  const editEvent = useCallback(async (eventId, updates) => {
+  const editEvent = useCallback(async (eventId: string, updates: UpdateSavingsEventInput): Promise<void> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -107,25 +134,26 @@ export const useSavingsEvents = () => {
 
     try {
       // Optimistic UI : mettre à jour immédiatement
-      setEvents(prev => prev.map(event => 
-        event.id === eventId 
+      setEvents(prev => prev.map(event =>
+        event.id === eventId
           ? { ...event, ...updates, updatedAt: new Date() }
           : event
       ));
 
       // Puis envoyer au serveur
       await updateSavingsEventInFirestore(user.uid, eventId, updates);
-      
+
       console.log('✅ Event edited successfully:', eventId);
     } catch (err) {
       console.error('❌ Error editing savings event:', err);
-      
+
       // Rollback en cas d'erreur
-      setEvents(prev => prev.map(event => 
+      setEvents(prev => prev.map(event =>
         event.id === eventId ? oldEvent : event
       ));
-      
-      setError(err.message);
+
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
       throw err;
     }
   }, [user, events]);
@@ -133,7 +161,7 @@ export const useSavingsEvents = () => {
   /**
    * Supprime un événement d'économie avec snapshot pour undo
    */
-  const deleteEvent = useCallback(async (eventId) => {
+  const deleteEvent = useCallback(async (eventId: string): Promise<void> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -158,18 +186,19 @@ export const useSavingsEvents = () => {
 
       // Puis supprimer du serveur
       await deleteSavingsEventFromFirestore(user.uid, eventId);
-      
+
       console.log('✅ Event deleted successfully:', eventId);
     } catch (err) {
       console.error('❌ Error deleting savings event:', err);
-      
+
       // Rollback en cas d'erreur
       if (deletedSnapshotRef.current) {
-        setEvents(prev => [deletedSnapshotRef.current.data, ...prev]);
+        setEvents(prev => [deletedSnapshotRef.current!.data, ...prev]);
         deletedSnapshotRef.current = null;
       }
-      
-      setError(err.message);
+
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
       throw err;
     }
   }, [user, events]);
@@ -197,17 +226,17 @@ export const useSavingsEvents = () => {
 
       // Puis restaurer sur le serveur
       await restoreSavingsEventInFirestore(user.uid, id, data);
-      
+
       console.log('✅ Event restored successfully:', id);
-      
+
       // Effacer le snapshot après restauration réussie
       deletedSnapshotRef.current = null;
     } catch (err) {
       console.error('❌ Error restoring savings event:', err);
-      
+
       // Rollback en cas d'erreur
       setEvents(prev => prev.filter(event => event.id !== id));
-      
+
       setError(err.message);
       throw err;
     }

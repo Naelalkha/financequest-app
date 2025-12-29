@@ -7,7 +7,32 @@ import trophyFirstSave from '../../../assets/trophee-first-save.png';
 import trophyEarlyStreak from '../../../assets/trophee-streak.png';
 import lootChestIcon from '../../../assets/loot-level.png';
 
-const DashboardBentoStats = ({ badges = [], recentImpact = [], levelData = {} }) => {
+/** Badge data */
+interface Badge {
+    id: string;
+    achievedAt?: Date | string | null;
+    name?: string;
+}
+
+/** Level data for progress display */
+interface LevelData {
+    level?: number;
+    progress?: number;
+    xpNeededForNext?: number;
+}
+
+/** DashboardBentoStats props */
+interface DashboardBentoStatsProps {
+    badges?: Badge[];
+    recentImpact?: unknown[];
+    levelData?: LevelData;
+}
+
+const DashboardBentoStats: React.FC<DashboardBentoStatsProps> = ({
+    badges = [],
+    recentImpact = [],
+    levelData = {}
+}) => {
     const { t } = useTranslation('dashboard');
     const achievedCount = badges.filter(b => b.achievedAt).length;
 
