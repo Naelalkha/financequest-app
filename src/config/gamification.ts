@@ -3,11 +3,27 @@
  * Définit les niveaux, paliers d'impact et badges
  */
 
+/** Badge definition interface */
+export interface BadgeDefinition {
+  id: string;
+  name: {
+    en: string;
+    fr: string;
+  };
+  description: {
+    en: string;
+    fr: string;
+  };
+  icon: string;
+  color: string;
+  criterion: string;
+}
+
 /**
  * Seuils d'XP pour chaque niveau (L1 = 0, L2 = 300, etc.)
  * Progression douce avec incréments croissants
  */
-export const LEVEL_THRESHOLDS = [
+export const LEVEL_THRESHOLDS: readonly number[] = [
   0,     // L1
   300,   // L2
   700,   // L3
@@ -28,12 +44,12 @@ export const LEVEL_THRESHOLDS = [
   18700, // L18
   20700, // L19
   22800, // L20
-];
+] as const;
 
 /**
  * Paliers d'impact (€/an)
  */
-export const IMPACT_MILESTONES = [100, 250, 500, 1000, 1500, 2000, 5000, 10000];
+export const IMPACT_MILESTONES: readonly number[] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000] as const;
 
 /**
  * XP gagnés par action
@@ -57,12 +73,12 @@ export const XP_REWARDS = {
   streak_daily: 10,
   // Cap journalier max pour XP
   daily_cap: 250,
-};
+} as const;
 
 /**
  * Définition des badges
  */
-export const BADGES = {
+export const BADGES: Record<string, BadgeDefinition> = {
   starter_pack_finisher: {
     id: 'starter_pack_finisher',
     name: {
@@ -208,7 +224,7 @@ export const BADGES = {
 /**
  * Ordre d'affichage des badges (les plus importants en premier)
  */
-export const BADGE_DISPLAY_ORDER = [
+export const BADGE_DISPLAY_ORDER: readonly string[] = [
   'level_10',
   'level_5',
   'impact_1k',
@@ -219,7 +235,7 @@ export const BADGE_DISPLAY_ORDER = [
   'category_specialist',
   'quickwin_done',
   'first_quest',
-];
+] as const;
 
 /**
  * Contraintes anti-triche
@@ -232,7 +248,4 @@ export const GAMIFICATION_LIMITS = {
   max_impact_events_per_day: 3,
   // Cap XP journalier
   daily_xp_cap: 250,
-};
-
-
-
+} as const;

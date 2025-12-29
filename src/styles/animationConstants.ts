@@ -12,18 +12,18 @@
 // Easing curves (for tween animations)
 export const EASE = {
     // Smooth exit - accelerates out
-    outExpo: [0.16, 1, 0.3, 1],
+    outExpo: [0.16, 1, 0.3, 1] as const,
     // Smooth entry - decelerates in  
-    inExpo: [0.32, 0, 0.67, 0],
+    inExpo: [0.32, 0, 0.67, 0] as const,
     // Standard ease out
-    out: [0.4, 0, 0.2, 1],
+    out: [0.4, 0, 0.2, 1] as const,
     // Standard ease in
-    in: [0.4, 0, 1, 1],
+    in: [0.4, 0, 1, 1] as const,
     // Bounce back effect
-    backOut: [0.34, 1.56, 0.64, 1],
+    backOut: [0.34, 1.56, 0.64, 1] as const,
     // Premium smooth (Apple-like)
-    premium: [0.25, 0.1, 0.25, 1],
-};
+    premium: [0.25, 0.1, 0.25, 1] as const,
+} as const;
 
 // Standard durations (in seconds)
 export const DURATION = {
@@ -33,7 +33,7 @@ export const DURATION = {
     medium: 0.3,
     slow: 0.35,
     slower: 0.5,
-};
+} as const;
 
 /**
  * Spring configurations for Framer Motion
@@ -46,47 +46,47 @@ export const DURATION = {
 export const SPRING = {
     // Quick and responsive - for buttons, toggles
     snappy: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 400,
         damping: 30,
         mass: 1,
     },
     // Smooth and elegant - for modals, cards
     smooth: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
         mass: 1,
     },
     // Bouncy - for celebrations, success states
     bouncy: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 400,
         damping: 15,
         mass: 1,
     },
     // Gentle - for subtle movements
     gentle: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 200,
         damping: 25,
         mass: 1,
     },
     // Slider - optimized for continuous dragging
     slider: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 500,
         damping: 35,
         mass: 0.5,
     },
     // Number counter - for animating values
     counter: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 1,
     },
-};
+} as const;
 
 // Common animation variants for modals/overlays
 export const modalVariants = {
@@ -157,12 +157,12 @@ export const TRANSITIONS = {
     // For modal/card exit
     modalExit: {
         duration: DURATION.fast,
-        ease: 'easeIn'
+        ease: 'easeIn' as const
     },
     // For fullscreen overlay entry
     overlayEntry: {
         duration: DURATION.normal,
-        ease: 'easeOut'
+        ease: 'easeOut' as const
     },
     // For content fade
     fade: {
@@ -179,7 +179,7 @@ export const TRANSITIONS = {
     },
     // Spring-based screen transition
     screenSpring: SPRING.smooth,
-};
+} as const;
 
 // Stagger configuration for lists
 export const STAGGER = {

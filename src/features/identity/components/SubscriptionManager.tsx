@@ -3,14 +3,22 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
+/** Subscription data */
+interface Subscription {
+    status: string;
+    cancelAtPeriodEnd?: boolean;
+    currentPeriodEnd?: Date | string;
+    plan?: string;
+}
+
 /**
  * SubscriptionManager - Manage user subscriptions
  */
-const SubscriptionManager = () => {
+const SubscriptionManager: React.FC = () => {
     const { user } = useAuth();
     const { t } = useTranslation('profile');
     const [loading, setLoading] = useState(false);
-    const [subscription, setSubscription] = useState(null);
+    const [subscription, setSubscription] = useState<Subscription | null>(null);
 
     useEffect(() => {
         if (user) {
@@ -18,11 +26,11 @@ const SubscriptionManager = () => {
         }
     }, [user]);
 
-    const loadSubscription = async () => {
+    const loadSubscription = async (): Promise<void> => {
         try {
             setLoading(true);
             const functions = getFunctions();
-            const getSubscription = httpsCallable(functions, 'getSubscription');
+            const getSubscription = httpsCallable<void, Subscription>(functions, 'getSubscription');
             const result = await getSubscription();
             setSubscription(result.data);
         } catch (error) {
@@ -32,7 +40,7 @@ const SubscriptionManager = () => {
         }
     };
 
-    const handleCancelSubscription = async () => {
+    const handleCancelSubscription = async (): Promise<void> => {
         if (!window.confirm(t('profile.subscription.confirm_cancel') || 'Are you sure you want to cancel?')) {
             return;
         }

@@ -9,11 +9,32 @@ import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserGamification } from '../services/gamification';
 
-export const useGamification = () => {
+/** Gamification data structure */
+interface GamificationData {
+  xpTotal: number;
+  level: number;
+  nextLevelXP: number;
+  milestones: Record<string, boolean | Date>;
+  badges: Array<{
+    id: string;
+    name?: string;
+    achievedAt?: Date | string | null;
+  }>;
+  updatedAt: Date | string | null;
+}
+
+/** useGamification return type */
+interface UseGamificationReturn {
+  gamification: GamificationData | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export const useGamification = (): UseGamificationReturn => {
   const { user } = useAuth();
-  const [gamification, setGamification] = useState(null);
+  const [gamification, setGamification] = useState<GamificationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {

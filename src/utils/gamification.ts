@@ -17,6 +17,7 @@ export interface LevelData {
   xpTotal: number;
   currentLevelXP: number;
   nextLevelXP: number | null;
+  xpForNextLevel?: number | null; // Alias for nextLevelXP
   xpInCurrentLevel: number;
   xpNeededForNext: number;
   progress: number;
@@ -353,8 +354,15 @@ export function hasQuickWinSavings(savingsEvents: SavingsEvent[] = []): boolean 
 /**
  * Formate le badge pour l'affichage
  */
-export function formatBadge(badgeId, lang = 'en', unlockedAt = null) {
+export function formatBadge(
+  badgeId: string,
+  lang: string = 'en',
+  unlockedAt: Date | string | boolean | null | undefined = null
+): FormattedBadge {
   const badge = BADGES[badgeId];
+  const unlockedDate = unlockedAt instanceof Date ? unlockedAt :
+    (typeof unlockedAt === 'string' ? new Date(unlockedAt) : null);
+
   if (!badge) {
     return {
       id: badgeId,
@@ -363,18 +371,18 @@ export function formatBadge(badgeId, lang = 'en', unlockedAt = null) {
       icon: '🏆',
       color: '#9CA3AF',
       unlocked: !!unlockedAt,
-      unlockedAt,
+      unlockedAt: unlockedDate,
     };
   }
 
   return {
     id: badge.id,
-    name: badge.name[lang] || badge.name.en,
-    description: badge.description[lang] || badge.description.en,
+    name: badge.name[lang as 'en' | 'fr'] || badge.name.en,
+    description: badge.description[lang as 'en' | 'fr'] || badge.description.en,
     icon: badge.icon,
     color: badge.color,
     unlocked: !!unlockedAt,
-    unlockedAt,
+    unlockedAt: unlockedDate,
     criterion: badge.criterion,
   };
 }

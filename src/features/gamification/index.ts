@@ -3,7 +3,7 @@
  */
 
 // Hooks
-export { default as useGamification } from './hooks/useGamification';
+export { useGamification } from './hooks/useGamification';
 
 // Components
 export { default as BadgeGrid } from './components/BadgeGrid';

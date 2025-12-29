@@ -5,13 +5,22 @@
 
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaLock } from 'react-icons/fa';
+import { FaLock, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import { BADGES, BADGE_DISPLAY_ORDER } from '../../config/gamification';
-import { formatBadge } from '../../../utils/gamification';
+import { BADGES, BADGE_DISPLAY_ORDER } from '../../../config/gamification';
+import { formatBadge, FormattedBadge } from '../../../utils/gamification';
 import { trackEvent } from '../../../utils/analytics';
 
-const BadgeGrid = ({ badges = [], className = '' }) => {
+/** Badge data that can be either a string ID or an object */
+type BadgeInput = string | { id: string; unlockedAt?: Date | string | null };
+
+/** BadgeGrid props */
+interface BadgeGridProps {
+  badges?: BadgeInput[];
+  className?: string;
+}
+
+const BadgeGrid: React.FC<BadgeGridProps> = ({ badges = [], className = '' }) => {
   const { t, i18n } = useTranslation('common');
 
   useEffect(() => {
@@ -19,28 +28,33 @@ const BadgeGrid = ({ badges = [], className = '' }) => {
     trackEvent('badges_viewed', { count_unlocked: badges.length });
   }, [badges.length]);
 
-  // Créer un Set pour vérification rapide
-  const badgesSet = new Set(badges);
+  // Créer un Set pour vérification rapide (only IDs)
+  const badgeIds = badges.map(b => typeof b === 'string' ? b : b.id);
+  const badgesSet = new Set(badgeIds);
 
   // Trier les badges selon l'ordre d'affichage
-  const sortedBadges = BADGE_DISPLAY_ORDER.map(badgeId => {
+  const sortedBadges: FormattedBadge[] = BADGE_DISPLAY_ORDER.map((badgeId: string) => {
     const badge = BADGES[badgeId];
     if (!badge) return null;
 
     const unlockedAt = badgesSet.has(badgeId)
-      ? (badges.find(b => b === badgeId || (typeof b === 'object' && b.id === badgeId))?.unlockedAt || true)
+      ? (badges.find(b => (typeof b === 'string' ? b : b.id) === badgeId) as BadgeInput | undefined)
       : null;
 
-    return formatBadge(badgeId, i18n.language, unlockedAt);
-  }).filter(Boolean);
+    const unlockedDate = unlockedAt && typeof unlockedAt === 'object' ? unlockedAt.unlockedAt : (unlockedAt ? true : null);
+
+    return formatBadge(badgeId, i18n.language, unlockedDate);
+  }).filter((b): b is FormattedBadge => b !== null);
 
   // Ajouter les badges non listés dans l'ordre (au cas où)
-  Object.keys(BADGES).forEach(badgeId => {
+  Object.keys(BADGES).forEach((badgeId: string) => {
     if (!BADGE_DISPLAY_ORDER.includes(badgeId)) {
       const unlockedAt = badgesSet.has(badgeId)
-        ? (badges.find(b => b === badgeId || (typeof b === 'object' && b.id === badgeId))?.unlockedAt || true)
+        ? (badges.find(b => (typeof b === 'string' ? b : b.id) === badgeId) as BadgeInput | undefined)
         : null;
-      sortedBadges.push(formatBadge(badgeId, i18n.language, unlockedAt));
+
+      const unlockedDate = unlockedAt && typeof unlockedAt === 'object' ? unlockedAt.unlockedAt : (unlockedAt ? true : null);
+      sortedBadges.push(formatBadge(badgeId, i18n.language, unlockedDate));
     }
   });
 
@@ -69,8 +83,8 @@ const BadgeGrid = ({ badges = [], className = '' }) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             className={`neon-card rounded-xl p-4 backdrop-blur-sm border-2 flex flex-col items-center gap-3 ${badge.unlocked
-                ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
-                : 'border-gray-700/50 bg-gray-900/30 opacity-60'
+              ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
+              : 'border-gray-700/50 bg-gray-900/30 opacity-60'
               }`}
           >
             {/* Icône badge */}

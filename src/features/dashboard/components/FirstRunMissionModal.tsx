@@ -36,7 +36,14 @@ const ANIMATION_DURATION = {
   warp: 0.4
 };
 
-const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
+/** FirstRunMissionModal props */
+interface FirstRunMissionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onStartMission: () => void;
+}
+
+const FirstRunMissionModal: React.FC<FirstRunMissionModalProps> = ({ isOpen, onClose, onStartMission }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
 
@@ -54,7 +61,7 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
     setIsAccepting(true);
     haptic.heavy();
     markFirstRunShown();
-    
+
     // Small delay for warp animation
     setTimeout(() => {
       onStartMission();
@@ -73,7 +80,7 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
     opacity: 0,
     filter: "blur(15px)",
     y: -20,
-    transition: { duration: ANIMATION_DURATION.warp, ease: [0.4, 0, 0.2, 1] }
+    transition: { duration: ANIMATION_DURATION.warp, ease: [0.4, 0, 0.2, 1] as const }
   };
 
   return (
@@ -87,9 +94,9 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
           animate="visible"
           exit="exit"
           transition={TRANSITIONS.overlayEntry}
-          style={{ 
-            backdropFilter: isAccepting ? 'blur(20px)' : 'blur(12px)', 
-            backgroundColor: 'rgba(0, 0, 0, 0.9)' 
+          style={{
+            backdropFilter: isAccepting ? 'blur(20px)' : 'blur(12px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)'
           }}
         >
           <motion.div
@@ -102,8 +109,8 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
           >
             {/* Close button */}
             {!isAccepting && (
-              <button 
-                onClick={handleSkip} 
+              <button
+                onClick={handleSkip}
                 className="absolute top-4 right-4 p-3 rounded-full bg-white/5 active:bg-white/10 transition-colors z-20"
                 aria-label="Fermer"
               >
@@ -147,7 +154,7 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
                 } : {}}
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               />
-              
+
               {/* Center icon */}
               <motion.div
                 className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-[#E2FF00] to-[#B8CC00] flex items-center justify-center shadow-[0_0_30px_rgba(226,255,0,0.4)]"
@@ -197,9 +204,9 @@ const FirstRunMissionModal = ({ isOpen, onClose, onStartMission }) => {
               className="w-full bg-volt text-black font-black font-sans rounded-xl flex items-center justify-center gap-2 active:scale-95 py-4 disabled:opacity-80 shadow-volt-glow-strong border-[3px] border-black transition-transform"
             >
               {isAccepting ? (
-                <motion.div 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"
                 />
               ) : (

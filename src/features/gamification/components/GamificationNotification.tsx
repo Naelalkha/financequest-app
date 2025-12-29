@@ -10,9 +10,27 @@ import { useTranslation } from 'react-i18next';
 import { formatBadge } from '../../../utils/gamification';
 import { formatEUR } from '../../../utils/impact';
 
-const GamificationNotification = ({
-  type, // 'milestone' | 'badge' | 'level'
-  data, // { amount?, badgeId?, level? }
+/** Notification type */
+type NotificationType = 'milestone' | 'badge' | 'level';
+
+/** Notification data */
+interface NotificationData {
+  amount?: number;
+  badgeId?: string;
+  level?: number;
+}
+
+/** GamificationNotification props */
+interface GamificationNotificationProps {
+  type: NotificationType;
+  data: NotificationData;
+  onClose?: () => void;
+  className?: string;
+}
+
+const GamificationNotification: React.FC<GamificationNotificationProps> = ({
+  type,
+  data,
   onClose,
   className = '',
 }) => {
@@ -28,7 +46,7 @@ const GamificationNotification = ({
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
@@ -37,7 +55,7 @@ const GamificationNotification = ({
     }).format(amount);
   };
 
-  let content = null;
+  let content: React.ReactNode = null;
 
   if (type === 'milestone' && data.amount) {
     content = (
