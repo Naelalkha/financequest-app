@@ -120,11 +120,10 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
         fr: {
             // Page 1
             contextTitle: 'CONTEXTE',
-            contextSubtitle: 'Comprendre le problème',
             hookLabel: 'LE PROBLÈME',
             hook: "Tu surveilles les gros virements, mais tu ignores la petite monnaie.",
             hookHighlight: "L'ennemi n'est pas le montant, c'est la fréquence.",
-            statLabel: 'LA RÉALITÉ',
+            statLabel: 'LES CHIFFRES',
             contextCta: 'VOIR LE PROTOCOLE',
 
             // Page 2
@@ -134,11 +133,10 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
         },
         en: {
             contextTitle: 'CONTEXT',
-            contextSubtitle: 'Understanding the problem',
             hookLabel: 'THE PROBLEM',
             hook: "You watch the big transfers, but ignore the loose change.",
             hookHighlight: "The enemy isn't the amount, it's the frequency.",
-            statLabel: 'THE REALITY',
+            statLabel: 'THE NUMBERS',
             contextCta: 'SEE THE PROTOCOL',
             methodTitle: 'METHOD',
             methodSubtitle: '3 steps to take back control',
@@ -206,47 +204,70 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                     </div>
                                 </motion.div>
 
-                                {/* ===== CARD 2: STATS CAROUSEL ===== "Verre Profond" - rgb(17 17 17 / 60%) */}
+                                {/* ===== CARD 2: STATS CAROUSEL ===== "Verre Profond" - Instagram Stories style */}
                                 <motion.div
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15, duration: 0.25 }}
-                                    className="border border-white/5 rounded-2xl px-6 py-8 relative overflow-hidden backdrop-blur-[20px]"
+                                    className="border border-white/5 rounded-2xl relative overflow-hidden backdrop-blur-[20px]"
                                     style={{ backgroundColor: 'rgb(17 17 17 / 60%)' }}
                                 >
+                                    {/* Progress Bar - Instagram Stories style */}
+                                    <div className="flex gap-1 px-4 pt-4 pb-2">
+                                        {slides.map((_, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`flex-1 h-1 rounded-full transition-colors duration-300 ${idx === currentSlideIndex ? 'bg-volt' : 'bg-neutral-700'
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
 
                                     {/* Header */}
-                                    <div className="relative z-10 flex justify-between items-center mb-6">
+                                    <div className="relative z-10 px-6 pt-2 pb-2">
                                         <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">
                                             {L.statLabel}
                                         </span>
-                                        {/* Progress dots */}
-                                        <div className="flex gap-1.5">
-                                            {slides.map((_, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => setCurrentSlideIndex(idx)}
-                                                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlideIndex
-                                                        ? 'w-5 bg-volt'
-                                                        : 'w-1.5 bg-neutral-700'
-                                                        }`}
-                                                />
-                                            ))}
-                                        </div>
                                     </div>
 
-                                    {/* Carousel Content - Fixed height to prevent arrow movement */}
-                                    <div className="relative flex items-center justify-between h-[130px]">
-                                        {/* Left Arrow */}
-                                        <button
-                                            onClick={prevSlide}
-                                            className="p-2 -ml-1 text-neutral-500 active:scale-90 active:text-white transition-all flex-shrink-0"
-                                        >
-                                            <ChevronLeft className="w-6 h-6" />
-                                        </button>
+                                    {/* Carousel Content with Tap Zones */}
+                                    <div
+                                        className="relative h-[140px] px-6 pb-6"
+                                        onTouchStart={(e) => {
+                                            const touch = e.touches[0];
+                                            (e.currentTarget as HTMLDivElement).dataset.touchStartX = String(touch.clientX);
+                                        }}
+                                        onTouchEnd={(e) => {
+                                            const touchStartX = Number((e.currentTarget as HTMLDivElement).dataset.touchStartX);
+                                            const touchEndX = e.changedTouches[0].clientX;
+                                            const diff = touchStartX - touchEndX;
+
+                                            if (Math.abs(diff) > 50) {
+                                                if (diff > 0) {
+                                                    nextSlide();
+                                                } else {
+                                                    prevSlide();
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {/* Invisible tap zones */}
+                                        <div className="absolute inset-0 flex z-20">
+                                            <button
+                                                onClick={prevSlide}
+                                                className="w-1/3 h-full outline-none focus:outline-none"
+                                                aria-label="Previous"
+                                            />
+                                            <div className="w-1/3 h-full" /> {/* Center - no action */}
+                                            <button
+                                                onClick={nextSlide}
+                                                className="w-1/3 h-full outline-none focus:outline-none"
+                                                aria-label="Next"
+                                            />
+                                        </div>
 
                                         {/* Content */}
-                                        <div className="flex-1 px-4 flex items-center justify-center">
+                                        <div className="relative z-10 h-full flex items-center justify-center">
                                             <AnimatePresence mode="wait">
                                                 <motion.div
                                                     key={currentSlideIndex}
@@ -259,20 +280,12 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                     <h3 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">
                                                         {currentSlide.stat}
                                                     </h3>
-                                                    <p className="text-sm text-neutral-300 leading-relaxed max-w-[240px] mx-auto">
+                                                    <p className="text-sm text-neutral-300 leading-relaxed max-w-[260px] mx-auto">
                                                         {currentSlide.text}
                                                     </p>
                                                 </motion.div>
                                             </AnimatePresence>
                                         </div>
-
-                                        {/* Right Arrow */}
-                                        <button
-                                            onClick={nextSlide}
-                                            className="p-2 -mr-1 text-neutral-500 active:scale-90 active:text-white transition-all flex-shrink-0"
-                                        >
-                                            <ChevronRight className="w-6 h-6" />
-                                        </button>
                                     </div>
                                 </motion.div>
 

@@ -59,8 +59,8 @@
     },
     "microExpenses": {
         "codename": "TRAQUE INVISIBLE",
-        "title": "Identifier les micro-dépenses",
-        "description": "Tes cafés te coûtent tes vacances d'été. Ces dépenses invisibles siphonnent ton capital quotidiennement sans déclencher d'alerte.",
+        "title": "TRAQUER LES MICRO-DÉPENSES",
+        "description": "Tes cafés te coûtent tes vacances d'été. L'ennemi, ce n'est pas le montant — c'est la fréquence.",
         "objectives": [
             "Identifie une micro-dépense récurrente",
             "Calcule son impact sur 5 ans",

@@ -87,7 +87,7 @@ const MicroExpensesFlow = ({
     // Step subtitles (moyen gris - instruction)
     const getStepSubtitle = () => {
         if (phase === 'PROTOCOL') {
-            if (protocolPage === 0) return { fr: 'Comprendre le problème', en: 'Understanding the problem' };
+            if (protocolPage === 0) return { fr: '', en: '' };
             return { fr: '3 étapes pour reprendre le contrôle', en: '3 steps to take back control' };
         }
         if (phase === 'EXECUTION') {
@@ -220,7 +220,7 @@ const MicroExpensesFlow = ({
                 </div>
 
                 {/* Header - Tactical Glass Effect: Floating above pattern with very light gradient + backdrop blur */}
-                <div 
+                <div
                     className="absolute top-0 left-0 w-full p-6 pt-8 flex justify-between items-center z-40"
                     style={{
                         background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%)',

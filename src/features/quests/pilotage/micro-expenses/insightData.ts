@@ -42,26 +42,26 @@ export const socialProofSlides = {
             badge: 'VOLUME',
             badgeColor: 'amber',
             stat: '72€',
-            text: "dépensés en moyenne par mois par les 18-26 ans pour les repas hors domicile. Soit 864€/an en autopilote.",
+            text: "dépensés en moyenne par mois en livraison et café. Soit 864€/an en autopilote.",
             source: 'Republik Retail 2024'
         },
         {
-            id: 'frequency',
-            title: 'TAUX DE REGRET',
-            badge: 'FRÉQUENCE',
+            id: 'latte-factor',
+            title: 'LE LATTE FACTOR',
+            badge: 'IMPACT',
             badgeColor: 'orange',
-            stat: '68%',
-            text: "des Millennials regrettent au moins un achat impulsif fait sous influence.",
-            source: 'Bankrate 2023'
+            stat: '170 000€',
+            text: "5€/jour investis à 7%/an pendant 30 ans. C'est le \"Latte Factor\" — le vrai prix de tes cafés.",
+            source: 'David Bach'
         },
         {
-            id: 'impact',
-            title: 'IMPACT CRÉDIT',
-            badge: 'IMPACT',
+            id: 'blindspot',
+            title: 'ANGLE MORT',
+            badge: 'FRÉQUENCE',
             badgeColor: 'red',
-            stat: '3 MOIS',
-            text: "de relevés bancaires scrutés par les banques pour évaluer ton reste à vivre avant un crédit.",
-            source: 'Pratique Bancaire FR'
+            stat: '1 sur 4',
+            text: "des Français n'a pas d'idée précise de ses dépenses mensuelles. Les petits montants passent sous le radar.",
+            source: 'Étude Banque de France'
         }
     ],
     en: [
@@ -71,26 +71,26 @@ export const socialProofSlides = {
             badge: 'VOLUME',
             badgeColor: 'amber',
             stat: '€72',
-            text: "spent on average per month by 18-26 year olds on eating out. That's €864/year on autopilot.",
+            text: "spent on average per month on delivery and coffee. That's €864/year on autopilot.",
             source: 'Republik Retail 2024'
         },
         {
-            id: 'frequency',
-            title: 'REGRET RATE',
-            badge: 'FREQUENCY',
+            id: 'latte-factor',
+            title: 'THE LATTE FACTOR',
+            badge: 'IMPACT',
             badgeColor: 'orange',
-            stat: '68%',
-            text: "of Millennials regret at least one impulse purchase made under influence.",
-            source: 'Bankrate 2023'
+            stat: '€170,000',
+            text: "€5/day invested at 7%/year for 30 years. That's the \"Latte Factor\" — the real cost of your coffees.",
+            source: 'David Bach'
         },
         {
-            id: 'impact',
-            title: 'CREDIT IMPACT',
-            badge: 'IMPACT',
+            id: 'blindspot',
+            title: 'BLIND SPOT',
+            badge: 'FREQUENCY',
             badgeColor: 'red',
-            stat: '3 MONTHS',
-            text: "of bank statements scrutinized by banks to assess your 'rest to live' before a loan.",
-            source: 'FR Banking Practice'
+            stat: '1 in 4',
+            text: "French people have no clear idea of their monthly expenses. Small amounts fly under the radar.",
+            source: 'Banque de France Study'
         }
     ]
 };
@@ -360,10 +360,10 @@ export const calculateProjections = (dailyAmount, years = 5, rate = 0.07) => {
 export const calculateActionLevelSavings = (monthlyAmount, locale = 'fr') => {
     console.warn('calculateActionLevelSavings is deprecated. Use actionConfig in ExecutionScreen.jsx');
     const levels = actionLevels[locale] || actionLevels.fr;
-    
+
     // Simplified version - just return level info without calculations
     return levels.map(level => ({
-            ...level,
+        ...level,
         savings: 0,
         yearlySavings: 0,
         newMonthly: monthlyAmount

@@ -166,7 +166,7 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
     <AnimatePresence>
       {isOpen && localizedQuest && (
         <motion.div
-          key={`smart-mission-modal-${initialQuest?.id || 'default'}`}
+          key="smart-mission-modal"
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           variants={modalVariants.backdrop}
           initial="hidden"
@@ -179,12 +179,13 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
           }}
         >
           <motion.div
+            layout
             className="bg-[#0A0A0A] shadow-2xl relative flex flex-col items-center text-center overflow-hidden w-full max-w-sm rounded-3xl p-6 border border-neutral-800"
             variants={modalVariants.card}
             initial="hidden"
             animate={isAccepting ? warpExit : "visible"}
             exit="exit"
-            transition={TRANSITIONS.modalEntry}
+            transition={{ ...TRANSITIONS.modalEntry, layout: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] } }}
           >
             {!isAccepting && (
               <button
@@ -202,36 +203,39 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
               {t('missionBriefing')}
             </h2>
 
-            <AnimatePresence mode="wait">
-              {!isAccepting && (
-                <motion.div
-                  key={`content-${initialQuest?.id || 'loading'}`}
-                  className="flex flex-col items-center w-full"
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ duration: ANIMATION_DURATION.reroll, ease: "easeOut" }}
-                >
-                  <QuestIcon quest={localizedQuest} questColor={questColor} />
-                  <div className="w-full">
-                    {localizedQuest.codename && <span className="font-mono text-xs text-volt/75 uppercase tracking-[0.2em] block mb-1">{localizedQuest.codename}</span>}
-                    <h3 className="font-sans font-black text-2xl text-white uppercase leading-tight mb-3">{localizedQuest.title}</h3>
-                    <p className="text-sm text-gray-300 leading-relaxed px-2 mb-6">{highlightNumbers(localizedQuest.description)}</p>
-                    <div className="flex items-stretch justify-center gap-4 mb-8">
-                      <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex flex-col items-center">
-                        <span className="text-xs text-gray-400 uppercase tracking-widest font-mono mb-1">{t('reward')}</span>
-                        <span className="text-xl font-bold text-yellow-400">+{localizedQuest.xpReward || 100} XP</span>
-                      </div>
-                      <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex flex-col items-center">
-                        <span className="text-xs text-gray-400 uppercase tracking-widest font-mono mb-1">{t('estTime')}</span>
-                        <span className="text-xl font-bold text-yellow-400">{localizedQuest.duration || localizedQuest.estimatedTime || '5'}m</span>
+            <div className="w-full">
+              <AnimatePresence mode="popLayout">
+                {!isAccepting && (
+                  <motion.div
+                    key={`content-${localizedQuest?.id || 'loading'}`}
+                    layout
+                    className="flex flex-col items-center w-full"
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={{ duration: ANIMATION_DURATION.reroll, ease: "easeOut", layout: { duration: 0.3 } }}
+                  >
+                    <QuestIcon quest={localizedQuest} questColor={questColor} />
+                    <div className="w-full">
+                      {localizedQuest.codename && <span className="font-mono text-xs text-volt/75 uppercase tracking-[0.2em] block mb-1">{localizedQuest.codename}</span>}
+                      <h3 className="font-sans font-black text-2xl text-white uppercase leading-tight mb-3">{localizedQuest.title}</h3>
+                      <p className="text-sm text-gray-300 leading-relaxed px-2 mb-6">{highlightNumbers(localizedQuest.description)}</p>
+                      <div className="flex items-stretch justify-center gap-4 mb-8">
+                        <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex flex-col items-center">
+                          <span className="text-xs text-gray-400 uppercase tracking-widest font-mono mb-1">{t('reward')}</span>
+                          <span className="text-xl font-bold text-yellow-400">+{localizedQuest.xpReward || 100} XP</span>
+                        </div>
+                        <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex flex-col items-center">
+                          <span className="text-xs text-gray-400 uppercase tracking-widest font-mono mb-1">{t('estTime')}</span>
+                          <span className="text-xl font-bold text-yellow-400">{localizedQuest.duration || localizedQuest.estimatedTime || '5'}m</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <div className={`w-full flex gap-3 items-center ${hideReroll ? 'justify-center' : ''}`}>
               {!hideReroll && (
