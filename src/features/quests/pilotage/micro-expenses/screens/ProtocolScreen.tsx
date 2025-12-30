@@ -307,7 +307,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                             transition={pageTransition}
                             className="h-full overflow-y-auto custom-scrollbar"
                         >
-                            <div className="p-6 pt-6 pb-32">
+                            <div className="p-6 pt-4 pb-32">
 
                                 {/* ===== TIMELINE LAYOUT ===== */}
                                 <div className="relative">
@@ -319,7 +319,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                         className="absolute left-[19px] top-10 bottom-6 w-px bg-gradient-to-b from-volt/40 via-neutral-700 to-neutral-800"
                                     />
 
-                                    <div className="space-y-6">
+                                    <div className="space-y-4">
                                         {tips.map((tip, index) => {
                                             const IconComponent = IconMap[tip.iconName] || Zap;
                                             return (
@@ -358,7 +358,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
 
                                                         <div className="relative z-10">
                                                             {/* Title - No padding right needed as icon is very transparent */}
-                                                            <h4 className="font-sans text-lg font-bold text-white leading-tight mb-3">
+                                                            <h4 className="font-sans text-base font-bold text-white leading-tight mb-3">
                                                                 {tip.title}
                                                             </h4>
 
