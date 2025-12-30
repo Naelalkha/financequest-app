@@ -242,7 +242,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             multiplier: 1,
             labelFr: 'STOPPER',
             labelEn: 'STOP',
-            descFr: 'Élimine complètement cette dépense',
+            descFr: 'Stop total',
             descEn: 'Completely eliminate this expense'
         }
     ];
@@ -296,7 +296,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     <div className="flex flex-col p-6 pt-2 pb-32">
 
                         {/* CATEGORY GRID (2 rows x 3 columns) */}
-                        <div className="grid grid-cols-3 gap-3 mb-8">
+                        <div className="grid grid-cols-3 gap-2 mb-6">
                             {expenseCategories.map((category) => {
                                 const IconComponent = ICON_MAP[category.iconName];
                                 const isSelected = selectedCategoryId === category.id;
@@ -307,7 +307,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleCategorySelect(category)}
                                         className={`
-                                            h-20 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200
+                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-200
                                             ${isSelected
                                                 ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)]'
                                                 : 'bg-neutral-900 text-neutral-400 border-neutral-800 active:bg-neutral-800'
@@ -326,7 +326,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         </div>
 
                         {/* PRICE INPUT (Slider + Big Number) */}
-                        <div className="mb-6 w-full">
+                        <div className="mb-5 w-full">
                             <div className="flex justify-between items-end mb-3 px-1">
                                 <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide">
                                     {L.priceLabel}
@@ -356,8 +356,8 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                             </div>
                         </div>
 
-                        {/* FREQUENCY GRID */}
-                        <div className="mb-8 w-full">
+                        {/* FREQUENCY CHIPS - Grid 2 rows */}
+                        <div className="mb-6 w-full">
                             <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-3 block px-1">
                                 {L.frequencyLabel}
                             </label>
@@ -370,7 +370,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleFrequencySelect(freq)}
                                             className={`
-                                                py-3 rounded-xl font-mono text-[11px] font-bold border transition-all
+                                                py-2.5 rounded-xl font-mono text-[11px] font-bold border transition-all
                                                 ${isSelected
                                                     ? 'bg-volt text-black border-volt shadow-[0_0_12px_rgba(226,255,0,0.25)]'
                                                     : 'bg-neutral-900 text-neutral-500 border-neutral-800'

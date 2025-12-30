@@ -172,8 +172,11 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1, duration: 0.25 }}
-                                    className="border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-[20px]"
-                                    style={{ backgroundColor: 'rgb(36 36 36 / 50%)' }}
+                                    className="rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl"
+                                    style={{
+                                        backgroundColor: 'rgb(36 36 36 / 50%)',
+                                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
+                                    }}
                                 >
 
                                     {/* Dossier image - corner top-right, slightly cropped for integration effect */}
@@ -351,9 +354,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                                                     </div>
 
                                                     {/* Content Card */}
-                                                    <div className="flex-1 bg-neutral-900/60 border border-white/5 rounded-2xl p-5 backdrop-blur-[1px] relative overflow-hidden group">
-                                                        {/* Hover glow effect */}
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-volt/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                                    <div className="flex-1 bg-neutral-900/60 border border-white/5 rounded-2xl p-5 backdrop-blur-[1px] relative overflow-hidden">
 
                                                         <div className="relative z-10">
                                                             {/* Title - No padding right needed as icon is very transparent */}

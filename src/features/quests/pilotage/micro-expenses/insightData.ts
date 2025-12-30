@@ -22,7 +22,7 @@ export const frequencyLabels = {
         weekdays: 'En semaine (5j)',
         '3x': '3x / semaine',
         '2x': 'Week-end (2j)',
-        '1x': 'Occasionnel (1x)',
+        '1x': '1x / semaine',
     },
     en: {
         daily: 'Every day',
@@ -112,9 +112,9 @@ export const proTips = {
         },
         {
             id: 'substitution',
-            title: 'LA RÈGLE DE SUBSTITUTION',
+            title: 'SUBSTITUE MALIN',
             iconName: 'RefreshCw',
-            body: "Ne te prive pas, sois malin. Café Starbuck (5€) → Thermos stylé (0.50€). Uber (15€) → Podcast + Marche (0€)."
+            body: "Ne te prive pas, sois malin. Café Starbuck (5€) → Thermos maison (0.50€). Livraison repas (15€) → Cuisine maison (5€)."
         }
     ],
     en: [
@@ -132,7 +132,7 @@ export const proTips = {
         },
         {
             id: 'substitution',
-            title: 'THE SUBSTITUTION RULE',
+            title: 'SMART SUBSTITUTE',
             iconName: 'RefreshCw',
             body: "Don't deprive yourself, be smart. Starbucks coffee (€5) → Stylish thermos (€0.50). Uber (€15) → Podcast + Walk (€0)."
         }
@@ -155,7 +155,7 @@ export const expenseCategoryLabels = {
         coffee: 'Café',
         snack: 'Snack',
         tobacco: 'Vape/Tabac',
-        uber: 'Uber & Eats',
+        uber: 'Uber Eats',
         bar: 'Bar/Party',
         other: 'Autre'
     },
@@ -163,7 +163,7 @@ export const expenseCategoryLabels = {
         coffee: 'Coffee',
         snack: 'Snack',
         tobacco: 'Vape/Tobacco',
-        uber: 'Uber & Eats',
+        uber: 'Uber Eats',
         bar: 'Bar/Party',
         other: 'Other'
     }

@@ -86,19 +86,21 @@ const MicroExpensesFlow = ({
 
     // Step subtitles (moyen gris - instruction)
     const getStepSubtitle = () => {
-        if (phase === 'PROTOCOL') {
-            if (protocolPage === 0) return { fr: '', en: '' };
-            return { fr: '3 étapes pour reprendre le contrôle', en: '3 steps to take back control' };
-        }
-        if (phase === 'EXECUTION') {
-            if (executionStep === 'revelation') return { fr: 'Configure ta dépense', en: 'Configure your expense' };
-            return { fr: 'Choisis ton approche', en: 'Choose your approach' };
-        }
-        return { fr: 'Potentiel débloqué', en: 'Potential unlocked' };
+        // All subtitles removed for cleaner mobile UI
+        return { fr: '', en: '' };
     };
 
-    // Progress bar width
-    const progressWidth = phase === 'PROTOCOL' ? '33%' : phase === 'EXECUTION' ? '66%' : '100%';
+    // Progress bar width - 5 steps total (20% each)
+    const getProgressWidth = () => {
+        if (phase === 'PROTOCOL') {
+            return protocolPage === 0 ? '20%' : '40%';
+        }
+        if (phase === 'EXECUTION') {
+            return executionStep === 'revelation' ? '60%' : '80%';
+        }
+        return '100%'; // DEBRIEF
+    };
+    const progressWidth = getProgressWidth();
 
     // Update quest data
     const handleUpdateData = useCallback((newData) => {
@@ -258,7 +260,7 @@ const MicroExpensesFlow = ({
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
                             {/* Titre de l'étape - ÉNORME blanc - Animated */}
-                            <div className="h-7 mt-1">
+                            <div className="h-9 mt-1 overflow-hidden pt-2 -mt-1">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
@@ -267,7 +269,7 @@ const MicroExpensesFlow = ({
                                         <motion.h2
                                             initial={{ y: '100%' }}
                                             animate={{ y: 0 }}
-                                            exit={{ y: '-100%' }}
+                                            exit={{ y: '-150%' }}
                                             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                                             className="font-sans font-black text-2xl text-white leading-none tracking-tight"
                                             style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}

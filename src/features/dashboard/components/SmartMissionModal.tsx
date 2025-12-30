@@ -167,7 +167,7 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
       {isOpen && localizedQuest && (
         <motion.div
           key="smart-mission-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
           variants={modalVariants.backdrop}
           initial="hidden"
           animate="visible"
@@ -179,13 +179,12 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
           }}
         >
           <motion.div
-            layout
             className="bg-[#0A0A0A] shadow-2xl relative flex flex-col items-center text-center overflow-hidden w-full max-w-sm rounded-3xl p-6 border border-neutral-800"
             variants={modalVariants.card}
             initial="hidden"
             animate={isAccepting ? warpExit : "visible"}
             exit="exit"
-            transition={{ ...TRANSITIONS.modalEntry, layout: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] } }}
+            transition={TRANSITIONS.modalEntry}
           >
             {!isAccepting && (
               <button

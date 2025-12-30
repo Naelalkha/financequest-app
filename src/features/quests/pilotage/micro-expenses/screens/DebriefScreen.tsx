@@ -116,7 +116,7 @@ const DebriefScreen = ({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.1 }}
-                            className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-2 block"
+                            className="font-mono text-[12px] text-neutral-500 uppercase tracking-wide mb-2 block"
                         >
                             {L.goalLabel}
                         </motion.span>
@@ -131,16 +131,6 @@ const DebriefScreen = ({
                         >
                             +{animatedSavings.toLocaleString('fr-FR')} €
                         </motion.h2>
-
-                        {/* Subtitle - HONEST */}
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.25 }}
-                            className="text-sm text-neutral-500 mt-2"
-                        >
-                            {L.subtitle}
-                        </motion.p>
                     </div>
 
                     {/* ===== CARDS - Unified Style ===== */}
