@@ -1,65 +1,105 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { FaApple } from 'react-icons/fa';
-import { ArrowLeft } from 'lucide-react';
-import { realityCheckPills } from '../insightData';
+import { ChevronRight, Zap, Wallet, X, Scissors, Minus } from 'lucide-react';
 import { haptic } from '../../../../../utils/haptics';
-import { SPRING } from '../../../../../styles/animationConstants';
 
 /**
- * ExecutionScreen - Phase 2: Target Selection & Amount Input
+ * ExecutionScreen - Phase 2: "LA PURGE"
  * 
- * Features:
- * - Service selection grid with icons
- * - Dynamic Reality Check pill based on selected service
- * - Custom name input for "Other"
- * - Giant amount input with frequency toggle
+ * 2-STEP NARRATIVE FLOW:
+ * Step 1: "LA RÉVÉLATION" - Select subscription + See the shocking result
+ * Step 2: "LE CHOIX DU DÉFI" - Pick your challenge level
+ * 
+ * NAVIGATION: Controlled by parent (CutSubscriptionFlow) for uniform header behavior
  */
 
-// SERVICE OPTIONS (Prices: France December 2024 - base tier)
+// SERVICE OPTIONS (Prices: France fin 2025 - plans standards)
 const SUBSCRIPTION_SERVICES = [
-    { id: 'netflix', name: 'Netflix', icon: 'N', color: 'text-red-500', defaultPrice: 14.99 },      // Standard
-    { id: 'spotify', name: 'Spotify', icon: 'S', color: 'text-green-500', defaultPrice: 12.14 },    // Premium Individuel (2025)
-    { id: 'prime', name: 'Prime', icon: 'P', color: 'text-blue-400', defaultPrice: 6.99 },          // Mensuel
-    { id: 'apple', name: 'Apple', icon: '', color: 'text-gray-300', defaultPrice: 19.95, useAppleIcon: true }, // Apple One Famille (2025)
-    { id: 'disney', name: 'Disney+', icon: 'D+', color: 'text-blue-600', defaultPrice: 10.99 },     // Standard
+    { id: 'netflix', name: 'Netflix', icon: 'N', color: 'text-red-500', defaultPrice: 14.99 },      // Standard sans pub (FR 2025)
+    { id: 'spotify', name: 'Spotify', icon: 'S', color: 'text-green-500', defaultPrice: 10.99 },    // Premium Individuel (FR 2025)
+    { id: 'prime', name: 'Prime', icon: 'P', color: 'text-blue-400', defaultPrice: 6.99 },          // Prime mensuel FR
+    { id: 'apple', name: 'Apple', icon: '', color: 'text-gray-300', defaultPrice: 22.95, useAppleIcon: true }, // Apple One Famille (FR 2025)
+    { id: 'disney', name: 'Disney+', icon: 'D+', color: 'text-blue-600', defaultPrice: 10.99 },     // Standard (FR 2025)
     { id: 'other', name: { fr: 'Autre', en: 'Other' }, icon: '?', color: 'text-white', defaultPrice: 0, isCustom: true },
 ];
 
-const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
+const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
     const inputRef = useRef(null);
     const customNameRef = useRef(null);
 
+    // Scroll ref for smooth navigation
+    const scrollRef = useRef(null);
+
     // Local state
     const [selectedServiceId, setSelectedServiceId] = useState(data.subscription?.id || null);
     const [customName, setCustomName] = useState(data.customName || '');
     const [price, setPrice] = useState(data.monthlyAmount?.toString() || '');
-    const [frequency, setFrequency] = useState(data.frequency || 'MONTHLY');
+    const [selectedActionLevel, setSelectedActionLevel] = useState(null);
 
-    // Get reality check pill for selected service
-    const realityChecks = realityCheckPills[locale] || realityCheckPills.fr;
-    const currentRealityCheck = selectedServiceId
-        ? (realityChecks[selectedServiceId] || realityChecks.default)
-        : null;
+    // Animated counter - tracks previous value for smooth transitions
+    const [animatedAmount, setAnimatedAmount] = useState(0);
+    const [hasRevealed, setHasRevealed] = useState(false);
+    const previousAmountRef = useRef(0);
 
-    // Auto-focus input after selection
+    // Calculate impact - toujours en mensuel
+    const rawPrice = parseFloat(price) || 0;
+    const annualSavings = rawPrice * 12;
+
+    // Animate counter when amount changes - smooth transition between values (arrondi)
     useEffect(() => {
-        if (selectedServiceId) {
+        if (selectedServiceId && annualSavings > 0) {
+            const target = Math.round(annualSavings);
+            const start = previousAmountRef.current;
+            const difference = target - start;
+
+            // Quick animation if just updating, longer for first reveal
+            const duration = start === 0 ? 800 : 300;
+            const steps = start === 0 ? 30 : 15;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                step++;
+                if (step >= steps) {
+                    setAnimatedAmount(target);
+                    previousAmountRef.current = target;
+                    clearInterval(timer);
+                    setHasRevealed(true);
+                } else {
+                    // Ease-out animation
+                    const progress = step / steps;
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    setAnimatedAmount(Math.round(start + difference * eased));
+                }
+            }, duration / steps);
+
+            return () => clearInterval(timer);
+        }
+    }, [selectedServiceId, annualSavings]);
+
+    // Auto-focus only for custom service (needs name input)
+    // For services with pre-filled prices, keep keyboard closed - user taps if they want to modify
+    useEffect(() => {
+        if (selectedServiceId && step === 'revelation') {
             const service = SUBSCRIPTION_SERVICES.find(s => s.id === selectedServiceId);
             if (service?.isCustom && customNameRef.current) {
                 customNameRef.current.focus();
-            } else if (inputRef.current) {
-                inputRef.current.focus();
             }
+            // No auto-focus for price input - user taps if they want to modify
         }
-    }, [selectedServiceId]);
+    }, [selectedServiceId, step]);
 
-    // Handle service selection with haptic
+    // Handlers
     const handleServiceSelect = useCallback((service) => {
         haptic.medium();
+        // Reset animation only on first service selection
+        if (!selectedServiceId) {
+            setAnimatedAmount(0);
+            previousAmountRef.current = 0;
+        }
         setSelectedServiceId(service.id);
         if (!service.isCustom) {
             setPrice(service.defaultPrice.toString());
@@ -68,9 +108,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
             setPrice('');
             setCustomName('');
         }
-    }, []);
+        setHasRevealed(false);
+    }, [selectedServiceId]);
 
-    // Handle price change
     const handlePriceChange = (e) => {
         const value = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
         setPrice(value);
@@ -84,263 +124,375 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, onBack }) => {
         return service.name;
     };
 
-    // Calculate impact
-    const rawPrice = parseFloat(price) || 0;
-    const annualSavings = frequency === 'MONTHLY' ? rawPrice * 12 : rawPrice;
-    const monthlyEquivalent = frequency === 'YEARLY' ? rawPrice / 12 : rawPrice;
+    const handleActionLevelSelect = useCallback((actionId) => {
+        haptic.medium();
+        setSelectedActionLevel(actionId);
+    }, []);
+
+    // Go to challenge step
+    const goToChallenge = useCallback(() => {
+        haptic.heavy();
+        setStep('challenge');
+    }, [setStep]);
 
     // Validation
     const selectedService = SUBSCRIPTION_SERVICES.find(s => s.id === selectedServiceId);
     const isCustomValid = !selectedService?.isCustom || (selectedService?.isCustom && customName.trim().length > 0);
-    const isValid = selectedServiceId && rawPrice > 0 && isCustomValid;
+    const canProceedToChallenge = selectedServiceId && rawPrice > 0 && isCustomValid;
+    const canComplete = selectedActionLevel !== null;
 
-    // Handle next with haptic
-    const handleNext = useCallback(() => {
+    // Handle final completion
+    const handleComplete = useCallback(() => {
         haptic.success();
-        
+
         const service = SUBSCRIPTION_SERVICES.find(s => s.id === selectedServiceId);
         const displayName = service?.isCustom ? customName : getServiceDisplayName(service);
+
+        // Find the selected action config to get the correct multiplier
+        const selectedConfig = actionConfig.find(c => c.id === selectedActionLevel);
+
+        // Calculate savings using the SAME logic as the display
+        const yearlySavings = Math.round(annualSavings * (selectedConfig?.multiplier || 1));
+        const monthlySavings = Math.round(yearlySavings / 12);
 
         onUpdate({
             subscription: service,
             serviceName: displayName,
-            monthlyAmount: monthlyEquivalent,
-            annualAmount: annualSavings,
-            frequency,
+            monthlyAmount: monthlySavings,
+            annualAmount: yearlySavings,
+            frequency: 'MONTHLY',
             customName
         });
         onNext();
-    }, [selectedServiceId, customName, monthlyEquivalent, annualSavings, frequency, onUpdate, onNext]);
+    }, [selectedServiceId, customName, annualSavings, selectedActionLevel, onUpdate, onNext]);
+
+    // Action level config - defined here to be accessible in handleComplete
+    const actionConfig = [
+        {
+            id: 'optimizer',
+            multiplier: 0.25,
+            labelFr: 'RÉDUIRE',
+            labelEn: 'REDUCE',
+            descFr: 'Diminue ton abonnement de 25%',
+            descEn: 'Reduce your subscription by 25%'
+        },
+        {
+            id: 'strategist',
+            multiplier: 0.5,
+            labelFr: 'DIVISER',
+            labelEn: 'HALVE',
+            descFr: 'Coupe ton abonnement en deux',
+            descEn: 'Cut your subscription in half'
+        },
+        {
+            id: 'radical',
+            multiplier: 1,
+            labelFr: 'STOPPER',
+            labelEn: 'STOP',
+            descFr: 'Annulation totale',
+            descEn: 'Complete cancellation'
+        }
+    ];
 
     // Labels
     const labels = {
         fr: {
-            title: 'QUELLE DÉPENSE ?',
-            customPlaceholder: 'Nom du service...',
-            perMonth: '/MOIS',
-            perYear: '/AN',
-            impactFeedback: `💰 Soit ${annualSavings.toFixed(2)} € par an récupérés`,
-            cta: 'VALIDER LE BUTIN'
+            // Step 1: Target
+            revelationTitle: 'CIBLE',
+            revelationSubtitle: 'Configure ton abonnement',
+            priceLabel: 'MONTANT MENSUEL',
+            resultLabel: 'ÇA TE COÛTE',
+            perYear: '/ an',
+            equivalent: 'C\'est',
+            thrownAway: 'jeté par la fenêtre chaque année.',
+            revelationCta: 'CHOISIR MA STRATÉGIE',
+            // Step 2: Challenge
+            challengeTitle: 'DÉFI',
+            challengeSubtitle: 'Choisis ta stratégie',
+            yourSubscription: 'Ton abonnement',
+            challengeCta: 'ACTIVER LA STRATÉGIE',
+            back: 'Retour',
+            customPlaceholder: 'Nom du service...'
         },
         en: {
-            title: 'WHICH EXPENSE?',
-            customPlaceholder: 'Service name...',
-            perMonth: '/MONTH',
-            perYear: '/YEAR',
-            impactFeedback: `💰 That's ${annualSavings.toFixed(2)} € recovered per year`,
-            cta: 'CONFIRM THE LOOT'
+            revelationTitle: 'TARGET',
+            revelationSubtitle: 'Configure your subscription',
+            priceLabel: 'MONTHLY AMOUNT',
+            resultLabel: 'THIS COSTS YOU',
+            perYear: '/ year',
+            equivalent: 'That\'s',
+            thrownAway: 'thrown out the window every year.',
+            revelationCta: 'CHOOSE MY STRATEGY',
+            challengeTitle: 'CHALLENGE',
+            challengeSubtitle: 'Choose your strategy',
+            yourSubscription: 'Your subscription',
+            challengeCta: 'ACTIVATE STRATEGY',
+            back: 'Back',
+            customPlaceholder: 'Service name...'
         }
     };
-    const currentLabels = labels[locale] || labels.fr;
+    const L = labels[locale] || labels.fr;
 
-    return (
-        <div className="h-full flex flex-col">
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 1: LA RÉVÉLATION (New Design)
+    // ═══════════════════════════════════════════════════════════════
+    if (step === 'revelation') {
+        return (
+            <div className="h-full flex flex-col">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-col p-6 pt-2 pb-32">
 
-                <div className="text-center">
-                    {/* Title */}
-                    <h3 className="font-mono text-xs text-zinc-500 tracking-[0.2em] uppercase mb-6">
-                        {currentLabels.title}
-                    </h3>
+                        {/* SERVICE GRID (2 rows x 3 columns) */}
+                        <div className="grid grid-cols-3 gap-2 mb-6">
+                            {SUBSCRIPTION_SERVICES.map((service) => {
+                                const isSelected = selectedServiceId === service.id;
 
-                    {/* ===== SERVICE GRID ===== */}
-                    <div className="grid grid-cols-3 gap-3 mb-5">
-                        {SUBSCRIPTION_SERVICES.map((service) => {
-                            const isSelected = selectedServiceId === service.id;
-                            return (
-                                <motion.button
-                                    key={service.id}
-                                    animate={{ 
-                                        scale: isSelected ? 1.05 : 1,
-                                    }}
-                                    whileTap={{ scale: 0.95 }}
-                                    transition={SPRING.snappy}
-                                    onClick={() => handleServiceSelect(service)}
-                                    className={`
-                                        h-14 rounded-xl border flex flex-col items-center justify-center gap-1 transform-gpu
-                                        ${isSelected
-                                            ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)] z-10'
-                                            : 'bg-zinc-900 text-zinc-400 border-zinc-800 active:bg-zinc-800'
-                                        }
-                                    `}
-                                >
-                                    <motion.div
-                                        animate={{ 
-                                            rotate: isSelected ? [0, -8, 8, 0] : 0,
-                                        }}
-                                        transition={{ duration: 0.3 }}
+                                return (
+                                    <motion.button
+                                        key={service.id}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => handleServiceSelect(service)}
+                                        className={`
+                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-200
+                                            ${isSelected
+                                                ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)]'
+                                                : 'bg-neutral-900 text-neutral-400 border-neutral-800 active:bg-neutral-800'
+                                            }
+                                        `}
                                     >
                                         {service.useAppleIcon ? (
-                                            <FaApple className={`text-lg ${isSelected ? 'text-black' : service.color}`} />
+                                            <FaApple className={`text-xl ${isSelected ? 'text-black' : service.color}`} />
                                         ) : (
-                                            <span className={`font-black text-lg ${isSelected ? 'text-black' : service.color}`}>
+                                            <span className={`font-black text-xl ${isSelected ? 'text-black' : service.color}`}>
                                                 {service.icon}
                                             </span>
                                         )}
-                                    </motion.div>
-                                    <span className="font-mono text-[8px] font-bold uppercase tracking-wide">
-                                        {getServiceDisplayName(service)}
-                                    </span>
-                                </motion.button>
-                            );
-                        })}
-                    </div>
+                                        <span className={`font-mono text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-neutral-400'}`}>
+                                            {getServiceDisplayName(service)}
+                                        </span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
 
-                    {/* ===== REALITY CHECK PILL ===== */}
-                    <AnimatePresence>
-                        {currentRealityCheck && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                                animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
-                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 inline-flex items-center gap-2">
-                                    <span className="font-mono text-lg font-black text-yellow-400">
-                                        {currentRealityCheck.stat}
-                                    </span>
-                                    <span className="font-sans text-xs text-zinc-400">
-                                        {currentRealityCheck.text}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ===== CUSTOM NAME INPUT ===== */}
-                    <AnimatePresence>
-                        {selectedService?.isCustom && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="mb-4"
-                            >
-                                <input
-                                    ref={customNameRef}
-                                    type="text"
-                                    value={customName}
-                                    onChange={(e) => setCustomName(e.target.value)}
-                                    placeholder={currentLabels.customPlaceholder}
-                                    className="w-full max-w-[280px] bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-center text-white font-sans text-sm placeholder-zinc-600 focus:outline-none focus:border-volt transition-colors"
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ===== GIANT AMOUNT INPUT ===== */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="relative mb-2 mt-8"
-                    >
-                        {/* Service name tag */}
+                        {/* CUSTOM NAME INPUT */}
                         <AnimatePresence>
-                            {selectedServiceId && customName && !selectedService?.isCustom && (
+                            {selectedService?.isCustom && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="absolute -top-5 left-0 w-full text-center"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="mb-4"
                                 >
-                                    <span className="font-mono text-[9px] text-volt bg-volt/10 px-2 py-0.5 rounded border border-volt/20 uppercase">
-                                        {customName}
-                                    </span>
+                                    <input
+                                        ref={customNameRef}
+                                        type="text"
+                                        value={customName}
+                                        onChange={(e) => setCustomName(e.target.value)}
+                                        placeholder={L.customPlaceholder}
+                                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white font-sans text-sm placeholder-neutral-600 focus:outline-none focus:border-volt transition-colors"
+                                    />
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* Main input row */}
-                        <div className="flex items-baseline justify-center gap-1">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                inputMode="decimal"
-                                value={price}
-                                onChange={handlePriceChange}
-                                placeholder="00.00"
-                                className="w-full max-w-[200px] bg-transparent text-center text-6xl font-mono font-bold text-white placeholder-zinc-800 focus:outline-none caret-volt"
-                                style={{ caretColor: '#E2FF00' }}
-                            />
-                            <span className={`text-4xl font-sans font-bold transition-colors ${price ? 'text-white' : 'text-zinc-700'}`}>
-                                €
-                            </span>
+                        {/* PRICE INPUT (Giant Number) */}
+                        <div className="mb-5 w-full">
+                            <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-4 block text-center">
+                                {L.priceLabel}
+                            </label>
+                            <div className="flex items-center justify-center gap-2 mb-6">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={price}
+                                    onChange={handlePriceChange}
+                                    placeholder="00.00"
+                                    className="w-full max-w-[200px] bg-transparent text-center text-5xl font-mono font-bold text-white placeholder-neutral-800 focus:outline-none caret-volt"
+                                    style={{ caretColor: '#E2FF00' }}
+                                />
+                                <span className="text-4xl font-sans font-bold text-white">€</span>
+                            </div>
                         </div>
-                    </motion.div>
 
-                    {/* ===== FREQUENCY PILLS ===== */}
-                    <div className="flex justify-center gap-2 mb-6">
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            transition={SPRING.snappy}
-                            onClick={() => {
-                                haptic.light();
-                                if (frequency !== 'MONTHLY' && rawPrice > 0) {
-                                    setPrice((rawPrice / 12).toFixed(2));
-                                }
-                                setFrequency('MONTHLY');
-                            }}
-                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border ${frequency === 'MONTHLY'
-                                ? 'bg-white text-black border-white'
-                                : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-600'
-                                }`}
-                        >
-                            {currentLabels.perMonth}
-                        </motion.button>
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            transition={SPRING.snappy}
-                            onClick={() => {
-                                haptic.light();
-                                if (frequency !== 'YEARLY' && rawPrice > 0) {
-                                    setPrice((rawPrice * 12).toFixed(2));
-                                }
-                                setFrequency('YEARLY');
-                            }}
-                            className={`px-4 py-1.5 rounded-full font-mono text-[10px] font-bold border ${frequency === 'YEARLY'
-                                ? 'bg-white text-black border-white'
-                                : 'bg-transparent text-zinc-600 border-zinc-800 hover:border-zinc-600'
-                                }`}
-                        >
-                            {currentLabels.perYear}
-                        </motion.button>
+                        {/* LIVE PROJECTION CARD */}
+                        <AnimatePresence>
+                            {selectedServiceId && rawPrice > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 8 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                                    className="w-full bg-neutral-900/60 border border-white/5 rounded-2xl p-6 backdrop-blur-[20px]"
+                                >
+                                    <div className="flex flex-col items-center">
+                                        {/* Label */}
+                                        <span className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-1">
+                                            {L.resultLabel}
+                                        </span>
+
+                                        {/* BIG NUMBER - Arrondi à l'entier */}
+                                        <div className="flex items-baseline gap-2 mb-4">
+                                            <motion.span
+                                                key={Math.round(animatedAmount)}
+                                                className="text-5xl font-black text-white tracking-tighter"
+                                            >
+                                                €{Math.round(animatedAmount).toLocaleString('fr-FR')}
+                                            </motion.span>
+                                            <span className="text-sm font-mono text-neutral-500">{L.perYear}</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* Footer CTA */}
+                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+                    <motion.button
+                        key="cta-revelation"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                        whileTap={canProceedToChallenge ? { scale: 0.97 } : {}}
+                        onClick={goToChallenge}
+                        disabled={!canProceedToChallenge}
+                        className={`
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                            ${canProceedToChallenge
+                                ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                                : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
+                            }
+                        `}
+                    >
+                        {L.revelationCta}
+                        <ChevronRight className="w-5 h-5" />
+                    </motion.button>
+                </div>
+            </div>
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 2: LE CHOIX DU DÉFI (Clean Design)
+    // ═══════════════════════════════════════════════════════════════
+
+    // Icon map for action levels
+    const actionIconMap = {
+        optimizer: <Minus className="w-6 h-6" />,
+        strategist: <Scissors className="w-6 h-6" />,
+        radical: <X className="w-6 h-6" />
+    };
+
+    return (
+        <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col p-6 pt-2 pb-32">
+
+                    {/* Recap Card - Context */}
+                    <div className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Wallet className="w-5 h-5 text-neutral-500" />
+                                <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">{L.yourSubscription}</span>
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                                <span className="font-mono text-xl font-bold text-white">
+                                    €{annualSavings.toLocaleString('fr-FR')}
+                                </span>
+                                <span className="text-xs text-neutral-500">{L.perYear}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* ===== REAL-TIME IMPACT FEEDBACK ===== */}
-                    <AnimatePresence>
-                        {rawPrice > 0 && frequency === 'MONTHLY' && (
-                            <motion.p
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="font-mono text-xs text-zinc-400"
-                            >
-                                {currentLabels.impactFeedback}
-                            </motion.p>
-                        )}
-                    </AnimatePresence>
+                    {/* Divider */}
+                    <div className="my-5">
+                        <div className="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
+                    </div>
+
+                    {/* ===== 3 ACTION LEVELS ===== */}
+                    <div className="space-y-3">
+                        {actionConfig.map((config, index) => {
+                            const isSelected = selectedActionLevel === config.id;
+                            const yearlySavings = Math.round(annualSavings * config.multiplier);
+
+                            return (
+                                <motion.button
+                                    key={config.id}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.06, duration: 0.25 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleActionLevelSelect(config.id)}
+                                    className={`
+                                        w-full rounded-2xl border transition-all text-left
+                                        ${isSelected
+                                            ? 'bg-neutral-900 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
+                                            : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
+                                        }
+                                    `}
+                                >
+                                    <div className="p-4 flex items-center gap-4">
+                                        {/* Icon Circle */}
+                                        <div className={`
+                                            w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
+                                            ${isSelected
+                                                ? 'bg-volt text-black'
+                                                : 'bg-neutral-800 text-neutral-400'
+                                            }
+                                        `}>
+                                            {actionIconMap[config.id]}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`font-mono text-sm font-bold uppercase ${isSelected ? 'text-volt' : 'text-white'}`}>
+                                                    {locale === 'fr' ? config.labelFr : config.labelEn}
+                                                </span>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="font-mono text-lg font-bold text-volt">
+                                                        +€{yearlySavings.toLocaleString('fr-FR')}
+                                                    </span>
+                                                    <span className="text-[11px] text-neutral-500">{L.perYear}</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-neutral-500">
+                                                {locale === 'fr' ? config.descFr : config.descEn}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
-            {/* Footer: CTA */}
-            <div className="p-6 bg-black border-t border-zinc-800">
+            {/* Footer CTA */}
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
                 <motion.button
-                    animate={{ scale: 1 }}
-                    whileTap={isValid ? { scale: 0.97 } : {}}
-                    transition={SPRING.snappy}
-                    onClick={handleNext}
-                    disabled={!isValid}
+                    key="cta-challenge"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    whileTap={canComplete ? { scale: 0.97 } : {}}
+                    onClick={handleComplete}
+                    disabled={!canComplete}
                     className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transform-gpu
-                        ${isValid
-                            ? 'bg-volt text-black cursor-pointer shadow-[0_0_25px_rgba(226,255,0,0.35)]'
-                            : 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                        ${canComplete
+                            ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                            : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                         }
                     `}
                 >
-                    {currentLabels.cta}
+                    <Zap className="w-5 h-5" />
+                    {L.challengeCta}
                 </motion.button>
             </div>
         </div>

@@ -6,81 +6,64 @@
  */
 
 // ===== SOCIAL PROOF CAROUSEL (Protocol Screen) =====
+// 3 slides optimisés : Impact €, Identification comportementale, Prise de conscience
 export const socialProofSlides = {
     fr: [
-        {
-            id: 'forgotten-subs',
-            title: 'OUBLI FRÉQUENT',
-            badge: 'OUBLI FRÉQUENT',
-            badgeColor: 'red',
-            stat: '85%',
-            text: "des abonnés ont au moins 1 abonnement inutilisé le mois dernier.",
-            source: 'BRG Research 2023'
-        },
         {
             id: 'phantom-expenses',
             title: 'DÉPENSES FANTÔMES',
             badge: 'DÉPENSES FANTÔMES',
             badgeColor: 'orange',
-            stat: '133$',
-            text: "gaspillés chaque année en moyenne pour des abonnements oubliés.",
+            stat: '133€',
+            text: "sous-estimés chaque mois en moyenne. Tu paies plus que tu ne crois.",
             source: 'C+R Research 2022'
-        },
-        {
-            id: 'avg-subscriptions',
-            title: 'SURCHARGE ABO',
-            badge: 'SURCHARGE',
-            badgeColor: 'purple',
-            stat: '4',
-            text: "abonnements streaming en moyenne par foyer aux USA.",
-            source: 'Business of Apps 2023'
         },
         {
             id: 'auto-renewal',
             title: 'EFFET SILENCIEUX',
             badge: 'EFFET SILENCIEUX',
             badgeColor: 'blue',
-            stat: '48%',
-            text: "des utilisateurs oublient d'annuler un essai gratuit.",
+            stat: '42%',
+            text: "ont déjà continué à payer un abonnement qu'ils n'utilisaient plus.",
             source: 'C+R Research 2022'
+        },
+        {
+            id: 'avg-subscriptions',
+            title: 'SURCHARGE ABO',
+            badge: 'SURCHARGE ABO',
+            badgeColor: 'purple',
+            stat: '4',
+            text: "abonnements streaming en moyenne par foyer. Et toi ?",
+            source: 'Deloitte 2023'
         }
     ],
     en: [
-        {
-            id: 'forgotten-subs',
-            title: 'COMMON OVERSIGHT',
-            badge: 'COMMON OVERSIGHT',
-            badgeColor: 'red',
-            stat: '85%',
-            text: "of subscribers have at least 1 unused subscription last month.",
-            source: 'BRG Research 2023'
-        },
         {
             id: 'phantom-expenses',
             title: 'PHANTOM EXPENSES',
             badge: 'PHANTOM EXPENSES',
             badgeColor: 'orange',
             stat: '$133',
-            text: "wasted yearly on average on forgotten subscriptions.",
+            text: "underestimated per month on average. You pay more than you think.",
             source: 'C+R Research 2022'
-        },
-        {
-            id: 'avg-subscriptions',
-            title: 'SUB OVERLOAD',
-            badge: 'OVERLOAD',
-            badgeColor: 'purple',
-            stat: '4',
-            text: "streaming subscriptions on average per US household.",
-            source: 'Business of Apps 2023'
         },
         {
             id: 'auto-renewal',
             title: 'SILENT EFFECT',
             badge: 'SILENT EFFECT',
             badgeColor: 'blue',
-            stat: '48%',
-            text: "of users forget to cancel a free trial.",
+            stat: '42%',
+            text: "have already continued paying for a subscription they no longer used.",
             source: 'C+R Research 2022'
+        },
+        {
+            id: 'avg-subscriptions',
+            title: 'SUB OVERLOAD',
+            badge: 'SUB OVERLOAD',
+            badgeColor: 'purple',
+            stat: '4',
+            text: "streaming subscriptions on average per household. And you?",
+            source: 'Deloitte 2023'
         }
     ]
 };
@@ -130,24 +113,25 @@ export const proTips = {
 };
 
 // ===== REALITY CHECK PILLS (Execution Screen) =====
+// Questions engageantes pour faire réfléchir l'utilisateur sur son utilisation réelle
 export const realityCheckPills = {
     fr: {
-        netflix: { stat: '40%', text: "des comptes Netflix dorment plus de 2 semaines par mois" },
-        spotify: { stat: '28%', text: "des utilisateurs écoutent moins de 5h/mois" },
-        prime: { stat: '41%', text: "n'utilisent que la livraison, pas Prime Video" },
-        disney: { stat: '45%', text: "regardent moins de 2 films par mois" },
-        apple: { stat: '38%', text: "paient pour des services Apple jamais ouverts" },
-        other: { stat: '⚠️', text: "Les abos discrets sont souvent les plus coûteux" },
-        default: { stat: '32%', text: "des abonnements ne sont jamais utilisés" }
+        netflix: { stat: '?', text: "As-tu regardé Netflix cette semaine ?" },
+        spotify: { stat: '?', text: "C'est quoi ton dernier artiste découvert ?" },
+        prime: { stat: '?', text: "Tu as regardé Prime Video ce mois-ci ?" },
+        disney: { stat: '?', text: "C'est quoi ton dernier Disney+ regardé ?" },
+        apple: { stat: '?', text: "Tu utilises vraiment Apple TV+ / Arcade / Fitness ?" },
+        other: { stat: '?', text: "Ça fait combien de temps que tu l'as pas ouvert ?" },
+        default: { stat: '?', text: "Quand l'as-tu utilisé pour la dernière fois ?" }
     },
     en: {
-        netflix: { stat: '40%', text: "of Netflix accounts are inactive >2 weeks per month" },
-        spotify: { stat: '28%', text: "of users listen less than 5h/month" },
-        prime: { stat: '41%', text: "only use delivery, never Prime Video" },
-        disney: { stat: '45%', text: "watch less than 2 movies per month" },
-        apple: { stat: '38%', text: "pay for Apple services they never open" },
-        other: { stat: '⚠️', text: "Discrete subscriptions are often the most expensive" },
-        default: { stat: '32%', text: "of subscriptions are never used" }
+        netflix: { stat: '?', text: "Did you watch Netflix this week?" },
+        spotify: { stat: '?', text: "What's the last artist you discovered?" },
+        prime: { stat: '?', text: "Did you watch Prime Video this month?" },
+        disney: { stat: '?', text: "What's the last Disney+ you watched?" },
+        apple: { stat: '?', text: "Do you really use Apple TV+ / Arcade / Fitness?" },
+        other: { stat: '?', text: "How long since you last opened it?" },
+        default: { stat: '?', text: "When did you last use it?" }
     }
 };
 

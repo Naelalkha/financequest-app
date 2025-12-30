@@ -1,28 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Search, Cog, ShieldAlert, HelpCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Zap, ArrowRight, Search, Cog, ShieldAlert } from 'lucide-react';
 import secretDirectoryAsset from '../../../../../assets/secret-directory.png';
 import { socialProofSlides, proTips } from '../insightData';
+import { haptic } from '../../../../../utils/haptics';
 
 /**
  * ProtocolScreen - Phase 1: Intel + Tactics
  * 
- * Features:
- * - Glass card with 3D asset and Social Proof
- * - Pulsing badge
- * - Timeline with Lucide icons from insightData
+ * OPTIMIZED VERSION:
+ * - Image integrated in card (top-right, transparent)
+ * - Auto-sliding carousel with visible arrows
+ * - Visible timeline connector between steps
+ * - All steps treated equally (no "key" badge)
+ * - Motivational message before final CTA
+ * - Smooth page transitions
  */
 
-// Icon mapping from insightData iconName to Lucide component
-const ICON_MAP = {
+const IconMap = {
     Search,
     Cog,
-    ShieldAlert,
-    HelpCircle
+    ShieldAlert
 };
 
-const ProtocolScreen = ({ onNext }) => {
+// Page transition variants (fade only for consistency with parent)
+const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+};
+
+const pageTransition = {
+    duration: 0.25
+};
+
+const ProtocolScreen = ({ onNext, page, setPage }) => {
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
 
@@ -33,166 +46,380 @@ const ProtocolScreen = ({ onNext }) => {
     // Carousel state
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const currentSlide = slides[currentSlideIndex];
+    const timerRef = useRef(null);
+
+    // Function to reset the auto-slide timer
+    const resetAutoSlide = () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+        if (page === 0) {
+            timerRef.current = setInterval(() => {
+                setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+            }, 10000);
+        }
+    };
+
+    // Auto-slide every 10 seconds
+    useEffect(() => {
+        if (page !== 0) {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            return;
+        }
+
+        resetAutoSlide();
+
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, [page, slides.length]);
 
     // Carousel navigation
-    const nextSlide = () => setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    const prevSlide = () => setCurrentSlideIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    const nextSlide = () => {
+        haptic.light();
+        setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+        resetAutoSlide();
+    };
+    const prevSlide = () => {
+        haptic.light();
+        setCurrentSlideIndex((prev) => (prev - 1 + slides.length) % slides.length);
+        resetAutoSlide();
+    };
 
-    // Helper to render bold text marked with **
+    // Page navigation
+    const goToMethod = () => {
+        haptic.medium();
+        setPage(1);
+    };
+
+    // Launch mission
+    const handleLaunch = () => {
+        haptic.heavy();
+        onNext();
+    };
+
+    // Helper to render bold text
     const renderWithBold = (text) => {
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="text-white font-bold">{part.slice(2, -2)}</strong>;
+                return <span key={i} className="text-white font-semibold">{part.slice(2, -2)}</span>;
             }
             return part;
         });
     };
 
-    // CTA text
-    const ctaText = locale === 'fr' ? 'LANCER LA MISSION →' : 'START MISSION →';
+    // Labels
+    const labels = {
+        fr: {
+            // Page 1
+            contextTitle: 'CONTEXTE',
+            hookLabel: 'LE PROBLÈME',
+            hook: "Tu tolères des passagers clandestins sur ton compte bancaire.",
+            hookHighlight: "Erreur stratégique. Le prélèvement automatique est leur arme. Ton inattention, leur allié.",
+            statLabel: 'LES CHIFFRES',
+            contextCta: 'VOIR LE PROTOCOLE',
 
+            // Page 2
+            methodTitle: 'MÉTHODE',
+            methodSubtitle: '3 étapes pour reprendre le contrôle',
+            methodCta: 'PASSER À L\'ACTION'
+        },
+        en: {
+            contextTitle: 'CONTEXT',
+            hookLabel: 'THE PROBLEM',
+            hook: "You're tolerating stowaways on your bank account.",
+            hookHighlight: "Strategic error. Auto-renewal is their weapon. Your inattention, their ally.",
+            statLabel: 'THE NUMBERS',
+            contextCta: 'SEE THE PROTOCOL',
+            methodTitle: 'METHOD',
+            methodSubtitle: '3 steps to take back control',
+            methodCta: 'TAKE ACTION'
+        }
+    };
+    const L = labels[locale] || labels.fr;
+
+    // ═══════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════
     return (
         <div className="h-full flex flex-col">
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-hidden relative">
+                <AnimatePresence mode="wait">
+                    {page === 0 ? (
+                        // ═══════════════════════════════════════════════════════════════
+                        // PAGE 0: LE CONTEXTE
+                        // ═══════════════════════════════════════════════════════════════
+                        <motion.div
+                            key="context-page"
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={pageTransition}
+                            className="h-full overflow-y-auto custom-scrollbar"
+                        >
+                            <div className="flex flex-col gap-4 p-6 pt-2 pb-32">
 
-                {/* ===== ZONE 1: SOCIAL PROOF INTEL (Single Glass Card) ===== */}
-                <div className="p-6 relative">
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group"
-                    >
-                        {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
-
-                        {/* 3D Asset Hero */}
-                        <div className="absolute -right-4 -top-4 w-24 h-24 opacity-80 group-hover:scale-110 transition-transform duration-700">
-                            <img
-                                src={secretDirectoryAsset}
-                                alt="Dossier"
-                                className="w-full h-full object-contain drop-shadow-2xl"
-                            />
-                        </div>
-
-                        {/* Briefing Text with volt left border */}
-                        <p className="font-sans text-sm text-neutral-300 mb-6 italic border-l-2 border-volt pl-3 relative z-10 max-w-[80%]">
-                            "{locale === 'fr'
-                                ? "Tu tolères des passagers clandestins sur ton compte bancaire. Erreur stratégique. Streaming, Box, Apps... Ces prélèvements automatiques exploitent ton inattention pour drainer tes ressources."
-                                : "You're tolerating stowaways on your bank account. Strategic error. Streaming, Box, Apps... These auto-renewals exploit your inattention to drain your resources."
-                            }"
-                        </p>
-
-                        {/* Carousel Stats (nested dark card) */}
-                        <div className="bg-black/40 rounded-xl p-4 border border-white/5 relative overflow-hidden flex flex-col">
-
-                            {/* Dynamic Header */}
-                            <div className="flex justify-between items-center mb-3">
-                                <span className="font-mono text-[10px] text-volt uppercase tracking-widest font-bold border-l-2 border-volt pl-2">
-                                    {currentSlide.title}
-                                </span>
-                                <span className="font-mono text-[9px] text-neutral-500 bg-white/5 px-1.5 py-0.5 rounded">
-                                    {currentSlideIndex + 1}/{slides.length}
-                                </span>
-                            </div>
-
-                            {/* Carousel Content - Fixed min height */}
-                            <div className="mb-6 min-h-[90px]">
-                                <div className="grid">
-                                    {slides.map((slide, idx) => (
-                                        <div
-                                            key={slide.id}
-                                            className={`col-start-1 row-start-1 transition-opacity duration-300 ${idx === currentSlideIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                                        >
-                                            <h3 className="text-3xl font-black text-white mb-2 tracking-tight">{slide.stat}</h3>
-                                            <p className="text-xs text-[#E0E0E0] font-medium leading-relaxed">{slide.text}</p>
-                                            <span className="text-[9px] text-neutral-600 mt-2 block">Source: {slide.source}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Controls - Bottom Right */}
-                            <div className="absolute right-2 bottom-2 flex gap-1">
-                                <button onClick={prevSlide} className="p-1.5 hover:bg-white/10 rounded-lg active:scale-95 transition-all">
-                                    <ChevronRight className="w-3 h-3 text-neutral-400 hover:text-white rotate-180" />
-                                </button>
-                                <button onClick={nextSlide} className="p-1.5 hover:bg-white/10 rounded-lg active:scale-95 transition-all">
-                                    <ChevronRight className="w-3 h-3 text-neutral-400 hover:text-white" />
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* ===== ZONE 2: TACTICS (Timeline with Icons) ===== */}
-                <div className="flex-1 px-6 pb-6">
-                    {/* Section divider */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="flex items-center gap-2 mb-4 opacity-70"
-                    >
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
-                        <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">
-                            {locale === 'fr' ? "PROTOCOLE D'ACTION" : 'ACTION PROTOCOL'}
-                        </span>
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
-                    </motion.div>
-
-                    {/* Timeline */}
-                    <div className="space-y-6 pl-4 relative">
-                        {/* Vertical Line */}
-                        <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-neutral-800" />
-
-                        {tips.map((tip, index) => {
-                            const IconComponent = ICON_MAP[tip.iconName] || HelpCircle;
-
-                            return (
+                                {/* ===== CARD 1: THE PROBLEM ===== "Verre Fumé" - rgb(36 36 36 / 50%) */}
                                 <motion.div
-                                    key={tip.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.25, delay: index * 0.05 }}
-                                    className="relative flex items-start gap-4 group"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1, duration: 0.25 }}
+                                    className="rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl"
+                                    style={{
+                                        backgroundColor: 'rgb(36 36 36 / 50%)',
+                                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
+                                    }}
                                 >
-                                    {/* Icon Circle */}
-                                    <div className="w-10 h-10 flex-shrink-0 rounded-full bg-black border border-neutral-700 flex items-center justify-center z-10 group-hover:border-volt group-hover:text-volt transition-colors shadow-lg mt-1">
-                                        <IconComponent className="w-4 h-4 text-white group-hover:text-volt transition-colors" />
+
+                                    {/* Dossier image - corner top-right, slightly cropped for integration effect */}
+                                    <div className="absolute -right-6 -top-6 w-36 h-36 opacity-40 pointer-events-none">
+                                        <img
+                                            src={secretDirectoryAsset}
+                                            alt=""
+                                            className="w-full h-full object-contain drop-shadow-lg"
+                                        />
                                     </div>
 
-                                    {/* Content Card */}
-                                    <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-3 flex-1 group-hover:bg-neutral-900 transition-colors">
-                                        <h4 className="font-mono text-xs text-white font-bold uppercase mb-1">
-                                            {tip.title}
-                                        </h4>
-                                        <p className="text-sm text-neutral-300 font-sans leading-relaxed">
-                                            {renderWithBold(tip.body)}
+                                    {/* Content */}
+                                    <div className="relative z-10">
+                                        {/* Label */}
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-4 block">
+                                            {L.hookLabel}
+                                        </span>
+
+                                        {/* Hook quote */}
+                                        <h3 className="font-sans font-semibold text-lg md:text-xl text-white leading-relaxed max-w-[80%]">
+                                            "{L.hook}"
+                                        </h3>
+
+                                        {/* Punch line */}
+                                        <p className="text-volt font-bold text-sm mt-4">
+                                            {L.hookHighlight}
                                         </p>
                                     </div>
                                 </motion.div>
-                            );
-                        })}
-                    </div>
-                </div>
+
+                                {/* ===== CARD 2: STATS CAROUSEL ===== "Verre Profond" - Instagram Stories style */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15, duration: 0.25 }}
+                                    className="border border-white/5 rounded-2xl relative overflow-hidden backdrop-blur-[20px]"
+                                    style={{ backgroundColor: 'rgb(17 17 17 / 60%)' }}
+                                >
+                                    {/* Progress Bar - Instagram Stories style */}
+                                    <div className="flex gap-1 px-4 pt-4 pb-2">
+                                        {slides.map((_, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`flex-1 h-1 rounded-full transition-colors duration-300 ${idx === currentSlideIndex ? 'bg-volt' : 'bg-neutral-700'
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Header */}
+                                    <div className="relative z-10 px-6 pt-2 pb-2">
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">
+                                            {L.statLabel}
+                                        </span>
+                                    </div>
+
+                                    {/* Carousel Content with Tap Zones */}
+                                    <div
+                                        className="relative h-[140px] px-6 pb-6"
+                                        onTouchStart={(e) => {
+                                            const touch = e.touches[0];
+                                            (e.currentTarget as HTMLDivElement).dataset.touchStartX = String(touch.clientX);
+                                        }}
+                                        onTouchEnd={(e) => {
+                                            const touchStartX = Number((e.currentTarget as HTMLDivElement).dataset.touchStartX);
+                                            const touchEndX = e.changedTouches[0].clientX;
+                                            const diff = touchStartX - touchEndX;
+
+                                            if (Math.abs(diff) > 50) {
+                                                if (diff > 0) {
+                                                    nextSlide();
+                                                } else {
+                                                    prevSlide();
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {/* Invisible tap zones */}
+                                        <div className="absolute inset-0 flex z-20">
+                                            <button
+                                                onClick={prevSlide}
+                                                className="w-1/3 h-full outline-none focus:outline-none"
+                                                aria-label="Previous"
+                                            />
+                                            <div className="w-1/3 h-full" /> {/* Center - no action */}
+                                            <button
+                                                onClick={nextSlide}
+                                                className="w-1/3 h-full outline-none focus:outline-none"
+                                                aria-label="Next"
+                                            />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="relative z-10 h-full flex items-center justify-center">
+                                            <AnimatePresence mode="wait">
+                                                <motion.div
+                                                    key={currentSlideIndex}
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    exit={{ opacity: 0 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="text-center"
+                                                >
+                                                    <h3 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">
+                                                        {currentSlide.stat}
+                                                    </h3>
+                                                    <p className="text-sm text-neutral-300 leading-relaxed max-w-[260px] mx-auto">
+                                                        {currentSlide.text}
+                                                    </p>
+                                                </motion.div>
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                            </div>
+                        </motion.div>
+                    ) : (
+                        // ═══════════════════════════════════════════════════════════════
+                        // PAGE 1: LA MÉTHODE
+                        // ═══════════════════════════════════════════════════════════════
+                        <motion.div
+                            key="method-page"
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={pageTransition}
+                            className="h-full overflow-y-auto custom-scrollbar"
+                        >
+                            <div className="p-6 pt-4 pb-32">
+
+                                {/* ===== TIMELINE LAYOUT ===== */}
+                                <div className="relative">
+                                    {/* Vertical Line - Animated */}
+                                    <motion.div
+                                        initial={{ scaleY: 0, originY: 0 }}
+                                        animate={{ scaleY: 1 }}
+                                        transition={{ delay: 0.2, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                                        className="absolute left-[19px] top-10 bottom-6 w-px bg-gradient-to-b from-volt/40 via-neutral-700 to-neutral-800"
+                                    />
+
+                                    <div className="space-y-4">
+                                        {tips.map((tip, index) => {
+                                            const IconComponent = IconMap[tip.iconName] || Search;
+                                            return (
+                                                <motion.div
+                                                    key={tip.id}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{
+                                                        delay: 0.1 + index * 0.1,
+                                                        duration: 0.3,
+                                                        ease: "easeOut"
+                                                    }}
+                                                    className="relative flex gap-4 items-start"
+                                                >
+                                                    {/* Number Circle - Aligned with top of card */}
+                                                    <div className="relative z-10 flex-shrink-0 pt-5">
+                                                        <motion.div
+                                                            initial={{ scale: 0.8, opacity: 0 }}
+                                                            animate={{ scale: 1, opacity: 1 }}
+                                                            transition={{
+                                                                delay: 0.15 + index * 0.1,
+                                                                type: 'spring',
+                                                                stiffness: 400,
+                                                                damping: 25
+                                                            }}
+                                                            className="w-8 h-8 rounded-full bg-[#0A0A0A] border-2 border-volt/50 flex items-center justify-center ring-4 ring-[#0A0A0A] shadow-[0_0_15px_rgba(226,255,0,0.1)] relative -top-4"
+                                                        >
+                                                            <span className="font-mono text-sm font-bold text-volt">
+                                                                {index + 1}
+                                                            </span>
+                                                        </motion.div>
+                                                    </div>
+
+                                                    {/* Content Card */}
+                                                    <div className="flex-1 bg-neutral-900/60 border border-white/5 rounded-2xl p-5 backdrop-blur-[1px] relative overflow-hidden">
+
+                                                        <div className="relative z-10">
+                                                            {/* Title - No padding right needed as icon is very transparent */}
+                                                            <h4 className="font-sans text-base font-bold text-white leading-tight mb-3">
+                                                                {tip.title}
+                                                            </h4>
+
+                                                            {/* Body */}
+                                                            <p className="text-[15px] text-neutral-300 font-sans leading-relaxed">
+                                                                {renderWithBold(tip.body)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* Footer: CTA */}
-            <div className="p-6 bg-black border-t border-neutral-800">
-                <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.25 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onNext}
-                    className="w-full bg-volt text-black font-black font-sans py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(226,255,0,0.3)]"
-                >
-                    {ctaText}
-                </motion.button>
+            {/* Footer CTA - Always visible, content changes */}
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+                <AnimatePresence mode="wait">
+                    {page === 0 ? (
+                        <motion.button
+                            key="cta-context"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 25
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={goToMethod}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
+                        >
+                            {L.contextCta} <ArrowRight className="w-5 h-5" />
+                        </motion.button>
+                    ) : (
+                        <motion.button
+                            key="cta-method"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 25
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleLaunch}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
+                        >
+                            <Zap className="w-5 h-5 fill-current" />
+                            {L.methodCta}
+                        </motion.button>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

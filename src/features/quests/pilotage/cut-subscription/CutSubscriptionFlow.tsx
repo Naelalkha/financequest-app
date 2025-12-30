@@ -6,15 +6,24 @@ import ProtocolScreen from './screens/ProtocolScreen';
 import ExecutionScreen from './screens/ExecutionScreen';
 import DebriefScreen from './screens/DebriefScreen';
 import { trackEvent } from '../../../../utils/analytics';
-import useLocalizedQuest from '../../../../hooks/useLocalizedQuest';
-import { fullscreenVariants, TRANSITIONS, EASE, SPRING, screenVariants } from '../../../../styles/animationConstants';
+import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
 import { haptic } from '../../../../utils/haptics';
 
 /**
  * CutSubscriptionFlow - Main 3-Phase Quest Flow Controller
  * 
- * Clean tactical UI matching the Moniyo Protocol design
+ * Quest: LA PURGE
+ * Features:
+ * - Centralized navigation state (Protocol pages & Execution steps)
+ * - Uniform Header with smart Back Button
  */
+// Custom transition for main screens (fade only for stability)
+const mainScreenVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+};
+
 const CutSubscriptionFlow = ({
     quest = {},
     onComplete,
@@ -24,11 +33,12 @@ const CutSubscriptionFlow = ({
     const { t, i18n } = useTranslation(['quests', 'common']);
     const locale = i18n.language;
 
-    // Get localized quest with codename
-    const localizedQuest = useLocalizedQuest(quest);
-
     // Phase state
     const [phase, setPhase] = useState('PROTOCOL');
+
+    // Internal navigation states (lifted up to control Header Back Button)
+    const [protocolPage, setProtocolPage] = useState(0); // 0 = Context, 1 = Method
+    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation' or 'challenge'
 
     // Quest data state
     const [questData, setQuestData] = useState({
@@ -41,28 +51,68 @@ const CutSubscriptionFlow = ({
         ...userProgress
     });
 
-    // Phase labels
+    // Phase labels (fil d'Ariane - petit jaune)
     const phaseLabels = {
-        PROTOCOL: { fr: 'PHASE 01 // PROTOCOLE', en: 'PHASE 01 // PROTOCOL' },
-        EXECUTION: { fr: 'PHASE 02 // EXÉCUTION', en: 'PHASE 02 // EXECUTION' },
-        DEBRIEF: { fr: 'PHASE 03 // DÉBRIEFING', en: 'PHASE 03 // DEBRIEF' }
+        PROTOCOL: { fr: 'LA PURGE', en: 'THE PURGE' },
+        EXECUTION: { fr: 'LA PURGE', en: 'THE PURGE' },
+        DEBRIEF: { fr: 'LA PURGE', en: 'THE PURGE' }
     };
 
-    const phaseTitles = {
-        PROTOCOL: { fr: 'BRIEFING', en: 'BRIEFING' },
-        EXECUTION: { fr: 'SÉLECTION CIBLE', en: 'TARGET SELECTION' },
-        DEBRIEF: { fr: 'RAPPORT DE MISSION', en: 'MISSION REPORT' }
+    // Step titles (ÉNORME blanc - action du moment)
+    const getStepTitle = () => {
+        if (phase === 'PROTOCOL') {
+            if (protocolPage === 0) return { fr: 'CONTEXTE', en: 'CONTEXT' };
+            return { fr: 'MÉTHODE', en: 'METHOD' };
+        }
+        if (phase === 'EXECUTION') {
+            if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
+            return { fr: 'STRATÉGIE', en: 'STRATEGY' };
+        }
+        return { fr: 'IMPACT', en: 'IMPACT' };
     };
 
-    // Progress bar width
-    const progressWidth = phase === 'PROTOCOL' ? '33%' : phase === 'EXECUTION' ? '66%' : '100%';
+    // Step subtitles (moyen gris - instruction)
+    const getStepSubtitle = () => {
+        // All subtitles removed for cleaner mobile UI
+        return { fr: '', en: '' };
+    };
+
+    // Progress bar width - 5 steps total (20% each)
+    const getProgressWidth = () => {
+        if (phase === 'PROTOCOL') {
+            return protocolPage === 0 ? '20%' : '40%';
+        }
+        if (phase === 'EXECUTION') {
+            return executionStep === 'revelation' ? '60%' : '80%';
+        }
+        return '100%'; // DEBRIEF
+    };
+    const progressWidth = getProgressWidth();
 
     // Update quest data
     const handleUpdateData = useCallback((newData) => {
         setQuestData(prev => ({ ...prev, ...newData }));
     }, []);
 
-    // Phase transitions with haptic feedback
+    // NAVIGATION HANDLERS
+
+    // 1. Back Button Logic
+    const handleBack = useCallback(() => {
+        haptic.light();
+
+        if (phase === 'PROTOCOL' && protocolPage === 1) {
+            setProtocolPage(0);
+        } else if (phase === 'EXECUTION') {
+            if (executionStep === 'challenge') {
+                setExecutionStep('revelation');
+            } else {
+                setPhase('PROTOCOL');
+                setProtocolPage(1); // Go back to end of protocol
+            }
+        }
+    }, [phase, protocolPage, executionStep]);
+
+    // 2. Forward Logic
     const goToExecution = useCallback(() => {
         haptic.medium();
         trackEvent('quest_phase_completed', {
@@ -70,6 +120,7 @@ const CutSubscriptionFlow = ({
             phase: 'PROTOCOL'
         });
         setPhase('EXECUTION');
+        setExecutionStep('revelation'); // Reset to start of execution
     }, []);
 
     const goToDebrief = useCallback(() => {
@@ -83,10 +134,13 @@ const CutSubscriptionFlow = ({
         setPhase('DEBRIEF');
     }, [questData.serviceName, questData.monthlyAmount]);
 
-    const goBackToProtocol = useCallback(() => {
+    const goBackToProtocol = useCallback(() => { // Legacy prop compatibility
         haptic.light();
         setPhase('PROTOCOL');
     }, []);
+
+    // Check if Back button should be shown
+    const showBackButton = (phase === 'PROTOCOL' && protocolPage === 1) || (phase === 'EXECUTION');
 
     // Final completion
     const handleComplete = () => {
@@ -107,9 +161,6 @@ const CutSubscriptionFlow = ({
         });
     };
 
-    // Use optimized screen variants from constants
-    // screenVariants.slideForward is imported from animationConstants
-
     return (
         <motion.div
             className="fixed inset-0 z-[100] bg-[#050505]"
@@ -119,9 +170,9 @@ const CutSubscriptionFlow = ({
             {...fullscreenVariants.enter}
             transition={TRANSITIONS.overlayEntry}
         >
-            {/* Texture Overlay (Micro Mode) */}
+            {/* Texture Overlay (Micro Mode) - Pattern extends to top, covers 100vh, visible behind header */}
             <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
+                className="fixed top-0 left-0 w-full h-screen opacity-[0.03] pointer-events-none z-[1]"
                 style={{
                     backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zzM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
                 }}
@@ -143,30 +194,81 @@ const CutSubscriptionFlow = ({
                     />
                 </div>
 
-                {/* Header - Compact */}
-                <div className="p-6 pt-8 border-b border-white/5 flex justify-between items-center bg-black/50">
+                {/* Header - Tactical Glass Effect: Floating above pattern with very light gradient + backdrop blur */}
+                <div
+                    className="absolute top-0 left-0 w-full p-6 pt-8 flex justify-between items-center z-40"
+                    style={{
+                        background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%)',
+                        backdropFilter: 'blur(1px)',
+                        WebkitBackdropFilter: 'blur(1px)'
+                    }}
+                >
                     <div className="flex items-center gap-4">
-                        {/* Back arrow for middle phases */}
-                        {phase !== 'PROTOCOL' && phase !== 'DEBRIEF' && (
-                            <button
-                                onClick={goBackToProtocol}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                        )}
-                        <div>
-                            <span className="font-mono text-[10px] text-volt tracking-[0.2em] uppercase animate-pulse">
+                        {/* UNIFORM BACK BUTTON */}
+                        <AnimatePresence mode="popLayout">
+                            {showBackButton && (
+                                <motion.button
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 400,
+                                        damping: 25,
+                                        opacity: { duration: 0.15 },
+                                        layout: { duration: 0.3, ease: "easeOut" }
+                                    }}
+                                    onClick={handleBack}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors active:scale-95"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+
+                        <motion.div layout className="overflow-hidden">
+                            {/* Fil d'Ariane - petit jaune */}
+                            <span className="font-mono text-[11px] text-volt tracking-wide uppercase block">
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
-                            {/* Codename as main header, fallback to phase title */}
-                            <h2 className="font-sans font-bold text-xl text-white leading-none mt-1">
-                                {localizedQuest?.codename || phaseTitles[phase]?.[locale] || phaseTitles[phase]?.fr}
-                            </h2>
-                        </div>
+                            {/* Titre de l'étape - ÉNORME blanc - Animated */}
+                            <div className="h-9 mt-1 overflow-hidden pt-2 -mt-1">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={`${phase}-${protocolPage}-${executionStep}-title-wrapper`}
+                                        className="h-full"
+                                    >
+                                        <motion.h2
+                                            initial={{ y: '100%' }}
+                                            animate={{ y: 0 }}
+                                            exit={{ y: '-150%' }}
+                                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                                            className="font-sans font-black text-2xl text-white leading-none tracking-tight"
+                                            style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}
+                                        >
+                                            {getStepTitle()[locale] || getStepTitle().fr}
+                                        </motion.h2>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+                            {/* Instruction - moyen gris - Animated */}
+                            <AnimatePresence mode="wait">
+                                <motion.p
+                                    key={`${phase}-${protocolPage}-${executionStep}-subtitle`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.15, delay: 0.05 }}
+                                    className="font-mono text-[11px] text-neutral-400 tracking-wide uppercase mt-1"
+                                >
+                                    {getStepSubtitle()[locale] || getStepSubtitle().fr}
+                                </motion.p>
+                            </AnimatePresence>
+                        </motion.div>
                     </div>
 
-                    {/* Close button - Larger for fullscreen */}
+                    {/* Close button */}
                     <button
                         onClick={onClose}
                         className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors border border-white/10"
@@ -176,38 +278,45 @@ const CutSubscriptionFlow = ({
                     </button>
                 </div>
 
-                {/* Content Body */}
-                <div className="flex-1 overflow-hidden">
+                {/* Content Body - Padding top to account for absolute header */}
+                <div className="flex-1 overflow-hidden relative pt-32">
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div
                                 key="protocol"
-                                variants={screenVariants.slideForward}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.smooth}
+                                transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                 className="h-full quest-screen"
                             >
-                                <ProtocolScreen onNext={goToExecution} />
+                                <ProtocolScreen
+                                    onNext={goToExecution}
+                                    // Control internal state from parent
+                                    page={protocolPage}
+                                    setPage={setProtocolPage}
+                                />
                             </motion.div>
                         )}
 
                         {phase === 'EXECUTION' && (
                             <motion.div
                                 key="execution"
-                                variants={screenVariants.slideForward}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.smooth}
+                                transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                 className="h-full quest-screen"
                             >
                                 <ExecutionScreen
                                     data={questData}
                                     onUpdate={handleUpdateData}
                                     onNext={goToDebrief}
-                                    onBack={goBackToProtocol}
+                                    // Control internal state from parent
+                                    step={executionStep}
+                                    setStep={setExecutionStep}
                                 />
                             </motion.div>
                         )}
@@ -215,11 +324,11 @@ const CutSubscriptionFlow = ({
                         {phase === 'DEBRIEF' && (
                             <motion.div
                                 key="debrief"
-                                variants={screenVariants.fadeScale}
+                                variants={mainScreenVariants}
                                 initial="initial"
                                 animate="animate"
                                 exit="exit"
-                                transition={SPRING.bouncy}
+                                transition={{ duration: 0.3 }}
                                 className="h-full quest-screen"
                             >
                                 <DebriefScreen
@@ -237,9 +346,5 @@ const CutSubscriptionFlow = ({
         </motion.div>
     );
 };
-
-export { default as ProtocolScreen } from './screens/ProtocolScreen';
-export { default as ExecutionScreen } from './screens/ExecutionScreen';
-export { default as DebriefScreen } from './screens/DebriefScreen';
 
 export default CutSubscriptionFlow;
