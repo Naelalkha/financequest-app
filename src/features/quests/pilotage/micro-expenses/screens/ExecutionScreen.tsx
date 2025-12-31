@@ -447,10 +447,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                 <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
                     <motion.button
                         key="cta-revelation"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                         whileTap={canProceedToChallenge ? { scale: 0.97 } : {}}
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
@@ -570,10 +566,6 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
             <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
                 <motion.button
                     key="cta-challenge"
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     whileTap={canComplete ? { scale: 0.97 } : {}}
                     onClick={handleComplete}
                     disabled={!canComplete}

@@ -38,7 +38,7 @@ const CutSubscriptionFlow = ({
 
     // Internal navigation states (lifted up to control Header Back Button)
     const [protocolPage, setProtocolPage] = useState(0); // 0 = Context, 1 = Method
-    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation' or 'challenge'
+    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation', 'challenge', or 'action'
 
     // Quest data state
     const [questData, setQuestData] = useState({
@@ -66,7 +66,8 @@ const CutSubscriptionFlow = ({
         }
         if (phase === 'EXECUTION') {
             if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
-            return { fr: 'STRATÉGIE', en: 'STRATEGY' };
+            if (executionStep === 'challenge') return { fr: 'STRATÉGIE', en: 'STRATEGY' };
+            return { fr: 'ACTION', en: 'ACTION' };
         }
         return { fr: 'IMPACT', en: 'IMPACT' };
     };
@@ -77,13 +78,15 @@ const CutSubscriptionFlow = ({
         return { fr: '', en: '' };
     };
 
-    // Progress bar width - 5 steps total (20% each)
+    // Progress bar width - 6 steps total
     const getProgressWidth = () => {
         if (phase === 'PROTOCOL') {
-            return protocolPage === 0 ? '20%' : '40%';
+            return protocolPage === 0 ? '16%' : '33%';
         }
         if (phase === 'EXECUTION') {
-            return executionStep === 'revelation' ? '60%' : '80%';
+            if (executionStep === 'revelation') return '50%';
+            if (executionStep === 'challenge') return '66%';
+            return '83%'; // action
         }
         return '100%'; // DEBRIEF
     };
@@ -103,7 +106,9 @@ const CutSubscriptionFlow = ({
         if (phase === 'PROTOCOL' && protocolPage === 1) {
             setProtocolPage(0);
         } else if (phase === 'EXECUTION') {
-            if (executionStep === 'challenge') {
+            if (executionStep === 'action') {
+                setExecutionStep('challenge');
+            } else if (executionStep === 'challenge') {
                 setExecutionStep('revelation');
             } else {
                 setPhase('PROTOCOL');

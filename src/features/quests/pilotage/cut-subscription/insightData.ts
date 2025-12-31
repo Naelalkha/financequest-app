@@ -5,6 +5,146 @@
  * Sources: C+R Research, BRG Research, Business of Apps - All verified 2023/2024
  */
 
+// ===== STRATEGY OPTIONS CONFIG =====
+// Les 4 stratégies possibles pour réduire ses abonnements
+export interface StrategyOption {
+    id: 'downgrade' | 'rotation' | 'partage' | 'stopper';
+    icon: string;
+    labelFr: string;
+    labelEn: string;
+    descFr: string;
+    descEn: string;
+}
+
+export const STRATEGY_OPTIONS: Record<string, StrategyOption> = {
+    downgrade: {
+        id: 'downgrade',
+        icon: '⬇️',
+        labelFr: 'DOWNGRADE',
+        labelEn: 'DOWNGRADE',
+        descFr: 'Passe au forfait inférieur',
+        descEn: 'Switch to lower tier'
+    },
+    rotation: {
+        id: 'rotation',
+        icon: '🔄',
+        labelFr: 'ROTATION',
+        labelEn: 'ROTATION',
+        descFr: 'Active 1 mois sur 2, selon tes besoins',
+        descEn: 'Active 1 month out of 2, as needed'
+    },
+    partage: {
+        id: 'partage',
+        icon: '👥',
+        labelFr: 'PARTAGE',
+        labelEn: 'SHARING',
+        descFr: 'Utilise l\'option Famille officielle',
+        descEn: 'Use the official Family option'
+    },
+    stopper: {
+        id: 'stopper',
+        icon: '✕',
+        labelFr: 'STOPPER',
+        labelEn: 'STOP',
+        descFr: 'Annulation totale',
+        descEn: 'Complete cancellation'
+    }
+};
+
+// ===== SERVICE-SPECIFIC STRATEGIES =====
+// Logique conditionnelle : quelles stratégies sont disponibles par service
+export interface ServiceStrategyConfig {
+    downgrade?: { price: number; labelFr: string; labelEn: string } | false;
+    rotation?: boolean;
+    partage?: { price?: number; labelFr: string; labelEn: string } | false;
+    stopper: true;
+}
+
+export const SERVICE_STRATEGIES: Record<string, ServiceStrategyConfig> = {
+    netflix: {
+        downgrade: { price: 5.99, labelFr: 'Essentiel avec pub', labelEn: 'Essential with ads' },
+        rotation: true,
+        partage: { price: 5.99, labelFr: 'Membre supplémentaire', labelEn: 'Extra member' },
+        stopper: true
+    },
+    spotify: {
+        downgrade: { price: 0, labelFr: 'Version Free', labelEn: 'Free version' },
+        rotation: false,
+        partage: { price: 7.49, labelFr: 'Duo (à 2)', labelEn: 'Duo (for 2)' },
+        stopper: true
+    },
+    prime: {
+        downgrade: false,
+        rotation: true,
+        partage: false,
+        stopper: true
+    },
+    apple: {
+        downgrade: { price: 16.95, labelFr: 'Individuel', labelEn: 'Individual' },
+        rotation: false,
+        partage: false,
+        stopper: true
+    },
+    disney: {
+        downgrade: { price: 8.99, labelFr: 'Avec pub', labelEn: 'With ads' },
+        rotation: true,
+        partage: false,
+        stopper: true
+    },
+    other: {
+        downgrade: false,
+        rotation: true,
+        partage: false,
+        stopper: true
+    }
+};
+
+// ===== CANCELLATION LINKS =====
+export const CANCELLATION_LINKS: Record<string, { url: string; labelFr: string; labelEn: string }> = {
+    netflix: { url: 'https://netflix.com/account', labelFr: 'Gérer mon abonnement Netflix', labelEn: 'Manage my Netflix subscription' },
+    spotify: { url: 'https://spotify.com/account', labelFr: 'Gérer mon abonnement Spotify', labelEn: 'Manage my Spotify subscription' },
+    prime: { url: 'https://amazon.fr/gp/primecentral', labelFr: 'Gérer mon abonnement Prime', labelEn: 'Manage my Prime subscription' },
+    apple: { url: 'https://support.apple.com/fr-fr/HT202039', labelFr: 'Gérer mes abonnements Apple', labelEn: 'Manage my Apple subscriptions' },
+    disney: { url: 'https://disneyplus.com/fr-fr/account', labelFr: 'Gérer mon abonnement Disney+', labelEn: 'Manage my Disney+ subscription' },
+    other: { url: '', labelFr: 'Rechercher "[nom] résiliation"', labelEn: 'Search "[name] cancellation"' }
+};
+
+// ===== CALCULATE STRATEGY SAVINGS =====
+export const calculateStrategySavings = (
+    serviceId: string,
+    strategyId: string,
+    currentMonthlyPrice: number
+): number => {
+    const annualCost = currentMonthlyPrice * 12;
+    const strategies = SERVICE_STRATEGIES[serviceId] || SERVICE_STRATEGIES.other;
+
+    switch (strategyId) {
+        case 'downgrade': {
+            const config = strategies.downgrade;
+            if (!config) return 0;
+            const newAnnual = config.price * 12;
+            return Math.round(annualCost - newAnnual);
+        }
+        case 'rotation':
+            // 1 mois sur 2 = 50% d'économie
+            return Math.round(annualCost * 0.5);
+        case 'partage': {
+            const config = strategies.partage;
+            if (!config) return 0;
+            // Si prix spécifié, calcul précis, sinon ~50%
+            if (config.price) {
+                const newAnnual = config.price * 12;
+                return Math.round(annualCost - newAnnual);
+            }
+            return Math.round(annualCost * 0.5);
+        }
+        case 'stopper':
+            return Math.round(annualCost);
+        default:
+            return 0;
+    }
+};
+
 // ===== SOCIAL PROOF CAROUSEL (Protocol Screen) =====
 // 3 slides optimisés : Impact €, Identification comportementale, Prise de conscience
 export const socialProofSlides = {
