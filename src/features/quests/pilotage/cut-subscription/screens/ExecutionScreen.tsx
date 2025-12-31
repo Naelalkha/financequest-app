@@ -386,9 +386,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            cta-ios-fix ${canProceedToChallenge ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToChallenge
-                                ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                                ? 'bg-volt text-black border-black'
                                 : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                             }
                         `}
@@ -532,9 +533,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                         onClick={goToAction}
                         disabled={!canProceedToAction}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            cta-ios-fix ${canProceedToAction ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToAction
-                                ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                                ? 'bg-volt text-black border-black'
                                 : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                             }
                         `}
@@ -786,7 +788,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                     key="cta-action"
                     whileTap={{ scale: 0.97 }}
                     onClick={handleComplete}
-                    className="w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px] bg-volt text-black border-black shadow-volt-glow-strong"
+                    className="w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] bg-volt text-black border-black cta-ios-fix cta-active"
                 >
                     <Zap className="w-5 h-5" />
                     {L.actionCta}

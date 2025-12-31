@@ -39,6 +39,7 @@ button,
 
 /* Smooth animations on iOS */
 @supports (-webkit-touch-callout: none) {
+
   /* iOS specific fixes */
   .motion-safe {
     -webkit-transform: translate3d(0, 0, 0);
@@ -49,6 +50,7 @@ button,
 /* ===== Mobile Sticky Hover Prevention ===== */
 /* Disable hover effects on touch-only devices to prevent "sticky" hover states */
 @media (hover: none) {
+
   /* Common Tailwind hover classes - reset on touch devices */
   .hover\:bg-white:hover,
   .hover\:bg-neutral-200:hover,
@@ -56,17 +58,17 @@ button,
   .hover\:bg-white\/10:hover {
     background-color: inherit !important;
   }
-  
+
   .hover\:text-white:hover,
   .hover\:text-volt:hover {
     color: inherit !important;
   }
-  
+
   .hover\:border-neutral-600:hover,
   .hover\:border-neutral-700:hover {
     border-color: inherit !important;
   }
-  
+
   .hover\:scale-105:hover {
     transform: none !important;
   }
@@ -100,3 +102,34 @@ button,
   overflow: visible;
 }
 
+/* ===== iOS PWA CTA Shadow Flickering Fix ===== */
+/* Problem: CTA buttons with box-shadow flicker on iOS PWA when transitioning 
+   from inactive (no shadow) to active (volt glow)
+   Solution: Always keep shadow present (transparent when inactive), force GPU */
+
+.cta-ios-fix {
+  /* Force GPU rendering for smooth shadow transitions */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  /* Hint browser about shadow changes */
+  will-change: background-color, box-shadow;
+
+  /* Smooth transition including box-shadow */
+  transition:
+    background-color 0.2s ease-out,
+    box-shadow 0.25s ease-out,
+    opacity 0.15s ease-out !important;
+}
+
+/* Active CTA with visible glow */
+.cta-ios-fix.cta-active {
+  box-shadow: 0 0 30px rgba(226, 255, 0, 0.4);
+}
+
+/* Inactive CTA - KEEP SHADOW but transparent to prevent flash */
+.cta-ios-fix.cta-inactive {
+  box-shadow: 0 0 30px rgba(226, 255, 0, 0);
+}

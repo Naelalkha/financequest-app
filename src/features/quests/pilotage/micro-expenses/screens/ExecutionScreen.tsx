@@ -451,9 +451,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            cta-ios-fix ${canProceedToChallenge ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToChallenge
-                                ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                                ? 'bg-volt text-black border-black'
                                 : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                             }
                         `}
@@ -570,9 +571,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     onClick={handleComplete}
                     disabled={!canComplete}
                     className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 transition-all border-[3px]
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                        cta-ios-fix ${canComplete ? 'cta-active' : 'cta-inactive'}
                         ${canComplete
-                            ? 'bg-volt text-black border-black shadow-volt-glow-strong'
+                            ? 'bg-volt text-black border-black'
                             : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'
                         }
                     `}
