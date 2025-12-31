@@ -379,7 +379,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                 </div>
 
                 {/* Footer CTA */}
-                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                     <motion.button
                         key="cta-revelation"
                         whileTap={canProceedToChallenge ? { scale: 0.97 } : {}}
@@ -526,7 +526,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                 </div>
 
                 {/* Footer CTA */}
-                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+                <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                     <motion.button
                         key="cta-challenge"
                         whileTap={canProceedToAction ? { scale: 0.97 } : {}}
@@ -783,7 +783,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
             </div>
 
             {/* Footer CTA */}
-            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                 <motion.button
                     key="cta-action"
                     whileTap={{ scale: 0.97 }}

@@ -251,19 +251,11 @@ const DebriefScreen = ({
             </div>
 
             {/* Footer CTA - Same as other screens */}
-            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                 <motion.button
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 25,
-                        delay: 0.6
-                    }}
                     whileTap={{ scale: 0.97 }}
                     onClick={onComplete}
-                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
+                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] border-black cta-ios-fix cta-active"
                 >
                     <CheckCircle2 className="w-5 h-5" />
                     {L.cta}

@@ -380,46 +380,25 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                 </AnimatePresence>
             </div>
 
-            {/* Footer CTA - Always visible, content changes */}
-            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800">
-                <AnimatePresence mode="wait">
+            {/* Footer CTA - Single persistent button with dynamic content (prevents iOS flicker) */}
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
+                <motion.button
+                    key="cta-persistent"
+                    whileTap={{ scale: 0.97 }}
+                    onClick={page === 0 ? goToMethod : handleLaunch}
+                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] border-black cta-ios-fix cta-active"
+                >
                     {page === 0 ? (
-                        <motion.button
-                            key="cta-context"
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            transition={{
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 25
-                            }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={goToMethod}
-                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
-                        >
+                        <>
                             {L.contextCta} <ArrowRight className="w-5 h-5" />
-                        </motion.button>
+                        </>
                     ) : (
-                        <motion.button
-                            key="cta-method"
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            transition={{
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 25
-                            }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={handleLaunch}
-                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 shadow-volt-glow-strong border-[3px] border-black transition-all"
-                        >
+                        <>
                             <Zap className="w-5 h-5 fill-current" />
                             {L.methodCta}
-                        </motion.button>
+                        </>
                     )}
-                </AnimatePresence>
+                </motion.button>
             </div>
         </div>
     );

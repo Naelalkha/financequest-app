@@ -133,3 +133,17 @@ button,
 .cta-ios-fix.cta-inactive {
   box-shadow: 0 0 30px rgba(226, 255, 0, 0);
 }
+
+/* ===== iOS PWA CTA Container Fix ===== */
+/* Prevents CTA flash during screen transitions by ensuring consistent rendering */
+.cta-footer-container {
+  /* Ensure container is always rendered at GPU layer */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  /* Prevent layout shift during transitions */
+  will-change: contents;
+  contain: layout style;
+}
