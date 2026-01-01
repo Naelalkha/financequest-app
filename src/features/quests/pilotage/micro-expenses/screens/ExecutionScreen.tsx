@@ -451,7 +451,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px]
                             cta-ios-fix ${canProceedToChallenge ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToChallenge
                                 ? 'bg-volt text-black border-black'
@@ -459,8 +459,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                             }
                         `}
                     >
-                        {L.revelationCta}
-                        <ChevronRight className="w-5 h-5" />
+                        <span className="cta-content cta-content-animate">
+                            {L.revelationCta}
+                            <ChevronRight className="w-5 h-5" />
+                        </span>
                     </motion.button>
                 </div>
             </div>
@@ -571,7 +573,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                     onClick={handleComplete}
                     disabled={!canComplete}
                     className={`
-                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                        w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px]
                         cta-ios-fix ${canComplete ? 'cta-active' : 'cta-inactive'}
                         ${canComplete
                             ? 'bg-volt text-black border-black'
@@ -579,8 +581,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                         }
                     `}
                 >
-                    <Zap className="w-5 h-5" />
-                    {L.challengeCta}
+                    <span className="cta-content cta-content-animate">
+                        <Zap className="w-5 h-5" />
+                        {L.challengeCta}
+                    </span>
                 </motion.button>
             </div>
         </div>

@@ -386,7 +386,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                         onClick={goToChallenge}
                         disabled={!canProceedToChallenge}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px]
                             cta-ios-fix ${canProceedToChallenge ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToChallenge
                                 ? 'bg-volt text-black border-black'
@@ -394,8 +394,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                             }
                         `}
                     >
-                        {L.revelationCta}
-                        <ChevronRight className="w-5 h-5" />
+                        <span className="cta-content cta-content-animate">
+                            {L.revelationCta}
+                            <ChevronRight className="w-5 h-5" />
+                        </span>
                     </motion.button>
                 </div>
             </div>
@@ -533,7 +535,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                         onClick={goToAction}
                         disabled={!canProceedToAction}
                         className={`
-                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px]
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px]
                             cta-ios-fix ${canProceedToAction ? 'cta-active' : 'cta-inactive'}
                             ${canProceedToAction
                                 ? 'bg-volt text-black border-black'
@@ -541,8 +543,10 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                             }
                         `}
                     >
-                        <Zap className="w-5 h-5" />
-                        {L.challengeCta}
+                        <span className="cta-content cta-content-animate">
+                            <Zap className="w-5 h-5" />
+                            {L.challengeCta}
+                        </span>
                     </motion.button>
                 </div>
             </div>
@@ -788,10 +792,12 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                     key="cta-action"
                     whileTap={{ scale: 0.97 }}
                     onClick={handleComplete}
-                    className="w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] bg-volt text-black border-black cta-ios-fix cta-active"
+                    className="w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] bg-volt text-black border-black cta-ios-fix cta-active"
                 >
-                    <Zap className="w-5 h-5" />
-                    {L.actionCta}
+                    <span className="cta-content cta-content-animate">
+                        <Zap className="w-5 h-5" />
+                        {L.actionCta}
+                    </span>
                 </motion.button>
             </div>
         </div>

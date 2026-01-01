@@ -255,10 +255,12 @@ const DebriefScreen = ({
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onComplete}
-                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] border-black cta-ios-fix cta-active"
+                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black cta-ios-fix cta-active"
                 >
-                    <CheckCircle2 className="w-5 h-5" />
-                    {L.cta}
+                    <span className="cta-content cta-content-animate">
+                        <CheckCircle2 className="w-5 h-5" />
+                        {L.cta}
+                    </span>
                 </motion.button>
             </div>
         </div>
