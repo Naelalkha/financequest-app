@@ -285,9 +285,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleServiceSelect(service)}
                                         className={`
-                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-200
+                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 selectable-card
                                             ${isSelected
-                                                ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)]'
+                                                ? 'bg-volt text-black border-volt selectable-card--active'
                                                 : 'bg-neutral-900 text-neutral-400 border-neutral-800 active:bg-neutral-800'
                                             }
                                         `}
@@ -450,9 +450,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleStrategySelect(strategy)}
                                         className={`
-                                            w-full rounded-2xl border transition-all text-left
+                                            w-full rounded-2xl border text-left selectable-card
                                             ${isSelected
-                                                ? 'bg-neutral-900 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
+                                                ? 'bg-neutral-900 border-volt selectable-card--active'
                                                 : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
                                             }
                                         `}
@@ -731,14 +731,11 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
 
                         {/* Action Link - Ouvrir [Service] */}
                         {cancellationInfo.url ? (
-                            <motion.a
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
+                            <a
                                 href={cancellationInfo.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-between px-5 py-4 bg-neutral-900 border border-white/20 rounded-xl text-white hover:border-volt hover:bg-neutral-800 transition-all mb-6"
+                                className="flex items-center justify-between px-5 py-4 bg-neutral-900 border border-white/20 rounded-xl text-white hover:border-volt hover:bg-neutral-800 action-link mb-6"
                             >
                                 <div className="flex items-center gap-3">
                                     <ExternalLink className="w-5 h-5 text-neutral-400" />
@@ -749,20 +746,17 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                                     </span>
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-neutral-500" />
-                            </motion.a>
+                            </a>
                         ) : (
-                            <motion.div
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="px-5 py-4 bg-neutral-900/60 border border-neutral-800 rounded-xl text-center mb-6"
+                            <div
+                                className="px-5 py-4 bg-neutral-900/60 border border-neutral-800 rounded-xl text-center mb-6 action-link"
                             >
                                 <p className="font-mono text-sm text-neutral-400">
                                     {locale === 'fr'
                                         ? `Recherche "${customName}" sur Google`
                                         : `Search "${customName}" on Google`}
                                 </p>
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Numbered Steps */}
