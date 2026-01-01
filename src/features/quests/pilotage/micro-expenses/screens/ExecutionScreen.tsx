@@ -307,9 +307,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleCategorySelect(category)}
                                         className={`
-                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-200
+                                            h-16 rounded-2xl border flex flex-col items-center justify-center gap-1.5 selectable-card
                                             ${isSelected
-                                                ? 'bg-volt text-black border-volt shadow-[0_0_15px_rgba(226,255,0,0.4)]'
+                                                ? 'bg-volt text-black border-volt selectable-card--active'
                                                 : 'bg-neutral-900 text-neutral-400 border-neutral-800 active:bg-neutral-800'
                                             }
                                         `}
@@ -370,9 +370,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleFrequencySelect(freq)}
                                             className={`
-                                                py-2.5 rounded-xl font-mono text-[11px] font-bold border transition-all
+                                                py-2.5 rounded-xl font-mono text-[11px] font-bold border selectable-card
                                                 ${isSelected
-                                                    ? 'bg-volt text-black border-volt shadow-[0_0_12px_rgba(226,255,0,0.25)]'
+                                                    ? 'bg-volt text-black border-volt selectable-card--active'
                                                     : 'bg-neutral-900 text-neutral-500 border-neutral-800'
                                                 }
                                             `}
@@ -521,9 +521,9 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleActionLevelSelect(config.id)}
                                     className={`
-                                        w-full rounded-2xl border transition-all text-left
+                                        w-full rounded-2xl border text-left selectable-card
                                         ${isSelected
-                                            ? 'bg-neutral-900 border-volt shadow-[0_0_20px_rgba(226,255,0,0.2)]'
+                                            ? 'bg-neutral-900 border-volt selectable-card--active'
                                             : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
                                         }
                                     `}

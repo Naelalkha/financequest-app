@@ -163,11 +163,12 @@ button,
   backface-visibility: hidden;
 }
 
-/* Animation keyframes for entering content */
+/* Animation keyframes for entering content - Subtle version */
+/* Starts more visible to prevent flash on first render */
 @keyframes ctaContentEnter {
   0% {
-    opacity: 0;
-    transform: translateY(6px) scale(0.95);
+    opacity: 0.7;
+    transform: translateY(3px) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -175,19 +176,58 @@ button,
   }
 }
 
-/* Animation keyframes for exiting content (not used directly, but for reference) */
-@keyframes ctaContentExit {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.95);
-  }
-}
-
-/* Animate content on key change */
+/* Animate content on key change - Optimized for minimal flicker */
 .cta-content-animate {
-  animation: ctaContentEnter 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: ctaContentEnter 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  /* Ensure we start at the final state immediately */
+  animation-fill-mode: both;
+}
+
+/* ===== Selectable Card Flickering Fix ===== */
+/* Problem: Cards with box-shadow on selection flicker when transitioning
+   from no shadow to volt glow
+   Solution: Force GPU, keep shadow present (transparent when inactive),
+   and use specific transitions instead of transition-all */
+
+.selectable-card {
+  /* Force GPU rendering */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  /* Hint browser about changes */
+  will-change: background-color, border-color, box-shadow;
+
+  /* Specific transitions instead of transition-all */
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    color 0.15s ease-out !important;
+}
+
+/* Inactive state - keep shadow but transparent */
+.selectable-card:not(.selectable-card--active) {
+  box-shadow: 0 0 15px rgba(226, 255, 0, 0);
+}
+
+/* Active state - visible glow */
+.selectable-card--active {
+  box-shadow: 0 0 15px rgba(226, 255, 0, 0.4);
+}
+
+/* ===== Action Link Flickering Fix ===== */
+/* Prevent CTA links (like "Ouvrir Spotify") from flickering on mount */
+.action-link {
+  /* Force GPU rendering */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  /* Smooth transitions */
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out !important;
 }
