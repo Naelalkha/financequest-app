@@ -380,24 +380,27 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
                 </AnimatePresence>
             </div>
 
-            {/* Footer CTA - Single persistent button with dynamic content (prevents iOS flicker) */}
+            {/* Footer CTA - Single persistent button with animated content (prevents iOS flicker) */}
             <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                 <motion.button
                     key="cta-persistent"
                     whileTap={{ scale: 0.97 }}
                     onClick={page === 0 ? goToMethod : handleLaunch}
-                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2 border-[3px] border-black cta-ios-fix cta-active"
+                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black cta-ios-fix cta-active"
                 >
-                    {page === 0 ? (
-                        <>
-                            {L.contextCta} <ArrowRight className="w-5 h-5" />
-                        </>
-                    ) : (
-                        <>
-                            <Zap className="w-5 h-5 fill-current" />
-                            {L.methodCta}
-                        </>
-                    )}
+                    {/* Animated content wrapper - key change triggers CSS animation */}
+                    <span key={`cta-content-${page}`} className="cta-content cta-content-animate">
+                        {page === 0 ? (
+                            <>
+                                {L.contextCta} <ArrowRight className="w-5 h-5" />
+                            </>
+                        ) : (
+                            <>
+                                <Zap className="w-5 h-5 fill-current" />
+                                {L.methodCta}
+                            </>
+                        )}
+                    </span>
                 </motion.button>
             </div>
         </div>

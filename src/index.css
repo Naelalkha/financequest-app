@@ -147,3 +147,47 @@ button,
   will-change: contents;
   contain: layout style;
 }
+
+/* ===== CTA Content Animation ===== */
+/* Smooth crossfade animation for CTA button content (text + icon) */
+/* This animates the CONTENT inside the button, not the button itself */
+.cta-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  /* GPU acceleration for smooth animation */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Animation keyframes for entering content */
+@keyframes ctaContentEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animation keyframes for exiting content (not used directly, but for reference) */
+@keyframes ctaContentExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+}
+
+/* Animate content on key change */
+.cta-content-animate {
+  animation: ctaContentEnter 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
