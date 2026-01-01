@@ -65,6 +65,30 @@ interface ModifiedQuest extends Quest {
     annualSavings?: number;
 }
 
+// Staggered animation variants for dashboard sections (defined outside component for stability)
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: STAGGER.normal,
+            delayChildren: 0.1
+        }
+    }
+};
+
+const sectionVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: DURATION.normal,
+            ease: EASE.outExpo
+        }
+    }
+};
+
 /**
  * DashboardView - Main dashboard feature view
  * Contains all dashboard logic and composition
@@ -418,29 +442,31 @@ const DashboardView: React.FC = () => {
         );
     }
 
-    // Staggered animation variants for dashboard sections
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: STAGGER.normal,
-                delayChildren: 0.1
+    // Block scroll when spotlight is visible to prevent highlight from moving
+    useEffect(() => {
+        if (showSpotlight) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${window.scrollY}px`;
+        } else {
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
             }
         }
-    };
 
-    const sectionVariants = {
-        hidden: { opacity: 0, y: 15 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: DURATION.normal,
-                ease: EASE.outExpo
-            }
-        }
-    };
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+        };
+    }, [showSpotlight]);
 
     return (
         <motion.div
