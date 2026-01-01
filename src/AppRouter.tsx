@@ -1,5 +1,6 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -14,10 +15,24 @@ import BottomNav from './components/layout/BottomNav';
 import AppBackground from './components/layout/AppBackground';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { OnboardingFlow, onboardingStore } from './features/onboarding';
+import { DURATION, EASE } from './styles/animationConstants';
 
 interface RouteWrapperProps {
     children: ReactNode;
 }
+
+// Smooth loading screen component
+const SmoothLoadingScreen: React.FC = () => (
+    <motion.div
+        className="min-h-screen flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: DURATION.medium, ease: EASE.premium }}
+    >
+        <LoadingSpinner size="lg" />
+    </motion.div>
+);
 
 // Private route wrapper - Now allows anonymous users!
 function PrivateRoute({ children }: RouteWrapperProps): React.ReactElement {
@@ -26,9 +41,7 @@ function PrivateRoute({ children }: RouteWrapperProps): React.ReactElement {
 
     if (loading) return (
         <AppBackground>
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner size="lg" />
-            </div>
+            <SmoothLoadingScreen />
         </AppBackground>
     );
 
@@ -44,9 +57,7 @@ function PublicRoute({ children }: RouteWrapperProps): React.ReactElement {
 
     if (loading) return (
         <AppBackground>
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner size="lg" />
-            </div>
+            <SmoothLoadingScreen />
         </AppBackground>
     );
 
@@ -80,27 +91,43 @@ const AppRouter: React.FC = () => {
         return () => window.removeEventListener('storage', checkOnboarding);
     }, [location.pathname]);
 
+    // Routes that show bottom nav (now includes anonymous users)
+    const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
+
+    // Smooth loading state
     if (loading) {
         return (
             <AppBackground>
-                <div className="min-h-screen flex items-center justify-center">
-                    <LoadingSpinner size="lg" />
-                </div>
+                <SmoothLoadingScreen />
             </AppBackground>
         );
     }
 
-    // If user hasn't completed onboarding, show onboarding first
+    // Onboarding flow with smooth transition
     if (!hasCompletedOnboarding && user) {
-        return <OnboardingFlow />;
+        return (
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key="onboarding"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.premium }}
+                >
+                    <OnboardingFlow />
+                </motion.div>
+            </AnimatePresence>
+        );
     }
-
-    // Routes that show bottom nav (now includes anonymous users)
-    const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
 
     return (
         <>
-            <div className={showBottomNav ? 'pb-20' : ''}>
+            <motion.div
+                className={showBottomNav ? 'pb-20' : ''}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: DURATION.medium, ease: EASE.premium }}
+            >
                 <Routes>
                     {/* Root Route Logic */}
                     <Route path="/" element={
@@ -154,7 +181,7 @@ const AppRouter: React.FC = () => {
                     {/* Catch all */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-            </div>
+            </motion.div>
 
             {/* Bottom Navigation */}
             {showBottomNav && <BottomNav />}

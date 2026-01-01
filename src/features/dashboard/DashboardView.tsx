@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { DURATION, EASE, STAGGER } from '../../styles/animationConstants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
@@ -388,39 +389,93 @@ const DashboardView: React.FC = () => {
 
     if ((loading || questsLoading) && !isFirstRun) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
+            <motion.div
+                className="min-h-screen flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: DURATION.medium, ease: EASE.premium }}
+            >
+                <motion.div
+                    className="text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.normal, ease: EASE.outExpo, delay: 0.05 }}
+                >
                     <div className="mb-6 flex items-center justify-center">
                         <LoadingSpinner size="lg" />
                     </div>
-                    <p className="text-gray-400 text-lg font-medium">
+                    <motion.p
+                        className="text-gray-400 text-lg font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.15, duration: DURATION.normal }}
+                    >
                         {tCommon('ui.loading_app') || 'Loading Moniyo...'}
-                    </p>
-                </div>
-            </div>
+                    </motion.p>
+                </motion.div>
+            </motion.div>
         );
     }
 
+    // Staggered animation variants for dashboard sections
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: STAGGER.normal,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const sectionVariants = {
+        hidden: { opacity: 0, y: 15 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: DURATION.normal,
+                ease: EASE.outExpo
+            }
+        }
+    };
+
     return (
-        <div className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24">
-            <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
+        <motion.div
+            className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DURATION.medium, ease: EASE.premium }}
+        >
+            <motion.div
+                className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
 
                 {/* 1. Header */}
-                <DashboardHeader
-                    stats={{
-                        streakDays: streakDays,
-                        level: levelData.level,
-                        xpInCurrentLevel: levelData.xpInCurrentLevel,
-                        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
-                    }}
-                    userAvatar={userData?.photoURL || user?.photoURL}
-                />
+                <motion.div variants={sectionVariants}>
+                    <DashboardHeader
+                        stats={{
+                            streakDays: streakDays,
+                            level: levelData.level,
+                            xpInCurrentLevel: levelData.xpInCurrentLevel,
+                            xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
+                        }}
+                        userAvatar={userData?.photoURL || user?.photoURL}
+                    />
+                </motion.div>
 
                 {/* 1.5 Save Progress Banner (for anonymous users) */}
-                <SaveProgressBanner />
+                <motion.div variants={sectionVariants}>
+                    <SaveProgressBanner />
+                </motion.div>
 
                 {/* 2. Scoreboard (Impact Hero) */}
-                <div className="space-y-6 mb-8">
+                <motion.div className="space-y-6 mb-8" variants={sectionVariants}>
                     <DashboardScoreboard
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
@@ -428,27 +483,27 @@ const DashboardView: React.FC = () => {
                         buttonRef={missionButtonRef}
                         containerRef={scoreboardContainerRef}
                     />
-                </div>
+                </motion.div>
 
                 {/* 2.5 Daily Challenge (if exists) */}
                 {dailyChallenge && dailyChallenge.status !== 'completed' && (
-                    <div className="mt-8">
+                    <motion.div className="mt-8" variants={sectionVariants}>
                         <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dailyChallenge') || 'DAILY CHALLENGE'}</h2>
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
                         />
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* 2.6 Category Grid */}
-                <div className="mt-8">
+                <motion.div className="mt-8" variants={sectionVariants}>
                     <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('categories') || 'CATEGORIES'}</h2>
                     <CategoryGrid onSelectCategory={handleSelectCategory} />
-                </div>
+                </motion.div>
 
                 {/* 3. Bento Stats (Badges & Log) */}
-                <div className="mt-8">
+                <motion.div className="mt-8" variants={sectionVariants}>
                     <div className="px-6 flex justify-between items-end mb-4">
                         <h2 className="font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase">COLLECTION</h2>
                         <button className="text-xs text-neutral-600 hover:text-[#E2FF00] transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer">
@@ -460,9 +515,9 @@ const DashboardView: React.FC = () => {
                         recentImpact={recentImpact}
                         levelData={levelData}
                     />
-                </div>
+                </motion.div>
 
-            </div>
+            </motion.div>
 
             {/* SmartMission Modal (Briefing Mission) */}
             <SmartMissionModal
@@ -583,7 +638,7 @@ const DashboardView: React.FC = () => {
                     }
                 }}
             />
-        </div>
+        </motion.div>
     );
 };
 

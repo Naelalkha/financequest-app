@@ -1,6 +1,6 @@
 /**
  * 🎮 OnboardingFlow - Main Onboarding Orchestrator
- * 
+ *
  * New "Hook & Choose" format - 2 screens:
  * 1. ScanScreen - "LE SCAN" (Hook émotionnel)
  * 2. PainPointScreen - "LE CHOIX" (Personnalisation)
@@ -16,6 +16,7 @@ import {
     ScanScreen,
     PainPointScreen,
 } from './screens';
+import { DURATION, EASE } from '../../styles/animationConstants';
 
 interface PainPointOption {
     id: string;
@@ -39,10 +40,17 @@ const screenVariants = {
     }),
 };
 
+// Fade out variant for completion transition
+const completionVariants = {
+    visible: { opacity: 1 },
+    exit: { opacity: 0 }
+};
+
 const OnboardingFlow: React.FC = () => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(ONBOARDING_STEPS.SCAN);
     const [direction, setDirection] = useState(1);
+    const [isExiting, setIsExiting] = useState(false);
 
     // Use background context to set theme
     const { setBackgroundMode } = useBackground();
@@ -63,31 +71,39 @@ const OnboardingFlow: React.FC = () => {
         setCurrentStep(state.currentStep);
     }, [navigate]);
 
+    // Smooth exit transition before navigation
+    const performSmoothExit = useCallback((targetUrl: string) => {
+        setIsExiting(true);
+        onboardingStore.completeOnboarding();
+
+        // Wait for fade out animation to complete before navigating
+        setTimeout(() => {
+            navigate(targetUrl, { replace: true });
+        }, DURATION.medium * 1000); // Convert to ms
+    }, [navigate]);
+
     // Handle moving to next step
     const handleNext = useCallback(() => {
         setDirection(1);
         const state = onboardingStore.nextStep();
 
         if (state.currentStep === ONBOARDING_STEPS.COMPLETED) {
-            onboardingStore.completeOnboarding();
-            navigate('/dashboard?firstRun=true', { replace: true });
+            performSmoothExit('/dashboard?firstRun=true');
             return;
         }
 
         setCurrentStep(state.currentStep);
-    }, [navigate]);
+    }, [performSmoothExit]);
 
     // Handle skipping onboarding
     const handleSkip = useCallback(() => {
-        onboardingStore.completeOnboarding();
-        navigate('/dashboard', { replace: true });
-    }, [navigate]);
+        performSmoothExit('/dashboard');
+    }, [performSmoothExit]);
 
     // Handle pain point selection
     const handlePainPointSelect = useCallback((_option: PainPointOption) => {
-        onboardingStore.completeOnboarding();
-        navigate('/dashboard?firstRun=true', { replace: true });
-    }, [navigate]);
+        performSmoothExit('/dashboard?firstRun=true');
+    }, [performSmoothExit]);
 
     // Render current screen based on step
     const renderScreen = () => {
@@ -104,7 +120,15 @@ const OnboardingFlow: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 bg-transparent overflow-hidden">
+        <motion.div
+            className="fixed inset-0 bg-transparent overflow-hidden"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: isExiting ? 0 : 1 }}
+            transition={{
+                duration: DURATION.medium,
+                ease: EASE.premium
+            }}
+        >
             <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                     key={currentStep}
@@ -122,7 +146,7 @@ const OnboardingFlow: React.FC = () => {
                     {renderScreen()}
                 </motion.div>
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 };
 

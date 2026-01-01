@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DURATION, EASE } from '../../styles/animationConstants';
 
 /** Tailles disponibles */
 export type SpinnerSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -12,6 +14,8 @@ export interface LoadingSpinnerProps {
     size?: SpinnerSize;
     /** Classes CSS additionnelles */
     className?: string;
+    /** Message de chargement optionnel */
+    message?: string;
 }
 
 /** Classes de taille */
@@ -23,16 +27,26 @@ const sizeClasses: Record<SpinnerSize, string> = {
 };
 
 /**
- * LoadingSpinner - Advanced Tech/Nebula loading indicator
+ * LoadingSpinner - Advanced Tech/Nebula loading indicator with smooth transitions
  */
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     size = 'md',
-    className = ''
+    className = '',
+    message
 }) => {
     const containerSize = sizeClasses[size] || sizeClasses.md;
 
     return (
-        <div className={`relative flex items-center justify-center ${containerSize} ${className}`}>
+        <motion.div
+            className={`relative flex items-center justify-center ${containerSize} ${className}`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{
+                duration: DURATION.medium,
+                ease: EASE.outExpo
+            }}
+        >
             {/* Anneau Extérieur - Tourne lentement */}
             <div
                 className="absolute inset-0 border-2 border-transparent border-t-volt border-r-volt/30 rounded-full animate-spin"
@@ -52,7 +66,56 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
             {/* Accessibilité */}
             <span className="sr-only">Loading...</span>
-        </div>
+        </motion.div>
+    );
+};
+
+/**
+ * LoadingScreen - Full screen loading state with smooth enter/exit transitions
+ */
+export const LoadingScreen: React.FC<{ message?: string; isVisible?: boolean }> = ({
+    message = 'Loading...',
+    isVisible = true
+}) => {
+    return (
+        <AnimatePresence mode="wait">
+            {isVisible && (
+                <motion.div
+                    className="min-h-screen flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                        duration: DURATION.medium,
+                        ease: EASE.premium
+                    }}
+                >
+                    <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{
+                            duration: DURATION.normal,
+                            ease: EASE.outExpo,
+                            delay: 0.1
+                        }}
+                    >
+                        <div className="mb-6 flex items-center justify-center">
+                            <LoadingSpinner size="lg" />
+                        </div>
+                        <motion.p
+                            className="text-gray-400 text-lg font-medium"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2, duration: DURATION.normal }}
+                        >
+                            {message}
+                        </motion.p>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 
