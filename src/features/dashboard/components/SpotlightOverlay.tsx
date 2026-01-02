@@ -94,13 +94,12 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
     };
 
-    // Combined effect: Calculate position FIRST, then lock body scroll
+    // Combined effect: Calculate position and lock scroll
     useEffect(() => {
         if (!isVisible) return;
 
         const body = document.body;
         const html = document.documentElement;
-        const scrollY = window.scrollY;
 
         // Padding confortable autour du bouton pour le "trou"
         const paddingX = 48;
@@ -108,15 +107,14 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
 
         let rafId: number;
 
-        // Calculate position BEFORE locking body (critical for accuracy)
-        const calculateAndLock = () => {
+        const calculatePosition = () => {
             if (!buttonRef?.current) return;
 
             const btnRect = buttonRef.current.getBoundingClientRect();
 
             // Wait for button to be properly laid out (has dimensions)
             if (btnRect.width === 0 || btnRect.height === 0) {
-                rafId = requestAnimationFrame(calculateAndLock);
+                rafId = requestAnimationFrame(calculatePosition);
                 return;
             }
 
@@ -128,20 +126,18 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
                 btnWidth: btnRect.width,
                 btnHeight: btnRect.height
             });
-
-            // Lock body scroll AFTER calculating position (iOS PWA fix)
-            body.style.position = 'fixed';
-            body.style.top = `-${scrollY}px`;
-            body.style.left = '0';
-            body.style.right = '0';
-            body.style.overflow = 'hidden';
-            html.style.overflow = 'hidden';
         };
 
         // Use double RAF to ensure layout is complete
         rafId = requestAnimationFrame(() => {
-            rafId = requestAnimationFrame(calculateAndLock);
+            rafId = requestAnimationFrame(calculatePosition);
         });
+
+        // Lock scroll with overflow hidden (simpler, more reliable)
+        const originalBodyOverflow = body.style.overflow;
+        const originalHtmlOverflow = html.style.overflow;
+        body.style.overflow = 'hidden';
+        html.style.overflow = 'hidden';
 
         // Handle resize
         const handleResize = () => {
@@ -162,14 +158,8 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         return () => {
             cancelAnimationFrame(rafId);
             window.removeEventListener('resize', handleResize);
-            // Restore scroll position when unmounting
-            body.style.position = '';
-            body.style.top = '';
-            body.style.left = '';
-            body.style.right = '';
-            body.style.overflow = '';
-            html.style.overflow = '';
-            window.scrollTo(0, scrollY);
+            body.style.overflow = originalBodyOverflow;
+            html.style.overflow = originalHtmlOverflow;
         };
     }, [isVisible, buttonRef]);
 
@@ -183,7 +173,7 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[1000] overflow-hidden"
-                style={{ touchAction: 'none' }}
+                style={{ touchAction: 'none', overscrollBehavior: 'none' }}
                 onTouchMove={(e) => e.preventDefault()}
                 onClick={(e) => {
                     if (e.target === e.currentTarget) {
