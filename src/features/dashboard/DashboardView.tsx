@@ -86,6 +86,8 @@ const DashboardView: React.FC = () => {
     const [userProgress, setUserProgress] = useState<Record<string, QuestProgress>>({});
     const [dailyChallenge, setDailyChallenge] = useState<DailyChallenge | null>(null);
     const [loading, setLoading] = useState(true);
+    // Delayed loader to avoid flash on fast loads (only show spinner after 150ms)
+    const [showLoader, setShowLoader] = useState(false);
 
     // Hooks
     const { quests, loading: questsLoading } = useLocalQuests();
@@ -171,6 +173,20 @@ const DashboardView: React.FC = () => {
 
         fetchDashboardData();
     }, [user]);
+
+    // Delayed loader effect - only show spinner if loading takes more than 150ms
+    // This prevents the flash of loading spinner on fast navigations
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (loading || questsLoading) {
+            timer = setTimeout(() => {
+                setShowLoader(true);
+            }, 150);
+        } else {
+            setShowLoader(false);
+        }
+        return () => clearTimeout(timer);
+    }, [loading, questsLoading]);
 
     // Derived State
     const levelData = computeLevel(gamification?.xpTotal || 0);
@@ -415,7 +431,9 @@ const DashboardView: React.FC = () => {
     // The spotlight overlay will cover everything anyway
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
 
-    if ((loading || questsLoading) && !isFirstRun) {
+    // Only show loading spinner if loading takes more than 150ms (showLoader)
+    // This prevents the flash of spinner on fast navigations
+    if (showLoader && !isFirstRun) {
         return (
             <motion.div
                 className="min-h-screen flex items-center justify-center"
