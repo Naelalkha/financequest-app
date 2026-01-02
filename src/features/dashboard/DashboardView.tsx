@@ -233,30 +233,29 @@ const DashboardView: React.FC = () => {
     // Block scroll when spotlight is visible to prevent highlight from moving
     // IMPORTANT: This useEffect must be before any conditional returns to respect React hooks rules
     useEffect(() => {
+        const scrollContainer = document.getElementById('app-scroll-container');
+        if (!scrollContainer) return;
+
         if (showSpotlight) {
-            // Store current scroll position and lock body
-            const scrollY = window.scrollY;
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.top = `-${scrollY}px`;
+            // Store current scroll position and lock the app scroll container
+            const scrollY = scrollContainer.scrollTop;
+            scrollContainer.style.overflow = 'hidden';
+            scrollContainer.dataset.scrollPosition = String(scrollY);
         } else {
             // Restore scroll position when spotlight is dismissed
-            const scrollY = document.body.style.top;
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-            if (scrollY) {
-                window.scrollTo(0, parseInt(scrollY || '0') * -1);
+            const savedScrollY = scrollContainer.dataset.scrollPosition;
+            scrollContainer.style.overflow = '';
+            if (savedScrollY) {
+                scrollContainer.scrollTop = parseInt(savedScrollY, 10);
+                delete scrollContainer.dataset.scrollPosition;
             }
         }
 
         return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
+            if (scrollContainer) {
+                scrollContainer.style.overflow = '';
+                delete scrollContainer.dataset.scrollPosition;
+            }
         };
     }, [showSpotlight]);
 

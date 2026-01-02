@@ -104,7 +104,7 @@ const AppBackground = memo<AppBackgroundProps>(({
             />
 
             {/* Application content */}
-            <div className="relative z-10 w-full h-full overflow-auto">
+            <div id="app-scroll-container" className="relative z-10 w-full h-full overflow-auto">
                 {children}
             </div>
         </div>
