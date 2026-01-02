@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DURATION, EASE, STAGGER } from '../../styles/animationConstants';
+import { DURATION, EASE } from '../../styles/animationConstants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates';
@@ -64,30 +64,6 @@ interface ModifiedQuest extends Quest {
     monetaryValue?: number;
     annualSavings?: number;
 }
-
-// Staggered animation variants for dashboard sections (defined outside component for stability)
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: STAGGER.normal,
-            delayChildren: 0.1
-        }
-    }
-};
-
-const sectionVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: DURATION.normal,
-            ease: EASE.outExpo
-        }
-    }
-};
 
 /**
  * DashboardView - Main dashboard feature view
@@ -472,39 +448,25 @@ const DashboardView: React.FC = () => {
     }
 
     return (
-        <motion.div
-            className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: DURATION.medium, ease: EASE.premium }}
-        >
-            <motion.div
-                className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-            >
+        <div className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24">
+            <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
 
                 {/* 1. Header */}
-                <motion.div variants={sectionVariants}>
-                    <DashboardHeader
-                        stats={{
-                            streakDays: streakDays,
-                            level: levelData.level,
-                            xpInCurrentLevel: levelData.xpInCurrentLevel,
-                            xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
-                        }}
-                        userAvatar={userData?.photoURL || user?.photoURL}
-                    />
-                </motion.div>
+                <DashboardHeader
+                    stats={{
+                        streakDays: streakDays,
+                        level: levelData.level,
+                        xpInCurrentLevel: levelData.xpInCurrentLevel,
+                        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
+                    }}
+                    userAvatar={userData?.photoURL || user?.photoURL}
+                />
 
                 {/* 1.5 Save Progress Banner (for anonymous users) */}
-                <motion.div variants={sectionVariants}>
-                    <SaveProgressBanner />
-                </motion.div>
+                <SaveProgressBanner />
 
                 {/* 2. Scoreboard (Impact Hero) */}
-                <motion.div className="space-y-6 mb-8" variants={sectionVariants}>
+                <div className="space-y-6 mb-8">
                     <DashboardScoreboard
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
@@ -512,27 +474,27 @@ const DashboardView: React.FC = () => {
                         buttonRef={missionButtonRef}
                         containerRef={scoreboardContainerRef}
                     />
-                </motion.div>
+                </div>
 
                 {/* 2.5 Daily Challenge (if exists) */}
                 {dailyChallenge && dailyChallenge.status !== 'completed' && (
-                    <motion.div className="mt-8" variants={sectionVariants}>
+                    <div className="mt-8">
                         <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dailyChallenge') || 'DAILY CHALLENGE'}</h2>
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
                         />
-                    </motion.div>
+                    </div>
                 )}
 
                 {/* 2.6 Category Grid */}
-                <motion.div className="mt-8" variants={sectionVariants}>
+                <div className="mt-8">
                     <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('categories') || 'CATEGORIES'}</h2>
                     <CategoryGrid onSelectCategory={handleSelectCategory} />
-                </motion.div>
+                </div>
 
                 {/* 3. Bento Stats (Badges & Log) */}
-                <motion.div className="mt-8" variants={sectionVariants}>
+                <div className="mt-8">
                     <div className="px-6 flex justify-between items-end mb-4">
                         <h2 className="font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase">COLLECTION</h2>
                         <button className="text-xs text-neutral-600 hover:text-[#E2FF00] transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer">
@@ -544,9 +506,9 @@ const DashboardView: React.FC = () => {
                         recentImpact={recentImpact}
                         levelData={levelData}
                     />
-                </motion.div>
+                </div>
 
-            </motion.div>
+            </div>
 
             {/* SmartMission Modal (Briefing Mission) */}
             <SmartMissionModal
@@ -667,7 +629,7 @@ const DashboardView: React.FC = () => {
                     }
                 }}
             />
-        </motion.div>
+        </div>
     );
 };
 
