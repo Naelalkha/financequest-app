@@ -447,25 +447,41 @@ const DashboardView: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24">
+        <motion.div
+            className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DURATION.medium, ease: EASE.premium }}
+        >
             <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
 
                 {/* 1. Header */}
-                <DashboardHeader
-                    stats={{
-                        streakDays: streakDays,
-                        level: levelData.level,
-                        xpInCurrentLevel: levelData.xpInCurrentLevel,
-                        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
-                    }}
-                    userAvatar={userData?.photoURL || user?.photoURL}
-                />
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.05 }}
+                >
+                    <DashboardHeader
+                        stats={{
+                            streakDays: streakDays,
+                            level: levelData.level,
+                            xpInCurrentLevel: levelData.xpInCurrentLevel,
+                            xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
+                        }}
+                        userAvatar={userData?.photoURL || user?.photoURL}
+                    />
+                </motion.div>
 
                 {/* 1.5 Save Progress Banner (for anonymous users) */}
                 <SaveProgressBanner />
 
                 {/* 2. Scoreboard (Impact Hero) */}
-                <div className="space-y-6 mb-8">
+                <motion.div
+                    className="space-y-6 mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.1 }}
+                >
                     <DashboardScoreboard
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
@@ -473,27 +489,42 @@ const DashboardView: React.FC = () => {
                         buttonRef={missionButtonRef}
                         containerRef={scoreboardContainerRef}
                     />
-                </div>
+                </motion.div>
 
                 {/* 2.5 Daily Challenge (if exists) */}
                 {dailyChallenge && dailyChallenge.status !== 'completed' && (
-                    <div className="mt-8">
+                    <motion.div
+                        className="mt-8"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.15 }}
+                    >
                         <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dailyChallenge') || 'DAILY CHALLENGE'}</h2>
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
                         />
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* 2.6 Category Grid */}
-                <div className="mt-8">
+                <motion.div
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.2 }}
+                >
                     <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('categories') || 'CATEGORIES'}</h2>
                     <CategoryGrid onSelectCategory={handleSelectCategory} />
-                </div>
+                </motion.div>
 
                 {/* 3. Bento Stats (Badges & Log) */}
-                <div className="mt-8">
+                <motion.div
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.25 }}
+                >
                     <div className="px-6 flex justify-between items-end mb-4">
                         <h2 className="font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase">COLLECTION</h2>
                         <button className="text-xs text-neutral-600 hover:text-[#E2FF00] transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer">
@@ -505,7 +536,7 @@ const DashboardView: React.FC = () => {
                         recentImpact={recentImpact}
                         levelData={levelData}
                     />
-                </div>
+                </motion.div>
 
             </div>
 
@@ -628,7 +659,7 @@ const DashboardView: React.FC = () => {
                     }
                 }}
             />
-        </div>
+        </motion.div>
     );
 };
 

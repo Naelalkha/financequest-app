@@ -47,7 +47,7 @@ const DashboardDailyChallenge: React.FC<DashboardDailyChallengeProps> = ({ chall
     if (!challenge) return null;
 
     return (
-        <div className="px-6 mt-6 animate-slide-up delay-100">
+        <div className="px-6 mt-6">
             <div className="relative group cursor-pointer" onClick={onStart}>
                 {/* Holographic Border Gradient - MONOCHROME VOLT */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-volt via-white/50 to-volt rounded-2xl opacity-50 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
