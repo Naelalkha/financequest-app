@@ -17,7 +17,7 @@ interface DashboardDailyChallengeProps {
     onStart?: () => void;
 }
 
-const DashboardDailyChallenge: React.FC<DashboardDailyChallengeProps> = ({ challenge, onStart }) => {
+const DashboardDailyChallenge: React.FC<DashboardDailyChallengeProps> = React.memo(({ challenge, onStart }) => {
     const { t } = useTranslation('dashboard');
     const [timeLeft, setTimeLeft] = useState("");
 
@@ -87,7 +87,9 @@ const DashboardDailyChallenge: React.FC<DashboardDailyChallengeProps> = ({ chall
             </div>
         </div>
     );
-};
+});
+
+DashboardDailyChallenge.displayName = 'DashboardDailyChallenge';
 
 export default DashboardDailyChallenge;
 

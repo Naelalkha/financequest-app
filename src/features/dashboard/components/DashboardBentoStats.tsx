@@ -28,7 +28,7 @@ interface DashboardBentoStatsProps {
     levelData?: LevelData;
 }
 
-const DashboardBentoStats: React.FC<DashboardBentoStatsProps> = ({
+const DashboardBentoStats: React.FC<DashboardBentoStatsProps> = React.memo(({
     badges = [],
     recentImpact = [],
     levelData = {}
@@ -138,7 +138,9 @@ const DashboardBentoStats: React.FC<DashboardBentoStatsProps> = ({
             </div>
         </div>
     );
-};
+});
+
+DashboardBentoStats.displayName = 'DashboardBentoStats';
 
 export default DashboardBentoStats;
 

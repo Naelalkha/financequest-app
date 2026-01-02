@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DURATION, EASE } from '../../styles/animationConstants';
@@ -10,54 +10,33 @@ import { useLocalQuests, Quest } from '../../hooks/useLocalQuests';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { computeLevel } from '../../utils/gamification';
 import { trackEvent } from '../../utils/analytics';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../services/firebase';
-import { getUserDailyChallenge } from '../../services/dailyChallenge';
 import { createSavingsEventInFirestore } from '../../services/savingsEvents';
 import { updateGamificationOnQuestComplete } from '../../services/gamification';
 
-// Components
+// Custom hooks for data management
+import { useDashboardData, useDashboardQuests } from './hooks';
+
+// Components (eagerly loaded - critical path)
 import DashboardHeader from './components/DashboardHeader';
 import DashboardScoreboard from './components/DashboardScoreboard';
 import DashboardBentoStats from './components/DashboardBentoStats';
 import DashboardDailyChallenge from './components/DashboardDailyChallenge';
 import CategoryGrid from './components/CategoryGrid';
-import SmartMissionModal from './components/SmartMissionModal';
-import QuestDetailsModal from './components/QuestDetailsModal';
 import { markFirstRunShown } from './components/FirstRunMissionModal';
-import SpotlightOverlay from './components/SpotlightOverlay';
-import { CutSubscriptionFlow } from '../quests/pilotage/cut-subscription';
-import { MicroExpensesFlow } from '../quests/pilotage/micro-expenses';
 import { SaveProgressBanner } from '../../components/ui';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { onboardingStore } from '../onboarding/onboardingStore';
 
-/** User data from Firestore */
-interface UserData {
-    photoURL?: string;
-    currency?: string;
-    currentStreak?: number;
-    streaks?: number;
-}
-
-/** Quest progress entry */
-interface QuestProgress {
-    status: 'active' | 'completed' | 'pending';
-    progress: number;
-    completedAt?: Date;
-    score: number;
-}
-
-/** Daily challenge data */
-interface DailyChallenge {
-    questId?: string;
-    questTitle?: string;
-    status?: string;
-    rewards?: {
-        xp?: number;
-        savings?: string | number;
-    };
-}
+// Lazy-loaded components (not on critical path)
+const SmartMissionModal = lazy(() => import('./components/SmartMissionModal'));
+const SpotlightOverlay = lazy(() => import('./components/SpotlightOverlay'));
+const QuestDetailsModal = lazy(() => import('./components/QuestDetailsModal'));
+const CutSubscriptionFlow = lazy(() =>
+    import('../quests/pilotage/cut-subscription').then(m => ({ default: m.CutSubscriptionFlow }))
+);
+const MicroExpensesFlow = lazy(() =>
+    import('../quests/pilotage/micro-expenses').then(m => ({ default: m.MicroExpensesFlow }))
+);
 
 /** Modified quest with extra fields */
 interface ModifiedQuest extends Quest {
@@ -65,9 +44,12 @@ interface ModifiedQuest extends Quest {
     annualSavings?: number;
 }
 
+/** Fallback for lazy-loaded modals */
+const ModalFallback = () => null;
+
 /**
  * DashboardView - Main dashboard feature view
- * Contains all dashboard logic and composition
+ * Optimized with custom hooks and memoization
  */
 const DashboardView: React.FC = () => {
     const { t, i18n } = useTranslation('dashboard');
@@ -77,105 +59,250 @@ const DashboardView: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Refs for spotlight targets (Impact card + button)
+    // Refs for spotlight targets
     const missionButtonRef = useRef<HTMLButtonElement>(null);
     const scoreboardContainerRef = useRef<HTMLDivElement>(null);
 
-    // State for Firestore data
-    const [userData, setUserData] = useState<UserData | null>(null);
-    const [userProgress, setUserProgress] = useState<Record<string, QuestProgress>>({});
-    const [dailyChallenge, setDailyChallenge] = useState<DailyChallenge | null>(null);
-    const [loading, setLoading] = useState(true);
-    // Delayed loader to avoid flash on fast loads (only show spinner after 150ms)
-    const [showLoader, setShowLoader] = useState(false);
-
-    // Hooks
+    // Custom hooks for data fetching (extracted from component)
+    const { userData, userProgress, dailyChallenge, loading } = useDashboardData();
     const { quests, loading: questsLoading } = useLocalQuests();
     const { impactAnnualEstimated, manualRecalculate } = useServerImpactAggregates();
     const { gamification } = useGamification();
 
-    // Local State
+    // Memoized quest filtering (extracted from component)
+    const { completedQuestIds, availableQuests } = useDashboardQuests(quests, userProgress);
+
+    // Local UI State
     const [showSmartMission, setShowSmartMission] = useState(false);
     const [recommendedQuest, setRecommendedQuest] = useState<Quest | null>(null);
     const [showQuestDetails, setShowQuestDetails] = useState(false);
     const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
+    const [isFirstRunMission, setIsFirstRunMission] = useState(false);
+    const [localImpactBoost, setLocalImpactBoost] = useState(0);
 
-    // Spotlight overlay state (shown after new onboarding)
-    // Track si le spotlight a été fermé pour éviter toute réactivation
+    // Delayed loader state
+    const [showLoader, setShowLoader] = useState(false);
+
+    // Spotlight state
     const spotlightDismissedRef = useRef(false);
-
-    // Initialiser showSpotlight directement à true si firstRun est détecté
-    // Ceci évite le clignotement où le dashboard est visible sans overlay
-    // Utiliser une fonction pour calculer la valeur initiale de façon synchrone
+    const hasProcessedFirstRun = useRef(false);
     const [showSpotlight, setShowSpotlight] = useState(() => {
         const isFirstRun = searchParams.get('firstRun') === 'true';
         return isFirstRun && !spotlightDismissedRef.current;
     });
 
-    // Track if this is the first run mission (to hide reroll button)
-    const [isFirstRunMission, setIsFirstRunMission] = useState(false);
+    // Memoized derived state
+    const levelData = useMemo(() => computeLevel(gamification?.xpTotal || 0), [gamification?.xpTotal]);
+    const streakDays = useMemo(() => userData?.currentStreak || userData?.streaks || 0, [userData]);
+    const badges = useMemo(() => gamification?.badges || [], [gamification?.badges]);
 
-    // Local impact override for optimistic updates
-    const [localImpactBoost, setLocalImpactBoost] = useState(0);
+    // Memoized stats object for DashboardHeader (prevents re-renders)
+    const headerStats = useMemo(() => ({
+        streakDays,
+        level: levelData.level,
+        xpInCurrentLevel: levelData.xpInCurrentLevel,
+        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
+    }), [streakDays, levelData]);
 
-    // Fetch user data from Firestore
-    useEffect(() => {
+    // Memoized recent impact (static mock data)
+    const recentImpact = useMemo(() => [
+        { id: 1, label: 'Netflix Cancel', time: '2h ago', val: '15€' },
+        { id: 2, label: 'Coffee Skip', time: '1d ago', val: '5€' },
+        { id: 3, label: 'Bike Commute', time: '2d ago', val: '12€' },
+    ], []);
+
+    // Get recommended quest based on user XP
+    const getRecommendedQuest = useCallback((quests: Quest[]) => {
+        if (!quests || quests.length === 0) return null;
+
+        const userXP = gamification?.xpTotal || 0;
+
+        if (userXP < 500) {
+            const beginnerQuests = quests.filter(
+                q => q.difficulty === 'beginner' || q.difficulty === 'easy'
+            );
+            if (beginnerQuests.length > 0) {
+                return beginnerQuests[Math.floor(Math.random() * beginnerQuests.length)];
+            }
+        }
+
+        return quests[Math.floor(Math.random() * quests.length)];
+    }, [gamification?.xpTotal]);
+
+    // Handlers with useCallback
+    const handleStartQuest = useCallback(() => {
+        if (showSmartMission) return;
+        if (availableQuests.length === 0) return;
+
+        const recommended = getRecommendedQuest(availableQuests);
+        setRecommendedQuest(recommended);
+        setShowSmartMission(true);
+    }, [showSmartMission, availableQuests, getRecommendedQuest]);
+
+    const handleAcceptQuest = useCallback(async (quest: Quest) => {
+        try {
+            trackEvent('quest_accepted', { questId: quest.id, source: 'smart_mission' });
+
+            setSelectedQuest(quest);
+            setShowQuestDetails(true);
+
+            setTimeout(() => {
+                setShowSmartMission(false);
+            }, 500);
+        } catch (error) {
+            console.error("Error accepting quest:", error);
+        }
+    }, []);
+
+    const handleCompleteQuestFromDetails = useCallback(async (modifiedQuest: ModifiedQuest) => {
         if (!user) {
-            setLoading(false);
+            console.error('❌ Cannot complete quest: user not authenticated');
             return;
         }
 
-        const fetchDashboardData = async () => {
-            try {
-                setLoading(true);
+        try {
+            const annualSavings = modifiedQuest.annualSavings
+                || (modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0);
 
-                // Fetch user document
-                const userRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userRef);
+            if (annualSavings > 0) {
+                setLocalImpactBoost(prev => prev + annualSavings);
 
-                if (userSnap.exists()) {
-                    setUserData(userSnap.data());
-                }
-
-                // Fetch user quest progress
-                const progressQuery = query(
-                    collection(db, 'userQuests'),
-                    where('userId', '==', user.uid)
-                );
-                const progressSnapshot = await getDocs(progressQuery);
-                const progress = {};
-                progressSnapshot.docs.forEach(doc => {
-                    const data = doc.data();
-                    progress[data.questId] = {
-                        status: data.status,
-                        progress: data.progress || 0,
-                        completedAt: data.completedAt,
-                        score: data.score || 0
-                    };
+                await createSavingsEventInFirestore(user.uid, {
+                    title: modifiedQuest.title || 'Quest completed',
+                    questId: modifiedQuest.id,
+                    amount: annualSavings,
+                    period: 'year',
+                    source: 'quest',
+                    proof: {
+                        type: 'note',
+                        note: `Completed via SmartMission flow - ${new Date().toLocaleDateString()}`
+                    }
                 });
-                setUserProgress(progress);
-
-                // Fetch or generate daily challenge
-                try {
-                    const challenge = await getUserDailyChallenge(user.uid, i18n.language || 'fr');
-                    setDailyChallenge(challenge);
-                } catch (err) {
-                    console.error('❌ Error with daily challenge:', err);
-                    setDailyChallenge(null);
-                }
-
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-            } finally {
-                setLoading(false);
             }
-        };
 
-        fetchDashboardData();
-    }, [user]);
+            // Transform userProgress for gamification service
+            const progressForGamification = Object.fromEntries(
+                Object.entries(userProgress).map(([id, p]) => [id, { completed: p.status === 'completed' }])
+            );
 
-    // Delayed loader effect - only show spinner if loading takes more than 150ms
-    // This prevents the flash of loading spinner on fast navigations
+            const questForGamification = {
+                id: modifiedQuest.id,
+                xp: modifiedQuest.xp,
+                xpReward: modifiedQuest.xpReward,
+                difficulty: modifiedQuest.difficulty as 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | undefined
+            };
+
+            await updateGamificationOnQuestComplete(user.uid, {
+                quest: questForGamification,
+                score: null,
+                userProgress: progressForGamification,
+                allQuests: quests || []
+            });
+
+            trackEvent('quest_completed', {
+                questId: modifiedQuest.id,
+                monetaryValue: modifiedQuest.monetaryValue,
+                xpReward: modifiedQuest.xpReward,
+                source: 'smart_mission_flow'
+            });
+
+            setShowQuestDetails(false);
+            setSelectedQuest(null);
+
+            setTimeout(async () => {
+                try {
+                    if (manualRecalculate) {
+                        await manualRecalculate();
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Manual recalculation failed');
+                }
+            }, 500);
+
+        } catch (error) {
+            console.error("❌ Error completing quest:", error);
+        }
+    }, [user, userProgress, quests, manualRecalculate]);
+
+    const handleRerollQuest = useCallback(() => {
+        const filteredQuests = availableQuests.filter(q => q.id !== recommendedQuest?.id);
+
+        if (filteredQuests.length === 0) {
+            return recommendedQuest;
+        }
+
+        const newRecommendation = filteredQuests[Math.floor(Math.random() * filteredQuests.length)];
+        setRecommendedQuest(newRecommendation);
+        return newRecommendation;
+    }, [availableQuests, recommendedQuest]);
+
+    const handleStartDailyChallenge = useCallback(() => {
+        if (dailyChallenge?.questId) {
+            navigate(`/quests/${dailyChallenge.questId}`);
+        }
+    }, [dailyChallenge, navigate]);
+
+    const handleSelectCategory = useCallback((category: string) => {
+        navigate(`/quests?category=${category}`);
+    }, [navigate]);
+
+    const handleCloseSmartMission = useCallback(() => {
+        setShowSmartMission(false);
+        setIsFirstRunMission(false);
+    }, []);
+
+    const handleCloseQuestDetails = useCallback(() => {
+        setShowQuestDetails(false);
+        setSelectedQuest(null);
+    }, []);
+
+    const handleSpotlightDismiss = useCallback(() => {
+        setShowSpotlight(false);
+        spotlightDismissedRef.current = true;
+        markFirstRunShown();
+    }, []);
+
+    const handleSpotlightClick = useCallback(() => {
+        const selectedMissionId = onboardingStore.getSelectedMissionId();
+        const targetQuest = (quests || []).find(q => q.id === selectedMissionId);
+        const questToShow = targetQuest || (quests || []).find(q => q.id === 'micro-expenses');
+
+        if (questToShow) {
+            setRecommendedQuest(questToShow);
+            setIsFirstRunMission(true);
+            setShowSmartMission(true);
+
+            setTimeout(() => {
+                setShowSpotlight(false);
+                spotlightDismissedRef.current = true;
+                markFirstRunShown();
+            }, 300);
+        } else {
+            setShowSpotlight(false);
+            spotlightDismissedRef.current = true;
+            markFirstRunShown();
+        }
+    }, [quests]);
+
+    // Effects
+    useEffect(() => {
+        trackEvent('dashboard_viewed');
+        setBackgroundMode('macro');
+    }, [setBackgroundMode]);
+
+    useEffect(() => {
+        const isFirstRun = searchParams.get('firstRun') === 'true';
+
+        if (isFirstRun && !hasProcessedFirstRun.current && !spotlightDismissedRef.current) {
+            hasProcessedFirstRun.current = true;
+            markFirstRunShown();
+
+            searchParams.delete('firstRun');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
+
+    // Delayed loader effect
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (loading || questsLoading) {
@@ -188,73 +315,16 @@ const DashboardView: React.FC = () => {
         return () => clearTimeout(timer);
     }, [loading, questsLoading]);
 
-    // Derived State
-    const levelData = computeLevel(gamification?.xpTotal || 0);
-    const streakDays = userData?.currentStreak || userData?.streaks || 0;
-
-    // Filter quests by status
-    const activeQuestIds = Object.entries(userProgress)
-        .filter(([_, p]) => p?.status === 'active' && (p?.progress || 0) > 0)
-        .map(([id]) => id);
-
-    const completedQuestIds = Object.entries(userProgress)
-        .filter(([_, p]) => p?.status === 'completed')
-        .map(([id]) => id);
-
-    // Map quest IDs to full quest objects
-    const activeQuests = (quests || [])
-        .filter(q => activeQuestIds.includes(q.id))
-        .map(q => ({
-            ...q,
-            progress: userProgress[q.id]?.progress || 0
-        }));
-
-    const completedQuests = (quests || [])
-        .filter(q => completedQuestIds.includes(q.id));
-
-    // 🎖️ Les badges sont déjà au bon format depuis useGamification
-    // gamification.badges = Array<{ id: string, name?: string, achievedAt?: Date }>
-    const badges = gamification?.badges || [];
-
-    // Track if we've already processed firstRun to prevent race conditions
-    const hasProcessedFirstRun = useRef(false);
-
-    // Effect for dashboard init (no spotlight logic here)
-    useEffect(() => {
-        trackEvent('dashboard_viewed');
-        setBackgroundMode('macro');
-    }, [setBackgroundMode]);
-
-    // Check firstRun on mount and clean URL if needed
-    // Note: showSpotlight est déjà initialisé à true dans useState si firstRun est détecté
-    useEffect(() => {
-        const isFirstRun = searchParams.get('firstRun') === 'true';
-        console.log('🎯 Dashboard - firstRun check:', isFirstRun, 'hasProcessed:', hasProcessedFirstRun.current);
-
-        if (isFirstRun && !hasProcessedFirstRun.current && !spotlightDismissedRef.current) {
-            hasProcessedFirstRun.current = true;
-            markFirstRunShown();
-
-            // Clean URL (showSpotlight est déjà true grâce à l'initialisation dans useState)
-            searchParams.delete('firstRun');
-            setSearchParams(searchParams, { replace: true });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Block scroll when spotlight is visible to prevent highlight from moving
-    // IMPORTANT: This useEffect must be before any conditional returns to respect React hooks rules
+    // Block scroll when spotlight is visible
     useEffect(() => {
         const scrollContainer = document.getElementById('app-scroll-container');
         if (!scrollContainer) return;
 
         if (showSpotlight) {
-            // Store current scroll position and lock the app scroll container
             const scrollY = scrollContainer.scrollTop;
             scrollContainer.style.overflow = 'hidden';
             scrollContainer.dataset.scrollPosition = String(scrollY);
         } else {
-            // Restore scroll position when spotlight is dismissed
             const savedScrollY = scrollContainer.dataset.scrollPosition;
             scrollContainer.style.overflow = '';
             if (savedScrollY) {
@@ -271,189 +341,12 @@ const DashboardView: React.FC = () => {
         };
     }, [showSpotlight]);
 
-    // Handlers
-    const handleStartQuest = () => {
-        if (showSmartMission) return; // Prevent double-open
-
-        // Get available quests
-        const availableQuests = (quests || []).filter(
-            q => !completedQuestIds.includes(q.id)
-        );
-
-        if (availableQuests.length === 0) return;
-
-        // Generate a recommendation and open modal immediately
-        const recommended = getRecommendedQuest(availableQuests);
-        setRecommendedQuest(recommended);
-        setShowSmartMission(true);
-    };
-
-    // Get recommended quest based on user data
-    const getRecommendedQuest = (availableQuests) => {
-        if (!availableQuests || availableQuests.length === 0) return null;
-
-        const userXP = gamification?.xpTotal || 0;
-
-        if (userXP < 500) {
-            const beginnerQuests = availableQuests.filter(
-                q => q.difficulty === 'beginner' || q.difficulty === 'easy'
-            );
-            if (beginnerQuests.length > 0) {
-                return beginnerQuests[Math.floor(Math.random() * beginnerQuests.length)];
-            }
-        }
-
-        return availableQuests[Math.floor(Math.random() * availableQuests.length)];
-    };
-
-    // Handle accepting a quest from SmartMissionModal
-    const handleAcceptQuest = async (quest) => {
-        try {
-            trackEvent('quest_accepted', { questId: quest.id, source: 'smart_mission' });
-
-            // Show the quest FIRST - it appears on top (z-100) covering the modal (z-50)
-            setSelectedQuest(quest);
-            setShowQuestDetails(true);
-
-            // Close the modal during the warp animation
-            // The warp takes 400ms, so we close it slightly after (500ms)
-            // to ensure the new quest view is fully mounted and opaque
-            setTimeout(() => {
-                setShowSmartMission(false);
-            }, 500);
-        } catch (error) {
-            console.error("Error accepting quest:", error);
-        }
-    };
-
-    // Handle quest completion from QuestDetailsModal
-    const handleCompleteQuestFromDetails = async (modifiedQuest: ModifiedQuest) => {
-        // 🛡️ GUARD: Vérifie que l'utilisateur est connecté avant de continuer
-        // Sans cette vérification, TypeScript sait que user.uid pourrait planter
-        if (!user) {
-            console.error('❌ Cannot complete quest: user not authenticated');
-            return;
-        }
-
-        try {
-            // Calculate annual savings - use direct annual value if provided, otherwise monthly × 12
-            const annualSavings = modifiedQuest.annualSavings
-                || (modifiedQuest.monetaryValue ? modifiedQuest.monetaryValue * 12 : 0);
-
-            // Create savings event in Firebase if there's monetary value
-            if (annualSavings > 0) {
-                // OPTIMISTIC UPDATE
-                setLocalImpactBoost(prev => prev + annualSavings);
-
-                // Store annual amount directly to avoid rounding errors (monthly × 12 ≠ yearly)
-                await createSavingsEventInFirestore(user.uid, {
-                    title: modifiedQuest.title || 'Quest completed',  // Fallback si pas de titre
-                    questId: modifiedQuest.id,
-                    amount: annualSavings,
-                    period: 'year',
-                    source: 'quest',
-                    proof: {
-                        type: 'note',
-                        note: `Completed via SmartMission flow - ${new Date().toLocaleDateString()}`
-                    }
-                });
-            }
-
-            // Update gamification (XP, level, badges)
-            // 🔄 TRANSFORM: Convertir userProgress au format attendu par le service
-            const progressForGamification = Object.fromEntries(
-                Object.entries(userProgress).map(([id, p]) => [id, { completed: p.status === 'completed' }])
-            );
-            // Extraire uniquement les champs nécessaires pour la gamification
-            const questForGamification = {
-                id: modifiedQuest.id,
-                xp: modifiedQuest.xp,
-                xpReward: modifiedQuest.xpReward,
-                difficulty: modifiedQuest.difficulty as 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | undefined
-            };
-            await updateGamificationOnQuestComplete(user.uid, {
-                quest: questForGamification,
-                score: null,
-                userProgress: progressForGamification,
-                allQuests: quests || []
-            });
-
-            // Succès silencieux - animations intégrées à implémenter
-
-            // Track analytics
-            trackEvent('quest_completed', {
-                questId: modifiedQuest.id,
-                monetaryValue: modifiedQuest.monetaryValue,
-                xpReward: modifiedQuest.xpReward,
-                source: 'smart_mission_flow'
-            });
-
-            // Close modal
-            setShowQuestDetails(false);
-            setSelectedQuest(null);
-
-            // Force impact recalculation
-            setTimeout(async () => {
-                try {
-                    if (manualRecalculate) {
-                        await manualRecalculate();
-                    }
-                } catch (err) {
-                    console.warn('⚠️ Manual recalculation failed');
-                }
-            }, 500);
-
-        } catch (error) {
-            console.error("❌ Error completing quest:", error);
-        }
-    };
-
-    // Handle rerolling quest recommendation
-    const handleRerollQuest = () => {
-        const availableQuests = (quests || []).filter(
-            q => !completedQuestIds.includes(q.id) &&
-                q.id !== recommendedQuest?.id
-        );
-
-        if (availableQuests.length === 0) {
-            return recommendedQuest;
-        }
-
-        const newRecommendation = availableQuests[Math.floor(Math.random() * availableQuests.length)];
-        setRecommendedQuest(newRecommendation);
-        return newRecommendation;
-    };
-
-    const handleStartDailyChallenge = () => {
-        if (dailyChallenge?.questId) {
-            navigate(`/quests/${dailyChallenge.questId}`);
-        }
-    };
-
-    const handleSelectCategory = (category) => {
-        navigate(`/quests?category=${category}`);
-    };
-
-    // Mock Data for Bento
-    const recentImpact = [
-        { id: 1, label: 'Netflix Cancel', time: '2h ago', val: '15€' },
-        { id: 2, label: 'Coffee Skip', time: '1d ago', val: '5€' },
-        { id: 3, label: 'Bike Commute', time: '2d ago', val: '12€' },
-    ];
-
-    // If this is firstRun (from onboarding), bypass loading screen
-    // The spotlight overlay will cover everything anyway
+    // Loading states
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
-
-    // Handle loading states:
-    // 1. If still loading and not firstRun, don't render content yet
-    // 2. Show spinner only after 150ms delay (showLoader) to avoid flash
-    // 3. Before 150ms, show empty screen to prevent content flash then re-render
     const isLoading = (loading || questsLoading) && !isFirstRun;
 
     if (isLoading) {
         if (showLoader) {
-            // Show spinner after 150ms delay
             return (
                 <motion.div
                     className="min-h-screen flex items-center justify-center"
@@ -483,7 +376,6 @@ const DashboardView: React.FC = () => {
                 </motion.div>
             );
         }
-        // Before 150ms delay, show empty screen to prevent content flash
         return <div className="min-h-screen" />;
     }
 
@@ -503,20 +395,15 @@ const DashboardView: React.FC = () => {
                     transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.05 }}
                 >
                     <DashboardHeader
-                        stats={{
-                            streakDays: streakDays,
-                            level: levelData.level,
-                            xpInCurrentLevel: levelData.xpInCurrentLevel,
-                            xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
-                        }}
+                        stats={headerStats}
                         userAvatar={userData?.photoURL ?? user?.photoURL ?? undefined}
                     />
                 </motion.div>
 
-                {/* 1.5 Save Progress Banner (for anonymous users) */}
+                {/* 1.5 Save Progress Banner */}
                 <SaveProgressBanner />
 
-                {/* 2. Scoreboard (Impact Hero) */}
+                {/* 2. Scoreboard */}
                 <motion.div
                     className="space-y-6 mb-8"
                     initial={{ opacity: 0, y: 20 }}
@@ -532,7 +419,7 @@ const DashboardView: React.FC = () => {
                     />
                 </motion.div>
 
-                {/* 2.5 Daily Challenge (if exists) */}
+                {/* 2.5 Daily Challenge */}
                 {dailyChallenge && dailyChallenge.status !== 'completed' && (
                     <motion.div
                         className="mt-8"
@@ -540,7 +427,9 @@ const DashboardView: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.15 }}
                     >
-                        <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dailyChallenge') || 'DAILY CHALLENGE'}</h2>
+                        <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">
+                            {t('dailyChallenge') || 'DAILY CHALLENGE'}
+                        </h2>
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
@@ -555,11 +444,13 @@ const DashboardView: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.2 }}
                 >
-                    <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('categories') || 'CATEGORIES'}</h2>
+                    <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">
+                        {t('categories') || 'CATEGORIES'}
+                    </h2>
                     <CategoryGrid onSelectCategory={handleSelectCategory} />
                 </motion.div>
 
-                {/* 3. Bento Stats (Badges & Log) */}
+                {/* 3. Bento Stats */}
                 <motion.div
                     className="mt-8"
                     initial={{ opacity: 0, y: 20 }}
@@ -581,125 +472,85 @@ const DashboardView: React.FC = () => {
 
             </div>
 
-            {/* SmartMission Modal (Briefing Mission) */}
-            <SmartMissionModal
-                isOpen={showSmartMission}
-                onClose={() => {
-                    setShowSmartMission(false);
-                    setIsFirstRunMission(false);
-                }}
-                onAccept={handleAcceptQuest}
-                onReroll={handleRerollQuest}
-                initialQuest={recommendedQuest}
-                hideReroll={isFirstRunMission}
-            />
+            {/* Lazy-loaded Modals */}
+            <Suspense fallback={<ModalFallback />}>
+                <SmartMissionModal
+                    isOpen={showSmartMission}
+                    onClose={handleCloseSmartMission}
+                    onAccept={handleAcceptQuest}
+                    onReroll={handleRerollQuest}
+                    initialQuest={recommendedQuest}
+                    hideReroll={isFirstRunMission}
+                />
+            </Suspense>
 
-            {/* QuestDetails Modal (3-step flow) */}
+            {/* Quest Details Modal */}
             <AnimatePresence mode="wait">
                 {selectedQuest && (
-                    selectedQuest.id === 'cut-subscription' ? (
-                        <CutSubscriptionFlow
-                            key="cut-subscription-flow"
-                            quest={selectedQuest}
-                            onClose={() => {
-                                setShowQuestDetails(false);
-                                setSelectedQuest(null);
-                            }}
-                            onComplete={(result) => {
-                                // Transform result to match expected format
-                                handleCompleteQuestFromDetails({
-                                    ...selectedQuest,
-                                    id: result.questId,
-                                    title: result.serviceName
-                                        ? `${t('quests:cutSubscription.title')} - ${result.serviceName}`
-                                        : selectedQuest.title,
-                                    monetaryValue: result.monthlyAmount,
-                                    xpReward: result.xpEarned
-                                });
-                            }}
-                            userProgress={{
-                                streak: streakDays,
-                                xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
-                            }}
-                        />
-                    ) : selectedQuest.id === 'micro-expenses' ? (
-                        <MicroExpensesFlow
-                            key="micro-expenses-flow"
-                            quest={selectedQuest}
-                            onClose={() => {
-                                setShowQuestDetails(false);
-                                setSelectedQuest(null);
-                            }}
-                            onComplete={(result) => {
-                                // Transform result to match expected format
-                                // Pass yearlySavings directly to avoid rounding errors (monthly × 12 ≠ yearly)
-                                handleCompleteQuestFromDetails({
-                                    ...selectedQuest,
-                                    id: result.questId,
-                                    title: result.expenseName
-                                        ? `${t('quests:microExpenses.title')} - ${result.expenseName}`
-                                        : selectedQuest.title,
-                                    annualSavings: result.yearlySavings,
-                                    xpReward: result.xpEarned
-                                });
-                            }}
-                            userProgress={{
-                                streak: streakDays,
-                                xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
-                            }}
-                        />
-                    ) : (
-                        <QuestDetailsModal
-                            key="quest-details-modal"
-                            quest={selectedQuest}
-                            onClose={() => {
-                                setShowQuestDetails(false);
-                                setSelectedQuest(null);
-                            }}
-                            onComplete={handleCompleteQuestFromDetails}
-                        />
-                    )
+                    <Suspense fallback={<ModalFallback />}>
+                        {selectedQuest.id === 'cut-subscription' ? (
+                            <CutSubscriptionFlow
+                                key="cut-subscription-flow"
+                                quest={selectedQuest}
+                                onClose={handleCloseQuestDetails}
+                                onComplete={(result) => {
+                                    handleCompleteQuestFromDetails({
+                                        ...selectedQuest,
+                                        id: result.questId,
+                                        title: result.serviceName
+                                            ? `${t('quests:cutSubscription.title')} - ${result.serviceName}`
+                                            : selectedQuest.title,
+                                        monetaryValue: result.monthlyAmount,
+                                        xpReward: result.xpEarned
+                                    });
+                                }}
+                                userProgress={{
+                                    streak: streakDays,
+                                    xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
+                                }}
+                            />
+                        ) : selectedQuest.id === 'micro-expenses' ? (
+                            <MicroExpensesFlow
+                                key="micro-expenses-flow"
+                                quest={selectedQuest}
+                                onClose={handleCloseQuestDetails}
+                                onComplete={(result) => {
+                                    handleCompleteQuestFromDetails({
+                                        ...selectedQuest,
+                                        id: result.questId,
+                                        title: result.expenseName
+                                            ? `${t('quests:microExpenses.title')} - ${result.expenseName}`
+                                            : selectedQuest.title,
+                                        annualSavings: result.yearlySavings,
+                                        xpReward: result.xpEarned
+                                    });
+                                }}
+                                userProgress={{
+                                    streak: streakDays,
+                                    xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
+                                }}
+                            />
+                        ) : (
+                            <QuestDetailsModal
+                                key="quest-details-modal"
+                                quest={selectedQuest}
+                                onClose={handleCloseQuestDetails}
+                                onComplete={handleCompleteQuestFromDetails}
+                            />
+                        )}
+                    </Suspense>
                 )}
             </AnimatePresence>
 
-            {/* Note: FirstRunMissionModal (legacy) has been replaced by SpotlightOverlay + SmartMissionModal flow */}
-
-            {/* Spotlight Overlay (shown after new onboarding) */}
-            <SpotlightOverlay
-                isVisible={showSpotlight}
-                buttonRef={missionButtonRef}
-                onDismiss={() => {
-                    setShowSpotlight(false);
-                    spotlightDismissedRef.current = true; // Marquer comme fermé pour éviter toute réactivation
-                    markFirstRunShown();
-                }}
-                onSpotlightClick={() => {
-                    // Get the mission based on pain point selection and open briefing modal
-                    const selectedMissionId = onboardingStore.getSelectedMissionId();
-                    const targetQuest = (quests || []).find(q => q.id === selectedMissionId);
-                    const questToShow = targetQuest || (quests || []).find(q => q.id === 'micro-expenses');
-
-                    if (questToShow) {
-                        // FIRST: Open the SmartMissionModal (its overlay will cover the screen)
-                        setRecommendedQuest(questToShow);
-                        setIsFirstRunMission(true);
-                        setShowSmartMission(true);
-
-                        // THEN: Close spotlight after modal overlay is fully visible
-                        // SmartMissionModal backdrop animation takes 250ms (DURATION.normal)
-                        setTimeout(() => {
-                            setShowSpotlight(false);
-                            spotlightDismissedRef.current = true;
-                            markFirstRunShown();
-                        }, 300); // Wait for modal backdrop to be fully opaque
-                    } else {
-                        // No quest available - just close
-                        setShowSpotlight(false);
-                        spotlightDismissedRef.current = true;
-                        markFirstRunShown();
-                    }
-                }}
-            />
+            {/* Spotlight Overlay */}
+            <Suspense fallback={<ModalFallback />}>
+                <SpotlightOverlay
+                    isVisible={showSpotlight}
+                    buttonRef={missionButtonRef}
+                    onDismiss={handleSpotlightDismiss}
+                    onSpotlightClick={handleSpotlightClick}
+                />
+            </Suspense>
         </motion.div>
     );
 };

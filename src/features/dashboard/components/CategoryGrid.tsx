@@ -18,7 +18,7 @@ interface CategoryGridProps {
  * CategoryGrid - Tactical Mission Categories
  * Grille des catégories de missions avec design tactique
  */
-const CategoryGrid: React.FC<CategoryGridProps> = ({ onSelectCategory }) => {
+const CategoryGrid: React.FC<CategoryGridProps> = React.memo(({ onSelectCategory }) => {
   const { t } = useTranslation('dashboard');
   const { quests } = useLocalQuests();
 
@@ -123,7 +123,9 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ onSelectCategory }) => {
       })}
     </div>
   );
-};
+});
+
+CategoryGrid.displayName = 'CategoryGrid';
 
 export default CategoryGrid;
 

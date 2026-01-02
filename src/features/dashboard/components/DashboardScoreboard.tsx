@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo, RefObject } from 'react';
 import { Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+interface RollingCounterProps {
+    value: number;
+    currency: string;
+}
+
 // RollingCounter component for animated numbers
-const RollingCounter = ({ value, currency }) => {
+const RollingCounter = memo(({ value, currency }: RollingCounterProps) => {
     const [displayValue, setDisplayValue] = useState(value);
 
     useEffect(() => {
@@ -43,9 +48,19 @@ const RollingCounter = ({ value, currency }) => {
             {currency}{displayValue.toFixed(0)}
         </span>
     );
-};
+});
 
-const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, buttonRef, containerRef }) => {
+RollingCounter.displayName = 'RollingCounter';
+
+interface DashboardScoreboardProps {
+    impactAnnual: number;
+    currency?: string;
+    onStartQuest: () => void;
+    buttonRef?: RefObject<HTMLButtonElement | null>;
+    containerRef?: RefObject<HTMLDivElement | null>;
+}
+
+const DashboardScoreboard = memo(({ impactAnnual, currency = '€', onStartQuest, buttonRef, containerRef }: DashboardScoreboardProps) => {
     const { t } = useTranslation('dashboard');
 
     return (
@@ -99,7 +114,9 @@ const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, but
             </div>
         </section>
     );
-};
+});
+
+DashboardScoreboard.displayName = 'DashboardScoreboard';
 
 export default DashboardScoreboard;
 
