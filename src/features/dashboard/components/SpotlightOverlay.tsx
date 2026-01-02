@@ -94,6 +94,35 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
     };
 
+    // Lock body scroll when overlay is visible (iOS PWA fix)
+    useEffect(() => {
+        if (!isVisible) return;
+
+        // Save current scroll position and lock body
+        const scrollY = window.scrollY;
+        const body = document.body;
+        const html = document.documentElement;
+
+        // Apply fixed positioning to prevent iOS rubber-band scrolling
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.overflow = 'hidden';
+        html.style.overflow = 'hidden';
+
+        return () => {
+            // Restore scroll position when unmounting
+            body.style.position = '';
+            body.style.top = '';
+            body.style.left = '';
+            body.style.right = '';
+            body.style.overflow = '';
+            html.style.overflow = '';
+            window.scrollTo(0, scrollY);
+        };
+    }, [isVisible]);
+
     useEffect(() => {
         if (!isVisible) return;
 
@@ -137,6 +166,8 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[1000] overflow-hidden"
+                style={{ touchAction: 'none' }}
+                onTouchMove={(e) => e.preventDefault()}
                 onClick={(e) => {
                     if (e.target === e.currentTarget) {
                         handleDismiss(onDismiss);
@@ -251,7 +282,8 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
                         transition={{ duration: 0.2 }}
                         style={{
                             left: spotlight.x,
-                            top: spotlight.y - spotlight.height / 2,
+                            // Position par rapport au bord supérieur du BOUTON (pas du spotlight)
+                            top: spotlight.y - spotlight.btnHeight / 2,
                             transform: 'translate(-50%, -100%)',
                         }}
                     >
