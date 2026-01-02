@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -166,44 +166,45 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
 
   /**
    * Get quests by category for user's country
+   * Memoized with useCallback to prevent recreation on every render
    */
-  const getQuestsByCategoryForUser = (category: string): Quest[] => {
+  const getQuestsByCategoryForUser = useCallback((category: string): Quest[] => {
     if (!user) return [];
 
     const globalCategoryQuests = getQuestsByCategory(category, i18n.language, 'global');
     const countryCategoryQuests = getQuestsByCategory(category, i18n.language, userCountry);
 
     return [...globalCategoryQuests, ...countryCategoryQuests];
-  };
+  }, [user, i18n.language, userCountry]);
 
   /**
    * Get free quests for user's country
    */
-  const getFreeQuestsForUser = () => {
+  const getFreeQuestsForUser = useCallback(() => {
     if (!user) return [];
 
     const globalFreeQuests = getFreeQuests(i18n.language, 'global');
     const countryFreeQuests = getFreeQuests(i18n.language, userCountry);
 
     return [...globalFreeQuests, ...countryFreeQuests];
-  };
+  }, [user, i18n.language, userCountry]);
 
   /**
    * Get premium quests for user's country
    */
-  const getPremiumQuestsForUser = () => {
+  const getPremiumQuestsForUser = useCallback(() => {
     if (!user) return [];
 
     const globalPremiumQuests = getPremiumQuests(i18n.language, 'global');
     const countryPremiumQuests = getPremiumQuests(i18n.language, userCountry);
 
     return [...globalPremiumQuests, ...countryPremiumQuests];
-  };
+  }, [user, i18n.language, userCountry]);
 
   /**
    * Get recommended quests for user's country
    */
-  const getRecommendedQuestsForUser = (completedQuestIds: string[] = [], userLevel: number = 1): Quest[] => {
+  const getRecommendedQuestsForUser = useCallback((completedQuestIds: string[] = [], userLevel: number = 1): Quest[] => {
     if (!user) return [];
 
     const globalRecommended = getRecommendedQuests(completedQuestIds, userLevel, i18n.language, 'global');
@@ -216,30 +217,25 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
     );
 
     return uniqueRecommended.slice(0, 5); // Return top 5
-  };
+  }, [user, i18n.language, userCountry]);
 
   /**
    * Get quest by ID with user's country context
    */
-  const getQuestByIdForUser = (questId: string): Quest | null => {
+  const getQuestByIdForUser = useCallback((questId: string): Quest | null => {
     if (!user) return null;
 
     // Try to get from global quests first
     const quest = getQuestById(questId, i18n.language);
 
-    // If not found in global, try country-specific
-    if (!quest && userCountry !== 'global') {
-      // This would require a modification to getQuestById to support country filtering
-      // For now, we'll return the global quest if found
-    }
-
     return quest;
-  };
+  }, [user, i18n.language]);
 
   /**
    * Get quest statistics for user's country
+   * Memoized to prevent recalculation on every render
    */
-  const getQuestStats = () => {
+  const getQuestStats = useCallback((): QuestStats => {
     const total = quests.length;
     const free = quests.filter(q => !q.isPremium).length;
     const premium = quests.filter(q => q.isPremium).length;
@@ -254,9 +250,10 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
       countrySpecific,
       userCountry
     };
-  };
+  }, [quests, userCountry]);
 
-  return {
+  // Memoize return object to prevent unnecessary re-renders in consumers
+  return useMemo(() => ({
     quests,
     loading,
     error,
@@ -267,5 +264,16 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
     getRecommendedQuestsForUser,
     getQuestByIdForUser,
     getQuestStats
-  };
+  }), [
+    quests,
+    loading,
+    error,
+    userCountry,
+    getQuestsByCategoryForUser,
+    getFreeQuestsForUser,
+    getPremiumQuestsForUser,
+    getRecommendedQuestsForUser,
+    getQuestByIdForUser,
+    getQuestStats
+  ]);
 }; 

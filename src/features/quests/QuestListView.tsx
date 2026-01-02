@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Archive, LayoutList, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,37 @@ import { MicroExpensesFlow } from "./pilotage/micro-expenses";
 interface QuestWithProgress extends Quest {
   progress?: number;
 }
+
+/** Completed quest item - extracted for performance */
+interface CompletedQuestItemProps {
+  quest: Quest;
+  completedLabel: string;
+}
+
+const CompletedQuestItem = memo(({ quest, completedLabel }: CompletedQuestItemProps) => {
+  const localizedQuest = useLocalizedQuest(quest);
+
+  return (
+    <div className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center text-neutral-400 text-xs">
+          ✓
+        </div>
+        <div>
+          <h4 className="font-sans font-bold text-white line-through decoration-gold">
+            {localizedQuest?.title || quest.title}
+          </h4>
+          <span className="font-mono text-[10px] text-emerald">
+            +{(quest.estimatedImpact?.amount ?? 0).toFixed(2)} SAVED
+          </span>
+        </div>
+      </div>
+      <span className="font-mono text-[10px] text-neutral-600">{completedLabel}</span>
+    </div>
+  );
+});
+
+CompletedQuestItem.displayName = 'CompletedQuestItem';
 
 
 /**
@@ -251,26 +282,13 @@ const QuestListView = () => {
                                 <p className="font-mono text-xs text-neutral-500">{t('archive_empty').toUpperCase()}</p>
                             </div>
                         ) : (
-                            completedQuests.map(quest => {
-                                const CompletedQuestItem = () => {
-                                    const localizedQuest = useLocalizedQuest(quest);
-                                    return (
-                                        <div className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center text-neutral-400 text-xs">
-                                                    ✓
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-sans font-bold text-white line-through decoration-gold">{localizedQuest?.title || quest.title}</h4>
-                                                    <span className="font-mono text-[10px] text-emerald">+{(quest.estimatedImpact?.amount ?? 0).toFixed(2)} SAVED</span>
-                                                </div>
-                                            </div>
-                                            <span className="font-mono text-[10px] text-neutral-600">{t('completed_status').toUpperCase()}</span>
-                                        </div>
-                                    );
-                                };
-                                return <CompletedQuestItem key={quest.id} />;
-                            })
+                            completedQuests.map(quest => (
+                                <CompletedQuestItem
+                                    key={quest.id}
+                                    quest={quest}
+                                    completedLabel={t('completed_status').toUpperCase()}
+                                />
+                            ))
                         )}
                     </div>
                 )}

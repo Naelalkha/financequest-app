@@ -4,7 +4,7 @@
  * Déclenche automatiquement un recalcul si les données sont "stale"
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,8 +129,9 @@ export const useServerImpactAggregates = () => {
 
   /**
    * Recalcule manuellement les agrégats (pour le bouton "Recalculer")
+   * Memoized with useCallback to prevent recreation on every render
    */
-  const manualRecalculate = async () => {
+  const manualRecalculate = useCallback(async () => {
     if (!user || syncing) return;
 
     console.log('🔄 Manual recalculation triggered');
@@ -146,12 +147,16 @@ export const useServerImpactAggregates = () => {
     } finally {
       setSyncing(false);
     }
-  };
+  }, [user, syncing]);
 
   // Use the maximum of server or local impact for best accuracy
-  const impactAnnualEstimated = Math.max(serverImpact || 0, localImpact);
+  const impactAnnualEstimated = useMemo(
+    () => Math.max(serverImpact || 0, localImpact),
+    [serverImpact, localImpact]
+  );
 
-  return {
+  // Memoize return object to prevent unnecessary re-renders in consumers
+  return useMemo(() => ({
     impactAnnualEstimated,
     impactAnnualVerified,
     proofsVerifiedCount,
@@ -160,6 +165,15 @@ export const useServerImpactAggregates = () => {
     syncing,
     error,
     manualRecalculate,
-  };
+  }), [
+    impactAnnualEstimated,
+    impactAnnualVerified,
+    proofsVerifiedCount,
+    lastImpactRecalcAt,
+    loading,
+    syncing,
+    error,
+    manualRecalculate
+  ]);
 };
 
