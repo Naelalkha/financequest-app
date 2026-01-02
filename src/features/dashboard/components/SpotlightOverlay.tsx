@@ -106,11 +106,47 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         const paddingX = 48;
         const paddingY = 32;
 
+        let rafId: number;
+
         // Calculate position BEFORE locking body (critical for accuracy)
-        const updatePosition = () => {
+        const calculateAndLock = () => {
             if (!buttonRef?.current) return;
+
             const btnRect = buttonRef.current.getBoundingClientRect();
 
+            // Wait for button to be properly laid out (has dimensions)
+            if (btnRect.width === 0 || btnRect.height === 0) {
+                rafId = requestAnimationFrame(calculateAndLock);
+                return;
+            }
+
+            setSpotlight({
+                x: btnRect.left + btnRect.width / 2,
+                y: btnRect.top + btnRect.height / 2,
+                width: btnRect.width + paddingX,
+                height: btnRect.height + paddingY,
+                btnWidth: btnRect.width,
+                btnHeight: btnRect.height
+            });
+
+            // Lock body scroll AFTER calculating position (iOS PWA fix)
+            body.style.position = 'fixed';
+            body.style.top = `-${scrollY}px`;
+            body.style.left = '0';
+            body.style.right = '0';
+            body.style.overflow = 'hidden';
+            html.style.overflow = 'hidden';
+        };
+
+        // Use double RAF to ensure layout is complete
+        rafId = requestAnimationFrame(() => {
+            rafId = requestAnimationFrame(calculateAndLock);
+        });
+
+        // Handle resize
+        const handleResize = () => {
+            if (!buttonRef?.current) return;
+            const btnRect = buttonRef.current.getBoundingClientRect();
             setSpotlight({
                 x: btnRect.left + btnRect.width / 2,
                 y: btnRect.top + btnRect.height / 2,
@@ -121,22 +157,11 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
             });
         };
 
-        // Calculate position immediately
-        updatePosition();
-
-        // Then lock body scroll (iOS PWA fix)
-        body.style.position = 'fixed';
-        body.style.top = `-${scrollY}px`;
-        body.style.left = '0';
-        body.style.right = '0';
-        body.style.overflow = 'hidden';
-        html.style.overflow = 'hidden';
-
-        // Listen for resize only (no scroll since body is locked)
-        window.addEventListener('resize', updatePosition);
+        window.addEventListener('resize', handleResize);
 
         return () => {
-            window.removeEventListener('resize', updatePosition);
+            cancelAnimationFrame(rafId);
+            window.removeEventListener('resize', handleResize);
             // Restore scroll position when unmounting
             body.style.position = '';
             body.style.top = '';
