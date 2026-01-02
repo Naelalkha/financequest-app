@@ -24,7 +24,7 @@ const MILESTONES = [
  * Shows the stored title directly (which includes service name for quest-based entries)
  * Falls back to localized quest title only if entry.title is missing
  */
-const EntryTitle = ({ entry }) => {
+const EntryTitle = ({ entry }: { entry: SavingsEventData }) => {
   const { quests } = useLocalQuests();
 
   // If entry has a stored title (e.g., "Coupe 1 abo - Netflix"), use it directly
@@ -261,7 +261,7 @@ const ImpactView = () => {
                 const annualAmount = entry.amount * (entry.period === 'month' ? 12 : 1);
                 const displayDate = entry.createdAt
                   ? new Date(entry.createdAt).toLocaleDateString()
-                  : entry.date || '';
+                  : '';
 
                 return (
                   <div key={entry.id} className="group relative border-b border-dashed border-neutral-200 last:border-0">

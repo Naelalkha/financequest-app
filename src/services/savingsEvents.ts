@@ -21,7 +21,7 @@ import { recalculateImpactInBackground } from './impactAggregates';
 
 /** Savings event data structure */
 export interface SavingsEventData {
-  id?: string;
+  id: string;
   title: string;
   questId: string;
   amount: number;

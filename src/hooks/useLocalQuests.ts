@@ -11,6 +11,12 @@ import {
   getQuestById as registryGetQuestById
 } from '../features/quests/registry';
 
+/** Quest estimated impact */
+export interface QuestEstimatedImpact {
+  amount: number;
+  period: 'once' | 'day' | 'week' | 'month' | 'year';
+}
+
 /** Quest data structure */
 export interface Quest {
   id: string;
@@ -25,6 +31,7 @@ export interface Quest {
   duration?: number;
   difficulty?: string;
   i18nKey?: string;
+  estimatedImpact?: QuestEstimatedImpact;
 }
 
 /** Filters for quest queries */
