@@ -3,7 +3,7 @@
  * Permet de corréler tous les événements d'une même session utilisateur
  */
 
-let sessionId = null;
+let sessionId: string | null = null;
 
 /**
  * Génère un UUID v4 simple

@@ -2,11 +2,21 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import posthog from 'posthog-js';
+
+/** Subscription data structure */
+interface SubscriptionData {
+  isPremium: boolean;
+  premiumStartDate: Date | null;
+  premiumEndDate: Date | null;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  stripeSessionId?: string;
+  plan: string;
+}
 
 export const useSubscription = () => {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState(null);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState(0);
@@ -63,7 +73,7 @@ export const useSubscription = () => {
         
         // Calculer les jours restants
         if (subscriptionData.premiumEndDate && subscriptionData.premiumEndDate > now) {
-          const diffTime = subscriptionData.premiumEndDate - now;
+          const diffTime = subscriptionData.premiumEndDate.getTime() - now.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           setDaysRemaining(diffDays);
         } else {

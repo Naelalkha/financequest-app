@@ -6,25 +6,47 @@
 import { getQuestLockState } from './impact';
 import { trackEvent } from './analytics';
 
-/**
- * Sources de navigation possibles vers une quête
- * @typedef {'quest_card'|'daily_challenge'|'continue_card'|'search'|'deeplink'} NavigationSource
- */
+/** Sources de navigation possibles vers une quête */
+type NavigationSource = 'quest_card' | 'daily_challenge' | 'continue_card' | 'search' | 'deeplink';
+
+/** Quest interface for navigation */
+interface NavQuest {
+  id: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  difficulty?: string;
+  isPremium?: boolean;
+  isStarterPack?: boolean;
+}
+
+/** User interface for navigation */
+interface NavUser {
+  uid?: string;
+  isPremium?: boolean;
+  [key: string]: unknown;
+}
+
+/** Options for quest guarding */
+interface GuardOptions {
+  bypassGating?: boolean;
+  trialDays?: number;
+}
+
+/** Parameters for openQuestGuarded */
+interface OpenQuestGuardedParams {
+  quest: NavQuest | null;
+  user: NavUser | null;
+  navigate: (path: string) => void;
+  source: NavigationSource;
+  options?: GuardOptions;
+}
 
 /**
  * Ouvre une quête avec vérification du gating Premium
  * Gère la redirection vers /premium si nécessaire
- * 
- * @param {Object} params - Paramètres
- * @param {Object} params.quest - Quête à ouvrir
- * @param {Object} params.user - Utilisateur actuel
- * @param {Function} params.navigate - Fonction de navigation (react-router-dom)
- * @param {NavigationSource} params.source - Source de la navigation
- * @param {Object} [params.options] - Options supplémentaires
- * @param {boolean} [params.options.bypassGating] - Bypass le gating (pour starter pack)
- * @param {number} [params.options.trialDays=7] - Jours d'essai à proposer
  */
-export function openQuestGuarded({ quest, user, navigate, source, options = {} }) {
+export function openQuestGuarded({ quest, user, navigate, source, options = {} }: OpenQuestGuardedParams): void {
   // Options
   const { bypassGating = false, trialDays = 7 } = options;
 
@@ -86,10 +108,8 @@ export function openQuestGuarded({ quest, user, navigate, source, options = {} }
 
 /**
  * Vérifie si une quête est dans le starter pack (toujours gratuit)
- * @param {Object} quest - Quête à vérifier
- * @returns {boolean} - True si la quête est dans le starter pack
  */
-export function isStarterPackQuest(quest) {
+export function isStarterPackQuest(quest: NavQuest | null): boolean {
   if (!quest) return false;
 
   // Liste des IDs de quêtes du starter pack (à adapter selon ton app)
@@ -105,9 +125,8 @@ export function isStarterPackQuest(quest) {
 
 /**
  * Wrapper pour ouvrir une quête du starter pack (bypass gating)
- * @param {Object} params - Mêmes params que openQuestGuarded
  */
-export function openStarterPackQuest(params) {
+export function openStarterPackQuest(params: OpenQuestGuardedParams): void {
   return openQuestGuarded({
     ...params,
     options: {
@@ -117,15 +136,17 @@ export function openStarterPackQuest(params) {
   });
 }
 
+/** Return type for canAccessQuest */
+interface AccessResult {
+  canAccess: boolean;
+  reason: string | null;
+}
+
 /**
  * Vérifie si l'utilisateur peut accéder à une quête
  * Fonction helper pour composants (sans navigation)
- * 
- * @param {Object} user - Utilisateur actuel
- * @param {Object} quest - Quête à vérifier
- * @returns {Object} - { canAccess: boolean, reason: string|null }
  */
-export function canAccessQuest(user, quest) {
+export function canAccessQuest(user: NavUser | null, quest: NavQuest | null): AccessResult {
   // Vérifier le gating
   const lockState = getQuestLockState(user, quest);
   

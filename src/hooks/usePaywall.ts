@@ -5,18 +5,26 @@ import { useAuth } from '../contexts/AuthContext'
 export const PAYWALL_VARIANTS = {
   A_DIRECT: 'A_direct',
   B_AFTER_3: 'B_after_3'
+} as const
+
+type PaywallVariant = typeof PAYWALL_VARIANTS[keyof typeof PAYWALL_VARIANTS]
+
+interface QuestInput {
+  id?: string
+  isPremium?: boolean
+  title?: string
 }
 
-export function usePaywall(quest) {
+export function usePaywall(quest: QuestInput | null) {
   const { user } = useAuth()
-  const [variant, setVariant] = useState(PAYWALL_VARIANTS.A_DIRECT)
+  const [variant, setVariant] = useState<PaywallVariant>(PAYWALL_VARIANTS.A_DIRECT)
 
   /* récupère la variante dès le premier rendu */
   useEffect(() => {
     const v = posthog.getFeatureFlag('paywall_variant')
     console.log('PostHog feature flag paywall_variant:', v)
-    if (v && Object.values(PAYWALL_VARIANTS).includes(v)) {
-      setVariant(v)
+    if (v && typeof v === 'string' && Object.values(PAYWALL_VARIANTS).includes(v as PaywallVariant)) {
+      setVariant(v as PaywallVariant)
     }
   }, [])
 

@@ -67,14 +67,27 @@
 //   core: z.any() // React component
 // });
 
+/** Quest input for validation */
+interface QuestValidationInput {
+    id?: string;
+    category?: string;
+    difficulty?: string;
+    i18nKey?: string;
+    title_fr?: string;
+    title_en?: string;
+}
+
+/** Validation result */
+interface ValidationResult {
+    valid: boolean;
+    errors?: string[];
+}
+
 /**
  * Validate quest metadata structure
- * 
- * @param {Object} quest - Quest metadata to validate
- * @returns {Object} - Validation result { valid: boolean, errors?: string[] }
  */
-export const validateQuestMetadata = (quest) => {
-    const errors = [];
+export const validateQuestMetadata = (quest: QuestValidationInput): ValidationResult => {
+    const errors: string[] = [];
 
     // Required fields
     if (!quest.id) errors.push('Missing required field: id');
