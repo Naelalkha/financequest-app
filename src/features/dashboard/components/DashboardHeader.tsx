@@ -16,7 +16,7 @@ interface DashboardHeaderProps {
     userAvatar?: string;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ stats, userAvatar }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ stats, userAvatar }) => {
     return (
         <header className="flex items-center justify-between px-6 py-6">
             {/* Brand - Logo */}
@@ -50,7 +50,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ stats, userAvatar }) 
             </div>
         </header>
     );
-};
+});
+
+DashboardHeader.displayName = 'DashboardHeader';
 
 export default DashboardHeader;
 

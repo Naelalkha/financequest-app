@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 export type BackgroundMode = 'macro' | 'micro';
 
@@ -29,8 +29,15 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
         setConfig(newConfig);
     }, []);
 
+    // Memoize context value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
+        mode,
+        config,
+        setBackgroundMode
+    }), [mode, config, setBackgroundMode]);
+
     return (
-        <BackgroundContext.Provider value={{ mode, config, setBackgroundMode }}>
+        <BackgroundContext.Provider value={value}>
             {children}
         </BackgroundContext.Provider>
     );

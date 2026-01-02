@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo, useCallback } from 'react';
 import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
@@ -414,7 +414,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
-    const value: AuthContextValue = {
+    // Memoize context value to prevent unnecessary re-renders
+    const value = useMemo<AuthContextValue>(() => ({
         user,
         login,
         register,
@@ -424,7 +425,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         updateUserProfile,
         loading,
         error
-    };
+    }), [user, loading, error]);
 
     return (
         <AuthContext.Provider value={value}>

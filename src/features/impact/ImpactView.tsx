@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, memo } from "react";
 import { Plus, Trash2, Edit2, Trophy, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../contexts/AuthContext";
 import { useSavingsEvents } from "../../hooks/useSavingsEvents";
 import { SavingsEventData } from "../../services/savingsEvents";
-import { useLocalQuests } from "../../hooks/useLocalQuests";
+import { useLocalQuests, Quest } from "../../hooks/useLocalQuests";
 import useLocalizedQuest from "../../hooks/useLocalizedQuest";
 import ImpactModal from "./components/ImpactModal";
 
@@ -23,10 +23,15 @@ const MILESTONES = [
  * EntryTitle - Component to display savings event titles
  * Shows the stored title directly (which includes service name for quest-based entries)
  * Falls back to localized quest title only if entry.title is missing
+ *
+ * OPTIMIZED: quests are passed as prop instead of calling useLocalQuests() per item
  */
-const EntryTitle = ({ entry }: { entry: SavingsEventData }) => {
-  const { quests } = useLocalQuests();
+interface EntryTitleProps {
+  entry: SavingsEventData;
+  quests: Quest[] | undefined;
+}
 
+const EntryTitle = memo(({ entry, quests }: EntryTitleProps) => {
   // If entry has a stored title (e.g., "Coupe 1 abo - Netflix"), use it directly
   if (entry.title) {
     return (
@@ -52,7 +57,9 @@ const EntryTitle = ({ entry }: { entry: SavingsEventData }) => {
       {displayTitle}
     </span>
   );
-};
+});
+
+EntryTitle.displayName = 'EntryTitle';
 
 /**
  * ImpactView - Autonomous view with receipt style
@@ -62,6 +69,7 @@ const ImpactView = () => {
   const { t } = useTranslation('impact');
   const { user } = useAuth();
   const { events, loading, loadEvents, createEvent, updateEvent, deleteEvent } = useSavingsEvents();
+  const { quests } = useLocalQuests(); // Lifted hook - called once instead of per entry
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<SavingsEventData | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -270,7 +278,7 @@ const ImpactView = () => {
                       className={`flex justify-between items-start py-3 px-2 transition-colors cursor-pointer ${isExpanded ? 'bg-white/5' : 'hover:bg-white/5'}`}
                     >
                       <div>
-                        <EntryTitle entry={entry} />
+                        <EntryTitle entry={entry} quests={quests} />
                         <span className="text-[10px] text-[#888888]">{displayDate}</span>
                       </div>
                       <div className="flex items-center gap-3">

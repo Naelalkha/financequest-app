@@ -111,11 +111,30 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
+          // Core React
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
+
+          // Firebase (large dependency)
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          icons: ['react-icons/fa'],
-          ui: ['react-toastify']
+
+          // Animation libraries (framer-motion is ~100kb)
+          animations: ['framer-motion'],
+
+          // Icon libraries (lucide-react tree-shakes well)
+          icons: ['lucide-react'],
+
+          // UI libraries
+          ui: ['react-toastify', 'react-hot-toast'],
+
+          // i18n
+          i18n: ['i18next', 'react-i18next'],
+
+          // State management
+          state: ['zustand'],
+
+          // Charts (recharts is ~200kb)
+          charts: ['recharts']
         }
       }
     },
@@ -126,7 +145,9 @@ export default defineConfig({
         drop_console: true,
         drop_debugger: true
       }
-    }
+    },
+    // Enable chunk size reporting
+    chunkSizeWarningLimit: 500
   },
   server: {
     port: 5173,

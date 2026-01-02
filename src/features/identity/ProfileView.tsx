@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import posthog from 'posthog-js';
@@ -215,12 +215,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  const benefits = [
+  // Memoize benefits array to prevent recreation on every render
+  const benefits = useMemo(() => [
     t('premium_feature_unlimited') || "Unlimited Active Quests",
     t('premium_feature_advanced') || "Advanced Wealth Analytics",
     t('premium_feature_custom') || "Custom Categories",
     t('premium_feature_priority') || "Priority Support Line"
-  ];
+  ], [t]);
 
   if (loading) {
     return (

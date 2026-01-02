@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, memo } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
@@ -21,8 +21,8 @@ interface RouteWrapperProps {
     children: ReactNode;
 }
 
-// Smooth loading screen component
-const SmoothLoadingScreen: React.FC = () => (
+// Smooth loading screen component - memoized
+const SmoothLoadingScreen = memo(() => (
     <motion.div
         className="min-h-screen flex items-center justify-center"
         initial={{ opacity: 0 }}
@@ -32,10 +32,12 @@ const SmoothLoadingScreen: React.FC = () => (
     >
         <LoadingSpinner size="lg" />
     </motion.div>
-);
+));
 
-// Private route wrapper - Now allows anonymous users!
-function PrivateRoute({ children }: RouteWrapperProps): React.ReactElement {
+SmoothLoadingScreen.displayName = 'SmoothLoadingScreen';
+
+// Private route wrapper - memoized for stable reference
+const PrivateRoute = memo(({ children }: RouteWrapperProps): React.ReactElement => {
     const { user, loading } = useAuth();
     const location = useLocation();
 
@@ -49,10 +51,12 @@ function PrivateRoute({ children }: RouteWrapperProps): React.ReactElement {
     if (!user) return <Navigate to="/" state={{ from: location }} replace />;
 
     return <>{children}</>;
-}
+});
 
-// Public route wrapper (redirects to dashboard if authenticated and NOT anonymous)
-function PublicRoute({ children }: RouteWrapperProps): React.ReactElement {
+PrivateRoute.displayName = 'PrivateRoute';
+
+// Public route wrapper - memoized for stable reference
+const PublicRoute = memo(({ children }: RouteWrapperProps): React.ReactElement => {
     const { user, loading } = useAuth();
 
     if (loading) return (
@@ -61,14 +65,15 @@ function PublicRoute({ children }: RouteWrapperProps): React.ReactElement {
         </AppBackground>
     );
 
-    // TODO: Type user properly when AuthContext is migrated
     // Only redirect if user is logged in with a real account (not anonymous)
     if (user && !(user as { isAnonymous?: boolean }).isAnonymous) {
         return <Navigate to="/dashboard" replace />;
     }
 
     return <>{children}</>;
-}
+});
+
+PublicRoute.displayName = 'PublicRoute';
 
 const AppRouter: React.FC = () => {
     const { user, loading } = useAuth();
@@ -95,10 +100,21 @@ const AppRouter: React.FC = () => {
     const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
 
     // Smooth loading state
-    if (loading) {
+    // Skip spinner for new users going to onboarding - let OnboardingFlow handle its own animation
+    if (loading && hasCompletedOnboarding) {
         return (
             <AppBackground>
                 <SmoothLoadingScreen />
+            </AppBackground>
+        );
+    }
+
+    // For new users (no onboarding completed), show minimal black screen during auth
+    // This prevents jarring spinner before the smooth onboarding animation
+    if (loading && !hasCompletedOnboarding) {
+        return (
+            <AppBackground>
+                <div className="min-h-screen" />
             </AppBackground>
         );
     }
