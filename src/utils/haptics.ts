@@ -1,9 +1,9 @@
 /**
  * Haptics Utility
- * 
+ *
  * Unified haptic feedback system for Moniyo
  * Works on web (Vibration API) and ready for Capacitor native haptics
- * 
+ *
  * Usage:
  *   import { haptic } from '../utils/haptics';
  *   haptic.light();  // Light tap
@@ -11,9 +11,18 @@
  *   haptic.success(); // Success pattern
  */
 
+// Étendre Window pour inclure Capacitor (optionnel au runtime)
+declare global {
+    interface Window {
+        Capacitor?: {
+            isNativePlatform?: () => boolean;
+        };
+    }
+}
+
 // Check if we're running in Capacitor native environment
 const isCapacitorNative = () => {
-    return typeof window !== 'undefined' && 
+    return typeof window !== 'undefined' &&
            window.Capacitor?.isNativePlatform?.();
 };
 

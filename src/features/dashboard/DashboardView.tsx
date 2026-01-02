@@ -212,13 +212,9 @@ const DashboardView: React.FC = () => {
     const completedQuests = (quests || [])
         .filter(q => completedQuestIds.includes(q.id));
 
-    // Map gamification badges to proper format
-    const badges = (gamification?.badges || []).map((badgeId) => ({
-        id: badgeId,
-        icon: '🏆',
-        name: badgeId,
-        achievedAt: new Date()
-    }));
+    // 🎖️ Les badges sont déjà au bon format depuis useGamification
+    // gamification.badges = Array<{ id: string, name?: string, achievedAt?: Date }>
+    const badges = gamification?.badges || [];
 
     // Track if we've already processed firstRun to prevent race conditions
     const hasProcessedFirstRun = useRef(false);
@@ -331,7 +327,14 @@ const DashboardView: React.FC = () => {
     };
 
     // Handle quest completion from QuestDetailsModal
-    const handleCompleteQuestFromDetails = async (modifiedQuest) => {
+    const handleCompleteQuestFromDetails = async (modifiedQuest: ModifiedQuest) => {
+        // 🛡️ GUARD: Vérifie que l'utilisateur est connecté avant de continuer
+        // Sans cette vérification, TypeScript sait que user.uid pourrait planter
+        if (!user) {
+            console.error('❌ Cannot complete quest: user not authenticated');
+            return;
+        }
+
         try {
             // Calculate annual savings - use direct annual value if provided, otherwise monthly × 12
             const annualSavings = modifiedQuest.annualSavings
@@ -344,7 +347,7 @@ const DashboardView: React.FC = () => {
 
                 // Store annual amount directly to avoid rounding errors (monthly × 12 ≠ yearly)
                 await createSavingsEventInFirestore(user.uid, {
-                    title: modifiedQuest.title,
+                    title: modifiedQuest.title || 'Quest completed',  // Fallback si pas de titre
                     questId: modifiedQuest.id,
                     amount: annualSavings,
                     period: 'year',
@@ -357,10 +360,21 @@ const DashboardView: React.FC = () => {
             }
 
             // Update gamification (XP, level, badges)
-            const gamificationResult = await updateGamificationOnQuestComplete(user.uid, {
-                quest: modifiedQuest,
+            // 🔄 TRANSFORM: Convertir userProgress au format attendu par le service
+            const progressForGamification = Object.fromEntries(
+                Object.entries(userProgress).map(([id, p]) => [id, { completed: p.status === 'completed' }])
+            );
+            // Extraire uniquement les champs nécessaires pour la gamification
+            const questForGamification = {
+                id: modifiedQuest.id,
+                xp: modifiedQuest.xp,
+                xpReward: modifiedQuest.xpReward,
+                difficulty: modifiedQuest.difficulty as 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | undefined
+            };
+            await updateGamificationOnQuestComplete(user.uid, {
+                quest: questForGamification,
                 score: null,
-                userProgress: userProgress,
+                userProgress: progressForGamification,
                 allQuests: quests || []
             });
 
@@ -495,7 +509,7 @@ const DashboardView: React.FC = () => {
                             xpInCurrentLevel: levelData.xpInCurrentLevel,
                             xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
                         }}
-                        userAvatar={userData?.photoURL || user?.photoURL}
+                        userAvatar={userData?.photoURL ?? user?.photoURL ?? undefined}
                     />
                 </motion.div>
 
@@ -605,7 +619,7 @@ const DashboardView: React.FC = () => {
                             }}
                             userProgress={{
                                 streak: streakDays,
-                                xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
+                                xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
                             }}
                         />
                     ) : selectedQuest.id === 'micro-expenses' ? (
@@ -631,7 +645,7 @@ const DashboardView: React.FC = () => {
                             }}
                             userProgress={{
                                 streak: streakDays,
-                                xpProgress: Math.round((levelData.currentLevelXP / levelData.xpForNextLevel) * 100)
+                                xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
                             }}
                         />
                     ) : (

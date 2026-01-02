@@ -33,7 +33,7 @@ type ExitMode = 'none' | 'toModal' | 'dismiss';
 interface SpotlightOverlayProps {
     isVisible: boolean;
     onDismiss: () => void;
-    buttonRef: RefObject<HTMLButtonElement>;
+    buttonRef: RefObject<HTMLButtonElement | null>;  // La ref peut être null au montage
     onSpotlightClick: () => void;
 }
 

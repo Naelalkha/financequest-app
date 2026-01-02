@@ -41,7 +41,8 @@ export interface QuestCompleteResult {
 export interface SavingsChangeContext {
   totalAnnualImpact?: number;
   savingsEvents?: SavingsEvent[];
-  questsById?: Record<string, { category?: string }>;
+  // Doit inclure id pour être compatible avec groupSavingsByCategory
+  questsById?: Record<string, { id: string; category?: string }>;
   userProgress?: Record<string, { completed?: boolean }>;
   allQuests?: Array<{ id: string; starterPack?: boolean; tags?: string[] }>;
   eventSource?: string;

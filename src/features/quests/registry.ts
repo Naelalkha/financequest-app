@@ -391,7 +391,8 @@ export const getRecommendedQuests = (
   } else {
     // Nouveau format : (userProfile, limit)
     const userProfile = arg1;
-    limit = arg2 || 3;
+    // Convertir en nombre, arg2 peut être string ou number selon le format d'appel
+    limit = typeof arg2 === 'number' ? arg2 : 3;
     available = getAvailableQuests(userProfile);
   }
 

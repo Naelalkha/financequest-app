@@ -27,7 +27,7 @@ interface SmartMissionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAccept: (quest: SmartMissionQuest) => void;
-  onReroll: () => SmartMissionQuest;
+  onReroll: () => SmartMissionQuest | null;  // Peut retourner null si plus de quests
   initialQuest: SmartMissionQuest | null;
   hideReroll?: boolean;
 }

@@ -97,13 +97,17 @@ export const uploadProofFile = async (userId, eventId, file) => {
  * @param {string} filePath - Chemin du fichier dans Storage
  * @returns {Promise<void>}
  */
-export const deleteProofFile = async (filePath) => {
+export const deleteProofFile = async (filePath: string): Promise<void> => {
   try {
     const storageRef = ref(storage, filePath);
     await deleteObject(storageRef);
-  } catch (error) {
+  } catch (error: unknown) {
     // Si le fichier n'existe pas, on ignore l'erreur
-    if (error.code === 'storage/object-not-found') {
+    // Type guard pour accéder à la propriété code
+    const isStorageError = (err: unknown): err is { code: string } =>
+      typeof err === 'object' && err !== null && 'code' in err;
+
+    if (isStorageError(error) && error.code === 'storage/object-not-found') {
       console.warn('Proof file not found, skipping deletion:', filePath);
       return;
     }

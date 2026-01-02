@@ -13,7 +13,8 @@ import {
   serverTimestamp,
   limit,
   CollectionReference,
-  DocumentData
+  DocumentData,
+  QueryConstraint  // Import pour typer les contraintes de requête
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
@@ -345,7 +346,8 @@ export const getAllSavingsEvents = async (
     const savingsRef = getSavingsEventsCollection(userId);
     const limitCount = options.limitCount || 50;
 
-    let constraints = [orderBy('createdAt', 'desc'), limit(limitCount)];
+    // 📝 Typage explicite : QueryConstraint englobe where, orderBy, limit
+    let constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(limitCount)];
 
     // Appliquer les filtres si fournis
     if (options.questId) {
@@ -359,12 +361,13 @@ export const getAllSavingsEvents = async (
     const q = query(savingsRef, ...constraints);
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
+    // Cast explicite : on sait que les données Firestore ont la bonne structure
+    return snapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...(docSnap.data() as Omit<SavingsEventData, 'id'>),
       // Convertir les Timestamps en Dates pour faciliter l'utilisation
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
+      createdAt: docSnap.data().createdAt?.toDate(),
+      updatedAt: docSnap.data().updatedAt?.toDate(),
     }));
   } catch (error) {
     console.error('Error fetching savings events:', error);
@@ -387,11 +390,13 @@ export const getSavingsEventById = async (
       return null;
     }
 
+    // Cast explicite : les données Firestore ont la structure SavingsEventData
+    const data = snapshot.data() as Omit<SavingsEventData, 'id'>;
     return {
       id: snapshot.id,
-      ...snapshot.data(),
-      createdAt: snapshot.data().createdAt?.toDate(),
-      updatedAt: snapshot.data().updatedAt?.toDate(),
+      ...data,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   } catch (error) {
     console.error('Error fetching savings event:', error);
