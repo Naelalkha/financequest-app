@@ -94,47 +94,59 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
     };
 
-    // Lock body scroll when overlay is visible (iOS PWA fix)
+    // Combined effect: Calculate position FIRST, then lock body scroll
     useEffect(() => {
         if (!isVisible) return;
 
-        // Save current scroll position and lock body
-        const scrollY = window.scrollY;
         const body = document.body;
         const html = document.documentElement;
+        const scrollY = window.scrollY;
 
-        // Apply fixed positioning to prevent iOS rubber-band scrolling
-        body.style.position = 'fixed';
-        body.style.top = `-${scrollY}px`;
-        body.style.left = '0';
-        body.style.right = '0';
-        body.style.overflow = 'hidden';
-        html.style.overflow = 'hidden';
+        // Padding confortable autour du bouton pour le "trou"
+        const paddingX = 48;
+        const paddingY = 32;
 
-        return () => {
-            // Restore scroll position when unmounting
-            body.style.position = '';
-            body.style.top = '';
-            body.style.left = '';
-            body.style.right = '';
-            body.style.overflow = '';
-            html.style.overflow = '';
-            window.scrollTo(0, scrollY);
-        };
-    }, [isVisible]);
+        let rafId: number;
 
-    useEffect(() => {
-        if (!isVisible) return;
-
-        const updatePosition = () => {
+        // Calculate position BEFORE locking body (critical for accuracy)
+        const calculateAndLock = () => {
             if (!buttonRef?.current) return;
+
             const btnRect = buttonRef.current.getBoundingClientRect();
 
-            // Padding confortable autour du bouton pour le "trou"
-            // Augmenté pour créer de l'espace entre le bouton et l'anneau lumineux
-            const paddingX = 48;
-            const paddingY = 32;
+            // Wait for button to be properly laid out (has dimensions)
+            if (btnRect.width === 0 || btnRect.height === 0) {
+                rafId = requestAnimationFrame(calculateAndLock);
+                return;
+            }
 
+            setSpotlight({
+                x: btnRect.left + btnRect.width / 2,
+                y: btnRect.top + btnRect.height / 2,
+                width: btnRect.width + paddingX,
+                height: btnRect.height + paddingY,
+                btnWidth: btnRect.width,
+                btnHeight: btnRect.height
+            });
+
+            // Lock body scroll AFTER calculating position (iOS PWA fix)
+            body.style.position = 'fixed';
+            body.style.top = `-${scrollY}px`;
+            body.style.left = '0';
+            body.style.right = '0';
+            body.style.overflow = 'hidden';
+            html.style.overflow = 'hidden';
+        };
+
+        // Use double RAF to ensure layout is complete
+        rafId = requestAnimationFrame(() => {
+            rafId = requestAnimationFrame(calculateAndLock);
+        });
+
+        // Handle resize
+        const handleResize = () => {
+            if (!buttonRef?.current) return;
+            const btnRect = buttonRef.current.getBoundingClientRect();
             setSpotlight({
                 x: btnRect.left + btnRect.width / 2,
                 y: btnRect.top + btnRect.height / 2,
@@ -145,14 +157,19 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
             });
         };
 
-        const timeout = setTimeout(updatePosition, 100);
-        window.addEventListener('resize', updatePosition);
-        window.addEventListener('scroll', updatePosition);
+        window.addEventListener('resize', handleResize);
 
         return () => {
-            clearTimeout(timeout);
-            window.removeEventListener('resize', updatePosition);
-            window.removeEventListener('scroll', updatePosition);
+            cancelAnimationFrame(rafId);
+            window.removeEventListener('resize', handleResize);
+            // Restore scroll position when unmounting
+            body.style.position = '';
+            body.style.top = '';
+            body.style.left = '';
+            body.style.right = '';
+            body.style.overflow = '';
+            html.style.overflow = '';
+            window.scrollTo(0, scrollY);
         };
     }, [isVisible, buttonRef]);
 
