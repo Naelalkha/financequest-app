@@ -94,46 +94,22 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
         transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
     };
 
-    // Lock body scroll when overlay is visible (iOS PWA fix)
+    // Combined effect: Calculate position FIRST, then lock body scroll
     useEffect(() => {
         if (!isVisible) return;
 
-        // Save current scroll position and lock body
-        const scrollY = window.scrollY;
         const body = document.body;
         const html = document.documentElement;
+        const scrollY = window.scrollY;
 
-        // Apply fixed positioning to prevent iOS rubber-band scrolling
-        body.style.position = 'fixed';
-        body.style.top = `-${scrollY}px`;
-        body.style.left = '0';
-        body.style.right = '0';
-        body.style.overflow = 'hidden';
-        html.style.overflow = 'hidden';
+        // Padding confortable autour du bouton pour le "trou"
+        const paddingX = 48;
+        const paddingY = 32;
 
-        return () => {
-            // Restore scroll position when unmounting
-            body.style.position = '';
-            body.style.top = '';
-            body.style.left = '';
-            body.style.right = '';
-            body.style.overflow = '';
-            html.style.overflow = '';
-            window.scrollTo(0, scrollY);
-        };
-    }, [isVisible]);
-
-    useEffect(() => {
-        if (!isVisible) return;
-
+        // Calculate position BEFORE locking body (critical for accuracy)
         const updatePosition = () => {
             if (!buttonRef?.current) return;
             const btnRect = buttonRef.current.getBoundingClientRect();
-
-            // Padding confortable autour du bouton pour le "trou"
-            // Augmenté pour créer de l'espace entre le bouton et l'anneau lumineux
-            const paddingX = 48;
-            const paddingY = 32;
 
             setSpotlight({
                 x: btnRect.left + btnRect.width / 2,
@@ -145,14 +121,30 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
             });
         };
 
-        const timeout = setTimeout(updatePosition, 100);
+        // Calculate position immediately
+        updatePosition();
+
+        // Then lock body scroll (iOS PWA fix)
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.overflow = 'hidden';
+        html.style.overflow = 'hidden';
+
+        // Listen for resize only (no scroll since body is locked)
         window.addEventListener('resize', updatePosition);
-        window.addEventListener('scroll', updatePosition);
 
         return () => {
-            clearTimeout(timeout);
             window.removeEventListener('resize', updatePosition);
-            window.removeEventListener('scroll', updatePosition);
+            // Restore scroll position when unmounting
+            body.style.position = '';
+            body.style.top = '';
+            body.style.left = '';
+            body.style.right = '';
+            body.style.overflow = '';
+            html.style.overflow = '';
+            window.scrollTo(0, scrollY);
         };
     }, [isVisible, buttonRef]);
 
