@@ -29,13 +29,13 @@ import {
  */
 export const useServerImpactAggregates = () => {
   const { user } = useAuth();
-  const [serverImpact, setServerImpact] = useState(null);
-  const [impactAnnualVerified, setImpactAnnualVerified] = useState(null);
-  const [proofsVerifiedCount, setProofsVerifiedCount] = useState(null);
-  const [lastImpactRecalcAt, setLastImpactRecalcAt] = useState(null);
+  const [serverImpact, setServerImpact] = useState<number | null>(null);
+  const [impactAnnualVerified, setImpactAnnualVerified] = useState<number | null>(null);
+  const [proofsVerifiedCount, setProofsVerifiedCount] = useState<number | null>(null);
+  const [lastImpactRecalcAt, setLastImpactRecalcAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Local fallback using direct impact events calculation
   const { events, loadEvents } = useSavingsEvents();
@@ -70,7 +70,7 @@ export const useServerImpactAggregates = () => {
   useEffect(() => {
     if (!user) {
       // Pas d'utilisateur → reset
-      setImpactAnnualEstimated(0);
+      setServerImpact(0);
       setImpactAnnualVerified(0);
       setProofsVerifiedCount(0);
       setLastImpactRecalcAt(null);
@@ -118,7 +118,7 @@ export const useServerImpactAggregates = () => {
         setLastImpactRecalcAt(null);
         setLoading(false);
       }
-    }, (err) => {
+    }, (err: Error) => {
       console.error('❌ Error fetching impact aggregates:', err);
       setError(err.message);
       setLoading(false);
@@ -142,7 +142,7 @@ export const useServerImpactAggregates = () => {
       console.log('✅ Manual recalculation completed');
     } catch (err) {
       console.error('❌ Manual recalculation failed:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSyncing(false);
     }

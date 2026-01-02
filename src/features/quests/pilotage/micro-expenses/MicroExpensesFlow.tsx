@@ -9,9 +9,52 @@ import { trackEvent } from '../../../../utils/analytics';
 import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
 import { haptic } from '../../../../utils/haptics';
 
+/** Quest metadata */
+interface QuestMeta {
+  id?: string;
+  xp?: number;
+  xpReward?: number;
+  title?: string;
+}
+
+/** User progress data */
+interface UserProgressData {
+  streak?: number;
+  xpProgress?: number;
+  [key: string]: unknown;
+}
+
+/** Completion result data */
+interface CompletionResult {
+  questId: string;
+  expenseName: string;
+  unitPrice: number;
+  frequencyId: string;
+  timesPerWeek: number;
+  actionLevel: string | null;
+  monthlySavings: number;
+  yearlySavings: number;
+  fiveYearPotential: number;
+  yearlyEquivalent: unknown;
+  dailyAmount: number;
+  monthlyAmount: number;
+  yearlyAmount: number;
+  tenYearAmount: number;
+  xpEarned: number;
+  completedAt: string;
+}
+
+/** Props for MicroExpensesFlow */
+interface MicroExpensesFlowProps {
+  quest?: QuestMeta;
+  onComplete: (result: CompletionResult) => void;
+  onClose: () => void;
+  userProgress?: UserProgressData;
+}
+
 /**
  * MicroExpensesFlow - Main 3-Phase Quest Flow Controller
- * 
+ *
  * Quest 02: L'EFFET CUMULÉ
  * Features:
  * - Centralized navigation state (Protocol pages & Execution steps)
@@ -24,7 +67,7 @@ const mainScreenVariants = {
     exit: { opacity: 0 }
 };
 
-const MicroExpensesFlow = ({
+const MicroExpensesFlow: React.FC<MicroExpensesFlowProps> = ({
     quest = {},
     onComplete,
     onClose,
@@ -103,7 +146,7 @@ const MicroExpensesFlow = ({
     const progressWidth = getProgressWidth();
 
     // Update quest data
-    const handleUpdateData = useCallback((newData) => {
+    const handleUpdateData = useCallback((newData: Partial<typeof questData>) => {
         setQuestData(prev => ({ ...prev, ...newData }));
     }, []);
 
@@ -360,9 +403,8 @@ const MicroExpensesFlow = ({
                             >
                                 <DebriefScreen
                                     data={questData}
-                                    xpReward={quest.xp || 120}
-                                    currentStreak={userProgress.streak || 1}
-                                    xpProgress={userProgress.xpProgress || 75}
+                                    xpReward={quest.xp ?? quest.xpReward ?? 120}
+                                    currentStreak={userProgress.streak ?? 1}
                                     onComplete={handleComplete}
                                 />
                             </motion.div>

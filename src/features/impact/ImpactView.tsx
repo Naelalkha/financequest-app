@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Trophy, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../contexts/AuthContext";
 import { useSavingsEvents } from "../../hooks/useSavingsEvents";
+import { SavingsEventData } from "../../services/savingsEvents";
 import { useLocalQuests } from "../../hooks/useLocalQuests";
 import useLocalizedQuest from "../../hooks/useLocalizedQuest";
 import ImpactModal from "./components/ImpactModal";
@@ -23,7 +24,7 @@ const MILESTONES = [
  * Shows the stored title directly (which includes service name for quest-based entries)
  * Falls back to localized quest title only if entry.title is missing
  */
-const EntryTitle = ({ entry }) => {
+const EntryTitle = ({ entry }: { entry: SavingsEventData }) => {
   const { quests } = useLocalQuests();
 
   // If entry has a stored title (e.g., "Coupe 1 abo - Netflix"), use it directly
@@ -62,8 +63,8 @@ const ImpactView = () => {
   const { user } = useAuth();
   const { events, loading, loadEvents, createEvent, updateEvent, deleteEvent } = useSavingsEvents();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
+  const [editingEntry, setEditingEntry] = useState<SavingsEventData | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Load events on mount
   useEffect(() => {
@@ -108,7 +109,7 @@ const ImpactView = () => {
     }));
   }, [entries]);
 
-  const handleSave = (data) => {
+  const handleSave = (data: { title: string; amount: number; date?: string }) => {
     if (editingEntry) {
       updateEvent(editingEntry.id, {
         title: data.title,
@@ -129,24 +130,24 @@ const ImpactView = () => {
     }
   };
 
-  const openAdd = (e) => {
+  const openAdd = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setEditingEntry(null);
     setIsModalOpen(true);
   };
 
-  const openEdit = (entry) => {
+  const openEdit = (entry: SavingsEventData) => {
     setEditingEntry(entry);
     setIsModalOpen(true);
     setExpandedId(null);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: string) => {
     deleteEvent(id);
     setExpandedId(null);
   };
 
-  const toggleExpand = (id) => {
+  const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -260,7 +261,7 @@ const ImpactView = () => {
                 const annualAmount = entry.amount * (entry.period === 'month' ? 12 : 1);
                 const displayDate = entry.createdAt
                   ? new Date(entry.createdAt).toLocaleDateString()
-                  : entry.date || '';
+                  : '';
 
                 return (
                   <div key={entry.id} className="group relative border-b border-dashed border-neutral-200 last:border-0">

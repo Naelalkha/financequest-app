@@ -11,12 +11,20 @@ import { trackEvent } from '../utils/analytics';
  */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+/** Result from impact recalculation */
+interface ImpactAggregates {
+  impactAnnualEstimated: number;
+  impactAnnualVerified: number;
+  proofsVerifiedCount: number;
+  lastImpactRecalcAt: string;
+}
+
 /**
  * Recalcule les agrégats d'impact côté serveur
- * @param {string} source - Source du déclenchement ('create'|'update'|'delete'|'on_open'|'manual_button')
- * @returns {Promise<Object|null>} Les agrégats recalculés ou null en cas d'échec
  */
-export const recalculateImpactAggregates = async (source = 'unknown') => {
+export const recalculateImpactAggregates = async (
+  source: string = 'unknown'
+): Promise<ImpactAggregates | null> => {
   const startTime = Date.now();
   
   try {
@@ -82,16 +90,16 @@ export const recalculateImpactAggregates = async (source = 'unknown') => {
     
   } catch (error) {
     console.error('❌ Error recalculating impact aggregates:', error);
-    
+
     const duration = Date.now() - startTime;
-    
+
     // Track analytics failure
     trackEvent('impact_recalc_failed', {
       source,
-      reason: error.message,
+      reason: error instanceof Error ? error.message : 'Unknown error',
       duration_ms: duration,
     });
-    
+
     return null;
   }
 };
@@ -99,9 +107,8 @@ export const recalculateImpactAggregates = async (source = 'unknown') => {
 /**
  * Recalcule les agrégats en arrière-plan (fire-and-forget)
  * Ne bloque pas l'UI et ne retourne rien
- * @param {string} source - Source du déclenchement
  */
-export const recalculateImpactInBackground = (source = 'background') => {
+export const recalculateImpactInBackground = (source: string = 'background'): void => {
   // Fire and forget
   recalculateImpactAggregates(source).catch((error) => {
     console.warn('⚠️ Background recalculation failed (non-blocking):', error);
@@ -110,19 +117,19 @@ export const recalculateImpactInBackground = (source = 'background') => {
 
 /**
  * Vérifie si les agrégats sont "stale" (trop vieux)
- * @param {string|null} lastImpactRecalcAt - ISO timestamp ou null
- * @param {number} maxAgeHours - Âge maximum en heures (défaut: 6h)
- * @returns {boolean} True si les agrégats sont trop vieux
  */
-export const areAggregatesStale = (lastImpactRecalcAt, maxAgeHours = 6) => {
+export const areAggregatesStale = (
+  lastImpactRecalcAt: string | null,
+  maxAgeHours: number = 6
+): boolean => {
   if (!lastImpactRecalcAt) return true; // Jamais calculés
-  
+
   try {
     const lastRecalc = new Date(lastImpactRecalcAt);
     const now = new Date();
-    const diffMs = now - lastRecalc;
+    const diffMs = now.getTime() - lastRecalc.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
-    
+
     return diffHours > maxAgeHours;
   } catch {
     return true; // En cas d'erreur de parsing, considérer comme stale
@@ -131,24 +138,24 @@ export const areAggregatesStale = (lastImpactRecalcAt, maxAgeHours = 6) => {
 
 /**
  * Formatte la durée depuis le dernier recalcul pour l'affichage UI
- * @param {string|null} lastImpactRecalcAt - ISO timestamp ou null
- * @param {string} locale - Locale ('fr' ou 'en')
- * @returns {string} Texte formaté (ex: "il y a 2 min")
  */
-export const formatTimeSinceRecalc = (lastImpactRecalcAt, locale = 'fr') => {
+export const formatTimeSinceRecalc = (
+  lastImpactRecalcAt: string | null,
+  locale: string = 'fr'
+): string => {
   if (!lastImpactRecalcAt) {
     return locale === 'fr' ? 'Jamais mis à jour' : 'Never updated';
   }
-  
+
   try {
     const lastRecalc = new Date(lastImpactRecalcAt);
     const now = new Date();
-    const diffMs = now - lastRecalc;
-    
+    const diffMs = now.getTime() - lastRecalc.getTime();
+
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffMinutes < 1) {
       return locale === 'fr' ? 'À l\'instant' : 'Just now';
     } else if (diffMinutes < 60) {

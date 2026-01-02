@@ -55,9 +55,10 @@ interface StrategyWithSavings {
 // Props interface
 interface ExecutionScreenProps {
     data?: {
-        subscription?: { id: string };
+        subscription?: { id: string } | null;
         customName?: string;
         monthlyAmount?: number;
+        [key: string]: unknown;
     };
     onUpdate: (data: object) => void;
     onNext: () => void;

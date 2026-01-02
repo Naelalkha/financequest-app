@@ -4,7 +4,7 @@ import { Archive, LayoutList, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useLocalizedQuest from '../../hooks/useLocalizedQuest';
 import { useAuth } from "../../contexts/AuthContext";
-import { useLocalQuests } from "../../hooks/useLocalQuests";
+import { useLocalQuests, Quest } from "../../hooks/useLocalQuests";
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import { updateGamificationOnQuestComplete } from "../../services/gamification";
@@ -12,6 +12,11 @@ import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
 import { CutSubscriptionFlow } from "./pilotage/cut-subscription";
 import { MicroExpensesFlow } from "./pilotage/micro-expenses";
+
+/** Quest with progress info */
+interface QuestWithProgress extends Quest {
+  progress?: number;
+}
 
 
 /**
@@ -26,7 +31,7 @@ const QuestListView = () => {
     const [tab, setTab] = useState("ACTIVE");
     const [userProgress, setUserProgress] = useState({});
     const [loading, setLoading] = useState(true);
-    const [selectedQuest, setSelectedQuest] = useState(null);
+    const [selectedQuest, setSelectedQuest] = useState<QuestWithProgress | null>(null);
     const [showQuestModal, setShowQuestModal] = useState(false);
 
     // Load user quest progress
@@ -257,7 +262,7 @@ const QuestListView = () => {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-sans font-bold text-white line-through decoration-gold">{localizedQuest?.title || quest.title}</h4>
-                                                    <span className="font-mono text-[10px] text-emerald">+{(quest.estimatedAnnual || quest.estimatedImpact || 0).toFixed(2)} SAVED</span>
+                                                    <span className="font-mono text-[10px] text-emerald">+{(quest.estimatedImpact?.amount ?? 0).toFixed(2)} SAVED</span>
                                                 </div>
                                             </div>
                                             <span className="font-mono text-[10px] text-neutral-600">{t('completed_status').toUpperCase()}</span>

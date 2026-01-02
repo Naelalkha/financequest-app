@@ -16,10 +16,19 @@ const DAILY_CHALLENGE_TYPES = {
   CATEGORY_EXPLORER: 'category_explorer'
 };
 
+/** Options pour générer un défi quotidien */
+interface DailyChallengeOptions {
+  forceRandom?: boolean;
+  salt?: number;
+  excludeQuestId?: string;
+  lang?: string;
+}
+
 // Générer un défi quotidien basé sur la date
-export const generateDailyChallenge = (date = new Date(), options = {}) => {
+export const generateDailyChallenge = (date = new Date(), options: DailyChallengeOptions = {}) => {
   const { forceRandom, salt, excludeQuestId, lang = 'fr' } = options;
-  const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  // Calculer le jour de l'année en utilisant getTime() pour éviter les erreurs de type
+  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   let seed = forceRandom ? Math.floor(Math.random() * 100000) + (salt || 0) : (dayOfYear % 365);
 
   const challengeTypes = Object.values(DAILY_CHALLENGE_TYPES);
@@ -40,9 +49,10 @@ export const generateDailyChallenge = (date = new Date(), options = {}) => {
   // La quête cut-subscription utilise i18nKey, on récupère le titre depuis i18n
   // Pour l'instant on utilise un placeholder, l'idéal serait d'importer i18n ici
   const questTitleKey = selectedQuest?.i18nKey ? `${selectedQuest.i18nKey}.title` : null;
+  // Les quêtes utilisent i18nKey, pas de propriété title directe
   const questTitle = selectedQuest?.i18nKey
     ? (lang === 'en' ? 'Cut one unused subscription' : 'Coupe 1 abonnement inutile') // Hardcoded pour l'instant
-    : selectedQuest?.title || `Quête ${selectedQuest?.id}`;
+    : `Quête ${selectedQuest?.id || 'inconnue'}`;
 
   return {
     id: `daily_${date.toISOString().split('T')[0]}_${seed}`,  // Add seed to make regenerated challenges unique
@@ -104,7 +114,7 @@ const getChallengeRequirements = (type, quest) => {
 };
 
 // Vérifier si l'utilisateur a un défi quotidien actif
-export const getUserDailyChallenge = async (userId, lang = 'fr') => {
+export const getUserDailyChallenge = async (userId: string, lang: string = 'fr') => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const challengeRef = doc(db, 'dailyChallenges', `${userId}_${today}`);
@@ -117,9 +127,10 @@ export const getUserDailyChallenge = async (userId, lang = 'fr') => {
         const quest = allQuests.find(q => q.id === data.questId);
         if (quest) {
           // Utiliser directement la traduction hardcodée pour cut-subscription
+          // Note: les quêtes utilisent i18nKey, pas de propriété title directe
           data.questTitle = quest.i18nKey
             ? (lang === 'en' ? 'Cut one unused subscription' : 'Coupe 1 abonnement inutile')
-            : quest.title || `Quête ${quest.id}`;
+            : `Quête ${quest.id}`;
         }
       }
       return data;

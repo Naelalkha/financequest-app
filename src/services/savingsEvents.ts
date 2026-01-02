@@ -13,7 +13,8 @@ import {
   serverTimestamp,
   limit,
   CollectionReference,
-  DocumentData
+  DocumentData,
+  QueryConstraint  // Import pour typer les contraintes de requête
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
@@ -21,7 +22,7 @@ import { recalculateImpactInBackground } from './impactAggregates';
 
 /** Savings event data structure */
 export interface SavingsEventData {
-  id?: string;
+  id: string;
   title: string;
   questId: string;
   amount: number;
@@ -55,9 +56,9 @@ export interface UpdateSavingsEventInput {
   amount?: number;
   period?: 'month' | 'year';
   proof?: {
-    type?: string;
+    type: string;
     note?: string;
-  };
+  } | null;
 }
 
 /** Filter options for querying savings events */
@@ -205,25 +206,21 @@ export const createSavingsEventInFirestore = async (
 
 /**
  * Met à jour un événement d'économie existant avec whitelist stricte
- * @param {string} userId - ID de l'utilisateur
- * @param {string} eventId - ID de l'événement
- * @param {Object} updates - Mises à jour
- * @param {string} [updates.title] - Titre de l'économie
- * @param {number} [updates.amount] - Montant économisé
- * @param {'month'|'year'} [updates.period] - Période
- * @param {Object} [updates.proof] - Preuve de l'économie (note uniquement)
- * @returns {Promise<void>}
  */
-export const updateSavingsEventInFirestore = async (userId, eventId, updates) => {
+export const updateSavingsEventInFirestore = async (
+  userId: string,
+  eventId: string,
+  updates: UpdateSavingsEventInput
+): Promise<void> => {
   try {
     // Whitelist stricte : seuls ces champs peuvent être modifiés
-    const allowedFields = ['title', 'amount', 'period', 'proof'];
-    const safeUpdates = {};
+    const allowedFields = ['title', 'amount', 'period', 'proof'] as const;
+    const safeUpdates: Record<string, unknown> = {};
 
     // Filtrer uniquement les champs autorisés
     allowedFields.forEach(field => {
-      if (updates.hasOwnProperty(field)) {
-        safeUpdates[field] = updates[field];
+      if (Object.prototype.hasOwnProperty.call(updates, field)) {
+        safeUpdates[field] = updates[field as keyof UpdateSavingsEventInput];
       }
     });
 
@@ -236,15 +233,16 @@ export const updateSavingsEventInFirestore = async (userId, eventId, updates) =>
       safeUpdates.amount = amount;
     }
 
-    if (safeUpdates.period !== undefined && !['month', 'year'].includes(safeUpdates.period)) {
+    if (safeUpdates.period !== undefined && !['month', 'year'].includes(safeUpdates.period as string)) {
       throw new Error('Invalid period: must be "month" or "year"');
     }
 
     // Si proof est fourni, ne garder que la note
     if (safeUpdates.proof) {
+      const proofData = safeUpdates.proof as { note?: string };
       safeUpdates.proof = {
         type: 'note',
-        note: safeUpdates.proof.note || ''
+        note: proofData.note || ''
       };
     }
 
@@ -270,11 +268,11 @@ export const updateSavingsEventInFirestore = async (userId, eventId, updates) =>
 
 /**
  * Supprime un événement d'économie
- * @param {string} userId - ID de l'utilisateur
- * @param {string} eventId - ID de l'événement
- * @returns {Promise<void>}
  */
-export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
+export const deleteSavingsEventFromFirestore = async (
+  userId: string,
+  eventId: string
+): Promise<void> => {
   try {
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     await deleteDoc(eventRef);
@@ -294,12 +292,12 @@ export const deleteSavingsEventFromFirestore = async (userId, eventId) => {
 
 /**
  * Restaure un événement d'économie supprimé (Undo)
- * @param {string} userId - ID de l'utilisateur
- * @param {string} eventId - ID de l'événement d'origine
- * @param {Object} snapshot - Snapshot des données de l'événement supprimé
- * @returns {Promise<{id: string, ...}>} L'événement restauré avec son ID
  */
-export const restoreSavingsEventInFirestore = async (userId, eventId, snapshot) => {
+export const restoreSavingsEventInFirestore = async (
+  userId: string,
+  eventId: string,
+  snapshot: SavingsEventData
+): Promise<SavingsEventData> => {
   try {
     // Utiliser setDoc avec l'ID d'origine pour restaurer exactement le même document
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
@@ -339,19 +337,17 @@ export const restoreSavingsEventInFirestore = async (userId, eventId, snapshot) 
 
 /**
  * Récupère les événements d'économie d'un utilisateur
- * @param {string} userId - ID de l'utilisateur
- * @param {Object} [options] - Options de filtre
- * @param {string} [options.questId] - Filtrer par questId
- * @param {boolean} [options.verified] - Filtrer par statut vérifié
- * @param {number} [options.limitCount] - Nombre maximum d'événements (défaut: 50)
- * @returns {Promise<Array>} Liste des événements
  */
-export const getAllSavingsEvents = async (userId, options = {}) => {
+export const getAllSavingsEvents = async (
+  userId: string,
+  options: SavingsEventsQueryOptions = {}
+): Promise<SavingsEventData[]> => {
   try {
     const savingsRef = getSavingsEventsCollection(userId);
     const limitCount = options.limitCount || 50;
 
-    let constraints = [orderBy('createdAt', 'desc'), limit(limitCount)];
+    // 📝 Typage explicite : QueryConstraint englobe where, orderBy, limit
+    let constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(limitCount)];
 
     // Appliquer les filtres si fournis
     if (options.questId) {
@@ -365,12 +361,13 @@ export const getAllSavingsEvents = async (userId, options = {}) => {
     const q = query(savingsRef, ...constraints);
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
+    // Cast explicite : on sait que les données Firestore ont la bonne structure
+    return snapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...(docSnap.data() as Omit<SavingsEventData, 'id'>),
       // Convertir les Timestamps en Dates pour faciliter l'utilisation
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
+      createdAt: docSnap.data().createdAt?.toDate(),
+      updatedAt: docSnap.data().updatedAt?.toDate(),
     }));
   } catch (error) {
     console.error('Error fetching savings events:', error);
@@ -380,11 +377,11 @@ export const getAllSavingsEvents = async (userId, options = {}) => {
 
 /**
  * Récupère un événement d'économie spécifique
- * @param {string} userId - ID de l'utilisateur
- * @param {string} eventId - ID de l'événement
- * @returns {Promise<Object|null>} L'événement ou null si non trouvé
  */
-export const getSavingsEventById = async (userId, eventId) => {
+export const getSavingsEventById = async (
+  userId: string,
+  eventId: string
+): Promise<SavingsEventData | null> => {
   try {
     const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
     const snapshot = await getDoc(eventRef);
@@ -393,11 +390,13 @@ export const getSavingsEventById = async (userId, eventId) => {
       return null;
     }
 
+    // Cast explicite : les données Firestore ont la structure SavingsEventData
+    const data = snapshot.data() as Omit<SavingsEventData, 'id'>;
     return {
       id: snapshot.id,
-      ...snapshot.data(),
-      createdAt: snapshot.data().createdAt?.toDate(),
-      updatedAt: snapshot.data().updatedAt?.toDate(),
+      ...data,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   } catch (error) {
     console.error('Error fetching savings event:', error);
@@ -407,11 +406,11 @@ export const getSavingsEventById = async (userId, eventId) => {
 
 /**
  * Calcule le total des économies pour un utilisateur
- * @param {string} userId - ID de l'utilisateur
- * @param {'month'|'year'} [period] - Filtrer par période
- * @returns {Promise<{total: number, count: number, byPeriod: Object}>}
  */
-export const calculateTotalSavings = async (userId, period = null) => {
+export const calculateTotalSavings = async (
+  userId: string,
+  period: 'month' | 'year' | null = null
+): Promise<SavingsCalculation> => {
   try {
     const events = await getAllSavingsEvents(userId);
 
@@ -440,10 +439,10 @@ export const calculateTotalSavings = async (userId, period = null) => {
 
 /**
  * Récupère les économies par quête
- * @param {string} userId - ID de l'utilisateur
- * @returns {Promise<Map<string, Array>>} Map des événements groupés par questId
  */
-export const getSavingsByQuest = async (userId) => {
+export const getSavingsByQuest = async (
+  userId: string
+): Promise<Map<string, SavingsEventData[]>> => {
   try {
     const events = await getAllSavingsEvents(userId);
 

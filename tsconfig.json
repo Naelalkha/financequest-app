@@ -52,6 +52,9 @@
     "include": [
         "src"
     ],
+    "exclude": [
+        "src/features/quests/_template"
+    ],
     "references": [
         {
             "path": "./tsconfig.node.json"

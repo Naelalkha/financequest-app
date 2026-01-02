@@ -11,6 +11,12 @@ import {
   getQuestById as registryGetQuestById
 } from '../features/quests/registry';
 
+/** Quest estimated impact */
+export interface QuestEstimatedImpact {
+  amount: number;
+  period: 'once' | 'day' | 'week' | 'month' | 'year';
+}
+
 /** Quest data structure */
 export interface Quest {
   id: string;
@@ -25,6 +31,7 @@ export interface Quest {
   duration?: number;
   difficulty?: string;
   i18nKey?: string;
+  estimatedImpact?: QuestEstimatedImpact;
 }
 
 /** Filters for quest queries */
@@ -196,7 +203,7 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
   /**
    * Get recommended quests for user's country
    */
-  const getRecommendedQuestsForUser = (completedQuestIds = [], userLevel = 1) => {
+  const getRecommendedQuestsForUser = (completedQuestIds: string[] = [], userLevel: number = 1): Quest[] => {
     if (!user) return [];
 
     const globalRecommended = getRecommendedQuests(completedQuestIds, userLevel, i18n.language, 'global');
@@ -214,11 +221,11 @@ export const useLocalQuests = (_filters: QuestFilters = {}): UseLocalQuestsRetur
   /**
    * Get quest by ID with user's country context
    */
-  const getQuestByIdForUser = (questId) => {
+  const getQuestByIdForUser = (questId: string): Quest | null => {
     if (!user) return null;
 
     // Try to get from global quests first
-    let quest = getQuestById(questId, i18n.language);
+    const quest = getQuestById(questId, i18n.language);
 
     // If not found in global, try country-specific
     if (!quest && userCountry !== 'global') {

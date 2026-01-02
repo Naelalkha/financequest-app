@@ -237,7 +237,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
       // Rollback en cas d'erreur
       setEvents(prev => prev.filter(event => event.id !== id));
 
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
   }, [user]);
@@ -245,7 +245,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
   /**
    * Récupère un événement spécifique par ID
    */
-  const getEventById = useCallback(async (eventId) => {
+  const getEventById = useCallback(async (eventId: string): Promise<SavingsEventData | null> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -256,7 +256,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
       return await getSavingsEventById(user.uid, eventId);
     } catch (err) {
       console.error('Error fetching savings event:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
   }, [user]);
@@ -264,7 +264,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
   /**
    * Calcule le total des économies
    */
-  const getTotalSavings = useCallback(async (period = null) => {
+  const getTotalSavings = useCallback(async (period: 'month' | 'year' | null = null) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -275,7 +275,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
       return await calculateTotalSavings(user.uid, period);
     } catch (err) {
       console.error('Error calculating total savings:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
   }, [user]);
@@ -294,7 +294,7 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
       return await getSavingsByQuest(user.uid);
     } catch (err) {
       console.error('Error fetching savings by quest:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
   }, [user]);
@@ -321,14 +321,12 @@ export const useSavingsEvents = (): UseSavingsEventsReturn => {
 
 /**
  * Hook pour récupérer les événements d'économie d'une quête spécifique
- * @param {string} questId - ID de la quête
- * @returns {Object}
  */
-export const useQuestSavings = (questId) => {
+export const useQuestSavings = (questId: string) => {
   const { user } = useAuth();
-  const [questEvents, setQuestEvents] = useState([]);
+  const [questEvents, setQuestEvents] = useState<SavingsEventData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !questId) return;
@@ -339,10 +337,10 @@ export const useQuestSavings = (questId) => {
 
       try {
         const events = await getAllSavingsEvents(user.uid, { questId });
-        setQuestEvents(events);
+        setQuestEvents(events as SavingsEventData[]);
       } catch (err) {
         console.error('Error loading quest savings:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -360,7 +358,6 @@ export const useQuestSavings = (questId) => {
 
 /**
  * Hook pour calculer les statistiques totales d'économie
- * @returns {Object}
  */
 export const useSavingsStats = () => {
   const { user } = useAuth();
@@ -372,7 +369,7 @@ export const useSavingsStats = () => {
     pending: 0
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadStats = useCallback(async () => {
     if (!user) return;
@@ -386,8 +383,9 @@ export const useSavingsStats = () => {
         getAllSavingsEvents(user.uid)
       ]);
 
-      const verified = allEvents.filter(e => e.verified).length;
-      const pending = allEvents.filter(e => !e.verified && e.proof).length;
+      const eventsArray = allEvents as SavingsEventData[];
+      const verified = eventsArray.filter(e => e.verified).length;
+      const pending = eventsArray.filter(e => !e.verified && e.proof).length;
 
       setStats({
         ...totalData,
@@ -396,7 +394,7 @@ export const useSavingsStats = () => {
       });
     } catch (err) {
       console.error('Error loading savings stats:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

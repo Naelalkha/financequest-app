@@ -4,14 +4,26 @@
  */
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { trackEvent } from '../utils/analytics';
 
-export const useUserQuests = (userId) => {
-    const [quests, setQuests] = useState([]);
+/** User quest data structure */
+interface UserQuest {
+    id: string;
+    userId?: string;
+    questId?: string;
+    status?: string;
+    progress?: number;
+    completedAt?: Timestamp;
+    updatedAt?: Timestamp;
+    [key: string]: unknown;
+}
+
+export const useUserQuests = (userId: string | null) => {
+    const [quests, setQuests] = useState<UserQuest[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!userId) {
@@ -32,12 +44,12 @@ export const useUserQuests = (userId) => {
         const unsubscribe = onSnapshot(
             questsQuery,
             (snapshot) => {
-                const userQuests = [];
-                snapshot.forEach((doc) => {
+                const userQuests: UserQuest[] = [];
+                snapshot.forEach((docSnap) => {
                     userQuests.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    } as UserQuest);
                 });
 
                 // Sort by most recent first
@@ -50,7 +62,7 @@ export const useUserQuests = (userId) => {
                 setQuests(userQuests);
                 setLoading(false);
             },
-            (err) => {
+            (err: Error) => {
                 console.error('Error fetching user quests:', err);
                 setError(err.message);
                 setLoading(false);
@@ -61,7 +73,7 @@ export const useUserQuests = (userId) => {
     }, [userId]);
 
     // Complete a quest
-    const completeQuest = async (questId) => {
+    const completeQuest = async (questId: string) => {
         if (!userId) return;
 
         try {

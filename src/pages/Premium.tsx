@@ -80,8 +80,8 @@ const Premium = () => {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [isPremium, setIsPremium] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-  const [expandedFaq, setExpandedFaq] = useState(null);
-  const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
   // Cartes d'éducation financière (i18n)
@@ -155,7 +155,9 @@ const Premium = () => {
   };
 
   // Fonction de fallback pour vérifier directement avec Stripe
-  const checkSubscriptionWithStripe = async (subscriptionId) => {
+  const checkSubscriptionWithStripe = async (subscriptionId: string) => {
+    if (!user) return; // Guard: user doit être authentifié
+
     try {
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) return;
@@ -264,11 +266,12 @@ const Premium = () => {
         }
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating checkout session:', error);
 
       // Log erreur uniquement
-      console.error('Checkout error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Checkout error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -364,10 +367,11 @@ const Premium = () => {
       }
 
       window.location.href = url;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating portal session:', error);
 
-      console.error('Portal error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Portal error:', errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,14 @@
 // Starter pack de quêtes recommandées selon les objectifs et le niveau de l'utilisateur
 // IMPORTANT: Le starter pack contient exactement 3 quêtes GRATUITES
 
-export const getStarterPack = (goals, level, country) => {
-  const allPossibleQuests = [];
+type GoalType = 'budgeting' | 'saving' | 'credit' | 'investing' | 'protect';
+
+export const getStarterPack = (
+  goals: GoalType[],
+  _level: number,
+  _country: string
+): string[] => {
+  const allPossibleQuests: string[] = [];
   
   // Quêtes de base obligatoires (toujours gratuites et adaptées aux débutants)
   const mandatoryQuests = [
