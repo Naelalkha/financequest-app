@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Trophy, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../contexts/AuthContext";
 import { useSavingsEvents } from "../../hooks/useSavingsEvents";
+import { SavingsEventData } from "../../services/savingsEvents";
 import { useLocalQuests } from "../../hooks/useLocalQuests";
 import useLocalizedQuest from "../../hooks/useLocalizedQuest";
 import ImpactModal from "./components/ImpactModal";
@@ -62,8 +63,8 @@ const ImpactView = () => {
   const { user } = useAuth();
   const { events, loading, loadEvents, createEvent, updateEvent, deleteEvent } = useSavingsEvents();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
+  const [editingEntry, setEditingEntry] = useState<SavingsEventData | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Load events on mount
   useEffect(() => {
@@ -108,7 +109,7 @@ const ImpactView = () => {
     }));
   }, [entries]);
 
-  const handleSave = (data) => {
+  const handleSave = (data: { title: string; amount: number; date?: string }) => {
     if (editingEntry) {
       updateEvent(editingEntry.id, {
         title: data.title,
@@ -129,24 +130,24 @@ const ImpactView = () => {
     }
   };
 
-  const openAdd = (e) => {
+  const openAdd = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setEditingEntry(null);
     setIsModalOpen(true);
   };
 
-  const openEdit = (entry) => {
+  const openEdit = (entry: SavingsEventData) => {
     setEditingEntry(entry);
     setIsModalOpen(true);
     setExpandedId(null);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: string) => {
     deleteEvent(id);
     setExpandedId(null);
   };
 
-  const toggleExpand = (id) => {
+  const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 

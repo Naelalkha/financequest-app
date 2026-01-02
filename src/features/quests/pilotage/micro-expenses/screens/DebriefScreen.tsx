@@ -48,7 +48,7 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
     const locale = i18n.language;
 
     // Get data from execution phase
-    const yearlySavings = data.yearlySavings || data.yearlyAmount || (data.dailyAmount * 365) || 0;
+    const yearlySavings = data.yearlySavings || data.yearlyAmount || ((data.dailyAmount ?? 0) * 365) || 0;
     const monthlySavings = data.actionSavings || data.monthlyAmount || Math.round(yearlySavings / 12);
     const fiveYearAmount = data.fiveYearAmount || data.tenYearAmount || calculateCompoundGrowth(monthlySavings, 5, 0.07);
 
