@@ -100,10 +100,21 @@ const AppRouter: React.FC = () => {
     const showBottomNav = user && !['/', '/login', '/register', '/onboarding'].includes(location.pathname);
 
     // Smooth loading state
-    if (loading) {
+    // Skip spinner for new users going to onboarding - let OnboardingFlow handle its own animation
+    if (loading && hasCompletedOnboarding) {
         return (
             <AppBackground>
                 <SmoothLoadingScreen />
+            </AppBackground>
+        );
+    }
+
+    // For new users (no onboarding completed), show minimal black screen during auth
+    // This prevents jarring spinner before the smooth onboarding animation
+    if (loading && !hasCompletedOnboarding) {
+        return (
+            <AppBackground>
+                <div className="min-h-screen" />
             </AppBackground>
         );
     }

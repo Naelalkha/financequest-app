@@ -47,6 +47,11 @@ interface ModifiedQuest extends Quest {
 /** Fallback for lazy-loaded modals */
 const ModalFallback = () => null;
 
+/** Black overlay fallback for SpotlightOverlay during lazy load */
+const SpotlightFallback = () => (
+    <div className="fixed inset-0 z-[1000] bg-black" />
+);
+
 /**
  * DashboardView - Main dashboard feature view
  * Optimized with custom hooks and memoization
@@ -543,7 +548,8 @@ const DashboardView: React.FC = () => {
             </AnimatePresence>
 
             {/* Spotlight Overlay */}
-            <Suspense fallback={<ModalFallback />}>
+            {/* Use SpotlightFallback (black screen) when spotlight should be visible during lazy load */}
+            <Suspense fallback={showSpotlight ? <SpotlightFallback /> : <ModalFallback />}>
                 <SpotlightOverlay
                     isVisible={showSpotlight}
                     buttonRef={missionButtonRef}
