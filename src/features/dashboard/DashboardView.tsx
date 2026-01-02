@@ -86,6 +86,8 @@ const DashboardView: React.FC = () => {
     const [userProgress, setUserProgress] = useState<Record<string, QuestProgress>>({});
     const [dailyChallenge, setDailyChallenge] = useState<DailyChallenge | null>(null);
     const [loading, setLoading] = useState(true);
+    // Delayed loader to avoid flash on fast loads (only show spinner after 150ms)
+    const [showLoader, setShowLoader] = useState(false);
 
     // Hooks
     const { quests, loading: questsLoading } = useLocalQuests();
@@ -171,6 +173,20 @@ const DashboardView: React.FC = () => {
 
         fetchDashboardData();
     }, [user]);
+
+    // Delayed loader effect - only show spinner if loading takes more than 150ms
+    // This prevents the flash of loading spinner on fast navigations
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (loading || questsLoading) {
+            timer = setTimeout(() => {
+                setShowLoader(true);
+            }, 150);
+        } else {
+            setShowLoader(false);
+        }
+        return () => clearTimeout(timer);
+    }, [loading, questsLoading]);
 
     // Derived State
     const levelData = computeLevel(gamification?.xpTotal || 0);
@@ -415,57 +431,84 @@ const DashboardView: React.FC = () => {
     // The spotlight overlay will cover everything anyway
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
 
-    if ((loading || questsLoading) && !isFirstRun) {
-        return (
-            <motion.div
-                className="min-h-screen flex items-center justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: DURATION.medium, ease: EASE.premium }}
-            >
+    // Handle loading states:
+    // 1. If still loading and not firstRun, don't render content yet
+    // 2. Show spinner only after 150ms delay (showLoader) to avoid flash
+    // 3. Before 150ms, show empty screen to prevent content flash then re-render
+    const isLoading = (loading || questsLoading) && !isFirstRun;
+
+    if (isLoading) {
+        if (showLoader) {
+            // Show spinner after 150ms delay
+            return (
                 <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: DURATION.normal, ease: EASE.outExpo, delay: 0.05 }}
+                    className="min-h-screen flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.premium }}
                 >
-                    <div className="mb-6 flex items-center justify-center">
-                        <LoadingSpinner size="lg" />
-                    </div>
-                    <motion.p
-                        className="text-gray-400 text-lg font-medium"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.15, duration: DURATION.normal }}
+                    <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: DURATION.normal, ease: EASE.outExpo, delay: 0.05 }}
                     >
-                        {tCommon('ui.loading_app') || 'Loading Moniyo...'}
-                    </motion.p>
+                        <div className="mb-6 flex items-center justify-center">
+                            <LoadingSpinner size="lg" />
+                        </div>
+                        <motion.p
+                            className="text-gray-400 text-lg font-medium"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.15, duration: DURATION.normal }}
+                        >
+                            {tCommon('ui.loading_app') || 'Loading Moniyo...'}
+                        </motion.p>
+                    </motion.div>
                 </motion.div>
-            </motion.div>
-        );
+            );
+        }
+        // Before 150ms delay, show empty screen to prevent content flash
+        return <div className="min-h-screen" />;
     }
 
     return (
-        <div className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24">
+        <motion.div
+            className="min-h-screen text-white font-sans selection:bg-[#E5FF00] selection:text-black pb-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DURATION.medium, ease: EASE.premium }}
+        >
             <div className="relative z-10 max-w-md mx-auto min-h-screen flex flex-col">
 
                 {/* 1. Header */}
-                <DashboardHeader
-                    stats={{
-                        streakDays: streakDays,
-                        level: levelData.level,
-                        xpInCurrentLevel: levelData.xpInCurrentLevel,
-                        xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
-                    }}
-                    userAvatar={userData?.photoURL || user?.photoURL}
-                />
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.05 }}
+                >
+                    <DashboardHeader
+                        stats={{
+                            streakDays: streakDays,
+                            level: levelData.level,
+                            xpInCurrentLevel: levelData.xpInCurrentLevel,
+                            xpForNextLevel: levelData.nextLevelXP ? (levelData.nextLevelXP - levelData.currentLevelXP) : 100
+                        }}
+                        userAvatar={userData?.photoURL || user?.photoURL}
+                    />
+                </motion.div>
 
                 {/* 1.5 Save Progress Banner (for anonymous users) */}
                 <SaveProgressBanner />
 
                 {/* 2. Scoreboard (Impact Hero) */}
-                <div className="space-y-6 mb-8">
+                <motion.div
+                    className="space-y-6 mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.1 }}
+                >
                     <DashboardScoreboard
                         impactAnnual={(impactAnnualEstimated || 0) + localImpactBoost}
                         currency={userData?.currency || '€'}
@@ -473,27 +516,42 @@ const DashboardView: React.FC = () => {
                         buttonRef={missionButtonRef}
                         containerRef={scoreboardContainerRef}
                     />
-                </div>
+                </motion.div>
 
                 {/* 2.5 Daily Challenge (if exists) */}
                 {dailyChallenge && dailyChallenge.status !== 'completed' && (
-                    <div className="mt-8">
+                    <motion.div
+                        className="mt-8"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.15 }}
+                    >
                         <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('dailyChallenge') || 'DAILY CHALLENGE'}</h2>
                         <DashboardDailyChallenge
                             challenge={dailyChallenge}
                             onStart={handleStartDailyChallenge}
                         />
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* 2.6 Category Grid */}
-                <div className="mt-8">
+                <motion.div
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.2 }}
+                >
                     <h2 className="px-6 font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase mb-4">{t('categories') || 'CATEGORIES'}</h2>
                     <CategoryGrid onSelectCategory={handleSelectCategory} />
-                </div>
+                </motion.div>
 
                 {/* 3. Bento Stats (Badges & Log) */}
-                <div className="mt-8">
+                <motion.div
+                    className="mt-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.outExpo, delay: 0.25 }}
+                >
                     <div className="px-6 flex justify-between items-end mb-4">
                         <h2 className="font-mono text-sm text-neutral-500 font-medium tracking-widest uppercase">COLLECTION</h2>
                         <button className="text-xs text-neutral-600 hover:text-[#E2FF00] transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer">
@@ -505,7 +563,7 @@ const DashboardView: React.FC = () => {
                         recentImpact={recentImpact}
                         levelData={levelData}
                     />
-                </div>
+                </motion.div>
 
             </div>
 
@@ -628,7 +686,7 @@ const DashboardView: React.FC = () => {
                     }
                 }}
             />
-        </div>
+        </motion.div>
     );
 };
 

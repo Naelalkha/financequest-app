@@ -49,7 +49,7 @@ const DashboardScoreboard = ({ impactAnnual, currency = '€', onStartQuest, but
     const { t } = useTranslation('dashboard');
 
     return (
-        <section ref={containerRef} className="px-6 pt-4 pb-12 relative z-20 animate-slide-up">
+        <section ref={containerRef} className="px-6 pt-4 pb-12 relative z-20">
             {/* The Score Card - COMPACT & CLEAN */}
             <div
                 className="relative w-full bg-[#0A0A0A] backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 pt-8 pb-8 flex flex-col items-start justify-center overflow-hidden active:scale-[0.98] transition-transform"
