@@ -431,37 +431,46 @@ const DashboardView: React.FC = () => {
     // The spotlight overlay will cover everything anyway
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
 
-    // Only show loading spinner if loading takes more than 150ms (showLoader)
-    // This prevents the flash of spinner on fast navigations
-    if (showLoader && !isFirstRun) {
-        return (
-            <motion.div
-                className="min-h-screen flex items-center justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: DURATION.medium, ease: EASE.premium }}
-            >
+    // Handle loading states:
+    // 1. If still loading and not firstRun, don't render content yet
+    // 2. Show spinner only after 150ms delay (showLoader) to avoid flash
+    // 3. Before 150ms, show empty screen to prevent content flash then re-render
+    const isLoading = (loading || questsLoading) && !isFirstRun;
+
+    if (isLoading) {
+        if (showLoader) {
+            // Show spinner after 150ms delay
+            return (
                 <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: DURATION.normal, ease: EASE.outExpo, delay: 0.05 }}
+                    className="min-h-screen flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: DURATION.medium, ease: EASE.premium }}
                 >
-                    <div className="mb-6 flex items-center justify-center">
-                        <LoadingSpinner size="lg" />
-                    </div>
-                    <motion.p
-                        className="text-gray-400 text-lg font-medium"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.15, duration: DURATION.normal }}
+                    <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: DURATION.normal, ease: EASE.outExpo, delay: 0.05 }}
                     >
-                        {tCommon('ui.loading_app') || 'Loading Moniyo...'}
-                    </motion.p>
+                        <div className="mb-6 flex items-center justify-center">
+                            <LoadingSpinner size="lg" />
+                        </div>
+                        <motion.p
+                            className="text-gray-400 text-lg font-medium"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.15, duration: DURATION.normal }}
+                        >
+                            {tCommon('ui.loading_app') || 'Loading Moniyo...'}
+                        </motion.p>
+                    </motion.div>
                 </motion.div>
-            </motion.div>
-        );
+            );
+        }
+        // Before 150ms delay, show empty screen to prevent content flash
+        return <div className="min-h-screen" />;
     }
 
     return (
