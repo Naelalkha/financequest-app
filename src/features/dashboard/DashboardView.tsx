@@ -254,6 +254,35 @@ const DashboardView: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Block scroll when spotlight is visible to prevent highlight from moving
+    // IMPORTANT: This useEffect must be before any conditional returns to respect React hooks rules
+    useEffect(() => {
+        if (showSpotlight) {
+            // Store current scroll position and lock body
+            const scrollY = window.scrollY;
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${scrollY}px`;
+        } else {
+            // Restore scroll position when spotlight is dismissed
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
+            }
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+        };
+    }, [showSpotlight]);
 
     // Handlers
     const handleStartQuest = () => {
@@ -441,32 +470,6 @@ const DashboardView: React.FC = () => {
             </motion.div>
         );
     }
-
-    // Block scroll when spotlight is visible to prevent highlight from moving
-    useEffect(() => {
-        if (showSpotlight) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.top = `-${window.scrollY}px`;
-        } else {
-            const scrollY = document.body.style.top;
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-            if (scrollY) {
-                window.scrollTo(0, parseInt(scrollY || '0') * -1);
-            }
-        }
-
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-        };
-    }, [showSpotlight]);
 
     return (
         <motion.div
