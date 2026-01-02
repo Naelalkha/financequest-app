@@ -55,9 +55,9 @@ export interface UpdateSavingsEventInput {
   amount?: number;
   period?: 'month' | 'year';
   proof?: {
-    type?: string;
+    type: string;
     note?: string;
-  };
+  } | null;
 }
 
 /** Filter options for querying savings events */

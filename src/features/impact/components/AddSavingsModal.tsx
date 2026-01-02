@@ -120,11 +120,15 @@ const AddSavingsModal: React.FC<AddSavingsModalProps> = ({
         throw new Error('Invalid amount value');
       }
 
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const eventData = {
         title: formData.title.trim(),
         amount,
         period: formData.period,
-        source: initialValues?.source || 'manual',
+        source: (initialValues?.source === 'quest' ? 'quest' : 'manual') as 'quest' | 'manual',
         questId: initialValues?.questId || 'manual',
         proof: formData.note.trim() ? {
           type: 'note',

@@ -184,11 +184,11 @@ export const getQuestById = (questId: string, locale: string | null = null): Que
 
 /**
  * Récupère le contenu localisé d'une quête
- * 
+ *
  * Note: Avec le nouveau format i18nKey, les traductions sont dans les fichiers i18n.
  * Cette fonction retourne simplement la quête. Utilisez useLocalizedQuest() dans les composants React.
  */
-export const getLocalizedQuest = (questId, locale = 'fr') => {
+export const getLocalizedQuest = (questId: string, locale: string = 'fr'): Quest | null => {
   const quest = getQuestById(questId);
   if (!quest) return null;
 
@@ -230,7 +230,7 @@ export const getQuestsByCategory = (
  * @param {string} country - Code pays (optionnel)
  * @returns {Array} - Quêtes gratuites
  */
-export const getFreeQuests = (locale = 'fr', country = null) => {
+export const getFreeQuests = (locale: string = 'fr', country: string | null = null): (Quest | null)[] => {
   let quests = allQuests.filter(q => !q.isPremium);
 
   // Filtrer par pays si spécifié
@@ -253,7 +253,7 @@ export const getFreeQuests = (locale = 'fr', country = null) => {
  * @param {string} country - Code pays (optionnel)
  * @returns {Array} - Quêtes premium
  */
-export const getPremiumQuests = (locale = 'fr', country = null) => {
+export const getPremiumQuests = (locale: string = 'fr', country: string | null = null): (Quest | null)[] => {
   let quests = allQuests.filter(q => q.isPremium);
 
   // Filtrer par pays si spécifié
@@ -343,14 +343,19 @@ export const getAvailableQuests = (
  * Signatures multiples pour compatibilité :
  * - (userProfile, limit) - Nouveau format
  * - (completedQuestIds, userLevel, locale, country) - Ancien format (useLocalQuests)
- * 
+ *
  * @param {Object|Array} arg1 - userProfile ou completedQuestIds
  * @param {number|string} arg2 - limit ou userLevel
  * @param {string} arg3 - locale (ancien format)
  * @param {string} arg4 - country (ancien format)
  * @returns {Array} - Quêtes recommandées
  */
-export const getRecommendedQuests = (arg1 = {}, arg2 = 3, arg3 = 'fr', arg4 = null) => {
+export const getRecommendedQuests = (
+  arg1: UserProfile | string[] = {},
+  arg2: number | string = 3,
+  arg3: string = 'fr',
+  arg4: string | null = null
+): Quest[] => {
   let available;
   let locale = 'fr';
   let limit = 3;

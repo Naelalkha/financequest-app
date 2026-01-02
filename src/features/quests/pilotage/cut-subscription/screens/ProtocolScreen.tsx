@@ -1,14 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, ChevronLeft, Zap, ArrowRight, Search, Cog, ShieldAlert } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Zap, ArrowRight, Search, Cog, ShieldAlert, LucideIcon } from 'lucide-react';
 import secretDirectoryAsset from '../../../../../assets/secret-directory.png';
 import { socialProofSlides, proTips } from '../insightData';
 import { haptic } from '../../../../../utils/haptics';
 
+/** Props for ProtocolScreen */
+interface ProtocolScreenProps {
+  onNext: () => void;
+  page: number;
+  setPage: (page: number) => void;
+}
+
 /**
  * ProtocolScreen - Phase 1: Intel + Tactics
- * 
+ *
  * OPTIMIZED VERSION:
  * - Image integrated in card (top-right, transparent)
  * - Auto-sliding carousel with visible arrows
@@ -18,7 +25,7 @@ import { haptic } from '../../../../../utils/haptics';
  * - Smooth page transitions
  */
 
-const IconMap = {
+const IconMap: Record<string, LucideIcon> = {
     Search,
     Cog,
     ShieldAlert
@@ -35,7 +42,7 @@ const pageTransition = {
     duration: 0.25
 };
 
-const ProtocolScreen = ({ onNext, page, setPage }) => {
+const ProtocolScreen: React.FC<ProtocolScreenProps> = ({ onNext, page, setPage }) => {
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
 
@@ -46,7 +53,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
     // Carousel state
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const currentSlide = slides[currentSlideIndex];
-    const timerRef = useRef(null);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Function to reset the auto-slide timer
     const resetAutoSlide = () => {
@@ -105,7 +112,7 @@ const ProtocolScreen = ({ onNext, page, setPage }) => {
     };
 
     // Helper to render bold text
-    const renderWithBold = (text) => {
+    const renderWithBold = (text: string): ReactNode[] => {
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {

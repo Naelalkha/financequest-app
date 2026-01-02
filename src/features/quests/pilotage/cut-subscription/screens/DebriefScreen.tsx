@@ -1,13 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, TrendingUp, Zap, Flame, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getConcreteImpact, calculateCompoundGrowth } from '../insightData';
 
+/** Quest data from execution phase */
+interface QuestData {
+  annualAmount?: number;
+  monthlyAmount?: number;
+  serviceName?: string;
+  [key: string]: unknown;
+}
+
+/** Props for DebriefScreen */
+interface DebriefScreenProps {
+  data?: QuestData;
+  xpReward?: number;
+  currentStreak?: number;
+  onComplete: () => void;
+}
+
 /**
  * DebriefScreen - Phase 3: Goal Confirmation
- * 
+ *
  * Quest: LA PURGE
  * REDESIGNED for consistency:
  * - Same scroll layout as other screens
@@ -15,7 +31,7 @@ import { getConcreteImpact, calculateCompoundGrowth } from '../insightData';
  * - Unified card styles (neutral with accent colors on numbers)
  * - Lucide icons instead of emojis
  */
-const DebriefScreen = ({
+const DebriefScreen: React.FC<DebriefScreenProps> = ({
     data = {},
     xpReward = 140,
     currentStreak = 1,
@@ -71,7 +87,7 @@ const DebriefScreen = ({
     }, [yearlySavings]);
 
     // Helper to render bold text marked with **
-    const renderWithBold = (text) => {
+    const renderWithBold = (text: string): ReactNode[] => {
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {

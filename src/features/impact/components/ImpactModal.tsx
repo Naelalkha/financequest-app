@@ -1,12 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { X, Save } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 
+/** Initial data for editing */
+interface InitialData {
+  title?: string;
+  amount?: number;
+  date?: string;
+  createdAt?: Date;
+}
+
+/** Save data */
+interface SaveData {
+  title: string;
+  amount: number;
+  date: string;
+}
+
+/** Props for ImpactModal */
+interface ImpactModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: SaveData) => void;
+  initialData?: InitialData | null;
+}
+
 /**
  * ImpactModal - Modal pour ajouter/éditer une économie
  */
-const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
+const ImpactModal: React.FC<ImpactModalProps> = ({ isOpen, onClose, onSave, initialData = null }) => {
   const { t } = useTranslation('impact');
   const [formData, setFormData] = useState({
     title: "",
@@ -31,7 +54,7 @@ const ImpactModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     }
   }, [initialData, isOpen]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.amount) return;
 

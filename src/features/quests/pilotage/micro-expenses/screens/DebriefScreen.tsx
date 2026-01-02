@@ -7,9 +7,30 @@ import { calculateCompoundGrowth } from '../insightData';
 
 import { getConcreteRewardIcon } from './ExecutionScreen';
 
+/** Quest data from execution phase */
+interface QuestData {
+  yearlySavings?: number;
+  yearlyAmount?: number;
+  dailyAmount?: number;
+  actionSavings?: number;
+  monthlyAmount?: number;
+  fiveYearAmount?: number;
+  tenYearAmount?: number;
+  yearlyEquivalent?: unknown;
+  [key: string]: unknown;
+}
+
+/** Props for DebriefScreen */
+interface DebriefScreenProps {
+  data?: QuestData;
+  xpReward?: number;
+  currentStreak?: number;
+  onComplete: () => void;
+}
+
 /**
  * DebriefScreen - Phase 3: Goal Confirmation
- * 
+ *
  * Quest 02: L'EFFET CUMULÉ
  * REDESIGNED for consistency:
  * - Same scroll layout as other screens
@@ -17,7 +38,7 @@ import { getConcreteRewardIcon } from './ExecutionScreen';
  * - Unified card styles (neutral with accent colors on numbers)
  * - Lucide icons instead of emojis
  */
-const DebriefScreen = ({
+const DebriefScreen: React.FC<DebriefScreenProps> = ({
     data = {},
     xpReward = 120,
     currentStreak = 1,

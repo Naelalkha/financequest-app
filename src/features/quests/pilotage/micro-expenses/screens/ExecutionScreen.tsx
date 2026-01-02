@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, LegacyRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Coffee, Utensils, Flame, Car, Beer, Plus, ChevronRight, Zap, Music, Headphones, Plane, Smartphone, Bike, Minus, Scissors, X, Wallet } from 'lucide-react';
+import { Coffee, Utensils, Flame, Car, Beer, Plus, ChevronRight, Zap, Music, Headphones, Plane, Smartphone, Bike, Minus, Scissors, X, Wallet, LucideIcon } from 'lucide-react';
 import {
     expenseCategories,
     expenseCategoryLabels,
@@ -12,18 +12,36 @@ import {
 import { Slider } from '../../../../../components/ui';
 import { haptic } from '../../../../../utils/haptics';
 
+/** Quest data from flow */
+interface QuestData {
+  categoryId?: string | null;
+  unitPrice?: number;
+  frequencyId?: string;
+  customName?: string;
+  [key: string]: unknown;
+}
+
+/** Props for ExecutionScreen */
+interface ExecutionScreenProps {
+  data?: QuestData;
+  onUpdate: (data: object) => void;
+  onNext: () => void;
+  step: string;
+  setStep: (step: string) => void;
+}
+
 /**
  * ExecutionScreen - Phase 2: "L'EFFET CUMULÉ"
- * 
+ *
  * 2-STEP NARRATIVE FLOW:
  * Step 1: "LA RÉVÉLATION" - Configure + See the shocking result
  * Step 2: "LE CHOIX DU DÉFI" - Pick your challenge level
- * 
+ *
  * NAVIGATION: Controlled by parent (MicroExpensesFlow) for uniform header behavior
  */
 
 // Icon map for Lucide components
-const ICON_MAP = {
+const ICON_MAP: Record<string, LucideIcon> = {
     Coffee,
     Utensils,
     Flame,
@@ -33,7 +51,7 @@ const ICON_MAP = {
 };
 
 // Difficulty stars component
-const DifficultyStars = ({ level, color }) => {
+const DifficultyStars = ({ level, color }: { level: string; color: string }) => {
     const stars = level === 'easy' ? 1 : level === 'medium' ? 2 : 3;
     return (
         <div className="flex gap-0.5">
@@ -50,7 +68,7 @@ const DifficultyStars = ({ level, color }) => {
 };
 
 // Concrete reward icon based on amount - EXPORTED for reuse
-export const getConcreteRewardIcon = (amount, locale = 'fr') => {
+export const getConcreteRewardIcon = (amount: number, locale: string = 'fr') => {
     const labels = {
         fr: {
             streaming: '1 an de streaming',
@@ -76,7 +94,7 @@ export const getConcreteRewardIcon = (amount, locale = 'fr') => {
     return { icon: <Bike className="w-5 h-5 text-yellow-400" />, text: L.vespa };
 };
 
-const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }) => {
+const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, onNext, step, setStep }) => {
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
 
