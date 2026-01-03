@@ -193,10 +193,10 @@ const DashboardScoreboard = memo(({
                         </div>
 
                         {/* Connection line */}
-                        <div className="w-[1px] h-4 bg-gradient-to-b from-[#E2FF00]/60 to-[#E2FF00]/20 mt-2" />
+                        <div className="w-[1px] h-6 bg-gradient-to-b from-[#E2FF00]/60 to-[#E2FF00]/30 mt-2" />
 
-                        {/* Connection dot */}
-                        <div className="w-2 h-2 bg-[#E2FF00] rounded-full shadow-[0_0_10px_#E2FF00]" />
+                        {/* Connection dot - positioned to touch the highlight border */}
+                        <div className="w-2 h-2 bg-[#E2FF00] rounded-full shadow-[0_0_10px_#E2FF00] mb-[-12px]" />
                     </motion.div>
 
                     {/* Button container - positioned exactly where the real button is */}
@@ -209,21 +209,40 @@ const DashboardScoreboard = memo(({
                             height: buttonPosition.height,
                         }}
                     >
-                        {/* Glow rings */}
+                        {/* Subtle pulse ring that expands outward */}
                         <motion.div
-                            className="absolute -inset-5 rounded-2xl border-2 border-[#E2FF00] pointer-events-none"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: [0.2, 0.4, 0.2] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                            className="absolute -inset-4 rounded-2xl pointer-events-none"
+                            style={{ border: '1.5px solid rgba(226, 255, 0, 0.4)' }}
+                            animate={{
+                                scale: [1, 1.08],
+                                opacity: [0.4, 0]
+                            }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
                         />
+
+                        {/* Inner border with soft glow */}
                         <motion.div
-                            className="absolute -inset-3 rounded-xl border-2 border-[#E2FF00] pointer-events-none"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute -inset-3 rounded-xl pointer-events-none"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                             transition={{ duration: 0.3 }}
                             style={{
-                                boxShadow: '0 0 20px rgba(226, 255, 0, 0.4), 0 0 40px rgba(226, 255, 0, 0.2)',
+                                border: '2px solid rgba(226, 255, 0, 0.6)',
+                                boxShadow: '0 0 15px rgba(226, 255, 0, 0.2), 0 0 30px rgba(226, 255, 0, 0.1)',
                             }}
+                        />
+
+                        {/* Breathing glow - subtle */}
+                        <motion.div
+                            className="absolute -inset-3 rounded-xl pointer-events-none"
+                            animate={{
+                                boxShadow: [
+                                    '0 0 15px rgba(226, 255, 0, 0.15)',
+                                    '0 0 25px rgba(226, 255, 0, 0.25)',
+                                    '0 0 15px rgba(226, 255, 0, 0.15)'
+                                ]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                         />
 
                         {/* Duplicated button in portal */}
