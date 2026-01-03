@@ -29,7 +29,6 @@ import { onboardingStore } from '../onboarding/onboardingStore';
 
 // Lazy-loaded components (not on critical path)
 const SmartMissionModal = lazy(() => import('./components/SmartMissionModal'));
-const SpotlightOverlay = lazy(() => import('./components/SpotlightOverlay'));
 const QuestDetailsModal = lazy(() => import('./components/QuestDetailsModal'));
 const CutSubscriptionFlow = lazy(() =>
     import('../quests/pilotage/cut-subscription').then(m => ({ default: m.CutSubscriptionFlow }))
@@ -46,11 +45,6 @@ interface ModifiedQuest extends Quest {
 
 /** Fallback for lazy-loaded modals */
 const ModalFallback = () => null;
-
-/** Black overlay fallback for SpotlightOverlay during lazy load */
-const SpotlightFallback = () => (
-    <div className="fixed inset-0 z-[1000] bg-black" />
-);
 
 /**
  * DashboardView - Main dashboard feature view
@@ -320,31 +314,8 @@ const DashboardView: React.FC = () => {
         return () => clearTimeout(timer);
     }, [loading, questsLoading]);
 
-    // Block scroll when spotlight is visible
-    useEffect(() => {
-        const scrollContainer = document.getElementById('app-scroll-container');
-        if (!scrollContainer) return;
-
-        if (showSpotlight) {
-            const scrollY = scrollContainer.scrollTop;
-            scrollContainer.style.overflow = 'hidden';
-            scrollContainer.dataset.scrollPosition = String(scrollY);
-        } else {
-            const savedScrollY = scrollContainer.dataset.scrollPosition;
-            scrollContainer.style.overflow = '';
-            if (savedScrollY) {
-                scrollContainer.scrollTop = parseInt(savedScrollY, 10);
-                delete scrollContainer.dataset.scrollPosition;
-            }
-        }
-
-        return () => {
-            if (scrollContainer) {
-                scrollContainer.style.overflow = '';
-                delete scrollContainer.dataset.scrollPosition;
-            }
-        };
-    }, [showSpotlight]);
+    // Note: Scroll locking is now handled entirely by SpotlightOverlay
+    // to avoid conflicts between multiple effects managing the same container
 
     // Loading states
     const isFirstRun = showSpotlight || searchParams.get('firstRun') === 'true';
@@ -421,6 +392,9 @@ const DashboardView: React.FC = () => {
                         onStartQuest={handleStartQuest}
                         buttonRef={missionButtonRef}
                         containerRef={scoreboardContainerRef}
+                        showSpotlight={showSpotlight}
+                        onSpotlightDismiss={handleSpotlightDismiss}
+                        onSpotlightClick={handleSpotlightClick}
                     />
                 </motion.div>
 
@@ -547,16 +521,7 @@ const DashboardView: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* Spotlight Overlay */}
-            {/* Use SpotlightFallback (black screen) when spotlight should be visible during lazy load */}
-            <Suspense fallback={showSpotlight ? <SpotlightFallback /> : <ModalFallback />}>
-                <SpotlightOverlay
-                    isVisible={showSpotlight}
-                    buttonRef={missionButtonRef}
-                    onDismiss={handleSpotlightDismiss}
-                    onSpotlightClick={handleSpotlightClick}
-                />
-            </Suspense>
+            {/* Spotlight is now integrated directly in DashboardScoreboard */}
         </motion.div>
     );
 };

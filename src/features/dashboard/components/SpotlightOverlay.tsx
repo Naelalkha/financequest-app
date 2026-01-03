@@ -1,40 +1,29 @@
 /**
- * 💡 SpotlightOverlay V2 - Tactical HUD Edition
- * Overlay sombre avec "trou" spotlight sur le bouton mission
- * Design "Tactical OS" avec Data Link et Target Lock
- * 
- * Features:
- * - Masque SVG performant pour le spotlight
- * - Tooltip "HUD" relié au bouton par une ligne de connexion
- * - Glow "Target Lock" avec double bordure (précision + atmosphère)
- * - Animation "Scale In" sur l'ouverture du trou
+ * SpotlightOverlay - Clean Version
+ * Uses 4 overlay panels around the button hole instead of clip-path/SVG
+ * This approach works reliably on iOS Safari
  */
 
-import React, { useEffect, useState, RefObject } from 'react';
+import React, { useEffect, useState, useLayoutEffect, RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Target, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '../../../utils/haptics';
 
-/** Spotlight position and dimensions */
-interface SpotlightPosition {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    btnWidth: number;
-    btnHeight: number;
-}
-
-/** Exit mode for smooth transitions */
-type ExitMode = 'none' | 'toModal' | 'dismiss';
-
-/** SpotlightOverlay component props */
 interface SpotlightOverlayProps {
     isVisible: boolean;
     onDismiss: () => void;
-    buttonRef: RefObject<HTMLButtonElement | null>;  // La ref peut être null au montage
+    buttonRef: RefObject<HTMLButtonElement | null>;
     onSpotlightClick: () => void;
+}
+
+interface ButtonPosition {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    centerX: number;
 }
 
 const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
@@ -44,323 +33,247 @@ const SpotlightOverlay: React.FC<SpotlightOverlayProps> = ({
     onSpotlightClick
 }) => {
     const { t } = useTranslation('dashboard');
-    const [spotlight, setSpotlight] = useState<SpotlightPosition | null>(null);
+    const [isExiting, setIsExiting] = useState(false);
+    const [position, setPosition] = useState<ButtonPosition | null>(null);
 
-    // Track if the spotlight mask is ready to prevent flash of raw dashboard
-    // This ensures smooth visual continuity from PainPointScreen's fade-to-black
-    const [overlayReady, setOverlayReady] = useState(false);
+    // Padding around the button for the spotlight hole
+    const PADDING = 16;
 
-    // Track exit animation state for smooth dismissal
-    // 'none' = not exiting, 'toModal' = CTA clicked (keep black), 'dismiss' = outside click (fade overlay only)
-    const [exitMode, setExitMode] = useState<ExitMode>('none');
-
-    // Mark overlay as ready once spotlight position is calculated
-    useEffect(() => {
-        if (spotlight) {
-            // Small delay to ensure SVG mask is rendered before revealing
-            const timer = setTimeout(() => setOverlayReady(true), 50);
-            return () => clearTimeout(timer);
-        }
-    }, [spotlight]);
-
-    // Handle smooth exit for CTA click (to SmartMissionModal)
-    // Keeps black overlay visible until modal is ready
-    const handleExitToModal = (callback: (() => void) | undefined): void => {
-        if (exitMode !== 'none') return;
-        setExitMode('toModal');
-        haptic.medium();
-        // Wait for fade animation to complete before calling callback
-        setTimeout(() => {
-            callback?.();
-        }, 300);
-    };
-
-    // Handle dismiss (click outside) - fade overlay but keep spotlight hole visible
-    const handleDismiss = (callback: (() => void) | undefined): void => {
-        if (exitMode !== 'none') return;
-        setExitMode('dismiss');
-        haptic.light();
-        // Wait for fade animation to complete before calling callback
-        setTimeout(() => {
-            callback?.();
-        }, 300);
-    };
-
-    // Animation config partagée pour synchroniser le mask et le glow ring
-    // Le trou commence fermé (scale: 0) et s'ouvre en iris
-    const irisAnimation = {
-        initial: { scale: 0, opacity: 1 },
-        animate: { scale: 1, opacity: 1 },
-        transition: { delay: 0.1, type: "spring" as const, damping: 20, stiffness: 300 }
-    };
-
-    // Combined effect: Calculate position and lock scroll
-    useEffect(() => {
-        if (!isVisible) return;
-
-        const body = document.body;
-        const html = document.documentElement;
-
-        // Padding confortable autour du bouton pour le "trou"
-        const paddingX = 48;
-        const paddingY = 32;
-
-        let rafId: number;
+    // Calculate button position
+    useLayoutEffect(() => {
+        if (!isVisible || !buttonRef.current) return;
 
         const calculatePosition = () => {
-            if (!buttonRef?.current) return;
+            if (!buttonRef.current) return;
 
-            const btnRect = buttonRef.current.getBoundingClientRect();
+            const rect = buttonRef.current.getBoundingClientRect();
 
-            // Wait for button to be properly laid out (has dimensions)
-            if (btnRect.width === 0 || btnRect.height === 0) {
-                rafId = requestAnimationFrame(calculatePosition);
-                return;
-            }
-
-            setSpotlight({
-                x: btnRect.left + btnRect.width / 2,
-                y: btnRect.top + btnRect.height / 2,
-                width: btnRect.width + paddingX,
-                height: btnRect.height + paddingY,
-                btnWidth: btnRect.width,
-                btnHeight: btnRect.height
+            setPosition({
+                top: rect.top - PADDING,
+                left: rect.left - PADDING,
+                width: rect.width + PADDING * 2,
+                height: rect.height + PADDING * 2,
+                centerX: rect.left + rect.width / 2
             });
         };
 
-        // Use double RAF to ensure layout is complete
-        rafId = requestAnimationFrame(() => {
-            rafId = requestAnimationFrame(calculatePosition);
-        });
+        // Calculate immediately
+        calculatePosition();
 
-        // Lock scroll with overflow hidden (simpler, more reliable)
-        const originalBodyOverflow = body.style.overflow;
-        const originalHtmlOverflow = html.style.overflow;
-        body.style.overflow = 'hidden';
-        html.style.overflow = 'hidden';
-
-        // Handle resize
-        const handleResize = () => {
-            if (!buttonRef?.current) return;
-            const btnRect = buttonRef.current.getBoundingClientRect();
-            setSpotlight({
-                x: btnRect.left + btnRect.width / 2,
-                y: btnRect.top + btnRect.height / 2,
-                width: btnRect.width + paddingX,
-                height: btnRect.height + paddingY,
-                btnWidth: btnRect.width,
-                btnHeight: btnRect.height
-            });
-        };
-
-        window.addEventListener('resize', handleResize);
+        // Recalculate on resize
+        window.addEventListener('resize', calculatePosition);
+        window.addEventListener('scroll', calculatePosition, true);
 
         return () => {
-            cancelAnimationFrame(rafId);
-            window.removeEventListener('resize', handleResize);
-            body.style.overflow = originalBodyOverflow;
-            html.style.overflow = originalHtmlOverflow;
+            window.removeEventListener('resize', calculatePosition);
+            window.removeEventListener('scroll', calculatePosition, true);
         };
     }, [isVisible, buttonRef]);
 
-    if (!isVisible) return null;
+    // Lock body scroll
+    useEffect(() => {
+        if (!isVisible) return;
 
-    return (
+        const originalOverflow = document.body.style.overflow;
+        const originalPosition = document.body.style.position;
+
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+            document.body.style.position = originalPosition;
+            document.body.style.width = '';
+        };
+    }, [isVisible]);
+
+    // Reset state when visibility changes
+    useEffect(() => {
+        if (isVisible) {
+            setIsExiting(false);
+        }
+    }, [isVisible]);
+
+    const handleDismiss = () => {
+        if (isExiting) return;
+        setIsExiting(true);
+        haptic.light();
+        setTimeout(onDismiss, 200);
+    };
+
+    const handleSpotlightClick = () => {
+        if (isExiting) return;
+        setIsExiting(true);
+        haptic.medium();
+        setTimeout(onSpotlightClick, 200);
+    };
+
+    if (!isVisible || !position) return null;
+
+    const overlayColor = 'rgba(0, 0, 0, 0.88)';
+
+    return createPortal(
         <AnimatePresence>
             <motion.div
-                // Le container - PAS d'animation d'opacité, immédiatement opaque
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[1000] overflow-hidden"
-                style={{ touchAction: 'none', overscrollBehavior: 'none' }}
-                onTouchMove={(e) => e.preventDefault()}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        handleDismiss(onDismiss);
-                    }
-                }}
+                className="fixed inset-0 z-[1000]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isExiting ? 0 : 1 }}
+                transition={{ duration: 0.25 }}
             >
-                {/* --- 0. IMMEDIATE BLACK OVERLAY (prevents flash & smooth exit) --- */}
-                {/* toModal: stays black until SmartMissionModal is ready */}
-                {/* dismiss: stays transparent, lets SVG mask fade independently */}
-                <motion.div
-                    initial={{ opacity: 1 }}
-                    animate={{
-                        opacity: exitMode === 'toModal' ? 1 : (overlayReady ? 0 : 1)
+                {/* Top overlay */}
+                <div
+                    className="absolute left-0 right-0 top-0"
+                    style={{
+                        height: position.top,
+                        backgroundColor: overlayColor
                     }}
-                    transition={{ duration: exitMode === 'toModal' ? 0.3 : 0.2 }}
-                    className="absolute inset-0 bg-black pointer-events-none"
-                    style={{ zIndex: (overlayReady && exitMode !== 'toModal') ? -1 : 1 }}
+                    onClick={handleDismiss}
                 />
 
-                {/* --- 1. LE MASQUE SVG (Le Trou) --- */}
-                {/* On dismiss: fade out the dark overlay only, keeping the spotlight button visible */}
-                <motion.svg
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                    animate={{ opacity: exitMode === 'dismiss' ? 0 : 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <defs>
-                        <mask id="tactical-mask">
-                            <rect width="100%" height="100%" fill="white" />
-                            {spotlight && (
-                                <motion.rect
-                                    initial={irisAnimation.initial}
-                                    animate={irisAnimation.animate}
-                                    transition={irisAnimation.transition}
-                                    x={spotlight.x - spotlight.width / 2}
-                                    y={spotlight.y - spotlight.height / 2}
-                                    width={spotlight.width}
-                                    height={spotlight.height}
-                                    rx="20"
-                                    fill="black"
-                                />
-                            )}
-                        </mask>
-                    </defs>
+                {/* Bottom overlay */}
+                <div
+                    className="absolute left-0 right-0 bottom-0"
+                    style={{
+                        top: position.top + position.height,
+                        backgroundColor: overlayColor
+                    }}
+                    onClick={handleDismiss}
+                />
 
-                    {/* Fond noir - 94% pour voir le dashboard, mais container immédiat */}
-                    <rect
-                        width="100%"
-                        height="100%"
-                        fill="rgba(5, 5, 5, 0.94)"
-                        mask="url(#tactical-mask)"
-                        className="backdrop-blur-[4px]"
-                    />
+                {/* Left overlay */}
+                <div
+                    className="absolute left-0"
+                    style={{
+                        top: position.top,
+                        width: position.left,
+                        height: position.height,
+                        backgroundColor: overlayColor
+                    }}
+                    onClick={handleDismiss}
+                />
 
-                    {/* --- 2. LE GLOW TACTIQUE (Viseur) --- */}
-                    {spotlight && (
-                        <>
-                            {/* Cercle Fin (Précision) - synchronisé avec le mask pour l'effet iris */}
-                            <motion.rect
-                                initial={irisAnimation.initial}
-                                animate={irisAnimation.animate}
-                                transition={irisAnimation.transition}
-                                x={spotlight.x - spotlight.width / 2}
-                                y={spotlight.y - spotlight.height / 2}
-                                width={spotlight.width}
-                                height={spotlight.height}
-                                rx="20"
-                                fill="none"
-                                stroke="#E2FF00"
-                                strokeWidth="1.5"
-                            />
+                {/* Right overlay */}
+                <div
+                    className="absolute right-0"
+                    style={{
+                        top: position.top,
+                        left: position.left + position.width,
+                        height: position.height,
+                        backgroundColor: overlayColor
+                    }}
+                    onClick={handleDismiss}
+                />
 
-                            {/* Halo Diffus - pulse aussi maintenant */}
-                            <motion.rect
-                                x={spotlight.x - spotlight.width / 2 - 4}
-                                y={spotlight.y - spotlight.height / 2 - 4}
-                                width={spotlight.width + 8}
-                                height={spotlight.height + 8}
-                                rx="24"
-                                fill="none"
-                                stroke="#E2FF00"
-                                strokeWidth="4"
-                                animate={{
-                                    opacity: [0.1, 0.25, 0.1]  // Pulse subtil
-                                }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                            />
-                        </>
-                    )}
-                </motion.svg>
-
-                {/* --- 3. ZONE CLIQUABLE --- */}
-                {spotlight && (
-                    <div
-                        className="absolute cursor-pointer"
-                        style={{
-                            left: spotlight.x - spotlight.width / 2,
-                            top: spotlight.y - spotlight.height / 2,
-                            width: spotlight.width,
-                            height: spotlight.height,
-                            borderRadius: 20
-                        }}
-                        onClick={() => handleExitToModal(onSpotlightClick)}
-                    />
-                )}
-
-                {/* --- 4. LE TOOLTIP "DATA LINK" --- */}
-                {spotlight && (
-                    <motion.div
-                        className="absolute z-[1001] pointer-events-none flex flex-col items-center"
-                        animate={{ opacity: exitMode !== 'none' ? 0 : 1 }}
-                        transition={{ duration: 0.2 }}
-                        style={{
-                            left: spotlight.x,
-                            // Position par rapport au bord supérieur du BOUTON (pas du spotlight)
-                            top: spotlight.y - spotlight.btnHeight / 2,
-                            transform: 'translate(-50%, -100%)',
-                        }}
-                    >
-                        {/* Le Tooltip (Briefing Box) */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: -20 }}
-                            transition={{ delay: 0.2, type: "spring" }}
-                            className="bg-[#111] border border-white/10 rounded-xl p-4 w-[280px] shadow-[0_0_30px_rgba(226,255,0,0.15)] relative overflow-hidden group"
-                        >
-                            {/* Effet de scan en background */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent translate-y-[-100%] animate-[scan_3s_infinite]" />
-
-                            {/* Header */}
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-[#E2FF00] rounded-full animate-pulse" />
-                                    <span className="text-[10px] font-mono text-[#E2FF00] tracking-widest uppercase">
-                                        {t('systemDetection')}
-                                    </span>
-                                </div>
-                                <Target className="w-3 h-3 text-neutral-500" />
-                            </div>
-
-                            {/* Contenu */}
-                            <h4 className="text-white font-[800] text-sm mb-1 leading-tight">
-                                {t('opportunityUnlocked')}
-                            </h4>
-                            <p className="text-neutral-400 text-xs leading-relaxed">
-                                {t('spotlight')}
-                            </p>
-
-                            {/* Footer (CTA Hint) */}
-                            <div className="mt-3 pt-3 border-t border-dashed border-white/10 flex items-center justify-between text-[#E2FF00]">
-                                <span className="text-[10px] font-mono uppercase tracking-wider">Première Mission</span>
-                                <ChevronRight className="w-3 h-3" />
-                            </div>
-                        </motion.div>
-
-                        {/* La Ligne de Connexion (Data Link) */}
-                        <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: 20 }}
-                            transition={{ delay: 0.4, duration: 0.3 }}
-                            className="w-[1px] bg-gradient-to-b from-[#E2FF00]/50 to-transparent"
-                        />
-
-                        {/* Le Point de contact */}
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="w-1.5 h-1.5 bg-[#E2FF00] rounded-full shadow-[0_0_10px_#E2FF00]"
-                            style={{ marginTop: '-0.75px' }}
-                        />
-                    </motion.div>
-                )}
-
-                {/* Hint pour fermer (Discret en bas) */}
+                {/* Glow border around the hole */}
                 <motion.div
-                    className="absolute bottom-10 w-full text-center"
-                    animate={{ opacity: exitMode !== 'none' ? 0 : 1 }}
-                    transition={{ duration: 0.2 }}
+                    className="absolute pointer-events-none rounded-2xl"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    style={{
+                        top: position.top,
+                        left: position.left,
+                        width: position.width,
+                        height: position.height,
+                        border: '2px solid #E2FF00',
+                        boxShadow: '0 0 20px rgba(226, 255, 0, 0.4), 0 0 40px rgba(226, 255, 0, 0.2), inset 0 0 20px rgba(226, 255, 0, 0.1)',
+                    }}
+                />
+
+                {/* Pulsing outer glow */}
+                <motion.div
+                    className="absolute pointer-events-none rounded-2xl"
+                    animate={{ opacity: [0.2, 0.4, 0.2] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                        top: position.top - 4,
+                        left: position.left - 4,
+                        width: position.width + 8,
+                        height: position.height + 8,
+                        border: '2px solid #E2FF00',
+                    }}
+                />
+
+                {/* Clickable area over the button */}
+                <div
+                    className="absolute cursor-pointer rounded-2xl"
+                    onClick={handleSpotlightClick}
+                    style={{
+                        top: position.top,
+                        left: position.left,
+                        width: position.width,
+                        height: position.height,
+                    }}
+                />
+
+                {/* Tooltip - positioned above the spotlight hole */}
+                <motion.div
+                    className="absolute z-[1001] pointer-events-none flex flex-col items-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: isExiting ? 0 : 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.15 }}
+                    style={{
+                        left: position.centerX,
+                        top: position.top,
+                        transform: 'translate(-50%, -100%)',
+                        paddingBottom: '12px',
+                    }}
                 >
-                    <p className="text-[10px] text-neutral-300 font-mono uppercase tracking-[0.2em] opacity-80">
+                    {/* Tooltip Card */}
+                    <div className="bg-[#111] border border-white/10 rounded-xl p-4 w-[280px] shadow-[0_0_30px_rgba(226,255,0,0.15)] relative overflow-hidden mb-2">
+                        {/* Scan effect */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent translate-y-[-100%] animate-[scan_3s_infinite]" />
+
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-2 relative">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-[#E2FF00] rounded-full animate-pulse" />
+                                <span className="text-[10px] font-mono text-[#E2FF00] tracking-widest uppercase">
+                                    {t('systemDetection')}
+                                </span>
+                            </div>
+                            <Target className="w-3 h-3 text-neutral-500" />
+                        </div>
+
+                        {/* Content */}
+                        <h4 className="text-white font-[800] text-sm mb-1 leading-tight relative">
+                            {t('opportunityUnlocked')}
+                        </h4>
+                        <p className="text-neutral-400 text-xs leading-relaxed relative">
+                            {t('spotlight')}
+                        </p>
+
+                        {/* Footer */}
+                        <div className="mt-3 pt-3 border-t border-dashed border-white/10 flex items-center justify-between text-[#E2FF00] relative">
+                            <span className="text-[10px] font-mono uppercase tracking-wider">
+                                {t('firstMission', 'Première Mission')}
+                            </span>
+                            <ChevronRight className="w-3 h-3" />
+                        </div>
+                    </div>
+
+                    {/* Connection line */}
+                    <div className="w-[1px] h-3 bg-gradient-to-b from-[#E2FF00]/50 to-transparent" />
+
+                    {/* Connection dot */}
+                    <div className="w-1.5 h-1.5 bg-[#E2FF00] rounded-full shadow-[0_0_10px_#E2FF00]" />
+                </motion.div>
+
+                {/* Dismiss hint at bottom */}
+                <motion.div
+                    className="absolute bottom-8 left-0 right-0 text-center pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isExiting ? 0 : 0.8 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                    <p className="text-[10px] text-neutral-300 font-mono uppercase tracking-[0.2em]">
                         {t('dismissHint')}
                     </p>
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
 
