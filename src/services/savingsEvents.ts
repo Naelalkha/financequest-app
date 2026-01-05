@@ -10,13 +10,21 @@ import {
   query,
   orderBy,
   where,
-  serverTimestamp,
   limit,
   CollectionReference,
   DocumentData,
   QueryConstraint  // Import pour typer les contraintes de requête
 } from 'firebase/firestore';
 import { db } from './firebase';
+import {
+  addDocument as nativeAddDocument,
+  setDocument as nativeSetDocument,
+  updateDocument as nativeUpdateDocument,
+  deleteDocument as nativeDeleteDocument,
+  getDocument as nativeGetDocument,
+  queryCollection as nativeQueryCollection,
+  isNative
+} from './nativeFirestore';
 import { createSavingsEvent, isValidSavingsEvent } from '../types/savingsEvent';
 import { recalculateImpactInBackground } from './impactAggregates';
 
@@ -133,6 +141,7 @@ export const createSavingsEventInFirestore = async (
   eventData: CreateSavingsEventInput
 ): Promise<SavingsEventData> => {
   try {
+    const now = new Date().toISOString();
     const newEvent = {
       title: eventData.title,
       questId: eventData.questId,
@@ -141,8 +150,8 @@ export const createSavingsEventInFirestore = async (
       source: eventData.source || 'quest',
       proof: eventData.proof || null,
       verified: false, // Toujours false à la création
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     console.log('📤 Creating savings event:', {
@@ -155,8 +164,6 @@ export const createSavingsEventInFirestore = async (
         source: newEvent.source,
         proof: newEvent.proof,
         verified: newEvent.verified,
-        hasCreatedAt: !!newEvent.createdAt,
-        hasUpdatedAt: !!newEvent.updatedAt,
       },
     });
 
@@ -164,18 +171,28 @@ export const createSavingsEventInFirestore = async (
     const validationData = {
       ...newEvent,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     };
 
     if (!isValidSavingsEvent(validationData)) {
       throw new Error('Invalid savings event data');
     }
 
-    const savingsRef = getSavingsEventsCollection(userId);
-    console.log('📁 Savings ref path:', savingsRef.path);
+    let docId: string;
 
-    const docRef = await addDoc(savingsRef, newEvent);
-    console.log('✅ Savings event created:', docRef.id);
+    if (isNative) {
+      // Use native Firestore
+      const collectionPath = `users/${userId}/savingsEvents`;
+      docId = await nativeAddDocument(collectionPath, newEvent as Record<string, unknown>);
+      console.log('✅ Savings event created (native):', docId);
+    } else {
+      // Use web SDK
+      const savingsRef = getSavingsEventsCollection(userId);
+      console.log('📁 Savings ref path:', savingsRef.path);
+      const docRef = await addDoc(savingsRef, newEvent);
+      docId = docRef.id;
+      console.log('✅ Savings event created:', docId);
+    }
 
     // Déclencher le recalcul des agrégats en arrière-plan
     recalculateImpactInBackground('create');
@@ -184,7 +201,7 @@ export const createSavingsEventInFirestore = async (
     updateGamificationInBackground(userId).catch(() => { });
 
     return {
-      id: docRef.id,
+      id: docId,
       title: newEvent.title,
       questId: newEvent.questId,
       amount: newEvent.amount,
@@ -193,7 +210,7 @@ export const createSavingsEventInFirestore = async (
       proof: newEvent.proof,
       verified: newEvent.verified,
       createdAt: new Date(), // Pour l'état local
-      updatedAt: new Date(), // Pour l'état local
+      updatedAt: new Date().toISOString(), // Pour l'état local
     };
   } catch (error) {
     console.error('❌ Error creating savings event:', error);
@@ -246,12 +263,18 @@ export const updateSavingsEventInFirestore = async (
       };
     }
 
-    const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
-
-    await updateDoc(eventRef, {
-      ...safeUpdates,
-      updatedAt: serverTimestamp()
-    });
+    if (isNative) {
+      await nativeUpdateDocument(`users/${userId}/savingsEvents`, eventId, {
+        ...safeUpdates,
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
+      await updateDoc(eventRef, {
+        ...safeUpdates,
+        updatedAt: new Date().toISOString()
+      });
+    }
 
     console.log('✅ Savings event updated:', eventId, safeUpdates);
 
@@ -274,8 +297,12 @@ export const deleteSavingsEventFromFirestore = async (
   eventId: string
 ): Promise<void> => {
   try {
-    const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
-    await deleteDoc(eventRef);
+    if (isNative) {
+      await nativeDeleteDocument(`users/${userId}/savingsEvents`, eventId);
+    } else {
+      const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
+      await deleteDoc(eventRef);
+    }
 
     console.log('✅ Savings event deleted:', eventId);
 
@@ -299,10 +326,8 @@ export const restoreSavingsEventInFirestore = async (
   snapshot: SavingsEventData
 ): Promise<SavingsEventData> => {
   try {
-    // Utiliser setDoc avec l'ID d'origine pour restaurer exactement le même document
-    const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
-
     // Préparer les données à restaurer (conserver les timestamps d'origine si disponibles)
+    const now = new Date().toISOString();
     const restoreData = {
       title: snapshot.title,
       questId: snapshot.questId,
@@ -311,12 +336,17 @@ export const restoreSavingsEventInFirestore = async (
       source: snapshot.source || 'quest',
       proof: snapshot.proof || null,
       verified: false, // Toujours false côté client
-      createdAt: snapshot.createdAt || serverTimestamp(), // Conserver l'original si possible
-      updatedAt: serverTimestamp(), // Nouvelle date de mise à jour
+      createdAt: snapshot.createdAt || now, // Conserver l'original si possible
+      updatedAt: now, // Nouvelle date de mise à jour
     };
 
-    // Utiliser setDoc au lieu de addDoc pour conserver l'ID
-    await setDoc(eventRef, restoreData);
+    // Utiliser setDoc/nativeSetDocument avec l'ID d'origine pour restaurer exactement le même document
+    if (isNative) {
+      await nativeSetDocument(`users/${userId}/savingsEvents`, eventId, restoreData as Record<string, unknown>);
+    } else {
+      const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
+      await setDoc(eventRef, restoreData);
+    }
 
     console.log('✅ Savings event restored:', eventId);
 
@@ -327,7 +357,7 @@ export const restoreSavingsEventInFirestore = async (
       id: eventId,
       ...restoreData,
       createdAt: snapshot.createdAt instanceof Date ? snapshot.createdAt : new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     };
   } catch (error) {
     console.error('❌ Error restoring savings event:', error);
@@ -343,32 +373,54 @@ export const getAllSavingsEvents = async (
   options: SavingsEventsQueryOptions = {}
 ): Promise<SavingsEventData[]> => {
   try {
-    const savingsRef = getSavingsEventsCollection(userId);
-    const limitCount = options.limitCount || 50;
+    if (isNative) {
+      // Use native Firestore
+      const collectionPath = `users/${userId}/savingsEvents`;
+      let filters: Array<{ field: string; operator: string; value: unknown }> | undefined;
 
-    // 📝 Typage explicite : QueryConstraint englobe where, orderBy, limit
-    let constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(limitCount)];
+      if (options.questId) {
+        filters = [{ field: 'questId', operator: '==', value: options.questId }];
+      } else if (typeof options.verified === 'boolean') {
+        filters = [{ field: 'verified', operator: '==', value: options.verified }];
+      }
 
-    // Appliquer les filtres si fournis
-    if (options.questId) {
-      constraints = [where('questId', '==', options.questId), orderBy('createdAt', 'desc'), limit(limitCount)];
+      const results = await nativeQueryCollection<SavingsEventData>(collectionPath, filters);
+
+      // Sort by createdAt desc (native doesn't support orderBy in the same way)
+      return results.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt as unknown as string).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt as unknown as string).getTime() : 0;
+        return bTime - aTime;
+      }).slice(0, options.limitCount || 50);
+    } else {
+      // Use web SDK
+      const savingsRef = getSavingsEventsCollection(userId);
+      const limitCount = options.limitCount || 50;
+
+      // 📝 Typage explicite : QueryConstraint englobe where, orderBy, limit
+      let constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(limitCount)];
+
+      // Appliquer les filtres si fournis
+      if (options.questId) {
+        constraints = [where('questId', '==', options.questId), orderBy('createdAt', 'desc'), limit(limitCount)];
+      }
+
+      if (typeof options.verified === 'boolean') {
+        constraints = [where('verified', '==', options.verified), orderBy('createdAt', 'desc'), limit(limitCount)];
+      }
+
+      const q = query(savingsRef, ...constraints);
+      const snapshot = await getDocs(q);
+
+      // Cast explicite : on sait que les données Firestore ont la bonne structure
+      return snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<SavingsEventData, 'id'>),
+        // Convertir les Timestamps en Dates pour faciliter l'utilisation
+        createdAt: docSnap.data().createdAt?.toDate(),
+        updatedAt: docSnap.data().updatedAt?.toDate(),
+      }));
     }
-
-    if (typeof options.verified === 'boolean') {
-      constraints = [where('verified', '==', options.verified), orderBy('createdAt', 'desc'), limit(limitCount)];
-    }
-
-    const q = query(savingsRef, ...constraints);
-    const snapshot = await getDocs(q);
-
-    // Cast explicite : on sait que les données Firestore ont la bonne structure
-    return snapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<SavingsEventData, 'id'>),
-      // Convertir les Timestamps en Dates pour faciliter l'utilisation
-      createdAt: docSnap.data().createdAt?.toDate(),
-      updatedAt: docSnap.data().updatedAt?.toDate(),
-    }));
   } catch (error) {
     console.error('Error fetching savings events:', error);
     throw error;
@@ -383,17 +435,25 @@ export const getSavingsEventById = async (
   eventId: string
 ): Promise<SavingsEventData | null> => {
   try {
-    const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
-    const snapshot = await getDoc(eventRef);
+    let data: Omit<SavingsEventData, 'id'> | null = null;
 
-    if (!snapshot.exists()) {
+    if (isNative) {
+      const result = await nativeGetDocument<Omit<SavingsEventData, 'id'>>(`users/${userId}/savingsEvents`, eventId);
+      data = result;
+    } else {
+      const eventRef = doc(db, 'users', userId, 'savingsEvents', eventId);
+      const snapshot = await getDoc(eventRef);
+      if (snapshot.exists()) {
+        data = snapshot.data() as Omit<SavingsEventData, 'id'>;
+      }
+    }
+
+    if (!data) {
       return null;
     }
 
-    // Cast explicite : les données Firestore ont la structure SavingsEventData
-    const data = snapshot.data() as Omit<SavingsEventData, 'id'>;
     return {
-      id: snapshot.id,
+      id: eventId,
       ...data,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

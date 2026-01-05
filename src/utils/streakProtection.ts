@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
 // Configuration de protection des streaks
@@ -154,7 +154,7 @@ export const updateStreakWithProtection = async (
         safeValue,
         reason: validation.reason,
         message: validation.message,
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
 
       return {
@@ -176,7 +176,7 @@ export const updateStreakWithProtection = async (
 
     const updateData: Record<string, unknown> = {
       currentStreak: newStreakValue,
-      lastStreakUpdate: serverTimestamp(),
+      lastStreakUpdate: new Date().toISOString(),
       lastStreakUpdateReason: reason,
       dailyStreakUpdates: isNewDay ? 1 : (userData?.dailyStreakUpdates || 0) + 1
     };
@@ -254,7 +254,7 @@ const logStreakIncident = async (userId: string, incidentData: IncidentData): Pr
     await setDoc(incidentRef, {
       userId,
       ...incidentData,
-      timestamp: serverTimestamp()
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error logging streak incident:', error);
@@ -272,7 +272,7 @@ export const resetDailyStreakCounters = async (userId: string): Promise<void> =>
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
       dailyStreakUpdates: 0,
-      lastStreakReset: serverTimestamp()
+      lastStreakReset: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error resetting daily streak counters:', error);

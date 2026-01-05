@@ -15,8 +15,19 @@ import {
     User as FirebaseUser,
     UserCredential
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
+import {
+    getDocument as nativeGetDocument,
+    setDocument as nativeSetDocument,
+    isNative as isNativeFirestore
+} from '../services/nativeFirestore';
+import {
+    signInAnonymously as nativeSignInAnonymously,
+    isNative,
+    addNativeAuthStateListener
+} from '../services/nativeAuth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import posthog from 'posthog-js';
 
 // User data interfaces
@@ -75,76 +86,138 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [error, setError] = useState<string | null>(null);
 
     const createUserDocument = async (uid: string, email: string | null, additionalData: Partial<UserData> = {}): Promise<UserData> => {
-        const userRef = doc(db, 'users', uid);
-
         try {
-            const userSnap = await getDoc(userRef);
+            // Use native Firestore on Capacitor, web SDK on browser
+            if (isNativeFirestore) {
+                console.log('[Auth] Using native Firestore for user document');
+                const existingUser = await nativeGetDocument<UserData>('users', uid);
 
-            if (!userSnap.exists()) {
-                let detectedLang = 'en';
-                let detectedCountry = 'fr-FR';
+                if (!existingUser) {
+                    let detectedLang = 'en';
+                    let detectedCountry = 'fr-FR';
 
-                try {
-                    const browserLang = navigator.language || 'en';
-                    const langCode = browserLang.split('-')[0];
-                    if (langCode === 'fr' || langCode === 'en') {
-                        detectedLang = langCode;
+                    try {
+                        const browserLang = navigator.language || 'en';
+                        const langCode = browserLang.split('-')[0];
+                        if (langCode === 'fr' || langCode === 'en') {
+                            detectedLang = langCode;
+                        }
+                        const locale = Intl.DateTimeFormat().resolvedOptions().locale || browserLang;
+                        const region = new Intl.Locale(locale).region || locale.split('-')[1] || null;
+                        if (region === 'US') {
+                            detectedCountry = 'en-US';
+                        } else if (region === 'FR' || !region) {
+                            detectedCountry = 'fr-FR';
+                        }
+                    } catch (e) {
+                        console.log('Locale detection failed, using defaults:', e);
                     }
 
-                    const locale = Intl.DateTimeFormat().resolvedOptions().locale || browserLang;
-                    const region = new Intl.Locale(locale).region || locale.split('-')[1] || null;
+                    const now = new Date().toISOString();
+                    const newUserData: Record<string, unknown> = {
+                        uid,
+                        email,
+                        createdAt: now,
+                        lastLogin: now,
+                        xp: 0,
+                        streaks: 0,
+                        badges: [],
+                        totalQuests: 0,
+                        completedQuests: 0,
+                        lang: additionalData.lang || detectedLang,
+                        country: additionalData.country || detectedCountry,
+                        ...additionalData
+                    };
 
-                    if (region === 'US') {
-                        detectedCountry = 'en-US';
-                    } else if (region === 'FR' || !region) {
-                        detectedCountry = 'fr-FR';
+                    delete newUserData.isPremium;
+                    delete newUserData.level;
+
+                    console.log('[Auth] Creating user document with native Firestore:', uid);
+                    await nativeSetDocument('users', uid, newUserData, true);
+
+                    return {
+                        ...newUserData,
+                        isPremium: false,
+                        level: 'Novice'
+                    } as UserData;
+                } else {
+                    try {
+                        await nativeSetDocument('users', uid, { lastLogin: new Date().toISOString() }, true);
+                    } catch (updateError) {
+                        console.warn('Failed to update last login, but continuing:', updateError);
                     }
-                } catch (e) {
-                    console.log('Locale detection failed, using defaults:', e);
+                    return {
+                        ...existingUser,
+                        isPremium: existingUser?.isPremium || false
+                    };
                 }
-
-                const newUserData: UserData = {
-                    uid,
-                    email,
-                    createdAt: serverTimestamp(),
-                    lastLogin: serverTimestamp(),
-                    xp: 0,
-                    streaks: 0,
-                    badges: [],
-                    totalQuests: 0,
-                    completedQuests: 0,
-                    lang: additionalData.lang || detectedLang,
-                    country: additionalData.country || detectedCountry,
-                    ...additionalData
-                };
-
-                // Remove protected fields
-                delete newUserData.isPremium;
-                delete newUserData.level;
-
-                console.log('Creating user document with data:', newUserData);
-                await setDoc(userRef, newUserData, { merge: true });
-
-                return {
-                    ...newUserData,
-                    isPremium: false,
-                    level: 'Novice'
-                };
             } else {
-                try {
-                    await setDoc(userRef, {
-                        lastLogin: serverTimestamp()
-                    }, { merge: true });
-                } catch (updateError) {
-                    console.warn('Failed to update last login, but continuing:', updateError);
-                }
+                // Web SDK flow (unchanged)
+                const userRef = doc(db, 'users', uid);
+                const userSnap = await getDoc(userRef);
 
-                const updatedSnap = await getDoc(userRef);
-                const data = updatedSnap.data() as UserData;
-                return {
-                    ...data,
-                    isPremium: data?.isPremium || false
-                };
+                if (!userSnap.exists()) {
+                    let detectedLang = 'en';
+                    let detectedCountry = 'fr-FR';
+
+                    try {
+                        const browserLang = navigator.language || 'en';
+                        const langCode = browserLang.split('-')[0];
+                        if (langCode === 'fr' || langCode === 'en') {
+                            detectedLang = langCode;
+                        }
+                        const locale = Intl.DateTimeFormat().resolvedOptions().locale || browserLang;
+                        const region = new Intl.Locale(locale).region || locale.split('-')[1] || null;
+                        if (region === 'US') {
+                            detectedCountry = 'en-US';
+                        } else if (region === 'FR' || !region) {
+                            detectedCountry = 'fr-FR';
+                        }
+                    } catch (e) {
+                        console.log('Locale detection failed, using defaults:', e);
+                    }
+
+                    const now = new Date().toISOString();
+                    const newUserData: UserData = {
+                        uid,
+                        email,
+                        createdAt: now,
+                        lastLogin: now,
+                        xp: 0,
+                        streaks: 0,
+                        badges: [],
+                        totalQuests: 0,
+                        completedQuests: 0,
+                        lang: additionalData.lang || detectedLang,
+                        country: additionalData.country || detectedCountry,
+                        ...additionalData
+                    };
+
+                    delete newUserData.isPremium;
+                    delete newUserData.level;
+
+                    console.log('Creating user document with data:', newUserData);
+                    await setDoc(userRef, newUserData, { merge: true });
+
+                    return {
+                        ...newUserData,
+                        isPremium: false,
+                        level: 'Novice'
+                    };
+                } else {
+                    try {
+                        await setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
+                    } catch (updateError) {
+                        console.warn('Failed to update last login, but continuing:', updateError);
+                    }
+
+                    const updatedSnap = await getDoc(userRef);
+                    const data = updatedSnap.data() as UserData;
+                    return {
+                        ...data,
+                        isPremium: data?.isPremium || false
+                    };
+                }
             }
         } catch (err) {
             console.error('Error creating/updating user document:', err);
@@ -352,17 +425,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 });
             }
 
-            const userRef = doc(db, 'users', user.uid);
-            await setDoc(userRef, {
-                ...updates,
-                updatedAt: serverTimestamp()
-            }, { merge: true });
+            // Use native Firestore on Capacitor, web SDK on browser
+            if (isNativeFirestore) {
+                await nativeSetDocument('users', user.uid, {
+                    ...updates,
+                    updatedAt: new Date().toISOString()
+                }, true);
 
-            const updatedDoc = await getDoc(userRef);
-            setUser({
-                ...auth.currentUser,
-                ...updatedDoc.data()
-            } as MergedUser);
+                const updatedData = await nativeGetDocument<UserData>('users', user.uid);
+                setUser({
+                    ...auth.currentUser,
+                    ...updatedData
+                } as MergedUser);
+            } else {
+                const userRef = doc(db, 'users', user.uid);
+                await setDoc(userRef, {
+                    ...updates,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+
+                const updatedDoc = await getDoc(userRef);
+                setUser({
+                    ...auth.currentUser,
+                    ...updatedDoc.data()
+                } as MergedUser);
+            }
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Profile update failed';
             setError(message);
@@ -371,47 +458,139 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-                try {
-                    const userRef = doc(db, 'users', firebaseUser.uid);
-                    const userSnap = await getDoc(userRef);
+        console.log('[Auth] Setting up auth state listener... isNative:', isNative);
 
-                    if (userSnap.exists()) {
-                        setUser({
-                            ...firebaseUser,
-                            ...userSnap.data(),
-                            isAnonymous: firebaseUser.isAnonymous
-                        } as MergedUser);
-                    } else {
-                        const userData = await createUserDocument(firebaseUser.uid, firebaseUser.email);
-                        setUser({
-                            ...firebaseUser,
-                            ...userData,
-                            isAnonymous: firebaseUser.isAnonymous
-                        } as MergedUser);
-                    }
-                } catch (err) {
-                    console.error('Error fetching user data:', err);
+        // Shorter timeout for mobile to avoid long loading screens
+        const timeoutMs = 5000;
+
+        // Safety timeout: if loading takes too long, force it to complete
+        const safetyTimeout = setTimeout(() => {
+            console.warn('[Auth] Safety timeout triggered - forcing loading=false');
+            setLoading(false);
+        }, timeoutMs);
+
+        // Helper to process user (works for both native and web users)
+        const processUser = async (uid: string, email: string | null, isAnonymous: boolean, userObj: unknown) => {
+            console.log('[Auth] Processing user:', uid);
+            clearTimeout(safetyTimeout);
+            try {
+                let existingData: UserData | null = null;
+
+                // Use native Firestore on Capacitor, web SDK on browser
+                if (isNativeFirestore) {
+                    existingData = await nativeGetDocument<UserData>('users', uid);
+                } else {
+                    const userRef = doc(db, 'users', uid);
+                    const userSnap = await getDoc(userRef);
+                    existingData = userSnap.exists() ? (userSnap.data() as UserData) : null;
+                }
+
+                if (existingData) {
                     setUser({
-                        ...firebaseUser,
-                        isAnonymous: firebaseUser.isAnonymous
+                        ...userObj,
+                        ...existingData,
+                        uid,
+                        email,
+                        isAnonymous
+                    } as MergedUser);
+                } else {
+                    const userData = await createUserDocument(uid, email);
+                    setUser({
+                        ...userObj,
+                        ...userData,
+                        uid,
+                        email,
+                        isAnonymous
                     } as MergedUser);
                 }
-            } else {
-                try {
-                    await signInAnonymously(auth);
-                } catch (anonymousError) {
-                    console.error('Failed to sign in anonymously:', anonymousError);
+            } catch (err) {
+                console.error('[Auth] Error fetching user data:', err);
+                setUser({
+                    ...userObj,
+                    uid,
+                    email,
+                    isAnonymous
+                } as MergedUser);
+            }
+            console.log('[Auth] User loaded, setting loading=false');
+            setLoading(false);
+        };
+
+        if (isNative) {
+            // NATIVE: Use native Firebase Auth listener
+            console.log('[Auth] Using native auth flow');
+
+            // Check if already signed in
+            FirebaseAuthentication.getCurrentUser().then(async ({ user: nativeUser }) => {
+                console.log('[Auth] Current native user:', nativeUser?.uid || 'null');
+
+                if (nativeUser) {
+                    await processUser(nativeUser.uid, nativeUser.email, nativeUser.isAnonymous ?? true, nativeUser);
+                } else {
+                    // No user - sign in anonymously
+                    console.log('[Auth] No native user, signing in anonymously...');
+                    try {
+                        const result = await nativeSignInAnonymously();
+                        if (result) {
+                            // Cast to get uid since it could be NativeUser or FirebaseUser
+                            const nUser = result as { uid: string; email: string | null; isAnonymous?: boolean };
+                            await processUser(nUser.uid, nUser.email, nUser.isAnonymous ?? true, nUser);
+                        } else {
+                            console.error('[Auth] Native anonymous sign in returned null');
+                            setUser(null);
+                            setLoading(false);
+                        }
+                    } catch (err) {
+                        console.error('[Auth] Native anonymous sign in failed:', err);
+                        setUser(null);
+                        setLoading(false);
+                    }
+                }
+            });
+
+            // Listen for native auth state changes
+            const unsubscribeNative = addNativeAuthStateListener(async (nativeUser) => {
+                console.log('[Auth] Native auth state changed:', nativeUser?.uid || 'null');
+                if (nativeUser) {
+                    await processUser(nativeUser.uid, nativeUser.email, nativeUser.isAnonymous ?? true, nativeUser);
+                } else {
                     setUser(null);
                     setLoading(false);
                 }
-                return;
-            }
-            setLoading(false);
-        });
+            });
 
-        return () => unsubscribe();
+            return () => {
+                clearTimeout(safetyTimeout);
+                unsubscribeNative();
+            };
+        } else {
+            // WEB: Use web Firebase Auth listener
+            console.log('[Auth] Using web auth flow');
+
+            const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+                console.log('[Auth] onAuthStateChanged fired, user:', firebaseUser?.uid || 'null');
+
+                if (firebaseUser) {
+                    await processUser(firebaseUser.uid, firebaseUser.email, firebaseUser.isAnonymous, firebaseUser);
+                } else {
+                    // No user - try anonymous sign in
+                    try {
+                        console.log('[Auth] No user, attempting web anonymous sign in...');
+                        await signInAnonymously(auth);
+                        // Don't set loading=false here, onAuthStateChanged will be called again
+                    } catch (anonymousError) {
+                        console.error('[Auth] Failed to sign in anonymously:', anonymousError);
+                        setUser(null);
+                        setLoading(false);
+                    }
+                }
+            });
+
+            return () => {
+                clearTimeout(safetyTimeout);
+                unsubscribe();
+            };
+        }
     }, []);
 
     // Memoize context value to prevent unnecessary re-renders

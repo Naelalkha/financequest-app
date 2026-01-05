@@ -31,9 +31,14 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import AppBackground from '../../components/layout/AppBackground';
 import { onboardingStore } from '../onboarding';
 import { resetFirstRun } from '../dashboard/components/FirstRunMissionModal';
-import { auth, db } from '../../services/firebase';
-import { EmailAuthProvider, reauthenticateWithCredential, deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { auth } from '../../services/firebase';
+import { EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import {
+  deleteDocument,
+  queryCollection,
+  isNative as isNativeFirestore
+} from '../../services/nativeFirestore';
+import { deleteCurrentUser } from '../../services/nativeAuth';
 
 /** Tab options for profile view */
 type ProfileTab = 'ID_CARD' | 'SYSTEM' | 'UPGRADE';
@@ -164,49 +169,44 @@ const Profile: React.FC = () => {
     }
   };
 
-  const cleanupUserData = async (userId) => {
-    const batch = writeBatch(db);
-
+  const cleanupUserData = async (userId: string) => {
     try {
       console.log('Nettoyage des données utilisateur...');
 
-      batch.delete(doc(db, 'users', userId));
+      // Delete user document
+      await deleteDocument('users', userId);
 
+      // Delete userProgress document
       try {
-        const progressDoc = doc(db, 'userProgress', userId);
-        batch.delete(progressDoc);
+        await deleteDocument('userProgress', userId);
       } catch (e) {
         console.log('Pas de userProgress à supprimer');
       }
 
-      const userQuestsQuery = query(
-        collection(db, 'userQuests'),
-        where('userId', '==', userId)
-      );
-      const userQuestsSnapshot = await getDocs(userQuestsQuery);
-      userQuestsSnapshot.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
+      // Delete user quests
+      const userQuests = await queryCollection('userQuests', [
+        { field: 'userId', operator: '==', value: userId }
+      ]);
+      for (const quest of userQuests) {
+        await deleteDocument('userQuests', quest.id);
+      }
 
-      const dailyChallengesQuery = query(
-        collection(db, 'dailyChallenges'),
-        where('userId', '==', userId)
-      );
-      const dailyChallengesSnapshot = await getDocs(dailyChallengesQuery);
-      dailyChallengesSnapshot.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
+      // Delete daily challenges
+      const dailyChallenges = await queryCollection('dailyChallenges', [
+        { field: 'userId', operator: '==', value: userId }
+      ]);
+      for (const challenge of dailyChallenges) {
+        await deleteDocument('dailyChallenges', challenge.id);
+      }
 
-      const streakIncidentsQuery = query(
-        collection(db, 'streakIncidents'),
-        where('userId', '==', userId)
-      );
-      const streakIncidentsSnapshot = await getDocs(streakIncidentsQuery);
-      streakIncidentsSnapshot.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
+      // Delete streak incidents
+      const streakIncidents = await queryCollection('streakIncidents', [
+        { field: 'userId', operator: '==', value: userId }
+      ]);
+      for (const incident of streakIncidents) {
+        await deleteDocument('streakIncidents', incident.id);
+      }
 
-      await batch.commit();
       console.log('Données utilisateur nettoyées avec succès');
 
     } catch (error) {
@@ -894,14 +894,16 @@ const Profile: React.FC = () => {
                 onClick={async () => {
                   try {
                     setDeleteSending(true);
-                    const currentUser = auth.currentUser;
-                    if (!currentUser) throw new Error('User not connected');
+                    // Use user from context (which comes from native plugin on Capacitor)
+                    // instead of auth.currentUser which may be stale
+                    if (!user?.uid) throw new Error('User not connected');
 
                     if (isAnonymous) {
                       // For anonymous users: just delete their data and create a new anonymous account
-                      console.log('Resetting anonymous user data...');
-                      await cleanupUserData(currentUser.uid);
-                      await deleteUser(currentUser);
+                      console.log('Resetting anonymous user data...', user.uid);
+                      await cleanupUserData(user.uid);
+                      // Delete the auth user using native plugin on Capacitor
+                      await deleteCurrentUser();
                       // The auth listener will automatically create a new anonymous user
 
                       // Reset onboarding to restart the full experience
@@ -922,26 +924,30 @@ const Profile: React.FC = () => {
                     const providerId = user?.providerData?.[0]?.providerId;
                     console.log('Reauthenticating for provider:', providerId);
 
+                    const currentAuthUser = auth.currentUser;
+                    if (!currentAuthUser) throw new Error('Auth user not found');
+
                     if (providerId === 'password') {
                       if (!deletePassword) {
                         return;
                       }
                       const cred = EmailAuthProvider.credential(user?.email || '', deletePassword);
-                      await reauthenticateWithCredential(currentUser, cred);
+                      await reauthenticateWithCredential(currentAuthUser, cred);
                       console.log('Email/password reauthentication successful');
                     } else if (providerId === 'google.com') {
                       const provider = new GoogleAuthProvider();
-                      await reauthenticateWithPopup(currentUser, provider);
+                      await reauthenticateWithPopup(currentAuthUser, provider);
                       console.log('Google reauthentication successful');
                     } else {
                       throw new Error(`Unsupported provider: ${providerId}`);
                     }
 
-                    console.log('Cleaning up Firestore data...');
-                    await cleanupUserData(currentUser.uid);
+                    // Use user.uid from context (synced with native plugin)
+                    console.log('Cleaning up Firestore data...', user.uid);
+                    await cleanupUserData(user.uid);
 
                     console.log('Deleting Auth account...');
-                    await deleteUser(currentUser);
+                    await deleteCurrentUser();
 
                     setTimeout(() => {
                       window.location.href = '/';

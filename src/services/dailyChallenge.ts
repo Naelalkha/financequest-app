@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 // Import quests from registry
@@ -138,26 +138,26 @@ export const getUserDailyChallenge = async (userId: string, lang: string = 'fr')
 
     // Créer un nouveau défi quotidien
     const newChallenge = generateDailyChallenge(new Date(), { lang });
+    const now = new Date().toISOString();
     const payload = {
       ...newChallenge,
       userId,
       status: 'active',
       progress: 0,
-      createdAt: serverTimestamp(), // Requis par les règles Firestore
-      startedAt: serverTimestamp(),
+      createdAt: now,
+      startedAt: now,
       completedAt: null
     };
     const sanitized = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined));
     await setDoc(challengeRef, sanitized);
 
-    // Retourner un objet avec les champs ajoutés (sans serverTimestamp résolu)
     return {
       ...newChallenge,
       userId,
       status: 'active',
       progress: 0,
-      createdAt: new Date().toISOString(),
-      startedAt: new Date().toISOString(),
+      createdAt: now,
+      startedAt: now,
       completedAt: null
     };
   } catch (error) {
@@ -187,7 +187,7 @@ export const completeDailyChallenge = async (userId, challengeId, completionData
       // Mettre à jour le statut
       await updateDoc(challengeRef, {
         status: 'completed',
-        completedAt: serverTimestamp(),
+        completedAt: new Date().toISOString(),
         completionData
       });
 

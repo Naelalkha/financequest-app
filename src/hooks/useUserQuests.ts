@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { trackEvent } from '../utils/analytics';
 
@@ -80,10 +80,11 @@ export const useUserQuests = (userId: string | null) => {
             const questDocId = `${userId}_${questId}`;
             const questRef = doc(db, 'userQuests', questDocId);
 
+            const now = new Date().toISOString();
             await updateDoc(questRef, {
                 status: 'completed',
-                completedAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
+                completedAt: now,
+                updatedAt: now,
                 progress: 100
             });
 

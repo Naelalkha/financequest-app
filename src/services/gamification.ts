@@ -3,8 +3,13 @@
  * Service pour mettre à jour les données de gamification dans Firestore
  */
 
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import {
+  getDocument as nativeGetDocument,
+  updateDocument as nativeUpdateDocument,
+  isNative
+} from './nativeFirestore';
 import {
   computeLevel,
   checkMilestones,
@@ -84,18 +89,24 @@ export async function updateGamificationOnQuestComplete(
     } = context;
 
     // Récupérer le doc utilisateur
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    let userData: Record<string, unknown> | null = null;
 
-    if (!userSnap.exists()) {
+    if (isNative) {
+      userData = await nativeGetDocument<Record<string, unknown>>('users', userId);
+    } else {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      userData = userSnap.exists() ? userSnap.data() : null;
+    }
+
+    if (!userData) {
       console.warn('User doc not found');
       return null;
     }
 
-    const userData = userSnap.data();
-    const currentXP = userData.xpTotal || 0;
-    const currentGamif = userData.gamification || {};
-    const currentBadges: string[] = currentGamif.badges || [];
+    const currentXP = (userData.xpTotal as number) || 0;
+    const currentGamif = (userData.gamification as Record<string, unknown>) || {};
+    const currentBadges: string[] = (currentGamif.badges as string[]) || [];
 
     // Calculer XP gagné
     const xpGained = calculateQuestXP(quest, score);
@@ -116,14 +127,21 @@ export async function updateGamificationOnQuestComplete(
     const newBadges = checkBadges(newBadgesContext, currentBadges);
 
     // Mettre à jour Firestore
-    await updateDoc(userRef, {
+    const updateData = {
       xpTotal: newXP,
       'gamification.xpTotal': newXP,
       'gamification.level': level,
       'gamification.nextLevelXP': nextLevelXP,
       'gamification.badges': [...currentBadges, ...newBadges],
-      'gamification.updatedAt': serverTimestamp(),
-    });
+      'gamification.updatedAt': new Date().toISOString(),
+    };
+
+    if (isNative) {
+      await nativeUpdateDocument('users', userId, updateData);
+    } else {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, updateData);
+    }
 
     // Analytics
     if (xpGained > 0) {
@@ -173,19 +191,25 @@ export async function updateGamificationOnSavingsChange(
     } = context;
 
     // Récupérer le doc utilisateur
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    let userData: Record<string, unknown> | null = null;
 
-    if (!userSnap.exists()) {
+    if (isNative) {
+      userData = await nativeGetDocument<Record<string, unknown>>('users', userId);
+    } else {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      userData = userSnap.exists() ? userSnap.data() : null;
+    }
+
+    if (!userData) {
       console.warn('User doc not found');
       return null;
     }
 
-    const userData = userSnap.data();
-    const currentXP = userData.xpTotal || 0;
-    const currentGamif = userData.gamification || {};
-    const currentMilestones = currentGamif.milestones || {};
-    const currentBadges = currentGamif.badges || [];
+    const currentXP = (userData.xpTotal as number) || 0;
+    const currentGamif = (userData.gamification as Record<string, unknown>) || {};
+    const currentMilestones = (currentGamif.milestones as Record<string, unknown>) || {};
+    const currentBadges = (currentGamif.badges as string[]) || [];
 
     // Vérifier nouveaux paliers
     const newMilestones = checkMilestones(totalAnnualImpact, currentMilestones);
@@ -214,11 +238,18 @@ export async function updateGamificationOnSavingsChange(
     const newBadges = checkBadges(badgesContext, currentBadges);
 
     // Mettre à jour Firestore
-    await updateDoc(userRef, {
+    const updateData = {
       'gamification.milestones': updatedMilestones,
       'gamification.badges': [...currentBadges, ...newBadges],
-      'gamification.updatedAt': serverTimestamp(),
-    });
+      'gamification.updatedAt': new Date().toISOString(),
+    };
+
+    if (isNative) {
+      await nativeUpdateDocument('users', userId, updateData);
+    } else {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, updateData);
+    }
 
     // Analytics
     // Analytics & Notifications
@@ -253,20 +284,26 @@ export async function updateGamificationOnSavingsChange(
 /**
  * Récupère les données de gamification d'un utilisateur
  */
-export async function getUserGamification(userId) {
+export async function getUserGamification(userId: string) {
   if (!userId) return null;
 
   try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    let userData: Record<string, unknown> | null = null;
 
-    if (!userSnap.exists()) {
+    if (isNative) {
+      userData = await nativeGetDocument<Record<string, unknown>>('users', userId);
+    } else {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      userData = userSnap.exists() ? userSnap.data() : null;
+    }
+
+    if (!userData) {
       return null;
     }
 
-    const userData = userSnap.data();
-    const xpTotal = userData.xpTotal || 0;
-    const gamification = userData.gamification || {};
+    const xpTotal = (userData.xpTotal as number) || 0;
+    const gamification = (userData.gamification as Record<string, unknown>) || {};
 
     return {
       xpTotal,
