@@ -1,8 +1,14 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+
+// Use MemoryRouter for native platforms (Capacitor) to avoid history.replaceState issues
+// MemoryRouter keeps routing in memory without touching browser history API
+const Router = Capacitor.isNativePlatform() ? MemoryRouter : BrowserRouter;
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
 import { BackgroundProvider } from './contexts/BackgroundContext';
+import { useCapacitorInit } from './hooks/useCapacitor';
 import './styles/animations.css';
 import AppBackground from './components/layout/AppBackground';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -13,6 +19,9 @@ import { DURATION, EASE } from './styles/animationConstants';
 function AppContent(): React.ReactElement {
     const { loading } = useAuth();
     const { t } = useTranslation('common');
+
+    // Initialize Capacitor plugins (status bar, splash screen, etc.)
+    useCapacitorInit();
 
     return (
         <AppBackground>

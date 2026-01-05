@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import useLocalizedQuest from '../../hooks/useLocalizedQuest';
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocalQuests, Quest } from "../../hooks/useLocalQuests";
-import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import { updateGamificationOnQuestComplete } from "../../services/gamification";
 import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
@@ -147,16 +147,17 @@ const QuestListView = () => {
                 ? Math.round(modifiedQuest.annualSavings / 12)
                 : modifiedQuest.monetaryValue;
 
+            const now = new Date().toISOString();
             await setDoc(questRef, {
                 userId: user.uid,
                 questId: questId,
                 status: 'completed',
                 progress: 100,
-                completedAt: serverTimestamp(),
+                completedAt: now,
                 monetaryValue: monthlySavings || 0,
                 annualSavings: annualSavings || 0,
                 xpReward: xpReward,
-                updatedAt: serverTimestamp()
+                updatedAt: now
             }, { merge: true });
 
             // 2. Update gamification (XP, level, badges) - this updates xpTotal

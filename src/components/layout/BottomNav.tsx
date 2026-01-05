@@ -220,7 +220,7 @@ const BottomNav: React.FC = () => {
     const navItems = getNavItems();
 
     return (
-        <div className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto pointer-events-none">
+        <div className="fixed left-4 right-4 z-50 max-w-md mx-auto pointer-events-none" style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
             <div className="bg-[#0A0A0A]/90 backdrop-blur-2xl border border-[#222] rounded-3xl p-2 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto">
                 {navItems.map((item) => {
                     const Icon = item.icon;
