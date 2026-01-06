@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     hostname: 'localhost',
+    // Live reload - décommenter pour le développement
+    // url: 'http://192.168.1.141:5173',
+    // cleartext: true,
   },
   plugins: {
     SplashScreen: {

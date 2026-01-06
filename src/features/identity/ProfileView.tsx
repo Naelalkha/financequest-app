@@ -28,6 +28,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { haptic } from '@/utils/haptics';
 import AppBackground from '../../components/layout/AppBackground';
 import { onboardingStore } from '../onboarding';
 import { resetFirstRun } from '../dashboard/components/FirstRunMissionModal';
@@ -400,10 +401,13 @@ const Profile: React.FC = () => {
                     </h3>
 
                     <button
-                      onClick={() => setShowDeleteModal(true)}
-                      className="w-full py-2.5 border border-red-900/20 rounded-lg text-red-700 hover:text-red-500 hover:border-red-900/50 hover:bg-red-900/10 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-2 bg-black/40"
+                      onClick={() => {
+                        haptic.warning();
+                        setShowDeleteModal(true);
+                      }}
+                      className="w-full py-3.5 border border-red-500/30 rounded-xl text-red-400 hover:text-red-300 hover:border-red-500/50 hover:bg-red-500/10 text-sm font-bold font-sans transition-all flex items-center justify-center gap-2.5 bg-red-950/30 active:scale-[0.98] shadow-lg shadow-red-900/10"
                     >
-                      <Database className="w-3 h-3" />
+                      <Database className="w-4 h-4" />
                       {t('resetProgress') || 'Réinitialiser la progression'}
                     </button>
                   </section>

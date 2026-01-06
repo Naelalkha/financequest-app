@@ -220,10 +220,33 @@ const BottomNav: React.FC = () => {
 
     const navItems = getNavItems();
 
+    // Calculate active index for dot position
+    const getActiveIndex = () => {
+        const path = pendingPath ?? location.pathname;
+        return navItems.findIndex(item => path === item.path || path.startsWith(item.path + '/'));
+    };
+
+    const activeIndex = getActiveIndex();
+
     return (
         <div className="fixed left-4 right-4 z-50 max-w-md mx-auto pointer-events-none" style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
-            <div className="bg-[#0A0A0A]/90 backdrop-blur-2xl border border-[#222] rounded-3xl p-2 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto">
-                {navItems.map((item) => {
+            <div className="bg-[#0A0A0A]/90 backdrop-blur-2xl border border-[#222] rounded-3xl p-2 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto relative">
+                {/* Active Dot Indicator - positioned absolutely */}
+                {activeIndex >= 0 && (
+                    <motion.div
+                        className="absolute bottom-1 w-1 h-1 bg-[#E5FF00] rounded-full shadow-[0_0_5px_#E5FF00]"
+                        animate={{
+                            left: `calc(0.5rem + 22px + ${activeIndex} * ((100% - 1rem - 48px) / ${navItems.length - 1}))`
+                        }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 30
+                        }}
+                    />
+                )}
+
+                {navItems.map((item, index) => {
                     const Icon = item.icon;
                     const currentPath = pendingPath ?? location.pathname;
                     const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
@@ -233,7 +256,7 @@ const BottomNav: React.FC = () => {
                             key={item.path}
                             to={item.path}
                             className={`
-                w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all duration-300 relative
+                w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all duration-200 relative
                 ${isActive
                                     ? 'text-[#E2FF00] drop-shadow-[0_0_8px_rgba(226,255,0,0.5)] scale-110'
                                     : 'text-gray-600 hover:text-gray-400 hover:bg-white/5'
@@ -249,24 +272,16 @@ const BottomNav: React.FC = () => {
                                     setPendingPath(item.path);
                                     trackEvent('nav_tab_clicked', { tab: item.key });
                                     haptic.light();
-                                    setTimeout(() => navigate(item.path), 140);
+                                    setTimeout(() => navigate(item.path), 80);
                                 }
                             }}
                         >
                             <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
 
-                            {/* Active Dot Indicator */}
-                            {isActive && (
-                                <motion.div
-                                    layoutId="active-nav-dot"
-                                    className="absolute -bottom-2 w-1 h-1 bg-[#E5FF00] rounded-full shadow-[0_0_5px_#E5FF00]"
-                                />
-                            )}
-
                             {/* Badges */}
                             {item.badge && (
                                 <div className={`
-                  absolute -top-1 -right-1 
+                  absolute -top-1 -right-1
                   ${item.badge.type === 'starter' ? 'bg-[#E5FF00] text-black' : 'bg-red-500 text-white'}
                   w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold border border-[#0A0A0A]
                 `}>

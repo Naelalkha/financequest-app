@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import { useLocalQuests } from "../../../hooks/useLocalQuests";
+import { haptic } from "@/utils/haptics";
 
 // Import 3D Assets
 import pilotageIcon from '../../../assets/credit-card.png';
@@ -83,7 +84,10 @@ const CategoryGrid: React.FC<CategoryGridProps> = React.memo(({ onSelectCategory
         return (
           <button
             key={cat.id}
-            onClick={() => onSelectCategory(cat.id)}
+            onClick={() => {
+              haptic.medium();
+              onSelectCategory(cat.id);
+            }}
             className="group relative h-[8rem] bg-black border border-white/15 shadow-lg hover:border-[#E2FF00] rounded-2xl overflow-hidden text-left transition-all active:scale-95 flex flex-col justify-end p-3.5"
           >
             {/* Gradient Overlay (Background aesthetic) */}
