@@ -18,7 +18,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ stats, userAvatar }) => {
     return (
-        <header className="flex items-center justify-between px-6 py-6">
+        <header className="flex items-center justify-between px-6 pt-0 pb-2">
             {/* Brand - Logo */}
             <div className="flex items-center gap-2">
                 <img

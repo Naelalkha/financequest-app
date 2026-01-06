@@ -238,7 +238,7 @@ const Profile: React.FC = () => {
       <div className="pt-4 px-6 pb-32 animate-slide-up font-sans min-h-screen">
 
         {/* 1. THE HEADER (Identity Card) */}
-        <div className="flex items-center gap-5 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neutral-800 to-black border-2 border-neutral-700 p-1 relative group overflow-hidden">
               <div className="w-full h-full rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
@@ -285,7 +285,7 @@ const Profile: React.FC = () => {
         </div>
 
         {/* 2. THE NAVIGATION (Segmented Control) */}
-        <div className="flex p-1 bg-neutral-900/80 rounded-full border border-neutral-800 mb-8 backdrop-blur-md relative z-10">
+        <div className="flex p-1 bg-neutral-900/80 rounded-full border border-neutral-800 mb-6 backdrop-blur-md relative z-10">
           {['ID_CARD', 'SYSTEM', 'UPGRADE'].map((tab) => {
             const isActive = activeTab === tab;
             return (
@@ -319,41 +319,41 @@ const Profile: React.FC = () => {
 
             {/* --- ID CARD TAB --- */}
             {activeTab === 'ID_CARD' && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Guest Mode: Show upgrade CTA prominently */}
                 {isAnonymous && (
-                  <section className="relative overflow-hidden rounded-2xl border border-[#E2FF00]/30 bg-gradient-to-br from-[#E2FF00]/10 to-transparent p-6">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#E2FF00]/5 rounded-full blur-3xl"></div>
+                  <section className="relative overflow-hidden rounded-xl border border-[#E2FF00]/30 bg-gradient-to-br from-[#E2FF00]/10 to-transparent p-4">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#E2FF00]/5 rounded-full blur-3xl"></div>
                     <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-[#E2FF00]/20 flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-[#E2FF00]" />
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className="w-9 h-9 rounded-lg bg-[#E2FF00]/20 flex items-center justify-center">
+                          <Shield className="w-4.5 h-4.5 text-[#E2FF00]" />
                         </div>
                         <div>
-                          <h3 className="font-sans text-white font-bold text-lg tracking-tight">
+                          <h3 className="font-sans text-white font-bold text-sm tracking-tight">
                             {t('saveProgressTitle') || 'Sauvegarde ta progression'}
                           </h3>
-                          <p className="font-mono text-neutral-400 text-[10px] uppercase tracking-wider">
+                          <p className="font-mono text-neutral-400 text-[9px] uppercase tracking-wider">
                             {t('saveProgressSubtitle') || 'Crée un compte gratuit'}
                           </p>
                         </div>
                       </div>
 
-                      <p className="font-sans text-neutral-300 text-sm mb-4 leading-relaxed">
+                      <p className="font-sans text-neutral-300 text-xs mb-3 leading-relaxed">
                         {t('guestWarning') || 'En mode invité, tes données sont stockées localement. Crée un compte pour ne jamais perdre tes XP, badges et économies.'}
                       </p>
 
-                      <div className="flex gap-3">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => navigate('/register')}
-                          className="flex-1 py-3.5 bg-[#E2FF00] text-black font-sans font-black text-sm rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(226,255,0,0.2)] hover:shadow-[0_0_30px_rgba(226,255,0,0.4)] flex items-center justify-center gap-2 uppercase tracking-wide"
+                          className="flex-1 py-2.5 bg-[#E2FF00] text-black font-sans font-black text-xs rounded-lg hover:bg-white transition-all shadow-[0_0_15px_rgba(226,255,0,0.2)] hover:shadow-[0_0_20px_rgba(226,255,0,0.4)] flex items-center justify-center gap-1.5 uppercase tracking-wide"
                         >
-                          <UserPlus className="w-4 h-4" />
+                          <UserPlus className="w-3.5 h-3.5" />
                           {t('createAccount') || 'Créer un compte'}
                         </button>
                         <button
                           onClick={() => navigate('/login')}
-                          className="py-3.5 px-4 border border-neutral-700 text-neutral-300 font-sans font-bold text-sm rounded-xl hover:bg-neutral-900 hover:text-white transition-colors"
+                          className="py-2.5 px-3 border border-neutral-700 text-neutral-300 font-sans font-bold text-xs rounded-lg hover:bg-neutral-900 hover:text-white transition-colors"
                         >
                           {t('login') || 'Connexion'}
                         </button>
@@ -362,24 +362,24 @@ const Profile: React.FC = () => {
                   </section>
                 )}
 
-                <section className="space-y-4">
+                <section className="space-y-3">
                   <div className="group">
-                    <div className="flex items-center justify-between mb-1.5 ml-1">
+                    <div className="flex items-center justify-between mb-1 ml-1">
                       <label className="font-mono text-[10px] text-neutral-500 uppercase flex items-center gap-2">
                         <User className="w-3 h-3" /> {t('displayName') || 'Display Name'}
                       </label>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white font-mono text-xs flex justify-between items-center group-hover:border-white/20 transition-colors backdrop-blur-sm">
+                    <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white font-mono text-xs flex justify-between items-center group-hover:border-white/20 transition-colors backdrop-blur-sm">
                       <span>{isAnonymous ? (t('guestDisplayName') || 'Invité') : (userData?.displayName || user?.email?.split('@')[0] || 'User')}</span>
                       <Lock className="w-3 h-3 text-neutral-600" />
                     </div>
                   </div>
 
                   <div className="group">
-                    <label className="font-mono text-[10px] text-neutral-500 uppercase mb-1.5 block ml-1 flex items-center gap-2">
+                    <label className="font-mono text-[10px] text-neutral-500 uppercase mb-1 block ml-1 flex items-center gap-2">
                       <Mail className="w-3 h-3" /> {t('email') || 'Email'}
                     </label>
-                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white font-mono text-xs flex justify-between items-center group-hover:border-white/20 transition-colors backdrop-blur-sm">
+                    <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white font-mono text-xs flex justify-between items-center group-hover:border-white/20 transition-colors backdrop-blur-sm">
                       <span className="opacity-80">
                         {isAnonymous
                           ? (t('noEmail') || 'Aucun email (mode invité)')
@@ -394,14 +394,14 @@ const Profile: React.FC = () => {
                 {/* Security Zone - Different for anonymous vs authenticated users */}
                 {isAnonymous ? (
                   /* Anonymous User: Show reset progress option */
-                  <section className="pt-4 border-t border-neutral-800 space-y-3">
-                    <h3 className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest mb-2">
+                  <section className="pt-3 border-t border-neutral-800 space-y-2">
+                    <h3 className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest mb-1.5">
                       {t('guestOptions') || 'Options Invité'}
                     </h3>
 
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="w-full py-3.5 border border-red-900/20 rounded-xl text-red-700 hover:text-red-500 hover:border-red-900/50 hover:bg-red-900/10 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-2 bg-black/40"
+                      className="w-full py-2.5 border border-red-900/20 rounded-lg text-red-700 hover:text-red-500 hover:border-red-900/50 hover:bg-red-900/10 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-2 bg-black/40"
                     >
                       <Database className="w-3 h-3" />
                       {t('resetProgress') || 'Réinitialiser la progression'}
@@ -409,8 +409,8 @@ const Profile: React.FC = () => {
                   </section>
                 ) : (
                   /* Authenticated User: Show full security options */
-                  <section className="pt-4 border-t border-neutral-800 space-y-3">
-                    <h3 className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest mb-2">
+                  <section className="pt-3 border-t border-neutral-800 space-y-2">
+                    <h3 className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest mb-1.5">
                       {t('securityZone') || 'Security Zone'}
                     </h3>
 
@@ -419,23 +419,23 @@ const Profile: React.FC = () => {
                         setResetEmail(user?.email || '');
                         setShowPasswordModal(true);
                       }}
-                      className="w-full py-3.5 border border-neutral-800 rounded-xl text-neutral-400 text-xs font-bold font-mono hover:bg-neutral-900 hover:text-white transition-colors flex items-center justify-center gap-2 bg-black/40"
+                      className="w-full py-2.5 border border-neutral-800 rounded-lg text-neutral-400 text-xs font-bold font-mono hover:bg-neutral-900 hover:text-white transition-colors flex items-center justify-center gap-2 bg-black/40"
                     >
                       <ShieldCheck className="w-3 h-3" />
                       {t('changePassword') || 'Changer le mot de passe'}
                     </button>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={handleLogout}
-                        className="w-full py-3.5 border border-neutral-800 rounded-xl text-neutral-400 text-xs font-bold font-mono hover:bg-neutral-900 hover:text-white transition-colors flex items-center justify-center gap-2 bg-black/40"
+                        className="w-full py-2.5 border border-neutral-800 rounded-lg text-neutral-400 text-xs font-bold font-mono hover:bg-neutral-900 hover:text-white transition-colors flex items-center justify-center gap-2 bg-black/40"
                       >
                         <LogOut className="w-3 h-3" />
                         {t('logOut') || 'Déconnexion'}
                       </button>
                       <button
                         onClick={() => setShowDeleteModal(true)}
-                        className="w-full py-3.5 border border-red-900/20 rounded-xl text-red-700 hover:text-red-500 hover:border-red-900/50 hover:bg-red-900/10 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-2 bg-black/40"
+                        className="w-full py-2.5 border border-red-900/20 rounded-lg text-red-700 hover:text-red-500 hover:border-red-900/50 hover:bg-red-900/10 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-2 bg-black/40"
                       >
                         {t('deleteAccount') || 'Supprimer le compte'}
                       </button>

@@ -255,8 +255,8 @@ const MicroExpensesFlow: React.FC<MicroExpensesFlowProps> = ({
                 className="w-full h-full min-h-screen bg-transparent overflow-hidden relative flex flex-col z-10"
             >
 
-                {/* Progress Bar */}
-                <div className="absolute top-0 left-0 h-1 bg-neutral-800 w-full z-50">
+                {/* Progress Bar - Below safe area */}
+                <div className="absolute left-0 h-1 bg-neutral-800 w-full z-50" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
                     <motion.div
                         className="h-full bg-volt transition-all duration-500 ease-out shadow-[0_0_10px_rgba(226,255,0,0.4)]"
                         initial={{ width: '0%' }}
@@ -266,8 +266,9 @@ const MicroExpensesFlow: React.FC<MicroExpensesFlowProps> = ({
 
                 {/* Header - Tactical Glass Effect: Floating above pattern with very light gradient + backdrop blur */}
                 <div
-                    className="absolute top-0 left-0 w-full p-6 pt-8 flex justify-between items-center z-40"
+                    className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-40"
                     style={{
+                        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.75rem)',
                         background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%)',
                         backdropFilter: 'blur(1px)',
                         WebkitBackdropFilter: 'blur(1px)'
@@ -348,8 +349,8 @@ const MicroExpensesFlow: React.FC<MicroExpensesFlowProps> = ({
                     </button>
                 </div>
 
-                {/* Content Body - Padding top to account for absolute header */}
-                <div className="flex-1 overflow-hidden relative pt-32">
+                {/* Content Body - Padding top to account for absolute header + safe area */}
+                <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8rem)' }}>
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div
