@@ -2,7 +2,7 @@
  * Haptics Utility
  *
  * Unified haptic feedback system for Moniyo
- * Works on web (Vibration API) and ready for Capacitor native haptics
+ * Uses Capacitor Haptics for native iOS/Android, falls back to Vibration API on web
  *
  * Usage:
  *   import { haptic } from '../utils/haptics';
@@ -11,31 +11,22 @@
  *   haptic.success(); // Success pattern
  */
 
-// Étendre Window pour inclure Capacitor (optionnel au runtime)
-declare global {
-    interface Window {
-        Capacitor?: {
-            isNativePlatform?: () => boolean;
-        };
-    }
-}
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 
 // Check if we're running in Capacitor native environment
 const isCapacitorNative = () => {
-    return typeof window !== 'undefined' &&
-           window.Capacitor?.isNativePlatform?.();
+    return Capacitor.isNativePlatform();
 };
 
-// Check if vibration is supported
+// Check if vibration is supported on web
 const canVibrate = () => {
     return typeof navigator !== 'undefined' && 'vibrate' in navigator;
 };
 
 /**
  * Haptic feedback patterns
- * 
- * When Capacitor is added, these will be replaced with native calls:
- * import { Haptics, ImpactStyle } from '@capacitor/haptics';
+ * Uses native Capacitor Haptics on iOS/Android, Vibration API on web
  */
 export const haptic = {
     /**
@@ -44,7 +35,7 @@ export const haptic = {
      */
     light: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.impact({ style: ImpactStyle.Light });
+            Haptics.impact({ style: ImpactStyle.Light });
             return;
         }
         if (canVibrate()) {
@@ -58,7 +49,7 @@ export const haptic = {
      */
     medium: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.impact({ style: ImpactStyle.Medium });
+            Haptics.impact({ style: ImpactStyle.Medium });
             return;
         }
         if (canVibrate()) {
@@ -72,7 +63,7 @@ export const haptic = {
      */
     heavy: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.impact({ style: ImpactStyle.Heavy });
+            Haptics.impact({ style: ImpactStyle.Heavy });
             return;
         }
         if (canVibrate()) {
@@ -86,7 +77,7 @@ export const haptic = {
      */
     selection: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.selectionChanged();
+            Haptics.selectionChanged();
             return;
         }
         if (canVibrate()) {
@@ -100,7 +91,7 @@ export const haptic = {
      */
     success: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.notification({ type: NotificationType.Success });
+            Haptics.notification({ type: NotificationType.Success });
             return;
         }
         if (canVibrate()) {
@@ -114,7 +105,7 @@ export const haptic = {
      */
     warning: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.notification({ type: NotificationType.Warning });
+            Haptics.notification({ type: NotificationType.Warning });
             return;
         }
         if (canVibrate()) {
@@ -128,7 +119,7 @@ export const haptic = {
      */
     error: () => {
         if (isCapacitorNative()) {
-            // Future: Haptics.notification({ type: NotificationType.Error });
+            Haptics.notification({ type: NotificationType.Error });
             return;
         }
         if (canVibrate()) {
@@ -151,7 +142,7 @@ export const haptic = {
             lastTick = now;
 
             if (isCapacitorNative()) {
-                // Future: Haptics.selectionChanged();
+                Haptics.selectionChanged();
                 return;
             }
             if (canVibrate()) {
@@ -161,12 +152,13 @@ export const haptic = {
     })(),
 
     /**
-     * Custom pattern - for special cases
+     * Custom pattern - for special cases (web only)
      * @param {number|number[]} pattern - Duration in ms or array of [vibrate, pause, vibrate, ...]
      */
-    custom: (pattern) => {
+    custom: (pattern: number | number[]) => {
         if (isCapacitorNative()) {
-            // Future: Custom native implementation
+            // Native doesn't support custom patterns, use medium impact
+            Haptics.impact({ style: ImpactStyle.Medium });
             return;
         }
         if (canVibrate()) {

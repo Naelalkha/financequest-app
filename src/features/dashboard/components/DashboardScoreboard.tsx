@@ -1,8 +1,9 @@
-import React, { useEffect, useState, memo, RefObject, useLayoutEffect } from 'react';
+import React, { useEffect, useState, memo, RefObject, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Zap, Target, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { haptic } from '../../../utils/haptics';
 
 interface RollingCounterProps {
     value: number;
@@ -12,6 +13,7 @@ interface RollingCounterProps {
 // RollingCounter component for animated numbers
 const RollingCounter = memo(({ value, currency }: RollingCounterProps) => {
     const [displayValue, setDisplayValue] = useState(value);
+    const previousValue = useRef(value);
 
     useEffect(() => {
         const start = displayValue;
@@ -19,6 +21,12 @@ const RollingCounter = memo(({ value, currency }: RollingCounterProps) => {
 
         if (Math.abs(end - start) < 0.01) {
             return;
+        }
+
+        // Haptic at start if value increased significantly (quest completion)
+        const isSignificantIncrease = end > start && (end - start) >= 10;
+        if (isSignificantIncrease) {
+            haptic.light();
         }
 
         const duration = 1500;
@@ -34,11 +42,16 @@ const RollingCounter = memo(({ value, currency }: RollingCounterProps) => {
                 (incrementValue < 0 && currentValue <= end)) {
                 setDisplayValue(end);
                 clearInterval(timer);
+                // Haptic feedback at end of animation (reward feeling)
+                if (isSignificantIncrease) {
+                    haptic.medium();
+                }
             } else {
                 setDisplayValue(currentValue);
             }
         }, incrementTime);
 
+        previousValue.current = value;
         return () => clearInterval(timer);
     }, [value]);
 
@@ -126,10 +139,12 @@ const DashboardScoreboard = memo(({
     }, [showSpotlight, buttonRef]);
 
     const handleSpotlightClick = () => {
+        haptic.medium();
         onSpotlightClick?.();
     };
 
     const handleOverlayClick = () => {
+        haptic.light();
         onSpotlightDismiss?.();
     };
 
@@ -301,7 +316,10 @@ const DashboardScoreboard = memo(({
                 <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-full max-w-[70%] z-30">
                     <button
                         ref={buttonRef}
-                        onClick={onStartQuest}
+                        onClick={() => {
+                            haptic.medium();
+                            onStartQuest();
+                        }}
                         className="w-full bg-volt text-black font-sans font-bold text-lg py-4 rounded-xl shadow-volt-glow-strong flex items-center justify-center gap-2 border-[3px] border-black relative overflow-hidden active:scale-95 transition-transform duration-75"
                         style={showSpotlight ? { visibility: 'hidden' } : undefined}
                     >

@@ -9,6 +9,7 @@ import { FaTrophy, FaCheckCircle, FaTimes } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { formatBadge } from '../../../utils/gamification';
 import { formatEUR } from '../../../utils/impact';
+import { haptic } from '../../../utils/haptics';
 
 /** Notification type */
 type NotificationType = 'milestone' | 'badge' | 'level';
@@ -38,13 +39,22 @@ const GamificationNotification: React.FC<GamificationNotificationProps> = ({
   const locale = i18n.language === 'fr' ? 'fr-FR' : 'en-US';
 
   useEffect(() => {
+    // Haptic feedback based on notification type
+    if (type === 'level') {
+      haptic.success();
+    } else if (type === 'badge') {
+      haptic.success();
+    } else if (type === 'milestone') {
+      haptic.heavy();
+    }
+
     // Auto-close après 5 secondes
     const timer = setTimeout(() => {
       if (onClose) onClose();
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, [onClose, type]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat(locale, {

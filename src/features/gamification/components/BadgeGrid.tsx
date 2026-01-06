@@ -3,13 +3,14 @@
  * Grille affichant tous les badges (débloqués et verrouillés)
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaLock, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { BADGES, BADGE_DISPLAY_ORDER } from '../../../config/gamification';
 import { formatBadge, FormattedBadge } from '../../../utils/gamification';
 import { trackEvent } from '../../../utils/analytics';
+import { haptic } from '../../../utils/haptics';
 
 /** Badge data that can be either a string ID or an object */
 type BadgeInput = string | { id: string; unlockedAt?: Date | string | null };
@@ -22,8 +23,15 @@ interface BadgeGridProps {
 
 const BadgeGrid: React.FC<BadgeGridProps> = ({ badges = [], className = '' }) => {
   const { t, i18n } = useTranslation('common');
+  const previousBadgeCount = useRef(badges.length);
 
   useEffect(() => {
+    // Haptic feedback when new badge is unlocked
+    if (badges.length > previousBadgeCount.current) {
+      haptic.success();
+    }
+    previousBadgeCount.current = badges.length;
+
     // Track vue des badges
     trackEvent('badges_viewed', { count_unlocked: badges.length });
   }, [badges.length]);

@@ -3,22 +3,30 @@
  * Affiche le niveau actuel, la progression XP et le prochain palier d'impact
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaTrophy, FaChartLine } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { computeLevel, getNextMilestone } from '../../../utils/gamification';
 import { trackEvent } from '../../../utils/analytics';
 import { formatEUR } from '../../../utils/impact';
+import { haptic } from '../../../utils/haptics';
 
 const LevelWidget = ({ xpTotal = 0, totalAnnualImpact = 0, className = '' }) => {
   const { t, i18n } = useTranslation('common');
   const locale = i18n.language === 'fr' ? 'fr-FR' : 'en-US';
+  const previousLevel = useRef<number | null>(null);
 
   const levelData = computeLevel(xpTotal);
   const nextMilestone = getNextMilestone(totalAnnualImpact);
 
   useEffect(() => {
+    // Haptic feedback on level up
+    if (previousLevel.current !== null && levelData.level > previousLevel.current) {
+      haptic.success();
+    }
+    previousLevel.current = levelData.level;
+
     // Track vue du widget niveau
     trackEvent('level_widget_viewed', {
       level: levelData.level,

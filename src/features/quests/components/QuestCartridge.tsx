@@ -2,6 +2,7 @@ import React from "react";
 import { Eye } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import useLocalizedQuest from '../../../hooks/useLocalizedQuest';
+import { haptic } from '../../../utils/haptics';
 
 /**
  * QuestCartridge - Quest card with 3D cartridge design
@@ -183,7 +184,10 @@ const QuestCartridge = ({ quest, onOpen, isPriority }) => {
                 {/* Action Overlay */}
                 <div className="mt-5 flex gap-2 relative z-10">
                     <button
-                        onClick={() => onOpen(quest)}
+                        onClick={() => {
+                            haptic.medium();
+                            onOpen(quest);
+                        }}
                         className="flex-1 bg-white text-black font-bold font-sans py-3 rounded-xl hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 shadow-lg active:scale-95"
                     >
                         <Eye className="w-5 h-5" />

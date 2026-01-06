@@ -4,6 +4,7 @@ import { Zap, X, Shuffle } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useLocalizedQuest } from '../../../hooks/useLocalizedQuest';
 import { modalVariants, TRANSITIONS } from '../../../styles/animationConstants';
+import { haptic } from '../../../utils/haptics';
 
 /** Quest interface for SmartMissionModal */
 interface SmartMissionQuest {
@@ -140,6 +141,7 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
 
   const handleReroll = useCallback(() => {
     if (isRerolling || isAccepting) return;
+    haptic.light();
     setIsRerolling(true);
     setRotation(prev => prev + 360);
     const newQuest = onReroll();
@@ -149,9 +151,15 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
 
   const handleAccept = useCallback(() => {
     if (isAccepting || !currentQuest) return;
+    haptic.heavy();
     setIsAccepting(true);
     onAccept(currentQuest);
   }, [isAccepting, currentQuest, onAccept]);
+
+  const handleClose = useCallback(() => {
+    haptic.light();
+    onClose();
+  }, [onClose]);
 
   // Special exit variant for "Warp" effect
   const warpExit = {
@@ -188,7 +196,7 @@ const SmartMissionModal: React.FC<SmartMissionModalProps> = ({
           >
             {!isAccepting && (
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="absolute top-4 right-4 p-3 rounded-full bg-white/5 active:bg-white/10 transition-colors z-20"
                 aria-label={t('close')}
               >

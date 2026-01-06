@@ -8,6 +8,7 @@ import { useServerImpactAggregates } from '../../hooks/useServerImpactAggregates
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { trackEvent } from '../../utils/analytics';
+import { haptic } from '../../utils/haptics';
 
 interface NavBadge {
     type: 'starter' | 'new' | 'premium';
@@ -247,9 +248,7 @@ const BottomNav: React.FC = () => {
                                     e.preventDefault();
                                     setPendingPath(item.path);
                                     trackEvent('nav_tab_clicked', { tab: item.key });
-                                    if (window.navigator?.vibrate) {
-                                        window.navigator.vibrate(10);
-                                    }
+                                    haptic.light();
                                     setTimeout(() => navigate(item.path), 140);
                                 }
                             }}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckCircle2, TrendingUp, Zap, Flame, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getConcreteImpact, calculateCompoundGrowth } from '../insightData';
+import { haptic } from '../../../../../utils/haptics';
 
 /** Quest data from execution phase */
 interface QuestData {
@@ -54,6 +55,9 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
 
     // Trigger confetti and counter on mount
     useEffect(() => {
+        // Celebration haptic feedback
+        haptic.success();
+
         // Celebration confetti
         confetti({
             particleCount: 80,
@@ -270,7 +274,10 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
             <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
-                    onClick={onComplete}
+                    onClick={() => {
+                        haptic.heavy();
+                        onComplete();
+                    }}
                     className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black cta-ios-fix cta-active"
                 >
                     <span className="cta-content cta-content-animate">
