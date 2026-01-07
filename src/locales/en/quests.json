@@ -69,5 +69,18 @@
         "prerequisites": [
             "None"
         ]
+    },
+    "budget503020": {
+        "codename": "THE BALANCE",
+        "title": "APPLY THE 50/30/20 RULE",
+        "description": "You earn money but it evaporates. The 50/30/20 rule is the system used by savers to allocate every euro automatically.",
+        "objectives": [
+            "Enter your net monthly income",
+            "Discover your ideal split",
+            "Compare to your reality (optional)"
+        ],
+        "prerequisites": [
+            "None"
+        ]
     }
 }

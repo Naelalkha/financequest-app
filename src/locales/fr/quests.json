@@ -69,5 +69,18 @@
         "prerequisites": [
             "Aucun"
         ]
+    },
+    "budget503020": {
+        "codename": "L'ÉQUILIBRE",
+        "title": "APPLIQUE LA RÈGLE 50/30/20",
+        "description": "Tu gagnes de l'argent mais il s'évapore. La règle 50/30/20 est le système utilisé par les épargnants pour répartir chaque euro automatiquement.",
+        "objectives": [
+            "Entre ton revenu net mensuel",
+            "Découvre ta répartition idéale",
+            "Compare à ta réalité (optionnel)"
+        ],
+        "prerequisites": [
+            "Aucun"
+        ]
     }
 }

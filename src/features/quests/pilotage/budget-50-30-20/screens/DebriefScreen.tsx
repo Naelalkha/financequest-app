@@ -1,0 +1,311 @@
+import { useEffect, useState, ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { CheckCircle2, TrendingUp, Zap, Flame, Sparkles } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { getConcreteImpact, calculateCompoundGrowth, get5YearEquivalent } from '../insightData';
+import { haptic } from '../../../../../utils/haptics';
+
+/** Quest data from execution phase */
+interface QuestData {
+  monthlyIncome?: number;
+  idealSavings?: number;
+  actualSavings?: number;
+  didDiagnosis?: boolean;
+  fiveYearProjection?: number;
+  [key: string]: unknown;
+}
+
+/** Props for DebriefScreen */
+interface DebriefScreenProps {
+  data?: QuestData;
+  xpReward?: number;
+  currentStreak?: number;
+  onComplete: () => void;
+}
+
+/**
+ * DebriefScreen - Phase 3: Impact Confirmation
+ *
+ * Quest: BUDGET 50/30/20
+ * Shows:
+ * - Annual savings potential (ideal)
+ * - 5-year compound projection
+ * - Concrete impact equivalent
+ * - XP and streak rewards
+ */
+const DebriefScreen: React.FC<DebriefScreenProps> = ({
+    data = {},
+    xpReward = 120,
+    currentStreak = 1,
+    onComplete
+}) => {
+    const { i18n } = useTranslation('quests');
+    const locale = i18n.language;
+
+    // Get data from execution phase
+    const monthlySavings = data.idealSavings || 0;
+    const yearlySavings = monthlySavings * 12;
+    const fiveYearAmount = data.fiveYearProjection || calculateCompoundGrowth(monthlySavings, 5, 0.07);
+
+    // Get concrete impact for display
+    const concreteImpact = getConcreteImpact(yearlySavings, locale);
+    const fiveYearEquivalent = get5YearEquivalent(fiveYearAmount, locale);
+
+    // Animation states
+    const [animatedSavings, setAnimatedSavings] = useState(0);
+    const [showContent, setShowContent] = useState(false);
+
+    // Trigger confetti and counter on mount
+    useEffect(() => {
+        // Celebration haptic feedback
+        haptic.success();
+
+        // Celebration confetti
+        confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#E2FF00', '#FFFFFF', '#10B981'],
+            startVelocity: 35,
+            gravity: 1.2,
+            scalar: 1.1,
+            ticks: 150
+        });
+
+        // Counting animation
+        const end = Math.round(yearlySavings);
+        const duration = 1000;
+        const increment = end / (duration / 16);
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= end) {
+                setAnimatedSavings(end);
+                clearInterval(timer);
+                setTimeout(() => setShowContent(true), 200);
+            } else {
+                setAnimatedSavings(Math.round(current));
+            }
+        }, 16);
+
+        return () => clearInterval(timer);
+    }, [yearlySavings]);
+
+    // Helper to render bold text marked with **
+    const renderWithBold = (text: string): ReactNode[] => {
+        const parts = text.split(/(\*\*.*?\*\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <span key={i} className="text-white font-semibold">{part.slice(2, -2)}</span>;
+            }
+            return part;
+        });
+    };
+
+    // Labels
+    const labels = {
+        fr: {
+            goalLabel: 'ÉPARGNE ANNUELLE POTENTIELLE',
+            equivalent: 'IMPACT CONCRET',
+            monthlyLabel: 'PAR MOIS',
+            projectionLabel: 'POTENTIEL 5 ANS',
+            projectionDesc: 'Si investi à 7%/an',
+            fiveYearLabel: 'DANS 5 ANS',
+            xpLabel: 'RÉCOMPENSES',
+            cta: 'MISSION ACCOMPLIE'
+        },
+        en: {
+            goalLabel: 'POTENTIAL YEARLY SAVINGS',
+            equivalent: 'REAL WORLD VALUE',
+            monthlyLabel: 'PER MONTH',
+            projectionLabel: '5-YEAR POTENTIAL',
+            projectionDesc: 'If invested at 7%/year',
+            fiveYearLabel: 'IN 5 YEARS',
+            xpLabel: 'REWARDS',
+            cta: 'MISSION ACCOMPLISHED'
+        }
+    };
+    const L = labels[locale] || labels.fr;
+
+    return (
+        <div className="h-full flex flex-col">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-6 pt-2 pb-32">
+
+                    {/* HERO SECTION */}
+                    <div className="text-center mb-8 pt-4">
+
+                        {/* Label */}
+                        <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="font-mono text-[12px] text-neutral-500 uppercase tracking-wide mb-2 block"
+                        >
+                            {L.goalLabel}
+                        </motion.span>
+
+                        {/* HERO NUMBER */}
+                        <motion.h2
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.4, ease: 'backOut', delay: 0.15 }}
+                            className="text-5xl md:text-6xl font-black text-volt tracking-tighter"
+                            style={{ textShadow: '0 0 30px rgba(226, 255, 0, 0.5)' }}
+                        >
+                            +{animatedSavings.toLocaleString('fr-FR')} €
+                        </motion.h2>
+                    </div>
+
+                    {/* CARDS */}
+                    <AnimatePresence>
+                        {showContent && (
+                            <div className="space-y-3">
+
+                                {/* Card 1: Equivalent Value */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-volt/10 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-2xl">{concreteImpact.icon}</span>
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-1">
+                                                {L.equivalent}
+                                            </span>
+                                            <span className="text-sm font-bold text-white block leading-tight">
+                                                {renderWithBold(concreteImpact.text)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Card 2: Monthly + Projection */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.25, delay: 0.04 }}
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
+                                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-neutral-800">
+                                        <div className="flex items-center gap-3">
+                                            <TrendingUp className="w-5 h-5 text-neutral-500" />
+                                            <span className="font-mono text-[11px] text-neutral-400 uppercase">
+                                                {L.monthlyLabel}
+                                            </span>
+                                        </div>
+                                        <span className="font-mono text-xl font-bold text-white">
+                                            +{monthlySavings.toLocaleString('fr-FR')} €
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Sparkles className="w-5 h-5 text-volt" />
+                                            <div className="text-left">
+                                                <div className="font-mono text-[11px] text-white font-bold uppercase">
+                                                    {L.projectionLabel}
+                                                </div>
+                                                <div className="font-mono text-[10px] text-neutral-400">
+                                                    {L.projectionDesc}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="font-mono text-lg font-bold text-emerald-400">
+                                            +{fiveYearAmount.toLocaleString('fr-FR')} €
+                                        </span>
+                                    </div>
+                                </motion.div>
+
+                                {/* Card 3: 5-Year Equivalent */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.25, delay: 0.08 }}
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-2xl">{fiveYearEquivalent.icon}</span>
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-1">
+                                                {L.fiveYearLabel}
+                                            </span>
+                                            <span className="text-sm font-bold text-emerald-400 block leading-tight">
+                                                {fiveYearEquivalent.text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Card 4: Rewards (XP + Streak) */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.25, delay: 0.12 }}
+                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                >
+                                    <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-3">
+                                        {L.xpLabel}
+                                    </span>
+                                    <div className="flex items-center">
+                                        {/* XP */}
+                                        <div className="flex-1 flex items-center justify-center gap-2 border-r border-neutral-800 pr-4">
+                                            <Zap className="w-5 h-5 text-volt" />
+                                            <span className="font-mono text-lg font-bold text-white">
+                                                +{xpReward} XP
+                                            </span>
+                                        </div>
+                                        {/* Streak */}
+                                        <div className="flex-1 flex items-center justify-center gap-2 pl-4">
+                                            <Flame className="w-5 h-5 text-orange-500" />
+                                            <span className="font-mono text-lg font-bold text-white">
+                                                SÉRIE
+                                            </span>
+                                            <motion.span
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ delay: 0.4, type: 'spring', stiffness: 400, damping: 25 }}
+                                                className="font-mono text-sm font-bold text-orange-500 bg-orange-500/20 px-2 py-0.5 rounded"
+                                            >
+                                                +1
+                                            </motion.span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                </div>
+            </div>
+
+            {/* Footer CTA */}
+            <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                        haptic.heavy();
+                        onComplete();
+                    }}
+                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black cta-ios-fix cta-active"
+                >
+                    <span className="cta-content cta-content-animate">
+                        <CheckCircle2 className="w-5 h-5" />
+                        {L.cta}
+                    </span>
+                </motion.button>
+            </div>
+        </div>
+    );
+};
+
+export default DebriefScreen;

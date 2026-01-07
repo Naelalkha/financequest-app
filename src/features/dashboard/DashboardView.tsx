@@ -36,6 +36,9 @@ const CutSubscriptionFlow = lazy(() =>
 const MicroExpensesFlow = lazy(() =>
     import('../quests/pilotage/micro-expenses').then(m => ({ default: m.MicroExpensesFlow }))
 );
+const Budget503020Flow = lazy(() =>
+    import('../quests/pilotage/budget-50-30-20').then(m => ({ default: m.Budget503020Flow }))
+);
 
 /** Modified quest with extra fields */
 interface ModifiedQuest extends Quest {
@@ -501,6 +504,24 @@ const DashboardView: React.FC = () => {
                                             ? `${t('quests:microExpenses.title')} - ${result.expenseName}`
                                             : selectedQuest.title,
                                         annualSavings: result.yearlySavings,
+                                        xpReward: result.xpEarned
+                                    });
+                                }}
+                                userProgress={{
+                                    streak: streakDays,
+                                    xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
+                                }}
+                            />
+                        ) : selectedQuest.id === 'budget-50-30-20' ? (
+                            <Budget503020Flow
+                                key="budget-50-30-20-flow"
+                                quest={selectedQuest}
+                                onClose={handleCloseQuestDetails}
+                                onComplete={(result) => {
+                                    handleCompleteQuestFromDetails({
+                                        ...selectedQuest,
+                                        id: result.questId,
+                                        annualSavings: result.annualSavings,
                                         xpReward: result.xpEarned
                                     });
                                 }}

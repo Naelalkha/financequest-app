@@ -7,6 +7,7 @@
 
 import { cutSubscriptionQuest } from './pilotage/cut-subscription/metadata.js';
 import { microExpensesQuest } from './pilotage/micro-expenses/metadata.js';
+import { budget503020Quest } from './pilotage/budget-50-30-20/metadata.js';
 
 // ========================================
 // TYPES
@@ -79,6 +80,7 @@ export interface QuestsStats {
 
 export { cutSubscriptionQuest };
 export { microExpensesQuest };
+export { budget503020Quest };
 
 
 // ========================================
@@ -91,7 +93,7 @@ export { microExpensesQuest };
 export const allQuests: Quest[] = [
   cutSubscriptionQuest as Quest,
   microExpensesQuest as Quest,
-  // Les prochaines quêtes seront ajoutées ici
+  budget503020Quest as Quest,
 ];
 
 /**

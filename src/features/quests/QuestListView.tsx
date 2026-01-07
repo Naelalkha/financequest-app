@@ -12,6 +12,7 @@ import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
 import { CutSubscriptionFlow } from "./pilotage/cut-subscription";
 import { MicroExpensesFlow } from "./pilotage/micro-expenses";
+import { Budget503020Flow } from "./pilotage/budget-50-30-20";
 
 /** Quest with progress info */
 interface QuestWithProgress extends Quest {
@@ -338,6 +339,26 @@ const QuestListView = () => {
                                     ? `${t('microExpenses.title')} - ${result.expenseName}`
                                     : selectedQuest.title,
                                 annualSavings: result.yearlySavings,
+                                xpReward: result.xpEarned
+                            });
+                        }}
+                        userProgress={{
+                            streak: 1,
+                            xpProgress: 50
+                        }}
+                    />
+                ) : selectedQuest.id === 'budget-50-30-20' ? (
+                    <Budget503020Flow
+                        quest={selectedQuest}
+                        onClose={() => {
+                            setShowQuestModal(false);
+                            setSelectedQuest(null);
+                        }}
+                        onComplete={(result) => {
+                            handleCompleteQuest({
+                                ...selectedQuest,
+                                id: result.questId,
+                                annualSavings: result.annualSavings,
                                 xpReward: result.xpEarned
                             });
                         }}
