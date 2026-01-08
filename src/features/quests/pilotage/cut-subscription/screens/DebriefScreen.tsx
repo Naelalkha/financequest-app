@@ -1,10 +1,31 @@
 import { useEffect, useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, TrendingUp, Zap, Flame, Sparkles } from 'lucide-react';
+import {
+    CheckCircle2, TrendingUp, Zap, Flame, Sparkles,
+    Coffee, UtensilsCrossed, Footprints, Plane, Headphones, TrendingUp as TrendingUpAlt, Laptop, Rocket, Gift
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getConcreteImpact, calculateCompoundGrowth } from '../insightData';
 import { haptic } from '../../../../../utils/haptics';
+
+// Map iconName to Lucide icon component
+const ICON_MAP: Record<string, React.ElementType> = {
+    Coffee,
+    UtensilsCrossed,
+    Footprints,
+    Plane,
+    Headphones,
+    TrendingUp: TrendingUpAlt,
+    Laptop,
+    Rocket,
+    Gift, // fallback
+};
+
+const getIconComponent = (iconName?: string): React.ElementType => {
+    if (!iconName) return Gift;
+    return ICON_MAP[iconName] || Gift;
+};
 
 /** Quest data from execution phase */
 interface QuestData {
@@ -167,26 +188,31 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                             <div className="space-y-3">
 
                                 {/* Card 1: Equivalent Value */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.25 }}
-                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-volt/10 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-2xl">{concreteImpact.icon}</span>
-                                        </div>
-                                        <div className="flex-1 text-left">
-                                            <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-1">
-                                                {L.equivalent}
-                                            </span>
-                                            <span className="text-sm font-bold text-white block leading-tight">
-                                                {renderWithBold(concreteImpact.text)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                                {(() => {
+                                    const IconComponent = getIconComponent(concreteImpact.iconName);
+                                    return (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-volt/10 flex items-center justify-center flex-shrink-0">
+                                                    <IconComponent className="w-6 h-6 text-volt" />
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <span className="block font-mono text-[11px] text-neutral-500 uppercase font-bold mb-1">
+                                                        {L.equivalent}
+                                                    </span>
+                                                    <span className="text-sm font-bold text-white block leading-tight">
+                                                        {renderWithBold(concreteImpact.text)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })()}
 
                                 {/* Card 2: Monthly + Projection (Combined) */}
                                 <motion.div

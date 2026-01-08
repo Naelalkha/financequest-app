@@ -265,26 +265,31 @@ export const getConcreteImpact = (yearlySavings: number, locale: string = 'fr') 
             {
                 maxAmount: 600,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "C'est **un weekend city-trip** chaque année."
             },
             {
                 maxAmount: 1200,
                 icon: '📱',
+                iconName: 'Smartphone',
                 text: "C'est **un iPhone dernier cri** par an."
             },
             {
                 maxAmount: 2400,
                 icon: '🏝️',
+                iconName: 'Palmtree',
                 text: "C'est **une semaine de vacances** chaque année."
             },
             {
                 maxAmount: 6000,
                 icon: '🏠',
+                iconName: 'Home',
                 text: "C'est **un apport pour un investissement**."
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "C'est **la liberté financière à portée**."
             }
         ],
@@ -292,26 +297,31 @@ export const getConcreteImpact = (yearlySavings: number, locale: string = 'fr') 
             {
                 maxAmount: 600,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "That's **a city-trip weekend** every year."
             },
             {
                 maxAmount: 1200,
                 icon: '📱',
+                iconName: 'Smartphone',
                 text: "That's **the latest iPhone** every year."
             },
             {
                 maxAmount: 2400,
                 icon: '🏝️',
+                iconName: 'Palmtree',
                 text: "That's **a week of vacation** every year."
             },
             {
                 maxAmount: 6000,
                 icon: '🏠',
+                iconName: 'Home',
                 text: "That's **a deposit for an investment**."
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "That's **financial freedom within reach**."
             }
         ]
@@ -348,6 +358,34 @@ export const get5YearEquivalent = (amount: number, locale: string = 'fr') => {
     return match || list[list.length - 1];
 };
 
+// ===== RECOVERY POTENTIAL (GAP CALCULATION) =====
+/**
+ * Calculate the recovery potential (gap between ideal and actual savings)
+ * @param idealSavings - Ideal savings (20% of income)
+ * @param actualSavings - Actual current savings
+ * @returns Recovery potential (always >= 0)
+ */
+export const calculateRecoveryPotential = (
+    idealSavings: number,
+    actualSavings: number
+): number => {
+    const gap = idealSavings - actualSavings;
+    return Math.max(0, gap);
+};
+
+/**
+ * Check if user is already above target savings
+ * @param actualSavings - Actual current savings
+ * @param idealSavings - Ideal savings (20% of income)
+ * @returns true if actual >= ideal
+ */
+export const isAboveTarget = (
+    actualSavings: number,
+    idealSavings: number
+): boolean => {
+    return actualSavings >= idealSavings;
+};
+
 // ===== DEFAULT EXPORT =====
 export default {
     BUDGET_SPLIT,
@@ -361,5 +399,7 @@ export default {
     getCategoryDiagnosis,
     getBudgetDiagnosis,
     getConcreteImpact,
-    get5YearEquivalent
+    get5YearEquivalent,
+    calculateRecoveryPotential,
+    isAboveTarget
 };

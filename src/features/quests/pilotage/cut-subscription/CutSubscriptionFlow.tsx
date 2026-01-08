@@ -318,7 +318,7 @@ const CutSubscriptionFlow: React.FC<CutSubscriptionFlowProps> = ({
                 </div>
 
                 {/* Content Body - Padding top to account for absolute header + safe area */}
-                <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8rem)' }}>
+                <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 7rem)' }}>
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div

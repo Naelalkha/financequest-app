@@ -75,7 +75,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
 
     // Internal navigation states (lifted up to control Header Back Button)
     const [protocolPage, setProtocolPage] = useState(0); // 0 = Context, 1 = Method
-    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation', 'diagnosis-prompt', 'diagnosis'
+    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation', 'diagnosis', 'engagement'
 
     // Quest data state
     const [questData, setQuestData] = useState({
@@ -86,7 +86,9 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
         actualNeeds: 0,
         actualWants: 0,
         actualSavings: 0,
-        didDiagnosis: false,
+        didDiagnosis: true, // Now always true since diagnosis is mandatory
+        hasCommitted: false, // User engagement choice
+        recoveryPotential: 0, // Gap between ideal and actual savings
         ...userProgress
     });
 
@@ -105,7 +107,8 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
         }
         if (phase === 'EXECUTION') {
             if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
-            if (executionStep === 'diagnosis-prompt') return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
+            if (executionStep === 'diagnosis') return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
+            if (executionStep === 'engagement') return { fr: 'ENGAGEMENT', en: 'COMMITMENT' };
             return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
         }
         return { fr: 'IMPACT', en: 'IMPACT' };
@@ -116,15 +119,16 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
         return { fr: '', en: '' };
     };
 
-    // Progress bar width - 5 steps total
+    // Progress bar width - 5 steps total: CONTEXTE, MÉTHODE, CIBLE, DIAGNOSTIC, ENGAGEMENT, IMPACT
     const getProgressWidth = () => {
         if (phase === 'PROTOCOL') {
-            return protocolPage === 0 ? '20%' : '40%';
+            return protocolPage === 0 ? '16%' : '33%';
         }
         if (phase === 'EXECUTION') {
-            if (executionStep === 'revelation') return '60%';
-            if (executionStep === 'diagnosis-prompt') return '70%';
-            return '80%';
+            if (executionStep === 'revelation') return '50%';
+            if (executionStep === 'diagnosis') return '66%';
+            if (executionStep === 'engagement') return '83%';
+            return '66%';
         }
         return '100%'; // DEBRIEF
     };
@@ -144,9 +148,9 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
         if (phase === 'PROTOCOL' && protocolPage === 1) {
             setProtocolPage(0);
         } else if (phase === 'EXECUTION') {
-            if (executionStep === 'diagnosis') {
-                setExecutionStep('diagnosis-prompt');
-            } else if (executionStep === 'diagnosis-prompt') {
+            if (executionStep === 'engagement') {
+                setExecutionStep('diagnosis');
+            } else if (executionStep === 'diagnosis') {
                 setExecutionStep('revelation');
             } else {
                 setPhase('PROTOCOL');
@@ -182,10 +186,17 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
 
     // Final completion
     const handleComplete = () => {
+        // Conditional XP: 120 if committed, 80 if not
+        const xpEarned = questData.hasCommitted ? 120 : 80;
+        // Conditional impact: only count if committed
+        const annualImpact = questData.hasCommitted ? questData.recoveryPotential * 12 : 0;
+
         trackEvent('quest_completed', {
             quest_id: 'budget-50-30-20',
             monthly_income: questData.monthlyIncome,
-            annual_savings: questData.idealSavings * 12,
+            annual_savings: annualImpact,
+            recovery_potential: questData.recoveryPotential,
+            has_committed: questData.hasCommitted,
             did_diagnosis: questData.didDiagnosis
         });
 
@@ -193,11 +204,11 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
             questId: 'budget-50-30-20',
             monthlyIncome: questData.monthlyIncome,
             idealSavings: questData.idealSavings,
-            actualSavings: questData.didDiagnosis ? questData.actualSavings : undefined,
-            annualSavings: questData.idealSavings * 12,
+            actualSavings: questData.actualSavings,
+            annualSavings: annualImpact,
             fiveYearProjection: questData.fiveYearProjection || 0,
             didDiagnosis: questData.didDiagnosis,
-            xpEarned: quest.xp || 120,
+            xpEarned,
             completedAt: new Date().toISOString()
         });
     };
@@ -321,7 +332,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                 </div>
 
                 {/* Content Body - Padding top to account for absolute header + safe area */}
-                <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8rem)' }}>
+                <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 7rem)' }}>
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
                             <motion.div
@@ -373,8 +384,10 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                             >
                                 <DebriefScreen
                                     data={questData}
-                                    xpReward={quest.xp ?? quest.xpReward ?? 120}
+                                    xpReward={questData.hasCommitted ? 120 : 80}
                                     currentStreak={userProgress.streak ?? 1}
+                                    hasCommitted={questData.hasCommitted}
+                                    recoveryPotential={questData.recoveryPotential}
                                     onComplete={handleComplete}
                                 />
                             </motion.div>

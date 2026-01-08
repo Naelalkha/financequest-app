@@ -667,46 +667,43 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                 <div className="flex flex-col p-6 pt-4 pb-32">
 
 
-                    {/* Premium Service Card - Sleek Design */}
+                    {/* Premium Service Card - Compact Design */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-800/50 via-neutral-900 to-black border border-white/10 rounded-3xl p-6 backdrop-blur-[20px] mb-6 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)]"
+                        className="relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-800/50 via-neutral-900 to-black border border-white/10 rounded-3xl p-5 backdrop-blur-[20px] mb-5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)]"
                     >
                         <div className="flex flex-col items-center relative z-10">
                             {/* Service Icon - Circle */}
-                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-neutral-900/50 shadow-inner border border-white/10 ${serviceLogo?.color}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-neutral-900/50 shadow-inner border border-white/10 ${serviceLogo?.color}`}>
                                 {serviceLogo?.useAppleIcon ? (
-                                    <FaApple className="text-4xl" />
+                                    <FaApple className="text-3xl" />
                                 ) : (
-                                    <span className="font-black text-4xl tracking-tight">
+                                    <span className="font-black text-3xl tracking-tight">
                                         {serviceLogo?.icon}
                                     </span>
                                 )}
                             </div>
 
                             {/* Service Name */}
-                            <h3 className="font-sans font-bold text-2xl text-white mb-4 tracking-tight">
+                            <h3 className="font-sans font-bold text-xl text-white mb-2 tracking-tight">
                                 {customName || getServiceDisplayName(serviceLogo)}
                             </h3>
 
                             {/* Strategy Badge */}
-                            <div className="flex items-center gap-2 px-4 py-1.5 bg-neutral-900 border border-white/10 rounded-full mb-6 shadow-sm">
-                                <div className="text-volt">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-neutral-900 border border-white/10 rounded-full mb-4 shadow-sm">
+                                <div className="text-volt [&>svg]:w-5 [&>svg]:h-5">
                                     {STRATEGY_ICONS[selectedStrategy?.id || 'stopper']}
                                 </div>
-                                <span className="font-mono text-xs font-bold uppercase text-neutral-300">
+                                <span className="font-mono text-[11px] font-bold uppercase text-neutral-300">
                                     {locale === 'fr' ? selectedStrategy?.labelFr : selectedStrategy?.labelEn}
                                 </span>
                             </div>
 
-                            {/* Separator Line */}
-                            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6" />
-
                             {/* BIG SAVINGS - The reward */}
                             <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-volt tracking-tighter drop-shadow-[0_0_20px_rgba(226,255,0,0.15)]">
+                                <span className="text-4xl font-black text-volt tracking-tighter drop-shadow-[0_0_20px_rgba(226,255,0,0.15)]">
                                     +{selectedStrategy?.savings?.toLocaleString('fr-FR') || 0} €
                                 </span>
                                 <span className="text-sm font-mono text-neutral-500">{L.perYear}</span>

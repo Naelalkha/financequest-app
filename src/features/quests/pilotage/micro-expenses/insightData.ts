@@ -377,36 +377,42 @@ export const getConcreteImpact = (yearlyAmount, locale = 'fr') => {
             {
                 maxAmount: 500,
                 icon: '☕',
+                iconName: 'Coffee',
                 text: "C'est **{value} cafés** premium gratuits par an.",
                 compute: (amt) => ({ value: Math.floor(amt / 5) })
             },
             {
                 maxAmount: 1000,
                 icon: '🎧',
+                iconName: 'Headphones',
                 text: "C'est des **AirPods Pro** tous les 6 mois.",
                 compute: () => ({})
             },
             {
                 maxAmount: 2000,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "C'est **un voyage en Europe** chaque année.",
                 compute: () => ({})
             },
             {
                 maxAmount: 3500,
                 icon: '💻',
+                iconName: 'Laptop',
                 text: "C'est un **MacBook Air** par an.",
                 compute: () => ({})
             },
             {
                 maxAmount: 5000,
                 icon: '📈',
+                iconName: 'TrendingUp',
                 text: "C'est **{value} actions Apple** par an.",
                 compute: (amt) => ({ value: Math.floor(amt / 180) })
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "C'est un **investissement majeur** annuel.",
                 compute: () => ({})
             }
@@ -415,36 +421,42 @@ export const getConcreteImpact = (yearlyAmount, locale = 'fr') => {
             {
                 maxAmount: 500,
                 icon: '☕',
+                iconName: 'Coffee',
                 text: "That's **{value} premium coffees** free per year.",
                 compute: (amt) => ({ value: Math.floor(amt / 5) })
             },
             {
                 maxAmount: 1000,
                 icon: '🎧',
+                iconName: 'Headphones',
                 text: "That's **AirPods Pro** every 6 months.",
                 compute: () => ({})
             },
             {
                 maxAmount: 2000,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "That's **a trip to Europe** every year.",
                 compute: () => ({})
             },
             {
                 maxAmount: 3500,
                 icon: '💻',
+                iconName: 'Laptop',
                 text: "That's a **MacBook Air** per year.",
                 compute: () => ({})
             },
             {
                 maxAmount: 5000,
                 icon: '📈',
+                iconName: 'TrendingUp',
                 text: "That's **{value} Apple shares** per year.",
                 compute: (amt) => ({ value: Math.floor(amt / 180) })
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "That's a **major investment** each year.",
                 compute: () => ({})
             }
@@ -465,7 +477,7 @@ export const getConcreteImpact = (yearlyAmount, locale = 'fr') => {
         finalText = finalText.replace(`{${key}}`, value);
     });
 
-    return { icon: match.icon, text: finalText };
+    return { icon: match.icon, iconName: match.iconName, text: finalText };
 };
 
 export default {

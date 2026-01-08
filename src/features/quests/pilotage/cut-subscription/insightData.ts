@@ -282,48 +282,56 @@ export const getConcreteImpact = (amount, locale = 'fr') => {
             {
                 maxAmount: 30,
                 icon: '☕',
+                iconName: 'Coffee',
                 text: "C'est **{coffees} cafés** offerts chaque mois.",
                 compute: (amt) => ({ coffees: Math.floor(amt / 4) })
             },
             {
                 maxAmount: 60,
                 icon: '🍽️',
+                iconName: 'UtensilsCrossed',
                 text: "C'est **un dîner au restaurant** pour 2.",
                 compute: () => ({})
             },
             {
                 maxAmount: 120,
                 icon: '👟',
+                iconName: 'Footprints',
                 text: "C'est une paire de **Sneakers** (Nike/Adidas) en promo.",
                 compute: () => ({})
             },
             {
                 maxAmount: 250,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "C'est un **vol A/R pour Barcelone** ou Lisbonne.",
                 compute: () => ({})
             },
             {
                 maxAmount: 400,
                 icon: '🎧',
+                iconName: 'Headphones',
                 text: "C'est un casque **Sony XM5** ou des **AirPods Pro**.",
                 compute: () => ({})
             },
             {
                 maxAmount: 600,
                 icon: '📈',
+                iconName: 'TrendingUp',
                 text: "C'est **une action LVMH** ou 0.01 Bitcoin sécurisé.",
                 compute: () => ({})
             },
             {
                 maxAmount: 1000,
                 icon: '💻',
+                iconName: 'Laptop',
                 text: "C'est une partie sérieuse d'un **MacBook Air**.",
                 compute: () => ({})
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "C'est un **investissement majeur** ou un voyage de rêve.",
                 compute: () => ({})
             }
@@ -332,48 +340,56 @@ export const getConcreteImpact = (amount, locale = 'fr') => {
             {
                 maxAmount: 30,
                 icon: '☕',
+                iconName: 'Coffee',
                 text: "That's **{coffees} coffees** offered every month.",
                 compute: (amt) => ({ coffees: Math.floor(amt / 4) })
             },
             {
                 maxAmount: 60,
                 icon: '🍽️',
+                iconName: 'UtensilsCrossed',
                 text: "That's **a restaurant dinner** for 2.",
                 compute: () => ({})
             },
             {
                 maxAmount: 120,
                 icon: '👟',
+                iconName: 'Footprints',
                 text: "That's a pair of **Sneakers** (Nike/Adidas) on sale.",
                 compute: () => ({})
             },
             {
                 maxAmount: 250,
                 icon: '✈️',
+                iconName: 'Plane',
                 text: "That's a **round-trip to Barcelona** or Lisbon.",
                 compute: () => ({})
             },
             {
                 maxAmount: 400,
                 icon: '🎧',
+                iconName: 'Headphones',
                 text: "That's a **Sony XM5** headset or **AirPods Pro**.",
                 compute: () => ({})
             },
             {
                 maxAmount: 600,
                 icon: '📈',
+                iconName: 'TrendingUp',
                 text: "That's **one LVMH share** or 0.01 Bitcoin secured.",
                 compute: () => ({})
             },
             {
                 maxAmount: 1000,
                 icon: '💻',
+                iconName: 'Laptop',
                 text: "That's a serious chunk of a **MacBook Air**.",
                 compute: () => ({})
             },
             {
                 maxAmount: Infinity,
                 icon: '🚀',
+                iconName: 'Rocket',
                 text: "That's a **major investment** or a dream trip.",
                 compute: () => ({})
             }
@@ -394,7 +410,7 @@ export const getConcreteImpact = (amount, locale = 'fr') => {
         finalText = finalText.replace(`{${key}}`, value);
     });
 
-    return { icon: match.icon, text: finalText };
+    return { icon: match.icon, iconName: match.iconName, text: finalText };
 };
 
 // ===== COMPOUND INTEREST PROJECTION =====
