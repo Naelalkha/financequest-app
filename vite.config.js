@@ -154,7 +154,7 @@ export default defineConfig({
     host: true,
     hmr: {
       port: 5173,
-      host: 'localhost'
+      host: '192.168.1.189'
     },
     watch: {
       usePolling: false,
