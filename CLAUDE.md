@@ -131,3 +131,11 @@ Located in `/api/`:
 - No tests currently configured
 - French (fr) is the primary language, English (en) secondary
 - Console logs are dropped in production builds
+
+## Mission Creation
+
+Pour créer une nouvelle mission, consulter `MISSION.md` qui contient:
+- Templates complets pour tous les fichiers (metadata, insightData, Flow, screens)
+- Checklist de création séquentielle
+- Patterns UI et calculs standards
+- Anti-patterns à éviter

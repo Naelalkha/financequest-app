@@ -14,6 +14,7 @@ export const budget503020Quest = {
   difficulty: 'beginner',
   duration: 6,
   xp: 120,
+  xpReward: 120, // Pour SmartMissionModal
   isPremium: false,
   starterPack: true,
   order: 3,

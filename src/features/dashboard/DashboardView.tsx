@@ -29,7 +29,6 @@ import { onboardingStore } from '../onboarding/onboardingStore';
 
 // Lazy-loaded components (not on critical path)
 const SmartMissionModal = lazy(() => import('./components/SmartMissionModal'));
-const QuestDetailsModal = lazy(() => import('./components/QuestDetailsModal'));
 const CutSubscriptionFlow = lazy(() =>
     import('../quests/pilotage/cut-subscription').then(m => ({ default: m.CutSubscriptionFlow }))
 );
@@ -38,6 +37,9 @@ const MicroExpensesFlow = lazy(() =>
 );
 const Budget503020Flow = lazy(() =>
     import('../quests/pilotage/budget-50-30-20').then(m => ({ default: m.Budget503020Flow }))
+);
+const AntiOverdraftFlow = lazy(() =>
+    import('../quests/pilotage/anti-overdraft').then(m => ({ default: m.AntiOverdraftFlow }))
 );
 
 /** Modified quest with extra fields */
@@ -530,14 +532,25 @@ const DashboardView: React.FC = () => {
                                     xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
                                 }}
                             />
-                        ) : (
-                            <QuestDetailsModal
-                                key="quest-details-modal"
+                        ) : selectedQuest.id === 'anti-overdraft' ? (
+                            <AntiOverdraftFlow
+                                key="anti-overdraft-flow"
                                 quest={selectedQuest}
                                 onClose={handleCloseQuestDetails}
-                                onComplete={handleCompleteQuestFromDetails}
+                                onComplete={(result) => {
+                                    handleCompleteQuestFromDetails({
+                                        ...selectedQuest,
+                                        id: result.questId,
+                                        annualSavings: result.annualSavings,
+                                        xpReward: result.xpEarned
+                                    });
+                                }}
+                                userProgress={{
+                                    streak: streakDays,
+                                    xpProgress: Math.round((levelData.currentLevelXP / (levelData.xpForNextLevel || 100)) * 100)
+                                }}
                             />
-                        )}
+                        ) : null}
                     </Suspense>
                 )}
             </AnimatePresence>

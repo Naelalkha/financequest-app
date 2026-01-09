@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from "react-router-dom";
 import { Archive, LayoutList, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,11 +9,11 @@ import { useLocalQuests, Quest } from "../../hooks/useLocalQuests";
 import { collection, query, where, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import { updateGamificationOnQuestComplete } from "../../services/gamification";
-import QuestDetailsModal from "../dashboard/components/QuestDetailsModal";
 import QuestCartridge from "./components/QuestCartridge";
 import { CutSubscriptionFlow } from "./pilotage/cut-subscription";
 import { MicroExpensesFlow } from "./pilotage/micro-expenses";
 import { Budget503020Flow } from "./pilotage/budget-50-30-20";
+import { AntiOverdraftFlow } from "./pilotage/anti-overdraft";
 
 /** Quest with progress info */
 interface QuestWithProgress extends Quest {
@@ -198,106 +199,108 @@ const QuestListView = () => {
     const isLoading = questsLoading || loading;
 
     return (
-        <div className="pt-4 px-6 pb-24 animate-slide-up">
+        <>
+            <div className="pt-4 px-6 pb-24 animate-slide-up">
 
-            {/* Page Header */}
-            <div className="flex items-end justify-between mb-8 border-b border-white/10 pb-4">
-                <div>
-                    <h1 className="font-sans font-bold text-4xl md:text-5xl text-white tracking-tight leading-none">
-                        MISSION<br /><span className="text-neutral-600">LOG_01</span>
-                    </h1>
-                </div>
-                <div className="text-right hidden md:block">
-                    <span className="font-mono text-xs text-gold block">SYSTEM STATUS</span>
-                    <span className="font-mono text-xs text-white">ONLINE</span>
-                </div>
-            </div>
-
-            {/* Tabs / Filter */}
-            <div className="flex gap-4 mb-6">
-                <button
-                    onClick={() => setTab("ACTIVE")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ACTIVE"
-                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                        : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
-                        }`}
-                >
-                    <LayoutList className="w-3 h-3" />
-                    {t('tab_active').toUpperCase()} ({activeQuests.length})
-                </button>
-                <button
-                    onClick={() => setTab("ARCHIVE")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ARCHIVE"
-                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                        : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
-                        }`}
-                >
-                    <Archive className="w-3 h-3" />
-                    {t('tab_archive').toUpperCase()} ({completedQuests.length})
-                </button>
-            </div>
-
-            {/* Content Area */}
-            <div className="space-y-4 min-h-[300px]">
-                {tab === "ACTIVE" ? (
-                    <>
-                        {/* Add New Quest Button (Small version) */}
-                        <button
-                            onClick={handleStartQuest}
-                            disabled={isLoading}
-                            className="w-full h-16 border border-dashed border-neutral-700 rounded-2xl flex items-center justify-center gap-3 text-neutral-500 hover:text-gold hover:border-gold hover:bg-gold/5 transition-all group mb-6"
-                        >
-                            {isLoading ? (
-                                <span className="font-mono text-xs animate-pulse">{t('scanning').toUpperCase()}</span>
-                            ) : (
-                                <>
-                                    <div className="w-6 h-6 rounded-full border border-current flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Plus className="w-3 h-3" />
-                                    </div>
-                                    <span className="font-mono text-xs font-bold tracking-widest">{t('find_new_quest').toUpperCase()}</span>
-                                </>
-                            )}
-                        </button>
-
-                        {activeQuests.length === 0 ? (
-                            <div className="text-center py-12 opacity-50">
-                                <LayoutList className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
-                                <p className="font-mono text-xs text-neutral-500">{t('no_active').toUpperCase()}</p>
-                            </div>
-                        ) : (
-                            activeQuests.map(quest => (
-                                <QuestCartridge
-                                    key={quest.id}
-                                    quest={quest}
-                                    onOpen={handleOpenQuest}
-                                    isPriority={false}
-                                />
-                            ))
-                        )}
-                    </>
-                ) : (
-                    /* ARCHIVE TAB */
-                    <div className="space-y-3">
-                        {completedQuests.length === 0 ? (
-                            <div className="text-center py-12 opacity-50">
-                                <Archive className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
-                                <p className="font-mono text-xs text-neutral-500">{t('archive_empty').toUpperCase()}</p>
-                            </div>
-                        ) : (
-                            completedQuests.map(quest => (
-                                <CompletedQuestItem
-                                    key={quest.id}
-                                    quest={quest}
-                                    completedLabel={t('completed_status').toUpperCase()}
-                                />
-                            ))
-                        )}
+                {/* Page Header */}
+                <div className="flex items-end justify-between mb-8 border-b border-white/10 pb-4">
+                    <div>
+                        <h1 className="font-sans font-bold text-4xl md:text-5xl text-white tracking-tight leading-none">
+                            MISSION<br /><span className="text-neutral-600">LOG_01</span>
+                        </h1>
                     </div>
-                )}
+                    <div className="text-right hidden md:block">
+                        <span className="font-mono text-xs text-gold block">SYSTEM STATUS</span>
+                        <span className="font-mono text-xs text-white">ONLINE</span>
+                    </div>
+                </div>
+
+                {/* Tabs / Filter */}
+                <div className="flex gap-4 mb-6">
+                    <button
+                        onClick={() => setTab("ACTIVE")}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ACTIVE"
+                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                            : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
+                            }`}
+                    >
+                        <LayoutList className="w-3 h-3" />
+                        {t('tab_active').toUpperCase()} ({activeQuests.length})
+                    </button>
+                    <button
+                        onClick={() => setTab("ARCHIVE")}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all border ${tab === "ARCHIVE"
+                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                            : "bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600"
+                            }`}
+                    >
+                        <Archive className="w-3 h-3" />
+                        {t('tab_archive').toUpperCase()} ({completedQuests.length})
+                    </button>
+                </div>
+
+                {/* Content Area */}
+                <div className="space-y-4 min-h-[300px]">
+                    {tab === "ACTIVE" ? (
+                        <>
+                            {/* Add New Quest Button (Small version) */}
+                            <button
+                                onClick={handleStartQuest}
+                                disabled={isLoading}
+                                className="w-full h-16 border border-dashed border-neutral-700 rounded-2xl flex items-center justify-center gap-3 text-neutral-500 hover:text-gold hover:border-gold hover:bg-gold/5 transition-all group mb-6"
+                            >
+                                {isLoading ? (
+                                    <span className="font-mono text-xs animate-pulse">{t('scanning').toUpperCase()}</span>
+                                ) : (
+                                    <>
+                                        <div className="w-6 h-6 rounded-full border border-current flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <Plus className="w-3 h-3" />
+                                        </div>
+                                        <span className="font-mono text-xs font-bold tracking-widest">{t('find_new_quest').toUpperCase()}</span>
+                                    </>
+                                )}
+                            </button>
+
+                            {activeQuests.length === 0 ? (
+                                <div className="text-center py-12 opacity-50">
+                                    <LayoutList className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
+                                    <p className="font-mono text-xs text-neutral-500">{t('no_active').toUpperCase()}</p>
+                                </div>
+                            ) : (
+                                activeQuests.map(quest => (
+                                    <QuestCartridge
+                                        key={quest.id}
+                                        quest={quest}
+                                        onOpen={handleOpenQuest}
+                                        isPriority={false}
+                                    />
+                                ))
+                            )}
+                        </>
+                    ) : (
+                        /* ARCHIVE TAB */
+                        <div className="space-y-3">
+                            {completedQuests.length === 0 ? (
+                                <div className="text-center py-12 opacity-50">
+                                    <Archive className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
+                                    <p className="font-mono text-xs text-neutral-500">{t('archive_empty').toUpperCase()}</p>
+                                </div>
+                            ) : (
+                                completedQuests.map(quest => (
+                                    <CompletedQuestItem
+                                        key={quest.id}
+                                        quest={quest}
+                                        completedLabel={t('completed_status').toUpperCase()}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Quest Details Modal */}
-            {showQuestModal && selectedQuest && (
+            {/* Quest Details Modal - Rendered via portal to escape all stacking contexts */}
+            {showQuestModal && selectedQuest && createPortal(
                 selectedQuest.id === 'cut-subscription' ? (
                     <CutSubscriptionFlow
                         quest={selectedQuest}
@@ -367,18 +370,30 @@ const QuestListView = () => {
                             xpProgress: 50
                         }}
                     />
-                ) : (
-                    <QuestDetailsModal
+                ) : selectedQuest.id === 'anti-overdraft' ? (
+                    <AntiOverdraftFlow
                         quest={selectedQuest}
                         onClose={() => {
                             setShowQuestModal(false);
                             setSelectedQuest(null);
                         }}
-                        onComplete={handleCompleteQuest}
+                        onComplete={(result) => {
+                            handleCompleteQuest({
+                                ...selectedQuest,
+                                id: result.questId,
+                                annualSavings: result.annualSavings,
+                                xpReward: result.xpEarned
+                            });
+                        }}
+                        userProgress={{
+                            streak: 1,
+                            xpProgress: 50
+                        }}
                     />
-                )
+                ) : null,
+                document.body
             )}
-        </div>
+        </>
     );
 };
 

@@ -346,7 +346,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                         {/* PRICE INPUT (Slider + Big Number) */}
                         <div className="mb-5 w-full">
                             <div className="flex justify-between items-end mb-3 px-1">
-                                <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide">
+                                <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">
                                     {L.priceLabel}
                                 </label>
                                 <div className="flex items-baseline">
@@ -376,7 +376,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* FREQUENCY CHIPS - Grid 2 rows */}
                         <div className="mb-6 w-full">
-                            <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-3 block px-1">
+                            <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-3 block px-1">
                                 {L.frequencyLabel}
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -414,7 +414,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 >
                                     <div className="flex flex-col items-center">
                                         {/* Label */}
-                                        <span className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-1">
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-1">
                                             {L.resultLabel}
                                         </span>
 

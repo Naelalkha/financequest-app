@@ -82,5 +82,18 @@
         "prerequisites": [
             "None"
         ]
+    },
+    "antiOverdraft": {
+        "codename": "OVERDRAFT SHIELD",
+        "title": "PROTECT YOUR ACCOUNT",
+        "description": "53% of French people go overdrawn every year. Calculate your safety margin and activate your safeguards.",
+        "objectives": [
+            "Calculate your Disposable Income (RAV)",
+            "Identify your risk level",
+            "Activate your anti-overdraft safeguards"
+        ],
+        "prerequisites": [
+            "None"
+        ]
     }
 }

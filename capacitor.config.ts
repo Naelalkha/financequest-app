@@ -10,8 +10,9 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     hostname: 'localhost',
-    // Live reload - décommenter pour le développement
-    url: 'http://192.168.1.189:5173',
+    // Live reload - localhost fonctionne pour le simulateur iOS
+    // Pour un appareil physique, utiliser l'IP locale (ex: http://192.168.1.189:5173)
+    url: 'http://localhost:5173',
     cleartext: true,
   },
   plugins: {

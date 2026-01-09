@@ -331,7 +331,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
 
                         {/* PRICE INPUT */}
                         <div className="mb-5 w-full">
-                            <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-4 block text-center">
+                            <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-4 block text-center">
                                 {L.priceLabel}
                             </label>
                             <div className="flex items-center justify-center gap-2 mb-6">
@@ -360,7 +360,7 @@ const ExecutionScreen = ({ data = {}, onUpdate, onNext, step, setStep }: Executi
                                     className="w-full bg-neutral-900/60 border border-white/5 rounded-2xl p-6 backdrop-blur-[20px]"
                                 >
                                     <div className="flex flex-col items-center">
-                                        <span className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide mb-1">
+                                        <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide mb-1">
                                             {L.resultLabel}
                                         </span>
                                         <div className="flex items-baseline gap-2 mb-4">

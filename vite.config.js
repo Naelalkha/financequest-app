@@ -152,10 +152,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    hmr: {
-      port: 5173,
-      host: '192.168.1.189'
-    },
+    hmr: true,
     watch: {
       usePolling: false,
       // Watch tailwind config for changes

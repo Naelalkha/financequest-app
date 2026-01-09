@@ -35,6 +35,8 @@ export interface SliderProps {
     trackClassName?: string;
     /** Classes CSS pour le thumb */
     thumbClassName?: string;
+    /** Couleur d'accentuation (hex) - remplace volt par défaut */
+    accentColor?: string;
 }
 
 /**
@@ -61,6 +63,7 @@ const Slider: React.FC<SliderProps> = ({
     className = '',
     trackClassName = '',
     thumbClassName = '',
+    accentColor,
 }) => {
     const trackRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -254,7 +257,11 @@ const Slider: React.FC<SliderProps> = ({
                     className="fq-slider__fill"
                     style={{
                         width: `${progress}%`,
-                        transition: isDragging ? 'none' : 'width 0.15s ease-out'
+                        transition: isDragging ? 'none' : 'width 0.15s ease-out',
+                        ...(accentColor && {
+                            background: `linear-gradient(90deg, ${accentColor}, ${accentColor})`,
+                            boxShadow: `0 0 12px ${accentColor}40`
+                        })
                     }}
                 />
 
@@ -264,7 +271,11 @@ const Slider: React.FC<SliderProps> = ({
                     style={{
                         left: `${progress}%`,
                         transform: `translateZ(0) scale(${isDragging ? 1.15 : 1})`,
-                        transition: isDragging ? 'transform 0.1s ease-out' : 'left 0.15s ease-out, transform 0.15s ease-out'
+                        transition: isDragging ? 'transform 0.1s ease-out' : 'left 0.15s ease-out, transform 0.15s ease-out',
+                        ...(accentColor && {
+                            background: accentColor,
+                            boxShadow: `0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px ${accentColor}33`
+                        })
                     }}
                 >
                     {/* Glow effect when dragging */}

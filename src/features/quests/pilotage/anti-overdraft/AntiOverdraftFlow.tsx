@@ -8,6 +8,7 @@ import DebriefScreen from './screens/DebriefScreen';
 import { trackEvent } from '../../../../utils/analytics';
 import { fullscreenVariants, TRANSITIONS, EASE } from '../../../../styles/animationConstants';
 import { haptic } from '../../../../utils/haptics';
+import { calculateTotalImpact } from './insightData';
 
 /** Quest metadata */
 interface QuestMeta {
@@ -27,18 +28,20 @@ interface UserProgressData {
 /** Completion result data */
 interface CompletionResult {
   questId: string;
-  monthlyIncome: number;
-  idealSavings: number;
-  actualSavings?: number;
+  revenus: number;
+  chargesFixes: number;
+  rav: number;
+  ravRatio: number;
+  riskLevel: string;
+  selectedStrategies: string[];
+  totalImpact: number;
   annualSavings: number;
-  fiveYearProjection: number;
-  didDiagnosis: boolean;
   xpEarned: number;
   completedAt: string;
 }
 
-/** Props for Budget503020Flow */
-interface Budget503020FlowProps {
+/** Props for AntiOverdraftFlow */
+interface AntiOverdraftFlowProps {
   quest?: QuestMeta;
   onComplete: (result: CompletionResult) => void;
   onClose: () => void;
@@ -46,22 +49,20 @@ interface Budget503020FlowProps {
 }
 
 /**
- * Budget503020Flow - Main 3-Phase Quest Flow Controller
+ * AntiOverdraftFlow - Main 3-Phase Quest Flow Controller
  *
- * Quest: BUDGET 50/30/20
- * Features:
- * - Centralized navigation state (Protocol pages & Execution steps)
- * - Uniform Header with smart Back Button
+ * Quest: L'ANTI-DÉCOUVERT
+ * Flow: CONTEXTE → MÉTHODE → DIAGNOSTIC → STRATÉGIE → ACTION → IMPACT
  */
 
-// Custom transition for main screens (fade only for stability)
+// Custom transition for main screens
 const mainScreenVariants = {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
     exit: { opacity: 0 }
 };
 
-const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
+const AntiOverdraftFlow: React.FC<AntiOverdraftFlowProps> = ({
     quest = {},
     onComplete,
     onClose,
@@ -73,62 +74,54 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
     // Phase state
     const [phase, setPhase] = useState('PROTOCOL');
 
-    // Internal navigation states (lifted up to control Header Back Button)
-    const [protocolPage, setProtocolPage] = useState(0); // 0 = Context, 1 = Method
-    const [executionStep, setExecutionStep] = useState('revelation'); // 'revelation', 'diagnosis', 'engagement'
+    // Internal navigation states
+    const [protocolPage, setProtocolPage] = useState(0); // 0 = Contexte, 1 = Méthode
+    const [executionStep, setExecutionStep] = useState('diagnostic'); // 'diagnostic', 'strategy', 'action'
 
     // Quest data state
     const [questData, setQuestData] = useState({
-        monthlyIncome: 0,
-        idealNeeds: 0,
-        idealWants: 0,
-        idealSavings: 0,
-        actualNeeds: 0,
-        actualWants: 0,
-        actualSavings: 0,
-        didDiagnosis: true, // Now always true since diagnosis is mandatory
-        hasCommitted: false, // User engagement choice
-        recoveryPotential: 0, // Gap between ideal and actual savings
+        revenus: 2500,
+        chargesFixes: 1500,
+        rav: 1000,
+        ravRatio: 0.4,
+        riskLevel: 'CONFORT' as string,
+        selectedStrategies: [] as string[],
+        totalImpact: 0,
         ...userProgress
     });
 
-    // Phase labels (fil d'Ariane - petit jaune) - Codename de la mission
+    // Phase labels
     const phaseLabels = {
-        PROTOCOL: { fr: "L'ÉQUILIBRE", en: 'THE BALANCE' },
-        EXECUTION: { fr: "L'ÉQUILIBRE", en: 'THE BALANCE' },
-        DEBRIEF: { fr: "L'ÉQUILIBRE", en: 'THE BALANCE' }
+        PROTOCOL: { fr: 'L\'ANTI-DÉCOUVERT', en: 'OVERDRAFT SHIELD' },
+        EXECUTION: { fr: 'L\'ANTI-DÉCOUVERT', en: 'OVERDRAFT SHIELD' },
+        DEBRIEF: { fr: 'L\'ANTI-DÉCOUVERT', en: 'OVERDRAFT SHIELD' }
     };
 
-    // Step titles (ÉNORME blanc - action du moment)
+    // Step titles
     const getStepTitle = () => {
         if (phase === 'PROTOCOL') {
             if (protocolPage === 0) return { fr: 'CONTEXTE', en: 'CONTEXT' };
             return { fr: 'MÉTHODE', en: 'METHOD' };
         }
         if (phase === 'EXECUTION') {
-            if (executionStep === 'revelation') return { fr: 'CIBLE', en: 'TARGET' };
-            if (executionStep === 'diagnosis') return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
-            if (executionStep === 'engagement') return { fr: 'ENGAGEMENT', en: 'COMMITMENT' };
+            if (executionStep === 'diagnostic') return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
+            if (executionStep === 'strategy') return { fr: 'STRATÉGIE', en: 'STRATEGY' };
+            if (executionStep === 'action') return { fr: 'ACTION', en: 'ACTION' };
             return { fr: 'DIAGNOSTIC', en: 'DIAGNOSIS' };
         }
         return { fr: 'IMPACT', en: 'IMPACT' };
     };
 
-    // Step subtitles (moyen gris - instruction) - removed for cleaner UI
-    const getStepSubtitle = () => {
-        return { fr: '', en: '' };
-    };
-
-    // Progress bar width - 5 steps total: CONTEXTE, MÉTHODE, CIBLE, DIAGNOSTIC, ENGAGEMENT, IMPACT
+    // Progress bar width - 6 steps total
     const getProgressWidth = () => {
         if (phase === 'PROTOCOL') {
             return protocolPage === 0 ? '16%' : '33%';
         }
         if (phase === 'EXECUTION') {
-            if (executionStep === 'revelation') return '50%';
-            if (executionStep === 'diagnosis') return '66%';
-            if (executionStep === 'engagement') return '83%';
-            return '66%';
+            if (executionStep === 'diagnostic') return '50%';
+            if (executionStep === 'strategy') return '66%';
+            if (executionStep === 'action') return '83%';
+            return '50%';
         }
         return '100%'; // DEBRIEF
     };
@@ -141,73 +134,74 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
 
     // NAVIGATION HANDLERS
 
-    // 1. Back Button Logic
+    // Back Button Logic
     const handleBack = useCallback(() => {
         haptic.light();
 
         if (phase === 'PROTOCOL' && protocolPage === 1) {
             setProtocolPage(0);
         } else if (phase === 'EXECUTION') {
-            if (executionStep === 'engagement') {
-                setExecutionStep('diagnosis');
-            } else if (executionStep === 'diagnosis') {
-                setExecutionStep('revelation');
+            if (executionStep === 'action') {
+                setExecutionStep('strategy');
+            } else if (executionStep === 'strategy') {
+                setExecutionStep('diagnostic');
             } else {
                 setPhase('PROTOCOL');
-                setProtocolPage(1); // Go back to end of protocol
+                setProtocolPage(1);
             }
         }
     }, [phase, protocolPage, executionStep]);
 
-    // 2. Forward Logic
+    // Forward Logic
     const goToExecution = useCallback(() => {
         haptic.medium();
         trackEvent('quest_phase_completed', {
-            quest_id: 'budget-50-30-20',
+            quest_id: 'anti-overdraft',
             phase: 'PROTOCOL'
         });
         setPhase('EXECUTION');
-        setExecutionStep('revelation'); // Reset to start of execution
+        setExecutionStep('diagnostic');
     }, []);
 
     const goToDebrief = useCallback(() => {
         haptic.heavy();
         trackEvent('quest_phase_completed', {
-            quest_id: 'budget-50-30-20',
+            quest_id: 'anti-overdraft',
             phase: 'EXECUTION',
-            monthly_income: questData.monthlyIncome,
-            did_diagnosis: questData.didDiagnosis
+            rav: questData.rav,
+            risk_level: questData.riskLevel,
+            strategies_count: questData.selectedStrategies.length
         });
         setPhase('DEBRIEF');
-    }, [questData.monthlyIncome, questData.didDiagnosis]);
+    }, [questData.rav, questData.riskLevel, questData.selectedStrategies]);
 
     // Check if Back button should be shown
     const showBackButton = (phase === 'PROTOCOL' && protocolPage === 1) || (phase === 'EXECUTION');
 
     // Final completion
     const handleComplete = () => {
-        // Conditional XP: 120 if committed, 80 if not
-        const xpEarned = questData.hasCommitted ? 120 : 80;
-        // Conditional impact: only count if committed
-        const annualImpact = questData.hasCommitted ? questData.recoveryPotential * 12 : 0;
+        const totalImpact = calculateTotalImpact(questData.selectedStrategies);
+        const annualImpact = totalImpact * 12;
+        const xpEarned = quest.xp || 100;
 
         trackEvent('quest_completed', {
-            quest_id: 'budget-50-30-20',
-            monthly_income: questData.monthlyIncome,
-            annual_savings: annualImpact,
-            recovery_potential: questData.recoveryPotential,
-            has_committed: questData.hasCommitted,
-            did_diagnosis: questData.didDiagnosis
+            quest_id: 'anti-overdraft',
+            rav: questData.rav,
+            risk_level: questData.riskLevel,
+            strategies: questData.selectedStrategies,
+            annual_impact: annualImpact
         });
 
         onComplete({
-            questId: 'budget-50-30-20',
-            monthlyIncome: questData.monthlyIncome,
-            idealSavings: questData.idealSavings,
-            actualSavings: questData.actualSavings,
+            questId: 'anti-overdraft',
+            revenus: questData.revenus,
+            chargesFixes: questData.chargesFixes,
+            rav: questData.rav,
+            ravRatio: questData.ravRatio,
+            riskLevel: questData.riskLevel,
+            selectedStrategies: questData.selectedStrategies,
+            totalImpact,
             annualSavings: annualImpact,
-            fiveYearProjection: questData.fiveYearProjection || 0,
-            didDiagnosis: questData.didDiagnosis,
             xpEarned,
             completedAt: new Date().toISOString()
         });
@@ -222,7 +216,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
             {...fullscreenVariants.enter}
             transition={TRANSITIONS.overlayEntry}
         >
-            {/* Texture Overlay (Micro Mode) */}
+            {/* Texture Overlay */}
             <div
                 className="fixed top-0 left-0 w-full h-screen opacity-[0.03] pointer-events-none z-[1]"
                 style={{
@@ -230,14 +224,14 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                 }}
             />
 
-            {/* Main Container - Fullscreen */}
+            {/* Main Container */}
             <motion.div
                 {...fullscreenVariants.content}
                 transition={{ duration: TRANSITIONS.modalEntry.duration, ease: EASE.outExpo }}
                 className="w-full h-full min-h-screen bg-transparent overflow-hidden relative flex flex-col z-10"
             >
 
-                {/* Progress Bar - Below safe area */}
+                {/* Progress Bar */}
                 <div className="absolute left-0 h-1 bg-neutral-800 w-full z-50" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
                     <motion.div
                         className="h-full bg-volt transition-all duration-500 ease-out shadow-[0_0_10px_rgba(226,255,0,0.4)]"
@@ -246,7 +240,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                     />
                 </div>
 
-                {/* Header - Tactical Glass Effect */}
+                {/* Header */}
                 <div
                     className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-40"
                     style={{
@@ -257,7 +251,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                     }}
                 >
                     <div className="flex items-center gap-4">
-                        {/* UNIFORM BACK BUTTON */}
+                        {/* Back Button */}
                         <AnimatePresence mode="popLayout">
                             {showBackButton && (
                                 <motion.button
@@ -281,11 +275,11 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                         </AnimatePresence>
 
                         <motion.div layout className="overflow-hidden">
-                            {/* Fil d'Ariane - petit jaune */}
+                            {/* Breadcrumb */}
                             <span className="font-mono text-[11px] text-volt tracking-wide uppercase block">
                                 {phaseLabels[phase]?.[locale] || phaseLabels[phase]?.fr}
                             </span>
-                            {/* Titre de l'étape - ÉNORME blanc - Animated */}
+                            {/* Step Title */}
                             <div className="h-9 mt-1 overflow-hidden pt-2 -mt-1">
                                 <AnimatePresence mode="wait">
                                     <motion.div
@@ -305,19 +299,6 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                                     </motion.div>
                                 </AnimatePresence>
                             </div>
-                            {/* Instruction - moyen gris - Animated */}
-                            <AnimatePresence mode="wait">
-                                <motion.p
-                                    key={`${phase}-${protocolPage}-${executionStep}-subtitle`}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.15, delay: 0.05 }}
-                                    className="font-mono text-[11px] text-neutral-400 tracking-wide uppercase mt-1"
-                                >
-                                    {getStepSubtitle()[locale] || getStepSubtitle().fr}
-                                </motion.p>
-                            </AnimatePresence>
                         </motion.div>
                     </div>
 
@@ -331,7 +312,7 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                     </button>
                 </div>
 
-                {/* Content Body - Padding top to account for absolute header + safe area */}
+                {/* Content Body */}
                 <div className="flex-1 overflow-hidden relative" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 7rem)' }}>
                     <AnimatePresence mode="wait">
                         {phase === 'PROTOCOL' && (
@@ -384,10 +365,8 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
                             >
                                 <DebriefScreen
                                     data={questData}
-                                    xpReward={questData.hasCommitted ? 120 : 80}
+                                    xpReward={quest.xp || 100}
                                     currentStreak={userProgress.streak ?? 1}
-                                    hasCommitted={questData.hasCommitted}
-                                    recoveryPotential={questData.recoveryPotential}
                                     onComplete={handleComplete}
                                 />
                             </motion.div>
@@ -399,4 +378,4 @@ const Budget503020Flow: React.FC<Budget503020FlowProps> = ({
     );
 };
 
-export default Budget503020Flow;
+export default AntiOverdraftFlow;
