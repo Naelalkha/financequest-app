@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Home, Heart, PiggyBank, ChevronRight, Zap, ArrowRight, LucideIcon, Target, Sparkles } from 'lucide-react';
+import { Home, ShoppingBag, Coins, ChevronRight, Zap, LucideIcon, Target, Sparkles, CheckCircle2, AlertTriangle } from 'lucide-react';
 import {
     calculateBudgetSplit,
     envelopeCategories,
@@ -49,8 +49,8 @@ interface ExecutionScreenProps {
 // Icon map for envelope categories
 const ICON_MAP: Record<string, LucideIcon> = {
     Home: Home,
-    Heart: Heart,
-    PiggyBank: PiggyBank
+    ShoppingBag: ShoppingBag,
+    Coins: Coins
 };
 
 const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, onNext, step, setStep }) => {
@@ -150,6 +150,14 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         [actualSavings, idealBudget.savings]
     );
 
+    // Calculate deficit (when total expenses exceed income)
+    const totalActual = actualNeeds + actualWants + actualSavings;
+    const deficit = useMemo(() =>
+        Math.max(0, totalActual - monthlyIncome),
+        [totalActual, monthlyIncome]
+    );
+    const hasDeficit = deficit > 0;
+
     // Go to engagement step
     const goToEngagement = useCallback(() => {
         haptic.heavy();
@@ -178,16 +186,6 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         onNext();
     }, [recoveryPotential, onUpdate, onNext]);
 
-    // User skips commitment
-    const handleSkipCommit = useCallback(() => {
-        haptic.light();
-        onUpdate({
-            hasCommitted: false,
-            recoveryPotential
-        });
-        onNext();
-    }, [recoveryPotential, onUpdate, onNext]);
-
     // Validation
     const canProceed = monthlyIncome >= 500;
 
@@ -196,7 +194,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         fr: {
             // Step 1: Revenue input (CIBLE)
             incomeLabel: 'TON REVENU NET MENSUEL',
-            incomeHint: 'Après impôts, ce qui arrive sur ton compte',
+            incomeHint: 'Ce qui arrive sur ton compte',
             budgetLabel: 'TA RÉPARTITION IDÉALE',
             revelationCta: 'CONTINUER',
 
@@ -209,16 +207,24 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
             actualSavings: 'Combien épargnes-tu vraiment ?',
             diagnosisCta: 'CONTINUER',
             idealPrefix: 'Idéal:',
-            recoveryLabel: 'POTENTIEL DE RÉCUPÉRATION',
+            recoveryLabel: 'POTENTIEL D\'ÉPARGNE',
+            deficitLabel: 'DÉFICIT MENSUEL',
 
-            // Step 3: Engagement
+            // Step 3: Engagement - 4 cases
             engagementSubheader: 'TU T\'ENGAGES ?',
-            engagementRecoveryLabel: 'TU PEUX RÉCUPÉRER',
+            engagementRecoveryLabel: 'TU PEUX ÉPARGNER',
             engagementText: 'En appliquant la règle 50/30/20, tu récupères cet argent chaque mois.',
             engagementCommit: 'JE M\'ENGAGE',
-            engagementSkip: 'Pas encore',
-            engagementAboveTarget: 'Tu es déjà au-dessus de l\'objectif ! 🎉',
+            engagementContinue: 'CONTINUER',
+            // Case 1: Savings OK + No deficit
+            engagementAboveTarget: 'Tu es déjà au-dessus de l\'objectif',
             engagementAboveText: 'Continue comme ça, tu as déjà une bonne discipline d\'épargne.',
+            // Case 2: Savings OK + Deficit
+            engagementAboveWithDeficit: 'Ton épargne est bonne, mais attention',
+            engagementAboveWithDeficitText: 'Tu dépenses plus que tu ne gagnes. Rééquilibre tes envies pour éviter le découvert.',
+            // Case 4: Savings Low + Deficit
+            engagementDeficit: 'Réalloue tes envies vers l\'épargne',
+            engagementDeficitText: 'Tu es en déficit. Réduis tes dépenses pour rééquilibrer ton budget.',
 
             // Categories descriptions
             needsDesc: 'Loyer, courses, transport, factures',
@@ -238,7 +244,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         en: {
             // Step 1: Revenue input (CIBLE)
             incomeLabel: 'YOUR NET MONTHLY INCOME',
-            incomeHint: 'After taxes, what lands in your account',
+            incomeHint: 'What lands in your account',
             budgetLabel: 'YOUR IDEAL ALLOCATION',
             revelationCta: 'CONTINUE',
 
@@ -251,16 +257,24 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
             actualSavings: 'How much do you really save?',
             diagnosisCta: 'CONTINUE',
             idealPrefix: 'Ideal:',
-            recoveryLabel: 'RECOVERY POTENTIAL',
+            recoveryLabel: 'SAVINGS POTENTIAL',
+            deficitLabel: 'MONTHLY DEFICIT',
 
-            // Step 3: Engagement
+            // Step 3: Engagement - 4 cases
             engagementSubheader: 'ARE YOU IN?',
-            engagementRecoveryLabel: 'YOU CAN RECOVER',
+            engagementRecoveryLabel: 'YOU CAN SAVE',
             engagementText: 'By applying the 50/30/20 rule, you recover this money every month.',
             engagementCommit: 'I\'M IN',
-            engagementSkip: 'Not yet',
-            engagementAboveTarget: 'You\'re already above target! 🎉',
+            engagementContinue: 'CONTINUE',
+            // Case 1: Savings OK + No deficit
+            engagementAboveTarget: 'You\'re already above target',
             engagementAboveText: 'Keep it up, you already have great savings discipline.',
+            // Case 2: Savings OK + Deficit
+            engagementAboveWithDeficit: 'Good savings, but watch out',
+            engagementAboveWithDeficitText: 'You\'re spending more than you earn. Rebalance your wants to avoid overdraft.',
+            // Case 4: Savings Low + Deficit
+            engagementDeficit: 'Reallocate your wants to savings',
+            engagementDeficitText: 'You\'re in deficit. Reduce your expenses to rebalance your budget.',
 
             // Categories descriptions
             needsDesc: 'Rent, groceries, transport, bills',
@@ -280,25 +294,6 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
     };
     const L = labels[locale] || labels.fr;
 
-    // Get diagnosis status color
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'balanced': return 'text-emerald-400';
-            case 'warning': return 'text-amber-400';
-            case 'critical': return 'text-red-400';
-            default: return 'text-neutral-400';
-        }
-    };
-
-    const getStatusBg = (status: string) => {
-        switch (status) {
-            case 'balanced': return 'bg-emerald-500/20';
-            case 'warning': return 'bg-amber-500/20';
-            case 'critical': return 'bg-red-500/20';
-            default: return 'bg-neutral-500/20';
-        }
-    };
-
     // STEP 1: INCOME INPUT + IDEAL BUDGET (CIBLE)
     if (step === 'revelation') {
         return (
@@ -308,21 +303,21 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* INCOME INPUT */}
                         <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3 px-1">
-                                <div>
-                                    <label className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide block">
+                            <div className="flex justify-between items-end mb-3 px-1 gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block">
                                         {L.incomeLabel}
                                     </label>
-                                    <span className="font-mono text-[10px] text-neutral-600">
+                                    <span className="font-mono text-[10px] text-neutral-500">
                                         {L.incomeHint}
                                     </span>
                                 </div>
-                                <div className="flex items-baseline">
+                                <div className="flex items-baseline flex-shrink-0">
                                     <motion.span
                                         key={monthlyIncome}
                                         initial={{ scale: 0.9 }}
                                         animate={{ scale: 1 }}
-                                        className="text-4xl font-sans font-black text-white"
+                                        className="text-4xl font-sans font-black text-white tabular-nums"
                                     >
                                         {monthlyIncome.toLocaleString('fr-FR')}
                                     </motion.span>
@@ -344,14 +339,14 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* BUDGET SPLIT LABEL */}
                         <div className="mb-4">
-                            <span className="font-mono text-[11px] text-neutral-500 uppercase tracking-wide">
+                            <span className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide">
                                 {L.budgetLabel}
                             </span>
                         </div>
 
                         {/* 3 ENVELOPE CARDS */}
                         <div className="space-y-3">
-                            {/* BESOINS (50%) */}
+                            {/* BESOINS (50%) - Blanc/Structure */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -359,8 +354,8 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                                        <Home className="w-6 h-6 text-blue-400" />
+                                    <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                                        <Home className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
@@ -375,9 +370,9 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                             {L.needsDesc}
                                         </span>
                                         {/* Progress bar */}
-                                        <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
                                             <motion.div
-                                                className="h-full bg-blue-400 rounded-full"
+                                                className="h-full rounded-full bg-white"
                                                 initial={{ width: 0 }}
                                                 animate={{ width: '50%' }}
                                                 transition={{ delay: 0.2, duration: 0.5 }}
@@ -387,7 +382,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 </div>
                             </motion.div>
 
-                            {/* ENVIES (30%) */}
+                            {/* ENVIES (30%) - Gris/Variable */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -395,24 +390,24 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center flex-shrink-0">
-                                        <Heart className="w-6 h-6 text-pink-400 fill-pink-400/30" />
+                                    <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                                        <ShoppingBag className="w-6 h-6 text-neutral-500" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
                                             <span className="font-mono text-[11px] text-neutral-400 uppercase">
                                                 {L.wants} (30%)
                                             </span>
-                                            <span className="font-mono text-xl font-bold text-white">
+                                            <span className="font-mono text-xl font-bold text-neutral-400">
                                                 {animatedWants.toLocaleString('fr-FR')} €
                                             </span>
                                         </div>
                                         <span className="font-mono text-[10px] text-neutral-500 block mb-2">
                                             {L.wantsDesc}
                                         </span>
-                                        <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
                                             <motion.div
-                                                className="h-full bg-pink-400 rounded-full"
+                                                className="h-full bg-neutral-500 rounded-full"
                                                 initial={{ width: 0 }}
                                                 animate={{ width: '30%' }}
                                                 transition={{ delay: 0.25, duration: 0.5 }}
@@ -422,7 +417,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 </div>
                             </motion.div>
 
-                            {/* ÉPARGNE (20%) */}
+                            {/* ÉPARGNE (20%) - Volt/Objectif */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -430,8 +425,8 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                                        <PiggyBank className="w-6 h-6 text-emerald-400" />
+                                    <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                                        <Coins className="w-6 h-6 text-volt" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
@@ -445,9 +440,9 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                         <span className="font-mono text-[10px] text-neutral-500 block mb-2">
                                             {L.savingsDesc}
                                         </span>
-                                        <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
                                             <motion.div
-                                                className="h-full bg-volt rounded-full"
+                                                className="h-full bg-volt rounded-full shadow-[0_0_8px_rgba(226,255,0,0.4)]"
                                                 initial={{ width: 0 }}
                                                 animate={{ width: '20%' }}
                                                 transition={{ delay: 0.3, duration: 0.5 }}
@@ -506,7 +501,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* 3 INPUT CARDS WITH COMPARISON */}
                         <div className="space-y-4">
-                            {/* BESOINS */}
+                            {/* BESOINS - Blanc/Structure */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -514,7 +509,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-3 mb-3">
-                                    <Home className="w-5 h-5 text-blue-400" />
+                                    <Home className="w-5 h-5 text-white" />
                                     <span className="font-mono text-[11px] text-neutral-400 uppercase flex-1">
                                         {L.needs}
                                     </span>
@@ -522,17 +517,28 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                         {L.idealPrefix} {idealBudget.needs.toLocaleString('fr-FR')} €
                                     </span>
                                 </div>
-                                <Slider
-                                    value={actualNeeds}
-                                    onChange={setActualNeeds}
-                                    min={0}
-                                    max={monthlyIncome}
-                                    step={50}
-                                    hapticOnChange={true}
-                                />
+                                {/* Slider avec Target Line */}
+                                <div className="relative">
+                                    <Slider
+                                        value={actualNeeds}
+                                        onChange={setActualNeeds}
+                                        min={0}
+                                        max={monthlyIncome}
+                                        step={50}
+                                        hapticOnChange={true}
+                                        accentColor="#FFFFFF"
+                                    />
+                                    {/* Target Line - Trait vertical simple */}
+                                    <div
+                                        className="absolute top-1/2 -translate-y-1/2 w-0.5 h-5 bg-volt z-10 pointer-events-none"
+                                        style={{ left: `${(idealBudget.needs / monthlyIncome) * 100}%` }}
+                                    />
+                                </div>
                                 <div className="flex items-center justify-between mt-2">
-                                    <span className={`font-mono text-xs ${needsDiagnosis.status === 'balanced' ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {needsDiagnosis.status === 'balanced' ? '🟢 OK' : `🔴 +${Math.abs(needsDiagnosis.delta).toLocaleString('fr-FR')} €`}
+                                    <span className={`font-mono text-xs flex items-center gap-1 ${needsDiagnosis.status === 'balanced' ? 'text-volt' : 'text-neutral-400'}`}>
+                                        {needsDiagnosis.status === 'balanced'
+                                            ? <><CheckCircle2 className="w-3.5 h-3.5" /> OK</>
+                                            : <>+{Math.abs(needsDiagnosis.delta).toLocaleString('fr-FR')} €</>}
                                     </span>
                                     <span className="font-mono text-lg font-bold text-white">
                                         {actualNeeds.toLocaleString('fr-FR')} €
@@ -540,7 +546,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 </div>
                             </motion.div>
 
-                            {/* ENVIES */}
+                            {/* ENVIES - Gris/Variable */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -548,7 +554,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-3 mb-3">
-                                    <Heart className="w-5 h-5 text-pink-400" />
+                                    <ShoppingBag className="w-5 h-5 text-neutral-500" />
                                     <span className="font-mono text-[11px] text-neutral-400 uppercase flex-1">
                                         {L.wants}
                                     </span>
@@ -556,51 +562,73 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                         {L.idealPrefix} {idealBudget.wants.toLocaleString('fr-FR')} €
                                     </span>
                                 </div>
-                                <Slider
-                                    value={actualWants}
-                                    onChange={setActualWants}
-                                    min={0}
-                                    max={monthlyIncome}
-                                    step={50}
-                                    hapticOnChange={true}
-                                />
+                                {/* Slider avec Target Line */}
+                                <div className="relative">
+                                    <Slider
+                                        value={actualWants}
+                                        onChange={setActualWants}
+                                        min={0}
+                                        max={monthlyIncome}
+                                        step={50}
+                                        hapticOnChange={true}
+                                        accentColor="#737373"
+                                    />
+                                    {/* Target Line - Trait vertical simple */}
+                                    <div
+                                        className="absolute top-1/2 -translate-y-1/2 w-0.5 h-5 bg-volt z-10 pointer-events-none"
+                                        style={{ left: `${(idealBudget.wants / monthlyIncome) * 100}%` }}
+                                    />
+                                </div>
                                 <div className="flex items-center justify-between mt-2">
-                                    <span className={`font-mono text-xs ${wantsDiagnosis.status === 'balanced' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                        {wantsDiagnosis.status === 'balanced' ? '🟢 OK' : `🟠 +${Math.abs(wantsDiagnosis.delta).toLocaleString('fr-FR')} €`}
+                                    <span className={`font-mono text-xs flex items-center gap-1 ${wantsDiagnosis.status === 'balanced' ? 'text-volt' : 'text-neutral-400'}`}>
+                                        {wantsDiagnosis.status === 'balanced'
+                                            ? <><CheckCircle2 className="w-3.5 h-3.5" /> OK</>
+                                            : <>+{Math.abs(wantsDiagnosis.delta).toLocaleString('fr-FR')} €</>}
                                     </span>
-                                    <span className="font-mono text-lg font-bold text-white">
+                                    <span className="font-mono text-lg font-bold text-neutral-400">
                                         {actualWants.toLocaleString('fr-FR')} €
                                     </span>
                                 </div>
                             </motion.div>
 
-                            {/* ÉPARGNE */}
+                            {/* ÉPARGNE - Volt/Objectif */}
                             <motion.div
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                                className="bg-neutral-900/60 border border-volt/20 rounded-2xl p-4 backdrop-blur-[20px]"
                             >
                                 <div className="flex items-center gap-3 mb-3">
-                                    <PiggyBank className="w-5 h-5 text-emerald-400" />
-                                    <span className="font-mono text-[11px] text-neutral-400 uppercase flex-1">
+                                    <Coins className="w-5 h-5 text-volt" />
+                                    <span className="font-mono text-[11px] text-volt uppercase flex-1 font-bold">
                                         {L.savings}
                                     </span>
                                     <span className="font-mono text-xs text-neutral-500">
                                         {L.idealPrefix} {idealBudget.savings.toLocaleString('fr-FR')} €
                                     </span>
                                 </div>
-                                <Slider
-                                    value={actualSavings}
-                                    onChange={setActualSavings}
-                                    min={0}
-                                    max={monthlyIncome}
-                                    step={50}
-                                    hapticOnChange={true}
-                                />
+                                {/* Slider avec Target Line */}
+                                <div className="relative">
+                                    <Slider
+                                        value={actualSavings}
+                                        onChange={setActualSavings}
+                                        min={0}
+                                        max={monthlyIncome}
+                                        step={50}
+                                        hapticOnChange={true}
+                                        accentColor="#E2FF00"
+                                    />
+                                    {/* Target Line - Trait vertical simple */}
+                                    <div
+                                        className="absolute top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white z-10 pointer-events-none"
+                                        style={{ left: `${(idealBudget.savings / monthlyIncome) * 100}%` }}
+                                    />
+                                </div>
                                 <div className="flex items-center justify-between mt-2">
-                                    <span className={`font-mono text-xs ${savingsDiagnosis.status === 'balanced' ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {savingsDiagnosis.status === 'balanced' ? '🟢 OK' : `🔴 -${Math.abs(savingsDiagnosis.delta).toLocaleString('fr-FR')} €`}
+                                    <span className={`font-mono text-xs flex items-center gap-1 ${savingsDiagnosis.status === 'balanced' ? 'text-volt' : 'text-neutral-400'}`}>
+                                        {savingsDiagnosis.status === 'balanced'
+                                            ? <><CheckCircle2 className="w-3.5 h-3.5" /> OK</>
+                                            : <>-{Math.abs(savingsDiagnosis.delta).toLocaleString('fr-FR')} €</>}
                                     </span>
                                     <span className="font-mono text-lg font-bold text-volt">
                                         {actualSavings.toLocaleString('fr-FR')} €
@@ -608,23 +636,71 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                 </div>
                             </motion.div>
 
-                            {/* RECOVERY POTENTIAL CARD */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.25 }}
-                                className="bg-volt/10 border border-volt/30 rounded-2xl p-4 backdrop-blur-[20px]"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Target className="w-5 h-5 text-volt" />
-                                    <span className="font-mono text-[11px] text-volt uppercase flex-1 font-bold">
-                                        {L.recoveryLabel}
-                                    </span>
-                                    <span className="font-mono text-xl font-bold text-volt">
-                                        +{recoveryPotential.toLocaleString('fr-FR')} €<span className="text-sm">/mois</span>
-                                    </span>
-                                </div>
-                            </motion.div>
+                            {/* RECOVERY POTENTIAL / DEFICIT CARD */}
+                            <AnimatePresence mode="wait">
+                                {hasDeficit ? (
+                                    /* DEFICIT STATE - Hazard stripes */
+                                    <motion.div
+                                        key="deficit-card"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ delay: 0.25 }}
+                                        className="rounded-2xl p-4 border-2 border-dashed border-volt relative overflow-hidden"
+                                        style={{
+                                            background: `repeating-linear-gradient(
+                                                -45deg,
+                                                rgba(226, 255, 0, 0.08),
+                                                rgba(226, 255, 0, 0.08) 10px,
+                                                rgba(0, 0, 0, 0.4) 10px,
+                                                rgba(0, 0, 0, 0.4) 20px
+                                            )`
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <motion.div
+                                                animate={{
+                                                    opacity: [1, 0.5, 1],
+                                                    scale: [1, 1.05, 1]
+                                                }}
+                                                transition={{
+                                                    duration: 2,
+                                                    repeat: Infinity,
+                                                    ease: "easeInOut"
+                                                }}
+                                            >
+                                                <AlertTriangle className="w-5 h-5 text-volt" />
+                                            </motion.div>
+                                            <span className="font-mono text-[11px] text-volt uppercase flex-1 font-bold">
+                                                {L.deficitLabel}
+                                            </span>
+                                            <span className="font-mono text-xl font-bold text-volt">
+                                                -{deficit.toLocaleString('fr-FR')} €<span className="text-sm">/mois</span>
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    /* RECOVERY STATE - Normal */
+                                    <motion.div
+                                        key="recovery-card"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ delay: 0.25 }}
+                                        className="bg-volt/10 border border-volt/30 rounded-2xl p-4 backdrop-blur-[20px]"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Target className="w-5 h-5 text-volt" />
+                                            <span className="font-mono text-[11px] text-volt uppercase flex-1 font-bold">
+                                                {L.recoveryLabel}
+                                            </span>
+                                            <span className="font-mono text-xl font-bold text-volt">
+                                                +{recoveryPotential.toLocaleString('fr-FR')} €<span className="text-sm">/mois</span>
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>
@@ -646,95 +722,210 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         );
     }
 
-    // STEP 3: ENGAGEMENT
+    // STEP 3: ENGAGEMENT - 4 cases based on savings and deficit
     if (step === 'engagement') {
+        // Case 1: Savings OK + No deficit → Féliciter
+        // Case 2: Savings OK + Deficit → Message nuancé
+        // Case 3: Savings Low + No deficit → Écran normal (potentiel d'épargne)
+        // Case 4: Savings Low + Deficit → Message déficit
+
+        const renderEngagementContent = () => {
+            // CASE 1: Savings OK + No deficit
+            if (userAboveTarget && !hasDeficit) {
+                return (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6"
+                        >
+                            <Sparkles className="w-12 h-12 text-volt mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-white mb-2">
+                                {L.engagementAboveTarget}
+                            </h3>
+                            <p className="text-neutral-400 text-sm">
+                                {L.engagementAboveText}
+                            </p>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleCommit}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
+                        >
+                            <span className="cta-content">
+                                {L.engagementContinue}
+                                <ChevronRight className="w-5 h-5" />
+                            </span>
+                        </motion.button>
+                    </>
+                );
+            }
+
+            // CASE 2: Savings OK + Deficit
+            if (userAboveTarget && hasDeficit) {
+                return (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6"
+                        >
+                            <AlertTriangle className="w-12 h-12 text-volt mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-white mb-2">
+                                {L.engagementAboveWithDeficit}
+                            </h3>
+                            <p className="text-neutral-400 text-sm">
+                                {L.engagementAboveWithDeficitText}
+                            </p>
+                            <div className="mt-4 p-3 rounded-xl bg-volt/10 border border-volt/30">
+                                <span className="font-mono text-sm text-volt font-bold">
+                                    -{deficit.toLocaleString('fr-FR')} €/mois
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleCommit}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
+                        >
+                            <span className="cta-content">
+                                {L.engagementContinue}
+                                <ChevronRight className="w-5 h-5" />
+                            </span>
+                        </motion.button>
+                    </>
+                );
+            }
+
+            // CASE 4: Savings Low + Deficit
+            if (!userAboveTarget && hasDeficit) {
+                return (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6"
+                        >
+                            <motion.div
+                                className="mx-auto mb-4"
+                                animate={{
+                                    opacity: [1, 0.5, 1],
+                                    scale: [1, 1.05, 1]
+                                }}
+                                transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                            >
+                                <AlertTriangle className="w-12 h-12 text-volt" />
+                            </motion.div>
+                            <h3 className="text-xl font-bold text-white mb-2">
+                                {L.engagementDeficit}
+                            </h3>
+                            <p className="text-neutral-400 text-sm">
+                                {L.engagementDeficitText}
+                            </p>
+                            <div className="mt-4 p-3 rounded-xl border-2 border-dashed border-volt"
+                                style={{
+                                    background: `repeating-linear-gradient(
+                                        -45deg,
+                                        rgba(226, 255, 0, 0.08),
+                                        rgba(226, 255, 0, 0.08) 10px,
+                                        rgba(0, 0, 0, 0.4) 10px,
+                                        rgba(0, 0, 0, 0.4) 20px
+                                    )`
+                                }}
+                            >
+                                <span className="font-mono text-lg text-volt font-bold">
+                                    -{deficit.toLocaleString('fr-FR')} €/mois
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleCommit}
+                            className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
+                        >
+                            <span className="cta-content">
+                                {L.engagementCommit}
+                                <Zap className="w-5 h-5 fill-current" />
+                            </span>
+                        </motion.button>
+                    </>
+                );
+            }
+
+            // CASE 3: Savings Low + No deficit (default - normal flow)
+            return (
+                <>
+                    <motion.h3
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="font-mono text-sm text-neutral-400 uppercase tracking-wide mb-4"
+                    >
+                        {L.engagementSubheader}
+                    </motion.h3>
+
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="bg-neutral-900/60 border border-white/5 rounded-2xl p-6 backdrop-blur-[20px] mb-6"
+                    >
+                        <span className="font-mono text-[11px] text-neutral-500 uppercase block mb-2">
+                            {L.engagementRecoveryLabel}
+                        </span>
+                        <div className="text-4xl font-black text-volt mb-1" style={{ textShadow: '0 0 20px rgba(226, 255, 0, 0.4)' }}>
+                            +{recoveryPotential.toLocaleString('fr-FR')} €<span className="text-lg">/mois</span>
+                        </div>
+                        <div className="w-full h-px bg-neutral-700 my-3" />
+                        <div className="text-2xl font-bold text-volt/80 mb-3">
+                            +{(recoveryPotential * 12).toLocaleString('fr-FR')} €<span className="text-sm">/an</span>
+                        </div>
+                        <p className="text-neutral-400 text-sm">
+                            {L.engagementText}
+                        </p>
+                    </motion.div>
+
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleCommit}
+                        className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
+                    >
+                        <span className="cta-content">
+                            <Zap className="w-5 h-5 fill-current" />
+                            {L.engagementCommit}
+                        </span>
+                    </motion.button>
+                </>
+            );
+        };
+
         return (
             <div className="h-full flex flex-col">
                 <div className="flex-1 flex items-center justify-center">
                     <div className="p-6 text-center w-full max-w-md">
-                        {userAboveTarget ? (
-                            // User already above target
-                            <>
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="mb-6"
-                                >
-                                    <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                                        <Sparkles className="w-10 h-10 text-emerald-400" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white mb-2">
-                                        {L.engagementAboveTarget}
-                                    </h3>
-                                    <p className="text-neutral-400 text-sm">
-                                        {L.engagementAboveText}
-                                    </p>
-                                </motion.div>
-
-                                <motion.button
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={handleCommit}
-                                    className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
-                                >
-                                    <span className="cta-content">
-                                        <Zap className="w-5 h-5 fill-current" />
-                                        {L.engagementCommit}
-                                    </span>
-                                </motion.button>
-                            </>
-                        ) : (
-                            // Normal engagement flow
-                            <>
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="bg-neutral-900/60 border border-white/5 rounded-2xl p-6 backdrop-blur-[20px] mb-6"
-                                >
-                                    <span className="font-mono text-[11px] text-neutral-500 uppercase block mb-2">
-                                        {L.engagementRecoveryLabel}
-                                    </span>
-                                    <div className="text-4xl font-black text-volt mb-3" style={{ textShadow: '0 0 20px rgba(226, 255, 0, 0.4)' }}>
-                                        +{recoveryPotential.toLocaleString('fr-FR')} €<span className="text-lg">/mois</span>
-                                    </div>
-                                    <p className="text-neutral-400 text-sm">
-                                        {L.engagementText}
-                                    </p>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="space-y-4"
-                                >
-                                    {/* Primary CTA - Commit */}
-                                    <motion.button
-                                        whileTap={{ scale: 0.97 }}
-                                        onClick={handleCommit}
-                                        className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black"
-                                    >
-                                        <span className="cta-content">
-                                            <Zap className="w-5 h-5 fill-current" />
-                                            {L.engagementCommit}
-                                        </span>
-                                    </motion.button>
-
-                                    {/* Ghost link - Skip */}
-                                    <button
-                                        onClick={handleSkipCommit}
-                                        className="text-neutral-500 hover:text-neutral-400 font-mono text-sm flex items-center justify-center gap-1 mx-auto transition-colors"
-                                    >
-                                        {L.engagementSkip}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </motion.div>
-                            </>
-                        )}
+                        {renderEngagementContent()}
                     </div>
                 </div>
             </div>

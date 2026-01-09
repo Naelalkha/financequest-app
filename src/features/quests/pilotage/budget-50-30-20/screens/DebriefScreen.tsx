@@ -33,6 +33,7 @@ interface QuestData {
   fiveYearProjection?: number;
   hasCommitted?: boolean;
   recoveryPotential?: number;
+  userAboveTarget?: boolean;
   [key: string]: unknown;
 }
 
@@ -72,14 +73,25 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
     const { i18n } = useTranslation('quests');
     const locale = i18n.language;
 
-    // Get data from execution phase - use recoveryPotential for committed users
-    const monthlyAmount = hasCommitted ? recoveryPotential : (data.idealSavings || 0);
-    const yearlyAmount = monthlyAmount * 12;
-    const fiveYearAmount = hasCommitted
-        ? calculateCompoundGrowth(recoveryPotential, 5, 0.07)
-        : (data.fiveYearProjection || calculateCompoundGrowth(data.idealSavings || 0, 5, 0.07));
+    // Detect if user is already above target (recoveryPotential = 0)
+    const isAboveTarget = hasCommitted && recoveryPotential === 0;
 
-    // Get concrete impact for display (only meaningful if committed)
+    // Get actual savings from data for "above target" case
+    const actualSavings = data.actualSavings || 0;
+
+    // Get data from execution phase - use recoveryPotential for committed users
+    // If above target, use actualSavings instead
+    const monthlyAmount = isAboveTarget
+        ? actualSavings
+        : (hasCommitted ? recoveryPotential : (data.idealSavings || 0));
+    const yearlyAmount = monthlyAmount * 12;
+    const fiveYearAmount = isAboveTarget
+        ? calculateCompoundGrowth(actualSavings, 5, 0.07)
+        : (hasCommitted
+            ? calculateCompoundGrowth(recoveryPotential, 5, 0.07)
+            : (data.fiveYearProjection || calculateCompoundGrowth(data.idealSavings || 0, 5, 0.07)));
+
+    // Get concrete impact for display (use actualSavings if above target)
     const concreteImpact = getConcreteImpact(yearlyAmount, locale);
 
     // Animation states
@@ -136,10 +148,10 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
         });
     };
 
-    // Labels - VERSION A (committed) vs VERSION B (not committed)
+    // Labels - VERSION A (committed) vs VERSION B (not committed) vs VERSION C (above target)
     const labels = {
         fr: {
-            // VERSION A - Committed
+            // VERSION A - Committed with potential
             goalLabelA: 'GAIN ANNUEL ESTIMÉ',
             subheaderA: 'POTENTIEL DÉBLOQUÉ',
             equivalent: 'CONCRÈTEMENT',
@@ -156,10 +168,16 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
             goalLabelB: 'TON OBJECTIF D\'ÉPARGNE',
             subheaderB: 'OBJECTIF DÉFINI',
             retakeInfo: 'Quand tu seras prêt à t\'engager, refais la mission pour débloquer l\'impact.',
-            perMonth: '/mois'
+            perMonth: '/mois',
+
+            // VERSION C - Above target (potential = 0)
+            goalLabelC: 'TON ÉPARGNE ACTUELLE',
+            subheaderC: 'Objectif atteint',
+            aboveTargetMessage: 'Tu épargnes déjà au-dessus de l\'objectif 50/30/20.',
+            currentMonthlyLabel: 'ÉPARGNE MENSUELLE'
         },
         en: {
-            // VERSION A - Committed
+            // VERSION A - Committed with potential
             goalLabelA: 'ESTIMATED YEARLY GAIN',
             subheaderA: 'POTENTIAL UNLOCKED',
             equivalent: 'IN REAL TERMS',
@@ -176,7 +194,13 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
             goalLabelB: 'YOUR SAVINGS GOAL',
             subheaderB: 'GOAL DEFINED',
             retakeInfo: 'When you\'re ready to commit, retake the mission to unlock the impact.',
-            perMonth: '/month'
+            perMonth: '/month',
+
+            // VERSION C - Above target (potential = 0)
+            goalLabelC: 'YOUR CURRENT SAVINGS',
+            subheaderC: 'Goal achieved',
+            aboveTargetMessage: 'You\'re already saving above the 50/30/20 target.',
+            currentMonthlyLabel: 'MONTHLY SAVINGS'
         }
     };
     const L = labels[locale] || labels.fr;
@@ -192,6 +216,21 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                         {/* HERO SECTION */}
                         <div className="text-center mb-8 pt-4">
 
+                            {/* Badge "Objectif atteint" si above target */}
+                            {isAboveTarget && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                    className="inline-flex items-center gap-2 bg-volt/20 border border-volt/30 rounded-full px-4 py-1.5 mb-4"
+                                >
+                                    <CheckCircle2 className="w-4 h-4 text-volt" />
+                                    <span className="font-mono text-xs text-volt font-bold uppercase">
+                                        {L.subheaderC}
+                                    </span>
+                                </motion.div>
+                            )}
+
                             {/* Label */}
                             <motion.span
                                 initial={{ opacity: 0 }}
@@ -199,7 +238,7 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                                 transition={{ delay: 0.1 }}
                                 className="font-mono text-[12px] text-neutral-500 uppercase tracking-wide mb-2 block"
                             >
-                                {L.goalLabelA}
+                                {isAboveTarget ? L.goalLabelC : L.goalLabelA}
                             </motion.span>
 
                             {/* HERO NUMBER - VOLT */}
@@ -210,7 +249,8 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                                 className="text-5xl md:text-6xl font-black text-volt tracking-tighter"
                                 style={{ textShadow: '0 0 30px rgba(226, 255, 0, 0.5)' }}
                             >
-                                +{animatedAmount.toLocaleString('fr-FR')} €
+                                {isAboveTarget ? '' : '+'}{animatedAmount.toLocaleString('fr-FR')} €
+                                {isAboveTarget && <span className="text-2xl text-volt/70">/an</span>}
                             </motion.h2>
 
                             <motion.span
@@ -219,7 +259,7 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                                 transition={{ delay: 0.2 }}
                                 className="font-mono text-sm text-neutral-400 block mt-1"
                             >
-                                Chaque mois compte.
+                                {isAboveTarget ? L.aboveTargetMessage : 'Chaque mois compte.'}
                             </motion.span>
                         </div>
 
@@ -266,11 +306,11 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                                             <div className="flex items-center gap-3">
                                                 <TrendingUp className="w-5 h-5 text-neutral-500" />
                                                 <span className="font-mono text-[11px] text-neutral-400 uppercase">
-                                                    {L.monthlyLabel}
+                                                    {isAboveTarget ? L.currentMonthlyLabel : L.monthlyLabel}
                                                 </span>
                                             </div>
                                             <span className="font-mono text-xl font-bold text-volt">
-                                                +{monthlyAmount.toLocaleString('fr-FR')} €
+                                                {isAboveTarget ? '' : '+'}{monthlyAmount.toLocaleString('fr-FR')} €
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
