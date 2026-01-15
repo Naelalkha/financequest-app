@@ -15,7 +15,7 @@ export interface RAVResult {
 }
 
 export interface RiskLevelConfig {
-  emoji: string;
+  emoji: string;           // Deprecated - use iconName instead
   colorClass: string;
   bgClass: string;
   borderClass: string;
@@ -23,6 +23,7 @@ export interface RiskLevelConfig {
   labelEn: string;
   descFr: string;
   descEn: string;
+  iconName: string;        // Lucide icon name
 }
 
 export interface Strategy {
@@ -48,44 +49,48 @@ export const RAV_THRESHOLDS = {
 
 export const RISK_LEVELS: Record<RiskLevel, RiskLevelConfig> = {
   CRITIQUE: {
-    emoji: '🔴',
-    colorClass: 'text-red-500',
-    bgClass: 'bg-red-500/20',
-    borderClass: 'border-red-500/30',
+    emoji: '', // Lucide AlertTriangle sera utilisé
+    colorClass: 'text-volt',
+    bgClass: 'bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(226,255,0,0.08)_10px,rgba(226,255,0,0.08)_20px)]',
+    borderClass: 'border-2 border-dashed border-volt/50',
     labelFr: 'CRITIQUE',
     labelEn: 'CRITICAL',
     descFr: 'Risque élevé de découvert',
-    descEn: 'High overdraft risk'
+    descEn: 'High overdraft risk',
+    iconName: 'AlertTriangle'
   },
   TENDU: {
-    emoji: '🟠',
-    colorClass: 'text-orange-500',
-    bgClass: 'bg-orange-500/20',
-    borderClass: 'border-orange-500/30',
+    emoji: '', // Lucide AlertCircle sera utilisé
+    colorClass: 'text-volt/80',
+    bgClass: 'bg-volt/10',
+    borderClass: 'border border-volt/30',
     labelFr: 'TENDU',
     labelEn: 'TIGHT',
     descFr: 'Marge de manoeuvre limitée',
-    descEn: 'Limited wiggle room'
+    descEn: 'Limited wiggle room',
+    iconName: 'AlertCircle'
   },
   OK: {
-    emoji: '🟢',
-    colorClass: 'text-emerald-500',
-    bgClass: 'bg-emerald-500/20',
-    borderClass: 'border-emerald-500/30',
+    emoji: '', // Lucide CheckCircle2 sera utilisé
+    colorClass: 'text-volt',
+    bgClass: 'bg-volt/10',
+    borderClass: 'border border-volt/20',
     labelFr: 'OK',
     labelEn: 'OK',
     descFr: 'Situation stable',
-    descEn: 'Stable situation'
+    descEn: 'Stable situation',
+    iconName: 'CheckCircle2'
   },
   CONFORT: {
-    emoji: '✨',
+    emoji: '', // Lucide Sparkles sera utilisé
     colorClass: 'text-volt',
     bgClass: 'bg-volt/20',
-    borderClass: 'border-volt/30',
+    borderClass: 'border border-volt/30',
     labelFr: 'CONFORT',
     labelEn: 'COMFORT',
     descFr: 'Excellente marge de sécurité',
-    descEn: 'Excellent safety margin'
+    descEn: 'Excellent safety margin',
+    iconName: 'Sparkles'
   }
 };
 
@@ -169,8 +174,8 @@ export const proTips: ProTip[] = [
   },
   {
     id: 'protect',
-    titleFr: 'ACTIVE TES GARDE-FOUS',
-    titleEn: 'ACTIVATE YOUR SAFEGUARDS',
+    titleFr: 'ACTIVE TES PROTECTIONS',
+    titleEn: 'ACTIVATE YOUR PROTECTIONS',
     iconName: 'Bell',
     bodyFr: "Alertes SMS, virements auto, négociation découverts... **Des filets de sécurité gratuits**.",
     bodyEn: "SMS alerts, auto-transfers, overdraft negotiation... **Free safety nets**."
@@ -182,8 +187,8 @@ export const proTips: ProTip[] = [
 export const strategies: Strategy[] = [
   {
     id: 'auto-transfer',
-    labelFr: 'Virement automatique épargne',
-    labelEn: 'Automatic savings transfer',
+    labelFr: 'Virement auto',
+    labelEn: 'Auto transfer',
     descFr: 'Programme un virement auto le jour de ton salaire',
     descEn: 'Schedule auto-transfer on payday',
     iconName: 'ArrowRightCircle',
@@ -193,8 +198,8 @@ export const strategies: Strategy[] = [
   },
   {
     id: 'sms-alert',
-    labelFr: 'Alerte SMS solde bas',
-    labelEn: 'Low balance SMS alert',
+    labelFr: 'Alerte SMS',
+    labelEn: 'SMS alert',
     descFr: 'Reçois une alerte quand ton solde descend',
     descEn: 'Get alerted when balance drops',
     iconName: 'Bell',
@@ -204,10 +209,10 @@ export const strategies: Strategy[] = [
   },
   {
     id: 'delay-debits',
-    labelFr: 'Décaler les prélèvements au 5',
-    labelEn: 'Delay debits to the 5th',
-    descFr: 'Évite les prélèvements avant le salaire',
-    descEn: 'Avoid debits before payday',
+    labelFr: 'Décaler prélèvements',
+    labelEn: 'Delay debits',
+    descFr: 'Décale tes prélèvements après le salaire',
+    descEn: 'Move debits after payday',
     iconName: 'Calendar',
     monthlyImpact: 15,
     isProtection: false,
@@ -215,8 +220,8 @@ export const strategies: Strategy[] = [
   },
   {
     id: 'negotiate-overdraft',
-    labelFr: 'Négocier le découvert autorisé',
-    labelEn: 'Negotiate authorized overdraft',
+    labelFr: 'Négocier découvert',
+    labelEn: 'Negotiate overdraft',
     descFr: 'Obtiens un filet de sécurité gratuit',
     descEn: 'Get a free safety net',
     iconName: 'Shield',
@@ -311,4 +316,117 @@ export const countProtectionStrategies = (selectedStrategies: string[]): number 
  */
 export const getStrategiesRequiringCall = (selectedStrategies: string[]): Strategy[] => {
   return strategies.filter(s => selectedStrategies.includes(s.id) && s.requiresBankCall);
+};
+
+// ===== OPTION B: STRATÉGIES PRIORISÉES PAR NIVEAU DE RISQUE =====
+
+/**
+ * Ordre de priorité des stratégies selon le niveau de risque
+ * - CRITIQUE/TENDU : Urgence = alertes et négociation d'abord
+ * - OK/CONFORT : Optimisation = épargne auto d'abord
+ */
+export const STRATEGY_PRIORITY: Record<RiskLevel, string[]> = {
+  CRITIQUE: ['sms-alert', 'negotiate-overdraft', 'delay-debits', 'auto-transfer'],
+  TENDU: ['sms-alert', 'delay-debits', 'negotiate-overdraft', 'auto-transfer'],
+  OK: ['delay-debits', 'auto-transfer', 'sms-alert', 'negotiate-overdraft'],
+  CONFORT: ['auto-transfer', 'delay-debits', 'sms-alert', 'negotiate-overdraft']
+};
+
+/**
+ * Messages contextuels selon le niveau de risque
+ */
+export interface RiskMessage {
+  fr: string;
+  en: string;
+  priorityLabelFr: string;
+  priorityLabelEn: string;
+}
+
+export const RISK_MESSAGES: Record<RiskLevel, RiskMessage> = {
+  CRITIQUE: {
+    fr: "Priorité : sécuriser ton compte. Active les alertes et négocie un filet de sécurité.",
+    en: "Priority: secure your account. Activate alerts and negotiate a safety net.",
+    priorityLabelFr: "URGENCE",
+    priorityLabelEn: "URGENT"
+  },
+  TENDU: {
+    fr: "Marge limitée. Optimise le timing et active les alertes.",
+    en: "Limited margin. Optimize timing and activate alerts.",
+    priorityLabelFr: "RECOMMANDÉ",
+    priorityLabelEn: "RECOMMENDED"
+  },
+  OK: {
+    fr: "Situation stable. Renforce ta sécurité avec ces protections.",
+    en: "Stable situation. Strengthen your security with these protections.",
+    priorityLabelFr: "CONSEILLÉ",
+    priorityLabelEn: "ADVISED"
+  },
+  CONFORT: {
+    fr: "Tu es safe ! Voici comment optimiser encore plus.",
+    en: "You're safe! Here's how to optimize even more.",
+    priorityLabelFr: "BONUS",
+    priorityLabelEn: "BONUS"
+  }
+};
+
+/**
+ * Frais de découvert estimés par niveau de risque (par an)
+ * Basé sur la fréquence probable de découvert selon le RAV
+ */
+export const ESTIMATED_OVERDRAFT_FEES: Record<RiskLevel, { amount: number; frequencyFr: string; frequencyEn: string }> = {
+  CRITIQUE: {
+    amount: 200,
+    frequencyFr: "Si tu passais à découvert ~2x/mois",
+    frequencyEn: "If you went overdrawn ~2x/month"
+  },
+  TENDU: {
+    amount: 150,
+    frequencyFr: "Si tu passais à découvert ~1-2x/mois",
+    frequencyEn: "If you went overdrawn ~1-2x/month"
+  },
+  OK: {
+    amount: 100,
+    frequencyFr: "Si tu passais à découvert occasionnellement",
+    frequencyEn: "If you went overdrawn occasionally"
+  },
+  CONFORT: {
+    amount: 50,
+    frequencyFr: "Même si tu passes rarement à découvert",
+    frequencyEn: "Even if you rarely go overdrawn"
+  }
+};
+
+/**
+ * Récupère les stratégies ordonnées selon le niveau de risque
+ */
+export const getStrategiesForRiskLevel = (riskLevel: RiskLevel): Strategy[] => {
+  const priority = STRATEGY_PRIORITY[riskLevel];
+  return priority.map(id => strategies.find(s => s.id === id)!);
+};
+
+/**
+ * Calcule les frais de découvert évités (impact repensé)
+ * Basé sur le niveau de risque et le nombre de garde-fous activés
+ */
+export const calculateAvoidedFees = (riskLevel: RiskLevel, selectedStrategies: string[]): number => {
+  if (selectedStrategies.length === 0) return 0;
+
+  const baseFees = ESTIMATED_OVERDRAFT_FEES[riskLevel].amount;
+
+  // Chaque garde-fou réduit le risque de découvert
+  // 1 stratégie = 40%, 2 = 70%, 3 = 85%, 4 = 95%
+  const reductionRates = [0, 0.40, 0.70, 0.85, 0.95];
+  const reductionRate = reductionRates[Math.min(selectedStrategies.length, 4)];
+
+  return Math.round(baseFees * reductionRate);
+};
+
+/**
+ * Vérifie si une stratégie est prioritaire pour un niveau de risque donné
+ * (les 2 premières dans l'ordre sont considérées prioritaires)
+ */
+export const isStrategyPriority = (strategyId: string, riskLevel: RiskLevel): boolean => {
+  const priority = STRATEGY_PRIORITY[riskLevel];
+  const index = priority.indexOf(strategyId);
+  return index >= 0 && index < 2;
 };

@@ -3,16 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
     ChevronRight, Wallet, Copy, Check,
-    ArrowRightCircle, Bell, Calendar, Shield, Phone
+    ArrowRightCircle, Bell, Calendar, Shield, Phone,
+    AlertTriangle, AlertCircle, CheckCircle2, Sparkles
 } from 'lucide-react';
 import {
     calculateRAV,
     calculateTotalImpact,
     hasStrategiesRequiringCall,
     getStrategiesRequiringCall,
+    getStrategiesForRiskLevel,
+    isStrategyPriority,
     strategies,
     bankCallScript,
     RISK_LEVELS,
+    RISK_MESSAGES,
     type RiskLevel
 } from '../insightData';
 import { Slider } from '../../../../../components/ui';
@@ -45,6 +49,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
     Bell,
     Calendar,
     Shield,
+};
+
+// Icon map for risk levels (Lucide icons instead of emojis)
+const RISK_ICON_MAP: Record<string, React.ElementType> = {
+    AlertTriangle,
+    AlertCircle,
+    CheckCircle2,
+    Sparkles,
 };
 
 /**
@@ -172,7 +184,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
             copyScript: 'Copier le script',
             copied: 'Copié !',
             callHint: 'Appelle le numéro de ta banque',
-            actionCta: 'TERMINER'
+            actionCta: 'VOIR MON IMPACT'
         },
         en: {
             // Diagnostic
@@ -198,7 +210,7 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
             copyScript: 'Copy script',
             copied: 'Copied!',
             callHint: 'Call your bank number',
-            actionCta: 'FINISH'
+            actionCta: 'SEE MY IMPACT'
         }
     };
     const L = labels[locale] || labels.fr;
@@ -212,21 +224,21 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* REVENUS INPUT */}
                         <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3 px-1">
-                                <div>
-                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block">
+                            <div className="flex justify-between items-end mb-3 px-1 gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate">
                                         {L.revenusLabel}
                                     </label>
-                                    <span className="font-mono text-[10px] text-neutral-500">
+                                    <span className="font-mono text-xs text-neutral-500 block truncate">
                                         {L.revenusHint}
                                     </span>
                                 </div>
-                                <div className="flex items-baseline">
+                                <div className="flex items-baseline flex-shrink-0">
                                     <motion.span
                                         key={revenus}
                                         initial={{ scale: 0.9 }}
                                         animate={{ scale: 1 }}
-                                        className="text-4xl font-sans font-black text-white"
+                                        className="text-4xl font-sans font-black text-white tabular-nums"
                                     >
                                         {revenus.toLocaleString('fr-FR')}
                                     </motion.span>
@@ -247,21 +259,21 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
                         {/* CHARGES INPUT */}
                         <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3 px-1">
-                                <div>
-                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block">
+                            <div className="flex justify-between items-end mb-3 px-1 gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate">
                                         {L.chargesLabel}
                                     </label>
-                                    <span className="font-mono text-[10px] text-neutral-500">
+                                    <span className="font-mono text-xs text-neutral-500 block truncate">
                                         {L.chargesHint}
                                     </span>
                                 </div>
-                                <div className="flex items-baseline">
+                                <div className="flex items-baseline flex-shrink-0">
                                     <motion.span
                                         key={chargesFixes}
                                         initial={{ scale: 0.9 }}
                                         animate={{ scale: 1 }}
-                                        className="text-4xl font-sans font-black text-white"
+                                        className="text-4xl font-sans font-black text-white tabular-nums"
                                     >
                                         {chargesFixes.toLocaleString('fr-FR')}
                                     </motion.span>
@@ -288,9 +300,8 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                             className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-volt/10 flex items-center justify-center flex-shrink-0">
-                                    <Wallet className="w-6 h-6 text-volt" />
-                                </div>
+                                {/* Icône seule - pas de cercle/fond */}
+                                <Wallet className="w-7 h-7 text-volt flex-shrink-0" />
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-mono text-[11px] text-neutral-400 uppercase">
@@ -309,9 +320,15 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                         <span className="font-mono text-[10px] text-neutral-500">
                                             {Math.round(ravResult.ratio * 100)}% {L.ratioLabel}
                                         </span>
-                                        <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${riskConfig.bgClass} ${riskConfig.colorClass}`}>
-                                            {riskConfig.emoji} {locale === 'en' ? riskConfig.labelEn : riskConfig.labelFr}
-                                        </span>
+                                        {(() => {
+                                            const RiskIcon = RISK_ICON_MAP[riskConfig.iconName] || CheckCircle2;
+                                            return (
+                                                <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1.5 ${riskConfig.bgClass} ${riskConfig.colorClass} ${riskConfig.borderClass}`}>
+                                                    <RiskIcon className="w-3.5 h-3.5" />
+                                                    {locale === 'en' ? riskConfig.labelEn : riskConfig.labelFr}
+                                                </span>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -337,20 +354,51 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
     }
 
     // STEP 2: STRATEGY SELECTION
+    // Get risk level from previous diagnostic step
+    const currentRiskLevel = (data.riskLevel || ravResult.riskLevel) as RiskLevel;
+    const riskMessage = RISK_MESSAGES[currentRiskLevel];
+    const orderedStrategies = getStrategiesForRiskLevel(currentRiskLevel);
+
     if (step === 'strategy') {
         return (
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="flex flex-col p-6 pt-2 pb-32">
 
+                        {/* Risk-based contextual message */}
+                        {(() => {
+                            const RiskIcon = RISK_ICON_MAP[riskConfig.iconName] || CheckCircle2;
+                            return (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`mb-4 p-4 rounded-2xl ${riskConfig.bgClass} ${riskConfig.borderClass}`}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${currentRiskLevel === 'CRITIQUE' ? 'bg-volt/20' : 'bg-neutral-800'}`}>
+                                            <RiskIcon className={`w-5 h-5 ${riskConfig.colorClass}`} />
+                                        </div>
+                                        <div>
+                                            <span className={`font-mono text-xs font-bold ${riskConfig.colorClass} block mb-1`}>
+                                                {locale === 'en' ? riskMessage.priorityLabelEn : riskMessage.priorityLabelFr}
+                                            </span>
+                                            <p className="text-sm text-neutral-300">
+                                                {locale === 'en' ? riskMessage.en : riskMessage.fr}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })()}
+
                         {/* Intro */}
-                        <p className="font-mono text-sm text-neutral-400 mb-6">
+                        <p className="font-mono text-sm text-neutral-400 mb-4">
                             {L.strategyIntro}
                         </p>
 
-                        {/* Strategy Cards */}
+                        {/* Strategy Cards - ordered by risk level */}
                         <div className="space-y-3">
-                            {strategies.map((strategy, index) => {
+                            {orderedStrategies.map((strategy, index) => {
                                 const IconComponent = ICON_MAP[strategy.iconName] || Shield;
                                 const isSelected = selectedStrategies.includes(strategy.id);
 
@@ -368,35 +416,33 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                                 : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
                                         }`}
                                     >
-                                        <div className="p-4 flex items-center gap-4">
-                                            {/* Icon Circle */}
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                                isSelected
-                                                    ? 'bg-volt text-black'
-                                                    : 'bg-neutral-800 text-neutral-400'
-                                            }`}>
-                                                <IconComponent className="w-6 h-6" />
-                                            </div>
+                                        <div className="p-4 flex items-start gap-3">
+                                            {/* Icon seule - PAS DE CERCLE/FOND */}
+                                            <IconComponent className={`w-6 h-6 flex-shrink-0 mt-0.5 ${isSelected ? 'text-volt' : 'text-neutral-500'}`} />
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center justify-between gap-2">
                                                     <span className={`font-mono text-sm font-bold uppercase ${isSelected ? 'text-volt' : 'text-white'}`}>
                                                         {locale === 'en' ? strategy.labelEn : strategy.labelFr}
                                                     </span>
-                                                    <span className={`font-mono text-sm font-bold ${strategy.isProtection ? 'text-blue-400' : 'text-emerald-400'}`}>
-                                                        {strategy.isProtection
-                                                            ? '🛡️'
-                                                            : `+${strategy.monthlyImpact}€/m`
-                                                        }
-                                                    </span>
+                                                    {/* Impact indicator */}
+                                                    <div className="flex-shrink-0">
+                                                        {strategy.isProtection ? (
+                                                            <Shield className="w-5 h-5 text-volt" />
+                                                        ) : (
+                                                            <span className="font-mono text-sm font-bold text-volt whitespace-nowrap">
+                                                                +{strategy.monthlyImpact}€/m
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <p className="text-sm text-neutral-500">
+                                                <p className="text-sm text-neutral-500 mt-1">
                                                     {locale === 'en' ? strategy.descEn : strategy.descFr}
                                                 </p>
-                                                {/* Bank call indicator */}
+                                                {/* Bank call indicator - style outline monochrome */}
                                                 {strategy.requiresBankCall && (
-                                                    <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded font-mono text-[10px] bg-amber-500/20 text-amber-400">
+                                                    <span className="inline-flex items-center gap-1.5 mt-2 text-neutral-500 font-mono text-[10px]">
                                                         <Phone className="w-3 h-3" />
                                                         {locale === 'en' ? 'Bank call required' : 'Appel banque requis'}
                                                     </span>
@@ -526,17 +572,17 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                             <span className="font-mono text-xs">{L.callHint}</span>
                         </motion.div>
 
-                        {/* Selected Strategies Reminder */}
+                        {/* Selected Strategies Reminder - monochrome */}
                         <div className="mt-6 space-y-2">
                             {callStrategies.map(strategy => {
                                 const IconComponent = ICON_MAP[strategy.iconName] || Shield;
                                 return (
                                     <div
                                         key={strategy.id}
-                                        className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+                                        className="flex items-center gap-3 p-3 bg-neutral-900 border border-neutral-700 rounded-xl"
                                     >
-                                        <IconComponent className="w-4 h-4 text-amber-400" />
-                                        <span className="text-sm text-amber-300">
+                                        <IconComponent className="w-4 h-4 text-volt" />
+                                        <span className="text-sm text-neutral-300">
                                             {locale === 'en' ? strategy.labelEn : strategy.labelFr}
                                         </span>
                                     </div>
