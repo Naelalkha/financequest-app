@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
     CheckCircle2, Zap, Flame, Shield, TrendingUp,
-    ArrowRightCircle, Bell, Calendar,
+    ArrowRightLeft, Bell, Calendar,
     AlertTriangle, AlertCircle, Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -37,7 +37,7 @@ interface DebriefScreenProps {
 
 // Icon map for strategies
 const ICON_MAP: Record<string, React.ElementType> = {
-    ArrowRightCircle,
+    ArrowRightLeft,
     Bell,
     Calendar,
     Shield,
@@ -244,20 +244,11 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                                             const IconComponent = ICON_MAP[strategy.iconName] || Shield;
                                             return (
                                                 <div key={strategy.id} className="flex items-center gap-3">
-                                                    {/* Icône seule - pas de cercle/fond */}
+                                                    {/* Icône seule en volt */}
                                                     <IconComponent className="w-5 h-5 text-volt flex-shrink-0" />
-                                                    <span className="text-sm text-white flex-1 min-w-0 truncate">
+                                                    <span className="text-sm text-white">
                                                         {locale === 'en' ? strategy.labelEn : strategy.labelFr}
                                                     </span>
-                                                    <div className="flex-shrink-0">
-                                                        {strategy.isProtection ? (
-                                                            <Shield className="w-4 h-4 text-volt" />
-                                                        ) : (
-                                                            <span className="font-mono text-xs text-volt">
-                                                                +{strategy.monthlyImpact}€/m
-                                                            </span>
-                                                        )}
-                                                    </div>
                                                 </div>
                                             );
                                         })}
@@ -312,6 +303,7 @@ const DebriefScreen: React.FC<DebriefScreenProps> = ({
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={() => {
+                        console.log('[DebriefScreen] TERMINER clicked');
                         haptic.heavy();
                         onComplete();
                     }}

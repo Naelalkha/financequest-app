@@ -180,9 +180,14 @@ const AntiOverdraftFlow: React.FC<AntiOverdraftFlowProps> = ({
 
     // Final completion
     const handleComplete = () => {
+        console.log('[AntiOverdraftFlow] handleComplete called');
+        console.log('[AntiOverdraftFlow] questData:', questData);
+
         const totalImpact = calculateTotalImpact(questData.selectedStrategies);
         const annualImpact = totalImpact * 12;
         const xpEarned = quest.xp || 100;
+
+        console.log('[AntiOverdraftFlow] Calling onComplete with:', { totalImpact, annualImpact, xpEarned });
 
         trackEvent('quest_completed', {
             quest_id: 'anti-overdraft',

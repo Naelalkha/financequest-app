@@ -1,7 +1,9 @@
+import icon from './assets/icon.png';
+
 /**
  * Anti-Overdraft Quest - Metadata
  *
- * L'ANTI-DÉCOUVERT : Calcule ton RAV et active tes garde-fous
+ * L'ANTI-DÉCOUVERT : Calcule ton RAV et active tes protections
  * Les traductions sont dans /locales/{lang}/quests.json sous la clé 'antiOverdraft'
  */
 export const antiOverdraftQuest = {
@@ -31,6 +33,10 @@ export const antiOverdraftQuest = {
   estimatedImpact: {
     amount: 45,
     period: 'month'
+  },
+
+  icons: {
+    main: icon,
   },
 
   colors: {

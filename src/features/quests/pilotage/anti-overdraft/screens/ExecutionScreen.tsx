@@ -1,20 +1,16 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
-    ChevronRight, Wallet, Copy, Check,
-    ArrowRightCircle, Bell, Calendar, Shield, Phone,
+    ChevronRight, Wallet, Copy, Check, ExternalLink,
+    ArrowRightLeft, Bell, Calendar, Shield, Phone,
     AlertTriangle, AlertCircle, CheckCircle2, Sparkles
 } from 'lucide-react';
 import {
     calculateRAV,
     calculateTotalImpact,
-    hasStrategiesRequiringCall,
-    getStrategiesRequiringCall,
     getStrategiesForRiskLevel,
-    isStrategyPriority,
     strategies,
-    bankCallScript,
     RISK_LEVELS,
     RISK_MESSAGES,
     type RiskLevel
@@ -45,7 +41,7 @@ interface ExecutionScreenProps {
 
 // Icon map for strategies
 const ICON_MAP: Record<string, React.ElementType> = {
-    ArrowRightCircle,
+    ArrowRightLeft,
     Bell,
     Calendar,
     Shield,
@@ -75,6 +71,30 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
     const [chargesFixes, setChargesFixes] = useState(data.chargesFixes || 1500);
     const [selectedStrategies, setSelectedStrategies] = useState<string[]>(data.selectedStrategies || []);
     const [copied, setCopied] = useState(false);
+    const [completedActions, setCompletedActions] = useState<string[]>([]);
+
+    // Toggle completed action
+    const toggleAction = useCallback((actionId: string) => {
+        setCompletedActions(prev => {
+            const isRemoving = prev.includes(actionId);
+            const newActions = isRemoving
+                ? prev.filter(id => id !== actionId)
+                : [...prev, actionId];
+
+            // Check if all actions will be completed after this toggle
+            const willBeAllCompleted = !isRemoving &&
+                selectedStrategies.length > 0 &&
+                selectedStrategies.every(id => newActions.includes(id));
+
+            if (willBeAllCompleted) {
+                haptic.success();
+            } else {
+                haptic.light();
+            }
+
+            return newActions;
+        });
+    }, [selectedStrategies]);
 
     // Calculate RAV in real-time
     const ravResult = useMemo(() => calculateRAV(revenus, chargesFixes), [revenus, chargesFixes]);
@@ -82,10 +102,6 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
 
     // Calculate total impact
     const totalImpact = useMemo(() => calculateTotalImpact(selectedStrategies), [selectedStrategies]);
-
-    // Check if bank call needed
-    const needsBankCall = useMemo(() => hasStrategiesRequiringCall(selectedStrategies), [selectedStrategies]);
-    const callStrategies = useMemo(() => getStrategiesRequiringCall(selectedStrategies), [selectedStrategies]);
 
     // Toggle strategy selection
     const toggleStrategy = useCallback((strategyId: string) => {
@@ -96,28 +112,6 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                 : [...prev, strategyId]
         );
     }, []);
-
-    // Copy script to clipboard
-    const copyScript = useCallback(() => {
-        const script = locale === 'en' ? bankCallScript.introEn : bankCallScript.introFr;
-        const points = locale === 'en' ? bankCallScript.pointsEn : bankCallScript.pointsFr;
-        const outro = locale === 'en' ? bankCallScript.outroEn : bankCallScript.outroFr;
-
-        // Filter points based on selected strategies
-        const relevantPoints = points.filter((_, index) => {
-            if (index === 0) return selectedStrategies.includes('delay-debits');
-            if (index === 1) return selectedStrategies.includes('sms-alert');
-            if (index === 2 || index === 3) return selectedStrategies.includes('negotiate-overdraft');
-            return false;
-        });
-
-        const fullScript = `${script}\n\n${relevantPoints.map(p => `• ${p}`).join('\n')}\n\n${outro}`;
-        navigator.clipboard.writeText(fullScript);
-
-        haptic.success();
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    }, [locale, selectedStrategies]);
 
     // Go to strategy step
     const goToStrategy = useCallback(() => {
@@ -132,21 +126,15 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         setStep('strategy');
     }, [revenus, chargesFixes, ravResult, onUpdate, setStep]);
 
-    // Go to action step or finish
+    // Go to action step (always show action screen for checklist)
     const goToAction = useCallback(() => {
         haptic.medium();
         onUpdate({
             selectedStrategies,
             totalImpact
         });
-
-        if (needsBankCall) {
-            setStep('action');
-        } else {
-            // Skip action step, go directly to debrief
-            onNext();
-        }
-    }, [selectedStrategies, totalImpact, needsBankCall, onUpdate, setStep, onNext]);
+        setStep('action');
+    }, [selectedStrategies, totalImpact, onUpdate, setStep]);
 
     // Finish
     const handleFinish = useCallback(() => {
@@ -163,53 +151,51 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         fr: {
             // Diagnostic
             revenusLabel: 'TES REVENUS NETS MENSUELS',
-            revenusHint: 'Salaire, allocations, revenus réguliers',
+            revenusHint: 'Salaire, allocations, etc.',
             chargesLabel: 'TES CHARGES FIXES',
-            chargesHint: 'Loyer, crédits, abonnements, assurances',
+            chargesHint: 'Loyer, crédits, abos, etc.',
             ravLabel: 'TON RESTE À VIVRE',
             ratioLabel: 'de tes revenus',
             diagnosticCta: 'CONTINUER',
 
             // Strategy
-            strategyIntro: 'Sélectionne les stratégies à activer',
-            impactLabel: 'IMPACT ESTIMÉ',
+            strategyIntro: 'Sélectionne tes protections',
             protectionLabel: 'protection',
-            perMonth: '/mois',
             strategyCta: 'CONTINUER',
-            noStrategy: 'Sélectionne au moins une stratégie',
+            noStrategy: 'Sélectionne au moins une protection',
 
             // Action
-            actionIntro: 'Certaines stratégies nécessitent un appel à ta banque.',
-            scriptLabel: 'SCRIPT D\'APPEL',
-            copyScript: 'Copier le script',
+            scriptLabel: 'REQUÊTE TYPE',
+            procedureLabel: 'PROCÉDURE',
+            copyScript: 'Copier',
             copied: 'Copié !',
-            callHint: 'Appelle le numéro de ta banque',
+            callBank: 'APPELER MA BANQUE',
+            openBankApp: 'OUVRIR MON APP BANCAIRE',
             actionCta: 'VOIR MON IMPACT'
         },
         en: {
             // Diagnostic
             revenusLabel: 'YOUR NET MONTHLY INCOME',
-            revenusHint: 'Salary, benefits, regular income',
+            revenusHint: 'Salary, benefits, etc.',
             chargesLabel: 'YOUR FIXED EXPENSES',
-            chargesHint: 'Rent, loans, subscriptions, insurance',
+            chargesHint: 'Rent, loans, subs, etc.',
             ravLabel: 'YOUR DISPOSABLE INCOME',
             ratioLabel: 'of your income',
             diagnosticCta: 'CONTINUE',
 
             // Strategy
-            strategyIntro: 'Select strategies to activate',
-            impactLabel: 'ESTIMATED IMPACT',
+            strategyIntro: 'Select your protections',
             protectionLabel: 'protection',
-            perMonth: '/month',
             strategyCta: 'CONTINUE',
-            noStrategy: 'Select at least one strategy',
+            noStrategy: 'Select at least one protection',
 
             // Action
-            actionIntro: 'Some strategies require a call to your bank.',
-            scriptLabel: 'CALL SCRIPT',
-            copyScript: 'Copy script',
+            scriptLabel: 'SAMPLE REQUEST',
+            procedureLabel: 'PROCEDURE',
+            copyScript: 'Copy',
             copied: 'Copied!',
-            callHint: 'Call your bank number',
+            callBank: 'CALL MY BANK',
+            openBankApp: 'OPEN MY BANKING APP',
             actionCta: 'SEE MY IMPACT'
         }
     };
@@ -220,16 +206,16 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         return (
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="flex flex-col p-6 pt-2 pb-32">
+                    <div className="flex flex-col p-6 pt-6 pb-32">
 
                         {/* REVENUS INPUT */}
-                        <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3 px-1 gap-4">
+                        <div className="mb-10">
+                            <div className="flex justify-between items-end mb-4 px-1 gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate">
+                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate mb-1">
                                         {L.revenusLabel}
                                     </label>
-                                    <span className="font-mono text-xs text-neutral-500 block truncate">
+                                    <span className="font-mono text-xs text-neutral-500 block">
                                         {L.revenusHint}
                                     </span>
                                 </div>
@@ -258,13 +244,13 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                         </div>
 
                         {/* CHARGES INPUT */}
-                        <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3 px-1 gap-4">
+                        <div className="mb-10">
+                            <div className="flex justify-between items-end mb-4 px-1 gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate">
+                                    <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wide block truncate mb-1">
                                         {L.chargesLabel}
                                     </label>
-                                    <span className="font-mono text-xs text-neutral-500 block truncate">
+                                    <span className="font-mono text-xs text-neutral-500 block">
                                         {L.chargesHint}
                                     </span>
                                 </div>
@@ -297,10 +283,10 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-neutral-900/60 border border-white/5 rounded-2xl p-4 backdrop-blur-[20px]"
+                            className={`${riskConfig.bgClass} ${riskConfig.borderClass} rounded-2xl p-4 backdrop-blur-[20px]`}
                         >
+                            {/* Partie haute : RAV */}
                             <div className="flex items-center gap-4">
-                                {/* Icône seule - pas de cercle/fond */}
                                 <Wallet className="w-7 h-7 text-volt flex-shrink-0" />
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-1">
@@ -316,22 +302,32 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                             {ravResult.rav.toLocaleString('fr-FR')} €
                                         </motion.span>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-mono text-[10px] text-neutral-500">
-                                            {Math.round(ravResult.ratio * 100)}% {L.ratioLabel}
-                                        </span>
-                                        {(() => {
-                                            const RiskIcon = RISK_ICON_MAP[riskConfig.iconName] || CheckCircle2;
-                                            return (
-                                                <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1.5 ${riskConfig.bgClass} ${riskConfig.colorClass} ${riskConfig.borderClass}`}>
-                                                    <RiskIcon className="w-3.5 h-3.5" />
-                                                    {locale === 'en' ? riskConfig.labelEn : riskConfig.labelFr}
-                                                </span>
-                                            );
-                                        })()}
-                                    </div>
+                                    <span className="font-mono text-[10px] text-neutral-500">
+                                        {Math.round(ravResult.ratio * 100)}% {L.ratioLabel}
+                                    </span>
                                 </div>
                             </div>
+
+                            {/* Séparateur */}
+                            <div className="border-t border-white/5 my-3" />
+
+                            {/* Partie basse : Niveau de risque */}
+                            {(() => {
+                                const RiskIcon = RISK_ICON_MAP[riskConfig.iconName] || CheckCircle2;
+                                return (
+                                    <div className="flex items-start gap-3">
+                                        <RiskIcon className={`w-5 h-5 ${riskConfig.colorClass} flex-shrink-0 mt-0.5`} />
+                                        <div className="flex-1">
+                                            <span className={`font-mono text-sm font-bold ${riskConfig.colorClass}`}>
+                                                {locale === 'en' ? riskConfig.labelEn : riskConfig.labelFr}
+                                            </span>
+                                            <p className="text-xs text-neutral-400 mt-0.5">
+                                                {locale === 'en' ? riskConfig.descEn : riskConfig.descFr}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </motion.div>
                     </div>
                 </div>
@@ -365,21 +361,19 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="flex flex-col p-6 pt-2 pb-32">
 
-                        {/* Risk-based contextual message */}
+                        {/* Risk-based contextual message - Style dynamique selon niveau */}
                         {(() => {
                             const RiskIcon = RISK_ICON_MAP[riskConfig.iconName] || CheckCircle2;
                             return (
                                 <motion.div
                                     initial={{ opacity: 0, y: -8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`mb-4 p-4 rounded-2xl ${riskConfig.bgClass} ${riskConfig.borderClass}`}
+                                    className={`rounded-2xl p-4 ${riskConfig.bgClass} ${riskConfig.borderClass}`}
                                 >
                                     <div className="flex items-start gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${currentRiskLevel === 'CRITIQUE' ? 'bg-volt/20' : 'bg-neutral-800'}`}>
-                                            <RiskIcon className={`w-5 h-5 ${riskConfig.colorClass}`} />
-                                        </div>
+                                        <RiskIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${riskConfig.colorClass}`} />
                                         <div>
-                                            <span className={`font-mono text-xs font-bold ${riskConfig.colorClass} block mb-1`}>
+                                            <span className={`font-mono text-xs font-bold uppercase block mb-1 ${riskConfig.colorClass}`}>
                                                 {locale === 'en' ? riskMessage.priorityLabelEn : riskMessage.priorityLabelFr}
                                             </span>
                                             <p className="text-sm text-neutral-300">
@@ -391,10 +385,10 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                             );
                         })()}
 
-                        {/* Intro */}
-                        <p className="font-mono text-sm text-neutral-400 mb-4">
-                            {L.strategyIntro}
-                        </p>
+                        {/* Divider */}
+                        <div className="my-5">
+                            <div className="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
+                        </div>
 
                         {/* Strategy Cards - ordered by risk level */}
                         <div className="space-y-3">
@@ -410,67 +404,42 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
                                         transition={{ delay: index * 0.06, duration: 0.25 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => toggleStrategy(strategy.id)}
-                                        className={`w-full rounded-2xl border text-left selectable-card ${
-                                            isSelected
+                                        className={`
+                                            w-full rounded-2xl border text-left selectable-card
+                                            ${isSelected
                                                 ? 'bg-neutral-900 border-volt selectable-card--active'
                                                 : 'bg-neutral-900 border-neutral-800 active:bg-neutral-800'
-                                        }`}
+                                            }
+                                        `}
                                     >
-                                        <div className="p-4 flex items-start gap-3">
-                                            {/* Icon seule - PAS DE CERCLE/FOND */}
-                                            <IconComponent className={`w-6 h-6 flex-shrink-0 mt-0.5 ${isSelected ? 'text-volt' : 'text-neutral-500'}`} />
+                                        <div className="p-4 flex items-center gap-4">
+                                            {/* Icon avec cadre carré arrondi */}
+                                            <div className={`
+                                                w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
+                                                ${isSelected
+                                                    ? 'bg-volt text-black'
+                                                    : 'bg-neutral-800 text-neutral-400'
+                                                }
+                                            `}>
+                                                <IconComponent className="w-6 h-6" />
+                                            </div>
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className={`font-mono text-sm font-bold uppercase ${isSelected ? 'text-volt' : 'text-white'}`}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className={`font-mono text-sm font-semibold uppercase tracking-wide ${isSelected ? 'text-volt' : 'text-white'}`}>
                                                         {locale === 'en' ? strategy.labelEn : strategy.labelFr}
                                                     </span>
-                                                    {/* Impact indicator */}
-                                                    <div className="flex-shrink-0">
-                                                        {strategy.isProtection ? (
-                                                            <Shield className="w-5 h-5 text-volt" />
-                                                        ) : (
-                                                            <span className="font-mono text-sm font-bold text-volt whitespace-nowrap">
-                                                                +{strategy.monthlyImpact}€/m
-                                                            </span>
-                                                        )}
-                                                    </div>
                                                 </div>
-                                                <p className="text-sm text-neutral-500 mt-1">
+                                                <p className="text-sm text-neutral-500">
                                                     {locale === 'en' ? strategy.descEn : strategy.descFr}
                                                 </p>
-                                                {/* Bank call indicator - style outline monochrome */}
-                                                {strategy.requiresBankCall && (
-                                                    <span className="inline-flex items-center gap-1.5 mt-2 text-neutral-500 font-mono text-[10px]">
-                                                        <Phone className="w-3 h-3" />
-                                                        {locale === 'en' ? 'Bank call required' : 'Appel banque requis'}
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
                                     </motion.button>
                                 );
                             })}
                         </div>
-
-                        {/* Total Impact Card */}
-                        {selectedStrategies.length > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-6 bg-volt/10 border border-volt/30 rounded-2xl p-4"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <span className="font-mono text-[11px] text-volt uppercase font-bold">
-                                        {L.impactLabel}
-                                    </span>
-                                    <span className="font-mono text-xl font-bold text-volt">
-                                        +{totalImpact}€{L.perMonth}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 </div>
 
@@ -496,108 +465,325 @@ const ExecutionScreen: React.FC<ExecutionScreenProps> = ({ data = {}, onUpdate, 
         );
     }
 
-    // STEP 3: ACTION (Bank Call Script)
+    // STEP 3: ACTION (Bank Call Script + Checklist)
     if (step === 'action') {
-        const scriptIntro = locale === 'en' ? bankCallScript.introEn : bankCallScript.introFr;
-        const scriptPoints = locale === 'en' ? bankCallScript.pointsEn : bankCallScript.pointsFr;
-        const scriptOutro = locale === 'en' ? bankCallScript.outroEn : bankCallScript.outroFr;
+        // Get selected strategy details
+        const selectedStrategyDetails = strategies.filter(s => selectedStrategies.includes(s.id));
 
-        // Filter relevant points based on selected strategies
-        const relevantPointsIndices: number[] = [];
-        if (selectedStrategies.includes('delay-debits')) relevantPointsIndices.push(0);
-        if (selectedStrategies.includes('sms-alert')) relevantPointsIndices.push(1);
-        if (selectedStrategies.includes('negotiate-overdraft')) {
-            relevantPointsIndices.push(2);
-            relevantPointsIndices.push(3);
-        }
+        // Script strategies: everything except virement auto (100% autonomous)
+        const scriptStrategyIds = selectedStrategies.filter(id => id !== 'auto-transfer');
+        const hasScriptStrategies = scriptStrategyIds.length > 0;
+
+        // Check if all actions are completed
+        const allActionsCompleted = selectedStrategies.length > 0 &&
+            selectedStrategies.every(id => completedActions.includes(id));
+
+        // Generate dynamic script (includes all except auto-transfer)
+        const generateScript = () => {
+            const points: string[] = [];
+
+            if (selectedStrategies.includes('delay-debits')) {
+                points.push(locale === 'en'
+                    ? 'move my direct debits to the 5th of the month'
+                    : 'décaler mes prélèvements au 5 du mois'
+                );
+            }
+            if (selectedStrategies.includes('sms-alert')) {
+                points.push(locale === 'en'
+                    ? 'activate low balance SMS alerts'
+                    : 'activer les alertes SMS de solde bas'
+                );
+            }
+            if (selectedStrategies.includes('negotiate-overdraft')) {
+                points.push(locale === 'en'
+                    ? 'set up a free authorized overdraft'
+                    : 'mettre en place un découvert autorisé gratuit'
+                );
+            }
+
+            // No script if only auto-transfer selected
+            if (points.length === 0) return null;
+
+            // Single request → fluid sentence
+            if (points.length === 1) {
+                const intro = locale === 'en'
+                    ? `"Hello, I'm a customer and I'd like to ${points[0]}. Is that possible by phone?"`
+                    : `"Bonjour, je suis client(e) et je souhaite ${points[0]}. Est-ce possible par téléphone ?"`;
+                const outro = locale === 'en' ? 'Thank you for your help.' : 'Merci de votre aide.';
+                return { intro, points: null, outro: `"${outro}"` };
+            }
+
+            // Multiple requests → numbered list
+            const intro = locale === 'en'
+                ? `"Hello, I'm a customer. I have ${points.length} requests:"`
+                : `"Bonjour, je suis client(e). J'aurais ${points.length} demandes :"`;
+
+            // Capitalize first letter of each point
+            const capitalizedPoints = points.map(p => p.charAt(0).toUpperCase() + p.slice(1));
+
+            const outro = locale === 'en'
+                ? 'What can I do directly with you?'
+                : 'Qu\'est-ce que je peux faire directement avec vous ?';
+
+            return { intro, points: capitalizedPoints, outro: `"${outro}"` };
+        };
+
+        const script = generateScript();
+
+        // Generate procedure steps for autonomous actions (when no script)
+        const generateProcedure = () => {
+            // Only show procedure when no script strategies
+            if (hasScriptStrategies) return null;
+
+            const steps: string[] = [];
+
+            if (selectedStrategies.includes('auto-transfer')) {
+                if (locale === 'en') {
+                    steps.push('Open your banking app');
+                    steps.push('Go to "Transfers" section');
+                    steps.push('Select "Recurring transfer"');
+                    steps.push('Set amount (e.g. 50€) for the day after payday');
+                } else {
+                    steps.push('Ouvre l\'app de ta banque');
+                    steps.push('Va dans la section "Virements"');
+                    steps.push('Sélectionne "Virement permanent"');
+                    steps.push('Programme le montant (ex: 50€) le lendemain de ta paie');
+                }
+            }
+
+            if (selectedStrategies.includes('sms-alert') && !hasScriptStrategies) {
+                if (locale === 'en') {
+                    steps.push('Open your banking app');
+                    steps.push('Go to "Settings" or "Alerts"');
+                    steps.push('Enable "Low balance alert"');
+                    steps.push('Set threshold (e.g. 100€)');
+                } else {
+                    steps.push('Ouvre l\'app de ta banque');
+                    steps.push('Va dans "Paramètres" ou "Alertes"');
+                    steps.push('Active "Alerte solde bas"');
+                    steps.push('Définis le seuil (ex: 100€)');
+                }
+            }
+
+            return steps.length > 0 ? steps : null;
+        };
+
+        const procedure = generateProcedure();
+
+        // Action labels for all strategies
+        const actionLabels: Record<string, { label: string; completedLabel: string }> = {
+            'auto-transfer': {
+                label: locale === 'en' ? 'Set up auto transfer' : 'Programmer virement auto',
+                completedLabel: locale === 'en' ? 'TRANSFER SCHEDULED' : 'VIREMENT PROGRAMMÉ'
+            },
+            'delay-debits': {
+                label: locale === 'en' ? 'Delay debits' : 'Décaler prélèvements',
+                completedLabel: locale === 'en' ? 'DEBITS DELAYED' : 'PRÉLÈVEMENTS DÉCALÉS'
+            },
+            'sms-alert': {
+                label: locale === 'en' ? 'Activate SMS alerts' : 'Activer alertes SMS',
+                completedLabel: locale === 'en' ? 'ALERTS ACTIVATED' : 'ALERTES ACTIVÉES'
+            },
+            'negotiate-overdraft': {
+                label: locale === 'en' ? 'Negotiate overdraft' : 'Négocier découvert',
+                completedLabel: locale === 'en' ? 'OVERDRAFT NEGOTIATED' : 'DÉCOUVERT NÉGOCIÉ'
+            }
+        };
+
+        // Copy script to clipboard (dynamic version)
+        const handleCopyScript = () => {
+            if (!script) return;
+
+            let fullScript = script.intro + '\n\n';
+            if (script.points) {
+                fullScript += script.points.map((p, i) => `${i + 1}. ${p}`).join('\n') + '\n\n';
+            }
+            fullScript += script.outro;
+
+            // Remove quotes for clipboard
+            const cleanScript = fullScript.replace(/"/g, '');
+            navigator.clipboard.writeText(cleanScript);
+
+            haptic.light();
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        };
+
+        // Render checklist item
+        const renderChecklistItem = (strategy: typeof strategies[0], index: number, delayOffset: number = 0) => {
+            const IconComponent = ICON_MAP[strategy.iconName] || Shield;
+            const isCompleted = completedActions.includes(strategy.id);
+            const labels = actionLabels[strategy.id];
+
+            return (
+                <motion.button
+                    key={strategy.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: delayOffset + index * 0.05 }}
+                    onClick={() => toggleAction(strategy.id)}
+                    className={`
+                        w-full flex items-center justify-between gap-3 p-4 rounded-xl transition-all
+                        ${isCompleted
+                            ? 'border-2 border-volt bg-volt/10'
+                            : 'border border-white/10 bg-neutral-900/60'
+                        }
+                    `}
+                >
+                    <div className="flex items-center gap-3">
+                        <IconComponent className={`w-5 h-5 ${isCompleted ? 'text-volt' : 'text-neutral-400'}`} />
+                        <span className={`font-mono text-sm uppercase ${isCompleted ? 'text-volt' : 'text-white'}`}>
+                            {isCompleted ? labels?.completedLabel : labels?.label}
+                        </span>
+                    </div>
+
+                    {/* Checkbox circle */}
+                    <div className={`
+                        w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+                        ${isCompleted
+                            ? 'bg-volt'
+                            : 'border-2 border-neutral-600'
+                        }
+                    `}>
+                        {isCompleted && <Check className="w-4 h-4 text-black" />}
+                    </div>
+                </motion.button>
+            );
+        };
 
         return (
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="flex flex-col p-6 pt-2 pb-32">
+                    <div className="flex flex-col p-6 pt-2 pb-32 space-y-4">
 
-                        {/* Intro */}
-                        <p className="font-mono text-sm text-neutral-400 mb-6">
-                            {L.actionIntro}
-                        </p>
-
-                        {/* Script Card */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-neutral-900/60 border border-white/10 rounded-2xl p-5 backdrop-blur-[20px]"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="font-mono text-[11px] text-volt uppercase font-bold">
-                                    {L.scriptLabel}
-                                </span>
-                                <button
-                                    onClick={copyScript}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all ${
-                                        copied
-                                            ? 'bg-emerald-500/20 text-emerald-400'
-                                            : 'bg-neutral-800 text-neutral-400 hover:text-white'
-                                    }`}
+                        {/* Script Card + Call Button - Only if has script strategies */}
+                        {hasScriptStrategies && script && (
+                            <>
+                                {/* Script Card - Style Terminal */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-neutral-900/60 border border-white/10 rounded-2xl p-4"
                                 >
-                                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                    {copied ? L.copied : L.copyScript}
-                                </button>
-                            </div>
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="font-mono text-xs text-volt uppercase tracking-wider">
+                                            {L.scriptLabel}
+                                        </span>
+                                        <button
+                                            onClick={handleCopyScript}
+                                            className="flex items-center gap-1.5 text-neutral-500 hover:text-white transition-colors"
+                                        >
+                                            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                                            <span className="text-xs">{copied ? L.copied : L.copyScript}</span>
+                                        </button>
+                                    </div>
 
-                            {/* Script Content */}
-                            <div className="space-y-4 text-neutral-300 text-sm">
-                                <p className="italic">"{scriptIntro}"</p>
+                                    {/* Script Content - Dynamic */}
+                                    <div className="font-mono text-sm text-neutral-400 space-y-3">
+                                        <p className="italic">{script.intro}</p>
 
-                                <ul className="space-y-2">
-                                    {relevantPointsIndices.map(index => (
-                                        <li key={index} className="flex items-start gap-2">
-                                            <span className="text-volt">•</span>
-                                            <span>{scriptPoints[index]}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                        {script.points && (
+                                            <ol className="space-y-2 list-decimal list-inside">
+                                                {script.points.map((point, i) => (
+                                                    <li key={i} className="text-neutral-400">
+                                                        <span className="text-white font-semibold">{point}</span>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
 
-                                <p className="italic">"{scriptOutro}"</p>
-                            </div>
-                        </motion.div>
+                                        <p className="italic">{script.outro}</p>
+                                    </div>
+                                </motion.div>
 
-                        {/* Call Hint */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="mt-4 flex items-center justify-center gap-2 text-neutral-500"
-                        >
-                            <Phone className="w-4 h-4" />
-                            <span className="font-mono text-xs">{L.callHint}</span>
-                        </motion.div>
+                                {/* Call Bank Button */}
+                                <motion.a
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.1 }}
+                                    href="tel:"
+                                    className="flex items-center justify-center gap-2 w-full py-4 border border-white/20 rounded-xl text-white font-semibold hover:bg-white/5 transition-colors"
+                                >
+                                    <Phone className="w-5 h-5" />
+                                    <span>{L.callBank}</span>
+                                </motion.a>
 
-                        {/* Selected Strategies Reminder - monochrome */}
-                        <div className="mt-6 space-y-2">
-                            {callStrategies.map(strategy => {
-                                const IconComponent = ICON_MAP[strategy.iconName] || Shield;
-                                return (
-                                    <div
-                                        key={strategy.id}
-                                        className="flex items-center gap-3 p-3 bg-neutral-900 border border-neutral-700 rounded-xl"
-                                    >
-                                        <IconComponent className="w-4 h-4 text-volt" />
-                                        <span className="text-sm text-neutral-300">
-                                            {locale === 'en' ? strategy.labelEn : strategy.labelFr}
+                                {/* Divider */}
+                                <div className="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
+                            </>
+                        )}
+
+                        {/* Procedure Card + Open App Button - Only if no script strategies (autonomous actions) */}
+                        {!hasScriptStrategies && procedure && (
+                            <>
+                                {/* Procedure Card - Same style as Script */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-neutral-900/60 border border-white/10 rounded-2xl p-4"
+                                >
+                                    {/* Header */}
+                                    <div className="mb-3">
+                                        <span className="font-mono text-xs text-volt uppercase tracking-wider">
+                                            {L.procedureLabel}
                                         </span>
                                     </div>
-                                );
-                            })}
+
+                                    {/* Procedure Steps */}
+                                    <ol className="space-y-2 list-decimal list-inside font-mono text-sm">
+                                        {procedure.map((step, i) => (
+                                            <li key={i} className="text-neutral-400">
+                                                <span className="text-white">{step}</span>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </motion.div>
+
+                                {/* Open Bank App Button */}
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.1 }}
+                                    onClick={() => haptic.light()}
+                                    className="flex items-center justify-center gap-2 w-full py-4 border border-white/20 rounded-xl text-white font-semibold hover:bg-white/5 transition-colors"
+                                >
+                                    <ExternalLink className="w-5 h-5" />
+                                    <span>{L.openBankApp}</span>
+                                </motion.button>
+
+                                {/* Divider */}
+                                <div className="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
+                            </>
+                        )}
+
+                        {/* Simple Checklist - All selected strategies */}
+                        <div className="space-y-3">
+                            {selectedStrategyDetails.map((strategy, index) =>
+                                renderChecklistItem(strategy, index, (hasScriptStrategies || procedure) ? 0.15 : 0)
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* Footer CTA */}
+                {/* Footer CTA - Locked until all actions completed */}
                 <div className="p-4 bg-black/90 backdrop-blur-sm border-t border-neutral-800 cta-footer-container">
                     <motion.button
-                        whileTap={{ scale: 0.97 }}
+                        whileTap={allActionsCompleted ? { scale: 0.97 } : {}}
                         onClick={handleFinish}
-                        className="w-full bg-volt text-black font-bold font-sans py-4 rounded-xl flex items-center justify-center border-[3px] border-black cta-ios-fix cta-active"
+                        disabled={!allActionsCompleted}
+                        animate={allActionsCompleted ? {
+                            scale: [0.95, 1.02, 1],
+                            transition: { duration: 0.3, ease: 'easeOut' }
+                        } : {}}
+                        className={`
+                            w-full font-bold font-sans py-4 rounded-xl flex items-center justify-center gap-2
+                            transition-all duration-300 border-[3px] cta-ios-fix
+                            ${allActionsCompleted
+                                ? 'bg-volt text-black border-black cta-active'
+                                : 'bg-neutral-800 text-neutral-500 border-neutral-700 cursor-not-allowed'
+                            }
+                        `}
                     >
                         <span className="cta-content cta-content-animate">
                             {L.actionCta}

@@ -49,47 +49,47 @@ export const RAV_THRESHOLDS = {
 
 export const RISK_LEVELS: Record<RiskLevel, RiskLevelConfig> = {
   CRITIQUE: {
-    emoji: '', // Lucide AlertTriangle sera utilisé
+    emoji: '',
     colorClass: 'text-volt',
-    bgClass: 'bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(226,255,0,0.08)_10px,rgba(226,255,0,0.08)_20px)]',
-    borderClass: 'border-2 border-dashed border-volt/50',
+    bgClass: 'bg-neutral-900/80',
+    borderClass: 'border-2 border-dashed border-volt/50 shadow-[0_0_15px_rgba(226,255,0,0.15)]',
     labelFr: 'CRITIQUE',
     labelEn: 'CRITICAL',
-    descFr: 'Risque élevé de découvert',
-    descEn: 'High overdraft risk',
+    descFr: 'Zone rouge. Agis maintenant.',
+    descEn: 'Red zone. Act now.',
     iconName: 'AlertTriangle'
   },
   TENDU: {
-    emoji: '', // Lucide AlertCircle sera utilisé
+    emoji: '',
     colorClass: 'text-volt/80',
-    bgClass: 'bg-volt/10',
-    borderClass: 'border border-volt/30',
+    bgClass: 'bg-neutral-900/80',
+    borderClass: 'border border-volt/40 shadow-[0_0_12px_rgba(226,255,0,0.1)]',
     labelFr: 'TENDU',
     labelEn: 'TIGHT',
-    descFr: 'Marge de manoeuvre limitée',
-    descEn: 'Limited wiggle room',
+    descFr: 'Marge serrée. Vigilance requise.',
+    descEn: 'Tight margin. Stay vigilant.',
     iconName: 'AlertCircle'
   },
   OK: {
-    emoji: '', // Lucide CheckCircle2 sera utilisé
+    emoji: '',
     colorClass: 'text-volt',
-    bgClass: 'bg-volt/10',
-    borderClass: 'border border-volt/20',
+    bgClass: 'bg-neutral-900/80',
+    borderClass: 'border border-volt/30 shadow-[0_0_10px_rgba(226,255,0,0.08)]',
     labelFr: 'OK',
     labelEn: 'OK',
-    descFr: 'Situation stable',
-    descEn: 'Stable situation',
+    descFr: 'Stable. Tu peux optimiser.',
+    descEn: 'Stable. You can optimize.',
     iconName: 'CheckCircle2'
   },
   CONFORT: {
-    emoji: '', // Lucide Sparkles sera utilisé
+    emoji: '',
     colorClass: 'text-volt',
-    bgClass: 'bg-volt/20',
-    borderClass: 'border border-volt/30',
+    bgClass: 'bg-neutral-900/80',
+    borderClass: 'border border-volt/40 shadow-[0_0_20px_rgba(226,255,0,0.15)]',
     labelFr: 'CONFORT',
     labelEn: 'COMFORT',
-    descFr: 'Excellente marge de sécurité',
-    descEn: 'Excellent safety margin',
+    descFr: 'Blindé. Tu es safe.',
+    descEn: 'Solid. You\'re safe.',
     iconName: 'Sparkles'
   }
 };
@@ -115,32 +115,32 @@ export const socialProofSlides: SocialProofSlide[] = [
     titleEn: 'THE REALITY',
     badge: 'STATS',
     badgeColor: 'red',
-    stat: '53%',
-    textFr: "des Français passent dans le rouge au moins une fois par an.",
+    stat: '45%',
+    textFr: "des Français passent dans le rouge.",
     textEn: "of French people go overdrawn at least once a year.",
-    source: 'Banque de France 2023'
+    source: 'Banque de France 2024'
+  },
+  {
+    id: 'average-overdraft',
+    titleFr: 'LE PATTERN',
+    titleEn: 'THE PATTERN',
+    badge: 'TIMING',
+    badgeColor: 'amber',
+    stat: '223€',
+    textFr: "découvert moyen — le 18 du mois pour 24% des gens.",
+    textEn: "average overdraft — on the 18th for 24% of people.",
+    source: 'Étude bancaire 2024'
   },
   {
     id: 'cost-fees',
     titleFr: 'LE COÛT CACHÉ',
     titleEn: 'THE HIDDEN COST',
     badge: 'IMPACT',
-    badgeColor: 'amber',
-    stat: '156€',
+    badgeColor: 'red',
+    stat: '145€',
     textFr: "de frais de découvert en moyenne chaque année.",
     textEn: "in overdraft fees on average each year.",
-    source: 'CLCV 2023'
-  },
-  {
-    id: 'protection',
-    titleFr: 'LA SOLUTION',
-    titleEn: 'THE SOLUTION',
-    badge: 'MÉTHODE',
-    badgeColor: 'emerald',
-    stat: 'RAV',
-    textFr: "Le Reste À Vivre : ta marge de sécurité anti-découvert.",
-    textEn: "Disposable Income: your anti-overdraft safety margin.",
-    source: 'Méthode Moniyo'
+    source: 'Étude bancaire 2024'
   }
 ];
 
@@ -177,8 +177,8 @@ export const proTips: ProTip[] = [
     titleFr: 'ACTIVE TES PROTECTIONS',
     titleEn: 'ACTIVATE YOUR PROTECTIONS',
     iconName: 'Bell',
-    bodyFr: "Alertes SMS, virements auto, négociation découverts... **Des filets de sécurité gratuits**.",
-    bodyEn: "SMS alerts, auto-transfers, overdraft negotiation... **Free safety nets**."
+    bodyFr: "Alertes SMS, virements auto, découvert négocié... **Des protections 100% gratuites**.",
+    bodyEn: "SMS alerts, auto-transfers, overdraft negotiation... **Free protections**."
   }
 ];
 
@@ -187,22 +187,11 @@ export const proTips: ProTip[] = [
 export const strategies: Strategy[] = [
   {
     id: 'auto-transfer',
-    labelFr: 'Virement auto',
-    labelEn: 'Auto transfer',
-    descFr: 'Programme un virement auto le jour de ton salaire',
-    descEn: 'Schedule auto-transfer on payday',
-    iconName: 'ArrowRightCircle',
-    monthlyImpact: 30,
-    isProtection: false,
-    requiresBankCall: false
-  },
-  {
-    id: 'sms-alert',
-    labelFr: 'Alerte SMS',
-    labelEn: 'SMS alert',
-    descFr: 'Reçois une alerte quand ton solde descend',
-    descEn: 'Get alerted when balance drops',
-    iconName: 'Bell',
+    labelFr: 'Virement auto épargne',
+    labelEn: 'Auto savings transfer',
+    descFr: 'Épargne auto dès le salaire',
+    descEn: 'Auto-save on payday',
+    iconName: 'ArrowRightLeft',
     monthlyImpact: 0,
     isProtection: true,
     requiresBankCall: false
@@ -211,19 +200,30 @@ export const strategies: Strategy[] = [
     id: 'delay-debits',
     labelFr: 'Décaler prélèvements',
     labelEn: 'Delay debits',
-    descFr: 'Décale tes prélèvements après le salaire',
-    descEn: 'Move debits after payday',
+    descFr: 'Après le salaire = zéro stress',
+    descEn: 'After payday = zero stress',
     iconName: 'Calendar',
-    monthlyImpact: 15,
-    isProtection: false,
+    monthlyImpact: 0,
+    isProtection: true,
     requiresBankCall: true
   },
   {
+    id: 'sms-alert',
+    labelFr: 'Alerte solde bas',
+    labelEn: 'Low balance alert',
+    descFr: 'Prévenu avant le rouge',
+    descEn: 'Warned before overdraft',
+    iconName: 'Bell',
+    monthlyImpact: 0,
+    isProtection: true,
+    requiresBankCall: false
+  },
+  {
     id: 'negotiate-overdraft',
-    labelFr: 'Négocier découvert',
-    labelEn: 'Negotiate overdraft',
-    descFr: 'Obtiens un filet de sécurité gratuit',
-    descEn: 'Get a free safety net',
+    labelFr: 'Découvert autorisé',
+    labelEn: 'Authorized overdraft',
+    descFr: 'Filet de sécurité gratuit',
+    descEn: 'Free safety net',
     iconName: 'Shield',
     monthlyImpact: 0,
     isProtection: true,
@@ -246,16 +246,16 @@ export const bankCallScript: BankCallScript = {
   introFr: "Bonjour, je suis client(e) et je souhaite optimiser la gestion de mon compte.",
   introEn: "Hello, I'm a customer and I'd like to optimize my account management.",
   pointsFr: [
-    "Décaler mes prélèvements au 5 du mois",
-    "Activer les alertes SMS de solde bas",
-    "Connaître mon découvert autorisé actuel",
-    "Négocier un découvert autorisé gratuit"
+    "Décaler mes prélèvements au **5 du mois**",
+    "Activer les **alertes SMS** de solde bas",
+    "Connaître mon **découvert autorisé** actuel",
+    "Négocier un **découvert autorisé gratuit**"
   ],
   pointsEn: [
-    "Move my debits to the 5th of the month",
-    "Activate low balance SMS alerts",
-    "Know my current authorized overdraft",
-    "Negotiate a free authorized overdraft"
+    "Move my debits to the **5th of the month**",
+    "Activate **low balance SMS alerts**",
+    "Know my current **authorized overdraft**",
+    "Negotiate a **free authorized overdraft**"
   ],
   outroFr: "Merci de votre aide.",
   outroEn: "Thank you for your help."
@@ -328,7 +328,7 @@ export const getStrategiesRequiringCall = (selectedStrategies: string[]): Strate
 export const STRATEGY_PRIORITY: Record<RiskLevel, string[]> = {
   CRITIQUE: ['sms-alert', 'negotiate-overdraft', 'delay-debits', 'auto-transfer'],
   TENDU: ['sms-alert', 'delay-debits', 'negotiate-overdraft', 'auto-transfer'],
-  OK: ['delay-debits', 'auto-transfer', 'sms-alert', 'negotiate-overdraft'],
+  OK: ['auto-transfer', 'delay-debits', 'sms-alert', 'negotiate-overdraft'],
   CONFORT: ['auto-transfer', 'delay-debits', 'sms-alert', 'negotiate-overdraft']
 };
 
@@ -344,20 +344,20 @@ export interface RiskMessage {
 
 export const RISK_MESSAGES: Record<RiskLevel, RiskMessage> = {
   CRITIQUE: {
-    fr: "Priorité : sécuriser ton compte. Active les alertes et négocie un filet de sécurité.",
-    en: "Priority: secure your account. Activate alerts and negotiate a safety net.",
+    fr: "Priorité absolue : sécurise ton compte.",
+    en: "Top priority: secure your account.",
     priorityLabelFr: "URGENCE",
     priorityLabelEn: "URGENT"
   },
   TENDU: {
-    fr: "Marge limitée. Optimise le timing et active les alertes.",
-    en: "Limited margin. Optimize timing and activate alerts.",
+    fr: "Marge serrée. Active tes protections.",
+    en: "Tight margin. Activate your protections.",
     priorityLabelFr: "RECOMMANDÉ",
     priorityLabelEn: "RECOMMENDED"
   },
   OK: {
-    fr: "Situation stable. Renforce ta sécurité avec ces protections.",
-    en: "Stable situation. Strengthen your security with these protections.",
+    fr: "Tu gères. Voici comment renforcer.",
+    en: "You're managing. Here's how to strengthen.",
     priorityLabelFr: "CONSEILLÉ",
     priorityLabelEn: "ADVISED"
   },
@@ -375,22 +375,22 @@ export const RISK_MESSAGES: Record<RiskLevel, RiskMessage> = {
  */
 export const ESTIMATED_OVERDRAFT_FEES: Record<RiskLevel, { amount: number; frequencyFr: string; frequencyEn: string }> = {
   CRITIQUE: {
-    amount: 200,
+    amount: 220,
     frequencyFr: "Si tu passais à découvert ~2x/mois",
     frequencyEn: "If you went overdrawn ~2x/month"
   },
   TENDU: {
-    amount: 150,
+    amount: 160,
     frequencyFr: "Si tu passais à découvert ~1-2x/mois",
     frequencyEn: "If you went overdrawn ~1-2x/month"
   },
   OK: {
-    amount: 100,
+    amount: 110,
     frequencyFr: "Si tu passais à découvert occasionnellement",
     frequencyEn: "If you went overdrawn occasionally"
   },
   CONFORT: {
-    amount: 50,
+    amount: 60,
     frequencyFr: "Même si tu passes rarement à découvert",
     frequencyEn: "Even if you rarely go overdrawn"
   }

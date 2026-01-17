@@ -84,13 +84,13 @@
         ]
     },
     "antiOverdraft": {
-        "codename": "OVERDRAFT SHIELD",
-        "title": "PROTECT YOUR ACCOUNT",
-        "description": "53% of French people go overdrawn every year. Calculate your safety margin and activate your safeguards.",
+        "codename": "ZONE ZERO",
+        "title": "Avoid bank overdraft",
+        "description": "45% of French people go overdrawn. Calculate your RAV and activate your free protections.",
         "objectives": [
-            "Calculate your Disposable Income (RAV)",
+            "Calculate your Disposable Income",
             "Identify your risk level",
-            "Activate your anti-overdraft safeguards"
+            "Activate your anti-overdraft protections"
         ],
         "prerequisites": [
             "None"

@@ -84,13 +84,13 @@
         ]
     },
     "antiOverdraft": {
-        "codename": "L'ANTI-DÉCOUVERT",
-        "title": "BLINDE TON COMPTE",
-        "description": "53% des Français passent dans le rouge chaque année. Calcule ta marge de sécurité et active tes garde-fous.",
+        "codename": "ZONE ZÉRO",
+        "title": "Évite le découvert bancaire",
+        "description": "45% des Français passent dans le rouge. Calcule ton RAV et active tes protections gratuites.",
         "objectives": [
-            "Calcule ton Reste À Vivre (RAV)",
+            "Calcule ton Reste À Vivre",
             "Identifie ton niveau de risque",
-            "Active tes garde-fous anti-découvert"
+            "Active tes protections anti-découvert"
         ],
         "prerequisites": [
             "Aucun"
